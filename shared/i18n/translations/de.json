@@ -1112,7 +1112,7 @@
   "editor.desktop.documents.legend.edit": "Bearbeiten",
   "editor.desktop.documents.legend.toggle": "Hinzufügen/Deselektieren",
   "editor.desktop.documents.legend.open": "Inhalte öffnen",
-  "editor.desktop.documents.addButton": "Dokument hinzufügen",
+  "editor.desktop.documents.addButton": "Hinzufügen",
   "editor.desktop.documents.custom.title": "Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen",
   "editor.desktop.documents.custom.name": "Name *",
   "editor.desktop.documents.custom.namePlaceholder": "z.B. Finanzplan",

@@ -8,10 +8,11 @@ import React, {
 import { useRouter } from 'next/router';
 
 import { TemplateOverviewPanel, ConnectCopy } from './layout/Desktop/Desktop';
-import Sidebar from './layout/Workspace/Main Editor/Sidebar';
-import PreviewWorkspace from './layout/Workspace/Right-Panel/PreviewWorkspace';
-import InlineSectionEditor from './layout/Workspace/Editor/InlineSectionEditor';
-import DocumentsBar from './layout/Workspace/DocumentsBar/DocumentsBar';
+import Sidebar from './layout/Workspace/Navigation/Sidebar';
+import PreviewWorkspace from './layout/Workspace/Preview/PreviewWorkspace';
+import InlineSectionEditor from './layout/Workspace/Content/InlineSectionEditor';
+import DocumentsBar from './layout/Workspace/Content/DocumentsBar';
+import CurrentSelection from './layout/Workspace/Navigation/CurrentSelection';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 import {
   ANCILLARY_SECTION_ID,
@@ -343,6 +344,17 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     showAddSection: boolean;
     newSectionTitle: string;
     newSectionDescription: string;
+    selectionSummary?: {
+      productLabel: string;
+      productIcon?: string;
+      programLabel: string | null;
+      enabledSectionsCount: number;
+      totalSectionsCount: number;
+      enabledDocumentsCount: number;
+      totalDocumentsCount: number;
+      sectionTitles: string[];
+      documentTitles: string[];
+    };
     handlers: any;
   } | null>(null);
 
@@ -549,38 +561,30 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
                 {/* Workspace Container - Document-Centric Layout */}
                 <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm overflow-hidden w-full">
-                  {/* Grid Layout: Sidebar (left, spans 2 rows) + DocumentsBar + Preview (right column) */}
-                  <div className="grid grid-cols-[320px_1fr] gap-4 h-[calc(100vh-400px)] min-h-[600px]">
-                    {/* Sidebar - Left Column, Spans Full Height */}
-                    <div className="row-span-2 border-r border-white/10 pr-4">
-                      <Sidebar
-                        plan={plan}
-                        activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-                        onSelectSection={setActiveSection}
-                        filteredSectionIds={filteredSectionIds}
-                        filteredSections={templateState?.filteredSections}
-                        disabledSections={templateState?.disabledSections}
-                        expandedSectionId={templateState?.expandedSectionId}
-                        editingSection={templateState?.editingSection}
-                        showAddSection={templateState?.showAddSection}
-                        newSectionTitle={templateState?.newSectionTitle}
-                        newSectionDescription={templateState?.newSectionDescription}
-                        onToggleSection={templateState?.handlers?.onToggleSection}
-                        onEditSection={templateState?.handlers?.onEditSection}
-                        onSaveSection={templateState?.handlers?.onSaveSection}
-                        onCancelEdit={templateState?.handlers?.onCancelEdit}
-                        onToggleAddSection={templateState?.handlers?.onToggleAddSection}
-                        onAddCustomSection={templateState?.handlers?.onAddCustomSection}
-                        onSetNewSectionTitle={templateState?.handlers?.onSetNewSectionTitle}
-                        onSetNewSectionDescription={templateState?.handlers?.onSetNewSectionDescription}
-                        onRemoveCustomSection={templateState?.handlers?.onRemoveCustomSection}
-                        getOriginBadge={templateState?.handlers?.getOriginBadge}
-                        selectedProductMeta={productOptions.find((option) => option.value === selectedProduct) ?? null}
-                        programSummary={programSummary ? { name: programSummary.name, amountRange: programSummary.amountRange ?? undefined } : null}
-                      />
+                  {/* Grid Layout: 2 rows, 2 columns */}
+                  <div className="grid grid-cols-[320px_1fr] grid-rows-[auto_1fr] gap-4 h-[calc(100vh-380px)] min-h-[800px] max-h-[calc(100vh-200px)]">
+                    {/* Row 1, Col 1: Current Selection - Fills gap next to DocumentsBar */}
+                    <div className="flex-shrink-0">
+                      {templateState?.selectionSummary ? (
+                        <CurrentSelection
+                          productLabel={templateState.selectionSummary.productLabel}
+                          productIcon={templateState.selectionSummary.productIcon}
+                          programLabel={templateState.selectionSummary.programLabel}
+                          enabledSectionsCount={templateState.selectionSummary.enabledSectionsCount}
+                          totalSectionsCount={templateState.selectionSummary.totalSectionsCount}
+                          enabledDocumentsCount={templateState.selectionSummary.enabledDocumentsCount}
+                          totalDocumentsCount={templateState.selectionSummary.totalDocumentsCount}
+                          sectionTitles={templateState.selectionSummary.sectionTitles}
+                          documentTitles={templateState.selectionSummary.documentTitles}
+                        />
+                      ) : (
+                        <div className="h-full border-r border-white/10 pr-4">
+                          <div className="text-white/60 text-sm">Loading selection...</div>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Documents Bar - Top Right, Same Width as Preview */}
+                    {/* Row 1, Col 2: Documents Bar - Same Width as Preview */}
                     <div className="flex-shrink-0">
                       {templateState ? (
                         <DocumentsBar
@@ -612,11 +616,41 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                         </div>
                       )}
                     </div>
+
+                    {/* Row 2, Col 1: Sidebar - Next to Preview */}
+                    <div className="border-r border-white/10 pr-4 min-h-0 flex flex-col" style={{ overflow: 'visible' }}>
+                      <Sidebar
+                        plan={plan}
+                        activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+                        onSelectSection={setActiveSection}
+                        filteredSectionIds={filteredSectionIds}
+                        filteredSections={templateState?.filteredSections}
+                        allSections={templateState?.allSections}
+                        disabledSections={templateState?.disabledSections}
+                        expandedSectionId={templateState?.expandedSectionId}
+                        editingSection={templateState?.editingSection}
+                        showAddSection={templateState?.showAddSection}
+                        newSectionTitle={templateState?.newSectionTitle}
+                        newSectionDescription={templateState?.newSectionDescription}
+                        onToggleSection={templateState?.handlers?.onToggleSection}
+                        onEditSection={templateState?.handlers?.onEditSection}
+                        onSaveSection={templateState?.handlers?.onSaveSection}
+                        onCancelEdit={templateState?.handlers?.onCancelEdit}
+                        onToggleAddSection={templateState?.handlers?.onToggleAddSection}
+                        onAddCustomSection={templateState?.handlers?.onAddCustomSection}
+                        onSetNewSectionTitle={templateState?.handlers?.onSetNewSectionTitle}
+                        onSetNewSectionDescription={templateState?.handlers?.onSetNewSectionDescription}
+                        onRemoveCustomSection={templateState?.handlers?.onRemoveCustomSection}
+                        getOriginBadge={templateState?.handlers?.getOriginBadge}
+                        selectedProductMeta={productOptions.find((option) => option.value === selectedProduct) ?? null}
+                        programSummary={programSummary ? { name: programSummary.name, amountRange: programSummary.amountRange ?? undefined } : null}
+                      />
+                    </div>
                     
-                    {/* Preview - Bottom Right, Same Width as DocumentsBar */}
-                    <div className="flex-1 min-w-0 overflow-hidden relative" id="preview-container">
+                    {/* Row 2, Col 2: Preview - Full Width */}
+                    <div className="min-w-0 min-h-0 overflow-hidden relative flex flex-col h-full min-h-[700px]" id="preview-container">
                       {/* Preview - Always visible */}
-                      <div className="h-full overflow-y-auto relative" id="preview-scroll-container">
+                      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative" id="preview-scroll-container">
                         <PreviewWorkspace 
                           plan={plan} 
                           focusSectionId={activeSectionId} 

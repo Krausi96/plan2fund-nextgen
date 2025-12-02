@@ -1,183 +1,108 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
-type EditFormProps = {
+type DesktopEditFormProps = {
   type: 'section' | 'document';
   item: SectionTemplate | DocumentTemplate;
   onSave: (item: SectionTemplate | DocumentTemplate) => void;
   onCancel: () => void;
-  getOriginBadge: (origin?: string) => React.ReactNode;
+  getOriginBadge?: (origin?: string, isSelected?: boolean) => React.ReactNode;
 };
 
-export function DesktopEditForm({ type, item, onSave, onCancel, getOriginBadge }: EditFormProps) {
+export function DesktopEditForm({
+  type,
+  item,
+  onSave,
+  onCancel,
+  getOriginBadge
+}: DesktopEditFormProps) {
   const { t } = useI18n();
-  // Use local state to prevent parent re-renders on every keystroke
-  const [localItem, setLocalItem] = useState<SectionTemplate | DocumentTemplate>(item);
-
-  // Update local state when item prop changes (e.g., when switching items)
-  useEffect(() => {
-    setLocalItem(item);
-  }, [item]);
+  const [title, setTitle] = useState(type === 'section' ? (item as SectionTemplate).title : (item as DocumentTemplate).name);
+  const [description, setDescription] = useState(item.description || '');
 
   const handleSave = () => {
-    onSave(localItem);
+    if (type === 'section') {
+      const section = item as SectionTemplate;
+      onSave({
+        ...section,
+        title: title.trim(),
+        description: description.trim()
+      });
+    } else {
+      const document = item as DocumentTemplate;
+      onSave({
+        ...document,
+        name: title.trim(),
+        description: description.trim()
+      });
+    }
   };
 
   const isSection = type === 'section';
-  const sectionItem = isSection ? (localItem as SectionTemplate) : null;
-  const documentItem = !isSection ? (localItem as DocumentTemplate) : null;
+  const nameLabel = isSection 
+    ? (t('editor.desktop.sections.custom.name' as any) || 'Titel *')
+    : (t('editor.desktop.documents.custom.name' as any) || 'Name *');
+  const descriptionLabel = isSection
+    ? (t('editor.desktop.sections.custom.description' as any) || 'Beschreibung')
+    : (t('editor.desktop.documents.custom.description' as any) || 'Beschreibung');
+  const saveLabel = t('editor.desktop.edit.save' as any) || 'Speichern';
+  const cancelLabel = t('editor.desktop.edit.cancel' as any) || 'Abbrechen';
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0 pr-1">
-      <div className="border rounded-lg p-4 bg-white/10 border-white/20">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{isSection ? '📋' : '📄'}</span>
-            <div>
-              <h3 className="text-sm font-semibold text-white">
-                {isSection
-                  ? (t('editor.desktop.editForm.sectionTitle' as any) || 'Abschnitt bearbeiten')
-                  : (t('editor.desktop.editForm.documentTitle' as any) || 'Dokument bearbeiten')}
-              </h3>
-              <div className="flex items-center gap-1 mt-1">
-                {localItem.required && (
-                  <Badge variant="warning" className="bg-amber-600/30 text-amber-200 border-0 text-[9px] px-1.5 py-0.5">
-                    {t('editor.desktop.editForm.requiredBadge' as any) || 'Erf.'}
-                  </Badge>
-                )}
-                {getOriginBadge(localItem.origin)}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={onCancel}
-            className="text-white/60 hover:text-white text-lg font-bold"
-          >
-            ×
-          </button>
-        </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-white">
+          {isSection 
+            ? (t('editor.desktop.sections.edit.title' as any) || 'Abschnitt bearbeiten')
+            : (t('editor.desktop.documents.edit.title' as any) || 'Dokument bearbeiten')}
+        </h3>
+        {getOriginBadge && item.origin && (
+          <div>{getOriginBadge(item.origin, false)}</div>
+        )}
+      </div>
 
-        <div className="space-y-3">
-          <div>
-            <label className="text-[10px] text-white/70 block mb-1">
-              {isSection
-                ? (t('editor.desktop.editForm.sectionNameLabel' as any) || 'Titel *')
-                : (t('editor.desktop.editForm.documentNameLabel' as any) || 'Name *')}
-            </label>
-            <input
-              type="text"
-              value={isSection ? sectionItem!.title : documentItem!.name}
-              onChange={(e) => {
-                if (isSection) {
-                  setLocalItem({ ...sectionItem!, title: e.target.value } as SectionTemplate);
-                } else {
-                  setLocalItem({ ...documentItem!, name: e.target.value } as DocumentTemplate);
-                }
-              }}
-              className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
-            />
-          </div>
+      <div>
+        <label className="text-[10px] text-white/70 block mb-1">
+          {nameLabel}
+        </label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+          autoFocus
+        />
+      </div>
 
-          <div>
-            <label className="text-[10px] text-white/70 block mb-1">
-              {t('editor.desktop.editForm.descriptionLabel' as any) || 'Beschreibung'}
-            </label>
-            <textarea
-              value={localItem.description}
-              onChange={(e) => setLocalItem({ ...localItem, description: e.target.value })}
-              rows={3}
-              className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
-            />
-          </div>
+      <div>
+        <label className="text-[10px] text-white/70 block mb-1">
+          {descriptionLabel}
+        </label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+          className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
+        />
+      </div>
 
-          {isSection && sectionItem ? (
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] text-white/70 block mb-1">
-                  {t('editor.desktop.editForm.minWords' as any) || 'Min. Wörter'}
-                </label>
-                <input
-                  type="number"
-                  value={sectionItem.wordCountMin}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value, 10);
-                    setLocalItem({ ...sectionItem, wordCountMin: isNaN(val) ? 0 : val } as SectionTemplate);
-                  }}
-                  className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-white/70 block mb-1">
-                  {t('editor.desktop.editForm.maxWords' as any) || 'Max. Wörter'}
-                </label>
-                <input
-                  type="number"
-                  value={sectionItem.wordCountMax === Number.MAX_SAFE_INTEGER ? '' : sectionItem.wordCountMax}
-                  onChange={(e) => {
-                    const val = e.target.value ? parseInt(e.target.value, 10) : Number.MAX_SAFE_INTEGER;
-                    setLocalItem({ ...sectionItem, wordCountMax: (!isNaN(val) && val > 0) ? val : Number.MAX_SAFE_INTEGER } as SectionTemplate);
-                  }}
-                  className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
-                  placeholder="∞"
-                />
-              </div>
-            </div>
-          ) : documentItem ? (
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] text-white/70 block mb-1">
-                  {t('editor.desktop.editForm.format' as any) || 'Format'}
-                </label>
-                <select
-                  value={documentItem.format}
-                  onChange={(e) => {
-                    setLocalItem({ ...documentItem, format: e.target.value as any } as DocumentTemplate);
-                  }}
-                  className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
-                >
-                  <option value="pdf">PDF</option>
-                  <option value="docx">DOCX</option>
-                  <option value="xlsx">XLSX</option>
-                  <option value="pptx">PPTX</option>
-                  <option value="text">TEXT</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] text-white/70 block mb-1">
-                  {t('editor.desktop.editForm.maxSize' as any) || 'Max. Größe'}
-                </label>
-                <input
-                  type="text"
-                  value={documentItem.maxSize}
-                  onChange={(e) => {
-                    setLocalItem({ ...documentItem, maxSize: e.target.value } as DocumentTemplate);
-                  }}
-                  placeholder="10MB"
-                  className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
-                />
-              </div>
-            </div>
-          ) : null}
-
-          <div className="flex gap-2 pt-2">
-            <Button
-              onClick={handleSave}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5"
-            >
-              {t('editor.desktop.editForm.save' as any) || 'Speichern'}
-            </Button>
-            <Button
-              onClick={onCancel}
-              variant="ghost"
-              className="flex-1 text-white/60 hover:text-white text-xs px-3 py-1.5"
-            >
-              {t('editor.desktop.editForm.cancel' as any) || 'Abbrechen'}
-            </Button>
-          </div>
-        </div>
+      <div className="flex gap-2 pt-1">
+        <Button
+          onClick={handleSave}
+          disabled={!title.trim()}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {saveLabel}
+        </Button>
+        <Button
+          onClick={onCancel}
+          variant="ghost"
+          className="text-white/60 hover:text-white text-xs px-3 py-1"
+        >
+          {cancelLabel}
+        </Button>
       </div>
     </div>
   );

@@ -74,14 +74,11 @@ export default function DocumentsBar({
     <div className="w-full border-b border-white/10 pb-3 mb-3">
       {/* Header - aligned with Sidebar header height */}
       <div className="flex-shrink-0 mb-2">
-        <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/50">
+        <h2 className="text-lg font-bold uppercase tracking-wide text-white border-b border-white/50">
           {t('editor.desktop.documents.title' as any) || 'Deine Dokumente'} ({enabledDocumentsCount})
         </h2>
       </div>
-      <p className="text-[10px] text-white/60 mb-1 flex-shrink-0 -mt-2">
-        {t('editor.desktop.documents.subtitle' as any) || 'Entscheide welche zusätzlichen Dokumente zu deinem Plan hinzugefügt werden.'}
-      </p>
-      <div className="text-[9px] text-white/40 mb-2 flex-shrink-0 flex items-center gap-3 -mt-1">
+      <div className="text-xs text-white/50 mb-2 flex-shrink-0 flex items-center gap-3">
         <span className="flex items-center gap-1">
           <span>✏️</span>
           <span>{t('editor.desktop.documents.legend.edit' as any) || 'Bearbeiten'}</span>
@@ -89,10 +86,6 @@ export default function DocumentsBar({
         <span className="flex items-center gap-1">
           <input type="checkbox" className="w-2.5 h-2.5" disabled />
           <span>{t('editor.desktop.documents.legend.toggle' as any) || 'Hinzufügen/Deselektieren'}</span>
-        </span>
-        <span className="flex items-center gap-1">
-          <span>👆</span>
-          <span>{t('editor.desktop.documents.legend.open' as any) || 'Inhalte öffnen'}</span>
         </span>
       </div>
 
@@ -103,20 +96,20 @@ export default function DocumentsBar({
           <button
             type="button"
             onClick={onToggleAddDocument}
-            className={`relative flex-shrink-0 border rounded-lg p-2.5 flex flex-col items-center justify-center gap-2 text-center text-[11px] font-semibold tracking-tight transition-all min-w-[140px] ${
+            className={`relative flex-shrink-0 border rounded-lg p-1.5 flex flex-col items-center justify-center gap-1.5 text-center text-[11px] font-semibold tracking-tight transition-all w-[90px] h-[80px] ${
               showAddDocument
                 ? 'border-blue-400/60 bg-blue-600/30 text-white shadow-lg shadow-blue-900/40'
                 : 'border-white/20 bg-white/10 text-white/70 hover:border-white/40 hover:text-white'
             }`}
           >
             <span className="text-2xl leading-none">＋</span>
-            <span>{t('editor.desktop.documents.addButton' as any) || 'Dokument hinzufügen'}</span>
+            <span>{t('editor.desktop.documents.addButton' as any) || 'Hinzufügen'}</span>
           </button>
         )}
 
         {/* Add Document Form - Original style */}
         {showAddDocument && !expandedDocumentId && (
-          <div className="flex-shrink-0 col-span-3 border border-white/20 bg-white/10 rounded-lg p-3 space-y-2 min-w-[420px]">
+          <div className="flex-shrink-0 col-span-3 border border-white/20 bg-white/10 rounded-lg p-2.5 space-y-2 min-w-[420px]">
             <p className="text-xs text-white/70 font-semibold mb-2">
               {t('editor.desktop.documents.custom.title' as any) || 'Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen'}
             </p>
@@ -172,7 +165,7 @@ export default function DocumentsBar({
             onClick={() => {
               onSelectDocument(null);
             }}
-            className={`relative flex-shrink-0 border rounded-lg p-2.5 cursor-pointer transition-all group min-w-[140px] ${
+            className={`relative flex-shrink-0 border rounded-lg p-1.5 cursor-pointer transition-all group w-[90px] h-[80px] ${
               clickedDocumentId === null
                 ? 'border-blue-400/60 bg-blue-600/20 ring-2 ring-blue-400/40' // Selected
                 : clickedDocumentId
@@ -193,12 +186,12 @@ export default function DocumentsBar({
                 </svg>
               </div>
             </div>
-            <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px]">
-              <span className="text-2xl leading-none flex-shrink-0">
+            <div className="flex flex-col items-center gap-1 pt-2 min-h-[40px]">
+              <span className="text-xl leading-none flex-shrink-0">
                 {selectedProductMeta.icon ?? '📄'}
               </span>
-              <div className="w-full text-center min-h-[28px] flex items-center justify-center">
-                <h4 className="text-[11px] font-semibold leading-snug text-white break-words line-clamp-2">
+              <div className="w-full text-center min-h-[24px] flex items-center justify-center">
+                <h4 className="text-[10px] font-semibold leading-snug text-white break-words line-clamp-2">
                   {selectedProductMeta.label}
                 </h4>
               </div>
@@ -235,7 +228,7 @@ export default function DocumentsBar({
                 }
                 onSelectDocument(doc.id);
               }}
-              className={`relative flex-shrink-0 border rounded-lg p-2.5 cursor-pointer transition-all min-w-[140px] ${
+              className={`relative flex-shrink-0 border rounded-lg p-1.5 cursor-pointer transition-all w-[90px] h-[80px] ${
                 isSelected
                   ? 'border-blue-400/60 bg-blue-600/20 ring-2 ring-blue-400/40'
                   : isUnselected
@@ -282,11 +275,11 @@ export default function DocumentsBar({
                 />
               </div>
 
-              <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px] w-full">
-                <span className="text-2xl leading-none flex-shrink-0">📄</span>
-                <div className="w-full text-center min-h-[28px] flex items-center justify-center gap-1">
+              <div className="flex flex-col items-center gap-1 pt-2 min-h-[40px] w-full">
+                <span className="text-xl leading-none flex-shrink-0">📄</span>
+                <div className="w-full text-center min-h-[24px] flex items-center justify-center gap-1">
                   <h4
-                    className={`text-[11px] font-semibold leading-snug ${
+                    className={`text-[10px] font-semibold leading-snug ${
                       isDisabled ? 'text-white/50 line-through' : 'text-white'
                     } break-words line-clamp-2`}
                   >

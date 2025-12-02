@@ -49,6 +49,7 @@ export function DesktopConfigurator({
   const [showTemplatePreview, setShowTemplatePreview] = useState(false);
   const [extractedTemplates, setExtractedTemplates] = useState<{ sections?: SectionTemplate[]; documents?: DocumentTemplate[]; errors?: string[] } | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [manualInputPosition, setManualInputPosition] = useState<{ top: number; left: number; width: number } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const manualInputRef = useRef<HTMLDivElement | null>(null);
@@ -155,7 +156,22 @@ export function DesktopConfigurator({
   }, [showProductMenu]);
 
   useEffect(() => {
-    if (!showManualInput) return;
+    if (!showManualInput) {
+      setManualInputPosition(null);
+      return;
+    }
+    const updatePosition = () => {
+      if (manualTriggerRef.current) {
+        const rect = manualTriggerRef.current.getBoundingClientRect();
+        setManualInputPosition({
+          top: rect.bottom + 8,
+          left: rect.left,
+          width: Math.min(rect.width, 420)
+        });
+      }
+    };
+    updatePosition();
+    
     const handleClickAway = (event: MouseEvent) => {
       const target = event.target as Node;
       if (
@@ -167,27 +183,36 @@ export function DesktopConfigurator({
         setShowManualInput(false);
       }
     };
+    const handleResize = () => {
+      updatePosition();
+    };
     document.addEventListener('mousedown', handleClickAway);
-    return () => document.removeEventListener('mousedown', handleClickAway);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleResize, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClickAway);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleResize, true);
+    };
   }, [showManualInput]);
 
   const selectedMeta = selectedProductMeta ?? productOptions.find((option) => option.value === productType) ?? productOptions[0] ?? null;
 
   return (
-      <div className="flex flex-col gap-4 w-full max-w-full overflow-y-auto min-h-0">
+      <div className="flex flex-col gap-2 w-full max-w-full overflow-y-auto min-h-0">
       <div className="flex-shrink-0">
-        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/50">
-          <h2 className="text-xl font-bold uppercase tracking-wide text-white">
+        <div className="flex items-center gap-2 mb-1 pb-1 border-b border-white/50">
+          <h2 className="text-lg font-bold uppercase tracking-wide text-white">
             {t('editor.desktop.config.title' as any) || 'Deine Konfiguration'}
           </h2>
         </div>
       </div>
 
       <div className="bg-white/5 border border-white/10 rounded-lg p-2">
-        <div className="flex items-center gap-2 mb-4 p-1 bg-white/5 rounded-lg">
+        <div className="flex items-center gap-2 mb-2 p-1 bg-white/5 rounded-lg">
           <button
             onClick={() => onConfigViewChange('plan')}
-            className={`flex-1 px-4 py-2 rounded text-sm font-semibold transition-colors ${
+            className={`flex-1 px-4 py-2 rounded text-base font-semibold transition-colors ${
               configView === 'plan'
                 ? 'bg-blue-600 text-white'
                 : 'text-white/70 hover:text-white'
@@ -197,7 +222,7 @@ export function DesktopConfigurator({
           </button>
           <button
             onClick={() => onConfigViewChange('program')}
-            className={`flex-1 px-4 py-2 rounded text-sm font-semibold transition-colors ${
+            className={`flex-1 px-4 py-2 rounded text-base font-semibold transition-colors ${
               configView === 'program'
                 ? 'bg-blue-600 text-white'
                 : 'text-white/70 hover:text-white'
@@ -213,21 +238,22 @@ export function DesktopConfigurator({
               ref={productTriggerRef}
               type="button"
               onClick={handleToggleProductMenu}
-              className="flex w-full items-center gap-4 rounded-2xl border border-white/25 bg-gradient-to-br from-white/15 via-white/5 to-transparent px-6 py-4 text-left transition-all hover:border-white/60 focus-visible:border-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200/60 shadow-xl min-h-[120px]"
+              className="flex w-full items-center gap-2 rounded-xl border border-white/25 bg-gradient-to-br from-white/15 via-white/5 to-transparent px-3 py-2 text-left transition-all hover:border-white/60 focus-visible:border-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200/60 shadow-xl"
             >
-              <span className="flex min-w-0 flex-col gap-2 flex-1">
-                <span className="flex items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 text-2xl leading-none text-white shadow-inner shadow-blue-900/40 flex-shrink-0">
-                    {selectedMeta?.icon ?? '📄'}
-                  </span>
-                  <span className="text-lg font-semibold leading-tight text-white">{selectedMeta?.label}</span>
-                  <span className="flex items-center text-xl font-bold flex-shrink-0 text-white/70">▾</span>
-                </span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 text-lg leading-none text-white shadow-inner shadow-blue-900/40 flex-shrink-0">
+                {selectedMeta?.icon ?? '📄'}
+              </span>
+              <span className="flex min-w-0 flex-1 items-center gap-2">
+                <span className="text-xl font-semibold leading-tight text-white flex-shrink-0">{selectedMeta?.label}</span>
                 {selectedMeta?.description && (
-                  <span className="text-sm font-normal text-white/70 leading-relaxed">
-                    {selectedMeta.description}
-                  </span>
+                  <>
+                    <span className="text-white/40 flex-shrink-0">|</span>
+                    <span className="text-xs font-normal text-white/60 leading-tight flex-1 min-w-0 truncate" title={selectedMeta.description}>
+                      {selectedMeta.description}
+                    </span>
+                  </>
                 )}
+                <span className="flex items-center text-2xl font-bold flex-shrink-0 text-white/70 ml-auto leading-none">▾</span>
               </span>
             </button>
             {showProductMenu && productMenuPosition && typeof window !== 'undefined' && createPortal(
@@ -275,7 +301,7 @@ export function DesktopConfigurator({
         )}
 
         {configView === 'program' && (
-          <div>
+          <div className="mb-4 pb-2">
             {programSummary ? (
               <div className="w-full rounded-lg border border-blue-300 bg-blue-100/60 px-3 py-2.5">
                 <div className="flex items-start justify-between gap-2 w-full">
@@ -328,15 +354,17 @@ export function DesktopConfigurator({
                   className="hidden"
                 />
 
-                <div
-                  id="manual-program-connect"
-                  ref={manualInputRef}
-                  className={`absolute left-0 top-[calc(100%+0.75rem)] w-full max-w-[420px] rounded-2xl border border-blue-500/40 bg-slate-950/95 p-3 shadow-2xl backdrop-blur-xl transition-all duration-200 z-50 ${
-                    showManualInput
-                      ? 'pointer-events-auto opacity-100 translate-y-0'
-                      : 'pointer-events-none opacity-0 -translate-y-2'
-                  }`}
-                >
+                {showManualInput && typeof window !== 'undefined' && manualInputPosition && createPortal(
+                  <div
+                    id="manual-program-connect"
+                    ref={manualInputRef}
+                    className={`fixed rounded-2xl border border-blue-500/40 bg-slate-950/95 p-3 shadow-2xl backdrop-blur-xl transition-all duration-200 z-[9999] pointer-events-auto opacity-100 translate-y-0`}
+                    style={{
+                      top: `${manualInputPosition.top}px`,
+                      left: `${manualInputPosition.left}px`,
+                      width: `${manualInputPosition.width}px`
+                    }}
+                  >
                   <div className="space-y-1 text-white">
                     <label className="text-[10px] font-semibold text-white/70 block">
                       {connectCopy.inputLabel}
@@ -363,77 +391,13 @@ export function DesktopConfigurator({
                       <p className="text-[10px] text-red-400">{manualError || programError}</p>
                     )}
                   </div>
-                </div>
+                  </div>,
+                  document.body
+                )}
               </div>
             )}
           </div>
         )}
-      </div>
-
-      {/* Enhanced Description - Below selector card */}
-      <div className="mt-3 p-3 rounded-lg border border-blue-500/30 bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-transparent backdrop-blur-sm flex-shrink-0">
-        <div className="flex items-start gap-2 mb-2">
-          <span className="text-base leading-none flex-shrink-0 mt-0.5">ℹ️</span>
-          <div className="flex-1 text-[10px] text-white/80 leading-relaxed">
-            {(() => {
-              // Get translation with fallback
-              let descriptionText: string;
-              try {
-                descriptionText = t('editor.desktop.config.description' as any);
-                // If translation returns the key itself (meaning it wasn't found), use fallback
-                if (!descriptionText || descriptionText === 'editor.desktop.config.description') {
-                  descriptionText = 'Plan-Typ: Wähle Strategy, Review oder Submission → System lädt Basis-Abschnitte (z.B. Executive Summary, Financial Plan, Project Description)\n\nProgramm: Verbinde Förderprogramm (AWS, FFG, EU) → System fügt programmspezifische Abschnitte & Dokumente hinzu\n\nTemplate: Lade PDF/TXT/MD hoch → System extrahiert Abschnitte/Dokumente als benutzerdefinierte Vorlage\n\nSo funktioniert\'s:\n• Option 1: Nur Plan-Typ → Sie erhalten die Basis-Struktur\n• Option 2: Plan-Typ + Programm → Basis-Struktur wird mit programmspezifischen Anforderungen ergänzt\n• Optional: Zusätzlich eigene Vorlage hochladen';
-                }
-              } catch (error) {
-                console.warn('Translation error:', error);
-                descriptionText = 'Plan-Typ: Wähle Strategy, Review oder Submission → System lädt Basis-Abschnitte (z.B. Executive Summary, Financial Plan, Project Description)\n\nProgramm: Verbinde Förderprogramm (AWS, FFG, EU) → System fügt programmspezifische Abschnitte & Dokumente hinzu\n\nTemplate: Lade PDF/TXT/MD hoch → System extrahiert Abschnitte/Dokumente als benutzerdefinierte Vorlage\n\nSo funktioniert\'s:\n• Option 1: Nur Plan-Typ → Sie erhalten die Basis-Struktur\n• Option 2: Plan-Typ + Programm → Basis-Struktur wird mit programmspezifischen Anforderungen ergänzt\n• Optional: Zusätzlich eigene Vorlage hochladen';
-              }
-              const description = typeof descriptionText === 'string' ? descriptionText : String(descriptionText || '');
-              return description.split('\n').map((line: string, idx: number) => {
-                const trimmed = line.trim();
-                
-                // Empty lines - add spacing
-                if (!trimmed) {
-                  return <div key={idx} className="h-1.5" />;
-                }
-                
-                // Format bullet points
-                if (trimmed.startsWith('•')) {
-                  return (
-                    <div key={idx} className="pl-3 mt-0.5 text-white/90">
-                      {trimmed}
-                    </div>
-                  );
-                }
-                
-                // Format "So funktioniert's:" / "How it works:" header
-                if (trimmed.includes('funktioniert') || trimmed.includes('How it works')) {
-                  return (
-                    <div key={idx} className="font-semibold mt-2 mb-0.5 text-white">
-                      {trimmed}
-                    </div>
-                  );
-                }
-                
-                // Format section headers (lines with →)
-                if (trimmed.includes('→')) {
-                  return (
-                    <div key={idx} className="font-semibold mt-1 first:mt-0 text-white/95">
-                      {trimmed}
-                    </div>
-                  );
-                }
-                
-                // Regular lines
-                return (
-                  <div key={idx} className="mt-0.5">
-                    {trimmed}
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
       </div>
 
       <Dialog open={showTemplatePreview} onOpenChange={setShowTemplatePreview}>

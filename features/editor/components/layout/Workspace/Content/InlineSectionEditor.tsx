@@ -3,17 +3,14 @@ import { Section, BusinessPlan } from '@/features/editor/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useEditorStore, validateQuestionRequirements, METADATA_SECTION_ID, ANCILLARY_SECTION_ID, AISuggestionIntent } from '@/features/editor/hooks/useEditorStore';
-import MetadataAndAncillaryPanel from '@/features/editor/components/layout/Workspace/Title Page & Attachement Data/MetadataAndAncillaryPanel';
-import DataPanel from '@/features/editor/components/layout/Workspace/Right-Panel/DataPanel';
+import { useEditorStore, validateQuestionRequirements, METADATA_SECTION_ID, ANCILLARY_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
+import MetadataAndAncillaryPanel from '../Metadata/MetadataAndAncillaryPanel';
 import {
   Dataset,
   KPI,
   MediaAsset
 } from '@/features/editor/types/plan';
 // CSS will be injected dynamically since classes are applied to preview DOM elements
-
-type EditorTab = 'editor' | 'ai' | 'data' | 'context';
 
 type InlineSectionEditorProps = {
   sectionId: string | null;
@@ -73,8 +70,8 @@ export default function InlineSectionEditor({
   onAppendixUpdate,
   onAppendixDelete,
   onRunRequirements,
-  onDatasetCreate,
-  onKpiCreate,
+  onDatasetCreate: _onDatasetCreate,
+  onKpiCreate: _onKpiCreate,
   onMediaCreate,
   onAttachDataset,
   onAttachKpi,
@@ -83,8 +80,6 @@ export default function InlineSectionEditor({
 }: InlineSectionEditorProps) {
   const { t } = useI18n();
   const { templates, requestAISuggestions } = useEditorStore();
-  const [activeTab, setActiveTab] = useState<EditorTab>('editor');
-  const [requirementsChecked, setRequirementsChecked] = useState(false);
   const [position, setPosition] = useState<EditorPosition>({
     top: 0,
     left: 0,
@@ -95,6 +90,10 @@ export default function InlineSectionEditor({
   const positionUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOverTarget, setDragOverTarget] = useState<'logo' | 'attachment' | null>(null);
+  const [activeTab, setActiveTab] = useState<'ai' | 'data' | 'context'>('ai');
+  const [aiMessages, setAiMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiInput, setAiInput] = useState('');
 
   // Check if this is a metadata or ancillary section
   const isMetadataSection = sectionId === METADATA_SECTION_ID;
@@ -108,19 +107,6 @@ export default function InlineSectionEditor({
   const validation = activeQuestion && template && section
     ? validateQuestionRequirements(activeQuestion, section, template)
     : null;
-
-  // AI Assistant handlers
-  const handleQuickAsk = useCallback((intent: AISuggestionIntent) => {
-    if (!activeQuestion || !section) return;
-    requestAISuggestions(section.id, activeQuestion.id, { intent });
-    setActiveTab('ai');
-  }, [activeQuestion, section, requestAISuggestions]);
-
-  const handleAskForStructure = useCallback(() => {
-    if (!activeQuestion || !section) return;
-    setActiveTab('ai');
-    requestAISuggestions(section.id, activeQuestion.id, { intent: 'data' });
-  }, [activeQuestion, section, requestAISuggestions]);
 
   // Calculate position relative to preview container
   const calculatePosition = useCallback(() => {
@@ -454,26 +440,26 @@ export default function InlineSectionEditor({
   if (isMetadataSection || isAncillarySection) {
     return (
       <div
-        ref={editorRef}
-        className={`absolute z-10 rounded-2xl border-2 ${
-          isDragging 
-            ? 'border-blue-500 border-dashed bg-blue-50/50' 
-            : 'border-blue-400/60 bg-white/98'
-        } backdrop-blur-xl shadow-2xl overflow-hidden transition-all`}
-        style={{
-          top: `${position.top}px`,
-          left: `${position.left}px`,
-          width: `${EDITOR_WIDTH}px`,
-          maxHeight: `${EDITOR_MAX_HEIGHT}px`,
+          ref={editorRef}
+          className={`absolute z-10 rounded-2xl border-2 ${
+            isDragging 
+              ? 'border-blue-500 border-dashed bg-blue-50/50' 
+              : 'border-blue-400/60 bg-white/98'
+          } backdrop-blur-xl shadow-2xl overflow-hidden transition-all`}
+          style={{
+            top: `${position.top}px`,
+            left: `${position.left}px`,
+            width: `${EDITOR_WIDTH}px`,
+            maxHeight: `${EDITOR_MAX_HEIGHT}px`,
           position: 'absolute',
           overflowY: 'auto',
           overflowX: 'hidden'
-        }}
-        onDragEnter={handleDragEnter}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
+          }}
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           {isDragging && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-100/80 backdrop-blur-sm rounded-2xl pointer-events-none">
               <div className="text-center p-6">
@@ -694,178 +680,91 @@ export default function InlineSectionEditor({
           </div>
 
           {/* Tabs */}
-          <div className="border-t border-slate-200 pt-3 mt-3">
-            <div className="flex gap-1.5 mb-3" role="tablist" aria-label="Editor tools">
-              {[
-                { key: 'editor' as EditorTab, label: 'Editor', icon: '✏️' },
-                { key: 'ai' as EditorTab, label: (t('editor.ui.tabs.assistant' as any) as string) || 'AI', icon: '💬' },
-                { key: 'data' as EditorTab, label: (t('editor.ui.tabs.data' as any) as string) || 'Data', icon: '📊' },
-                { key: 'context' as EditorTab, label: 'Context', icon: '📋' }
-              ].map(({ key, label, icon }) => {
-                const isActive = activeTab === key;
-                return (
-                  <Button
-                    key={key}
-                    role="tab"
-                    aria-selected={isActive}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setActiveTab(key)}
-                    className={`flex-1 justify-center rounded-lg border text-xs ${
-                      isActive
-                        ? 'border-blue-600 bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
-                        : 'border-slate-300 text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="mr-1">{icon}</span>
-                    {label}
-                  </Button>
-                );
-              })}
+          <div className="border-t border-slate-200">
+            <div className="flex border-b border-slate-200">
+              <button
+                onClick={() => setActiveTab('ai')}
+                className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
+                  activeTab === 'ai'
+                    ? 'border-b-2 border-blue-500 text-blue-600 bg-blue-50/50'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                💬 AI
+              </button>
+              <button
+                onClick={() => setActiveTab('data')}
+                className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
+                  activeTab === 'data'
+                    ? 'border-b-2 border-blue-500 text-blue-600 bg-blue-50/50'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                📊 Data
+              </button>
+              <button
+                onClick={() => setActiveTab('context')}
+                className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
+                  activeTab === 'context'
+                    ? 'border-b-2 border-blue-500 text-blue-600 bg-blue-50/50'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                📋 Context
+              </button>
             </div>
 
             {/* Tab Content */}
-            <div className="mt-3">
-              {activeTab === 'editor' && (
-                <div className="text-xs text-slate-600">
-                  {/* Editor tab is the default view - content already shown above */}
-                </div>
-              )}
-
+            <div className="p-3 max-h-[200px] overflow-y-auto">
               {activeTab === 'ai' && (
-                <div className="space-y-3 text-sm">
-                  {activeQuestion ? (
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-xs font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
-                          {(t('editor.ui.currentQuestion' as any) as string) || 'Current question'}
-                        </p>
-                        <p className="font-semibold text-slate-900 leading-snug mb-1.5 text-base">{activeQuestion.prompt}</p>
-                        <p className="text-xs text-slate-600">
-                          {(t('editor.ui.status' as any) as string) || 'Status'}:{' '}
-                          <span className="font-medium text-slate-900">{activeQuestion.status}</span>
-                          {activeQuestion.status === 'blank' || activeQuestion.status === 'unknown'
-                            ? ` (${(t('editor.ui.aiFocusGuidance' as any) as string) || 'AI will focus on guidance'})`
-                            : ` (${(t('editor.ui.aiFocusCritique' as any) as string) || 'AI will focus on critique'})`}
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAsk('outline')} disabled={!activeQuestion}>
-                            Draft outline
-                          </Button>
-                          <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAsk('improve')} disabled={!activeQuestion}>
-                            Improve answer
-                          </Button>
-                          <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAsk('data')} disabled={!activeQuestion}>
-                            {(t('editor.ui.suggestDataKPIs' as any) as string) || 'Suggest data/KPIs'}
-                          </Button>
-                        </div>
-                      </div>
-                      {activeQuestion.answer ? (
-                        <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                          <p className="text-xs font-medium text-slate-700 mb-2">Answer preview</p>
-                          <p className="text-slate-900 text-sm leading-relaxed mb-2">{activeQuestion.answer.substring(0, 200)}...</p>
-                          <p className="text-xs text-slate-600">{activeQuestion.answer.split(/\s+/).length} words</p>
-                        </div>
-                      ) : (
-                        <p className="text-slate-700 text-sm leading-relaxed bg-slate-50 rounded-lg p-3 border border-slate-200">
-                          {(t('editor.ui.startTypingHint' as any) as string) ||
-                            'Start typing to provide context—the assistant draws on previous answers, datasets, and program requirements.'}
-                        </p>
-                      )}
-                      {activeQuestion.suggestions && activeQuestion.suggestions.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-slate-900">Latest response</p>
-                          {activeQuestion.suggestions.slice(-1).map((suggestion, index) => (
-                            <div key={index} className="border border-slate-300 bg-slate-50 rounded-lg p-2.5">
-                              <p className="text-sm text-slate-900 mb-2 leading-relaxed">{suggestion}</p>
-                              <div className="flex gap-2">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => navigator.clipboard.writeText(suggestion)}
-                                  className="text-slate-700 hover:text-slate-900 hover:bg-slate-100"
-                                >
-                                  Copy
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    const latestSuggestion = activeQuestion.suggestions?.[activeQuestion.suggestions.length - 1];
-                                    if (latestSuggestion) {
-                                      const currentAnswer = activeQuestion.answer ?? '';
-                                      const newContent = currentAnswer ? `${currentAnswer}\n\n${latestSuggestion}` : latestSuggestion;
-                                      onAnswerChange(activeQuestion.id, newContent);
-                                    }
-                                  }}
-                                  className="text-slate-700 hover:text-slate-900 hover:bg-slate-100"
-                                >
-                                  {(t('editor.ui.insert' as any) as string) || 'Insert'}
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-slate-400 text-sm">
-                      {(t('editor.ui.selectQuestion' as any) as string) || 'Select a question to receive AI suggestions.'}
-                    </div>
-                  )}
-                </div>
+                <AITab
+                  sectionId={sectionId}
+                  questionId={activeQuestion.id}
+                  messages={aiMessages}
+                  loading={aiLoading}
+                  input={aiInput}
+                  onInputChange={setAiInput}
+                  onSend={async (message) => {
+                    if (!sectionId || !activeQuestion.id) return;
+                    setAiLoading(true);
+                    setAiMessages(prev => [...prev, { role: 'user', content: message }]);
+                    setAiInput('');
+                    try {
+                      const response = await requestAISuggestions(sectionId, activeQuestion.id, {
+                        intent: message.toLowerCase().includes('draft') ? 'draft' : 
+                                message.toLowerCase().includes('improve') ? 'improve' : 'default'
+                      });
+                      setAiMessages(prev => [...prev, { role: 'assistant', content: response.content }]);
+                    } catch (error) {
+                      setAiMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
+                    } finally {
+                      setAiLoading(false);
+                    }
+                  }}
+                  onInsert={(content) => {
+                    onAnswerChange(activeQuestion.id, (activeQuestion.answer || '') + '\n\n' + content);
+                  }}
+                />
               )}
-
               {activeTab === 'data' && (
-                <div className="space-y-4">
-                  {section && onDatasetCreate && onKpiCreate && onMediaCreate ? (
-                    <DataPanel
-                      datasets={section.datasets ?? []}
-                      kpis={section.kpis ?? []}
-                      media={section.media ?? []}
-                      onDatasetCreate={onDatasetCreate}
-                      onKpiCreate={onKpiCreate}
-                      onMediaCreate={onMediaCreate}
-                      activeQuestionId={activeQuestionId}
-                      sectionId={section.id}
-                      sectionTitle={section.title}
-                      onAttachDataset={onAttachDataset}
-                      onAttachKpi={onAttachKpi}
-                      onAttachMedia={onAttachMedia}
-                      onAskForStructure={handleAskForStructure}
-                    />
-                  ) : (
-                    <div className="text-center py-8 text-slate-400 text-sm">
-                      Choose a section to manage datasets, KPIs, and media.
-                    </div>
-                  )}
-                </div>
+                <DataTab
+                  section={section}
+                  question={activeQuestion}
+                  onDatasetCreate={onDatasetCreate}
+                  onKpiCreate={onKpiCreate}
+                  onMediaCreate={onMediaCreate}
+                  onAttachDataset={onAttachDataset}
+                  onAttachKpi={onAttachKpi}
+                  onAttachMedia={onAttachMedia}
+                />
               )}
-
               {activeTab === 'context' && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Requirements validation</p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setRequirementsChecked(true);
-                        onRunRequirements();
-                      }}
-                      className="text-slate-700 border-slate-300 hover:bg-slate-50"
-                    >
-                      Run check
-                    </Button>
-                  </div>
-                  {!requirementsChecked ? (
-                    <p className="text-slate-500 text-xs">Run the checker to view validation status.</p>
-                  ) : (
-                    <RequirementSummary section={section} question={activeQuestion} progressSummary={progressSummary} />
-                  )}
-                </div>
+                <ContextTab
+                  section={section}
+                  question={activeQuestion}
+                  validation={validation}
+                  template={template}
+                />
               )}
             </div>
           </div>
@@ -875,83 +774,331 @@ export default function InlineSectionEditor({
   );
 }
 
-function RequirementSummary({
-  section,
-  question,
-  progressSummary
+// AI Tab Component
+function AITab({
+  sectionId,
+  questionId,
+  messages,
+  loading,
+  input,
+  onInputChange,
+  onSend,
+  onInsert
 }: {
-  section: Section | null;
-  question: any;
-  progressSummary: any[];
+  sectionId: string | null;
+  questionId: string;
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+  loading: boolean;
+  input: string;
+  onInputChange: (value: string) => void;
+  onSend: (message: string) => void;
+  onInsert: (content: string) => void;
 }) {
-  const { t } = useI18n();
-  if (!section || !question) {
-    return (
-      <p className="text-xs text-slate-500">
-        {(t('editor.ui.runRequirementsHint' as any) as string) || 'Select a question to view requirement details.'}
-      </p>
-    );
-  }
-
-  const { templates } = useEditorStore.getState();
-  const template = templates.find((tpl) => tpl.id === section.id);
-  const validation = validateQuestionRequirements(question, section, template);
+  const handleSend = () => {
+    if (input.trim() && !loading) {
+      onSend(input.trim());
+    }
+  };
 
   return (
     <div className="space-y-3">
-      <div>
-        {validation.issues.length === 0 ? (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-green-600 text-sm">✓</span>
-              <p className="text-xs font-semibold text-green-700">
-                {(t('editor.ui.currentQuestionPasses' as any) as string) || 'Current question passes validation'}
-              </p>
-            </div>
-            <p className="text-xs text-green-600 mt-1">
-              {(t('editor.ui.validation.allRequirementsMet' as any) as string) || 'All requirements are met for this prompt.'}
-            </p>
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onSend('Draft an outline for this section')}
+          disabled={loading}
+          className="text-xs"
+        >
+          Draft
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onSend('Improve my answer')}
+          disabled={loading}
+          className="text-xs"
+        >
+          Improve
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onSend('Suggest data structures or KPIs')}
+          disabled={loading}
+          className="text-xs"
+        >
+          Suggest Data
+        </Button>
+      </div>
+
+      {/* Chat Messages */}
+      <div className="space-y-2 max-h-[120px] overflow-y-auto">
+        {messages.length === 0 && (
+          <p className="text-xs text-slate-500 text-center py-4">
+            Ask me anything about this question. I can help draft, improve, or suggest data.
+          </p>
+        )}
+        {messages.map((msg, idx) => (
+          <div
+            key={idx}
+            className={`p-2 rounded text-xs ${
+              msg.role === 'user'
+                ? 'bg-blue-50 text-blue-900 ml-4'
+                : 'bg-slate-50 text-slate-900 mr-4'
+            }`}
+          >
+            <div className="font-semibold mb-1">{msg.role === 'user' ? 'You' : 'AI'}</div>
+            <div className="whitespace-pre-wrap">{msg.content}</div>
+            {msg.role === 'assistant' && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onInsert(msg.content)}
+                className="mt-2 text-xs h-6"
+              >
+                Insert
+              </Button>
+            )}
           </div>
-        ) : (
-          <div className="border border-slate-200 rounded-lg p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-slate-700">Current question</p>
-              <span className="text-[10px] px-2 py-0.5 rounded font-semibold bg-amber-100 text-amber-700">
-                {validation.issues.length} issue{validation.issues.length > 1 ? 's' : ''}
-              </span>
-            </div>
-            <p className="text-xs text-slate-600 line-clamp-2">{question.prompt}</p>
-            <div className="space-y-1.5">
-              {validation.issues.map((issue: any, idx: number) => (
-                <div key={idx} className="flex items-start gap-2 text-xs">
-                  <span className={issue.severity === 'error' ? 'text-red-600 mt-0.5' : 'text-amber-600 mt-0.5'}>●</span>
-                  <p className={issue.severity === 'error' ? 'text-red-700 flex-1' : 'text-amber-700 flex-1'}>
-                    {issue.message}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
+        ))}
+        {loading && (
+          <div className="text-xs text-slate-500 text-center py-2">AI is thinking...</div>
         )}
       </div>
-      {progressSummary && progressSummary.length > 0 && (
-        <div className="bg-slate-50 rounded-lg p-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-700">Overall completion</span>
-            <span className="text-sm font-bold">{Math.round(progressSummary.reduce((sum, item) => sum + item.progress, 0) / progressSummary.length)}%</span>
+
+      {/* Input */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => onInputChange(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+          placeholder="Ask AI..."
+          className="flex-1 px-2 py-1.5 text-xs border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          disabled={loading}
+        />
+        <Button
+          size="sm"
+          onClick={handleSend}
+          disabled={loading || !input.trim()}
+          className="text-xs"
+        >
+          Send
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Data Tab Component
+function DataTab({
+  section,
+  question,
+  onDatasetCreate,
+  onKpiCreate,
+  onMediaCreate,
+  onAttachDataset,
+  onAttachKpi,
+  onAttachMedia
+}: {
+  section: Section | null;
+  question: Question;
+  onDatasetCreate?: (dataset: Dataset) => void;
+  onKpiCreate?: (kpi: KPI) => void;
+  onMediaCreate?: (asset: MediaAsset) => void;
+  onAttachDataset: (dataset: Dataset) => void;
+  onAttachKpi: (kpi: KPI) => void;
+  onAttachMedia: (asset: MediaAsset) => void;
+}) {
+  const handleCreateDataset = () => {
+    if (!onDatasetCreate || !section) return;
+    const dataset: Dataset = {
+      id: `dataset_${Date.now()}`,
+      title: 'New Dataset',
+      description: '',
+      columns: [{ id: 'col1', name: 'Column 1', type: 'text' }],
+      rows: [],
+      sectionId: section.id
+    };
+    onDatasetCreate(dataset);
+    onAttachDataset(dataset);
+  };
+
+  const handleCreateKpi = () => {
+    if (!onKpiCreate || !section) return;
+    const kpi: KPI = {
+      id: `kpi_${Date.now()}`,
+      title: 'New KPI',
+      value: '',
+      unit: '',
+      sectionId: section.id
+    };
+    onKpiCreate(kpi);
+    onAttachKpi(kpi);
+  };
+
+  const handleCreateMedia = () => {
+    if (!onMediaCreate || !section) return;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') {
+            const asset: MediaAsset = {
+              id: `media_${Date.now()}`,
+              type: 'image',
+              title: file.name,
+              uri: reader.result,
+              description: '',
+              sectionId: section.id
+            };
+            onMediaCreate(asset);
+            onAttachMedia(asset);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
+  };
+
+  // Get existing data for this section
+  const datasets = section?.datasets || [];
+  const kpis = section?.kpis || [];
+  const media = section?.media || [];
+
+  return (
+    <div className="space-y-3">
+      {/* Quick Add */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleCreateDataset}
+          className="text-xs"
+        >
+          + Table
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleCreateKpi}
+          className="text-xs"
+        >
+          + KPI
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleCreateMedia}
+          className="text-xs"
+        >
+          + Media
+        </Button>
+      </div>
+
+      {/* Existing Data */}
+      <div className="space-y-2 max-h-[120px] overflow-y-auto">
+        {datasets.length === 0 && kpis.length === 0 && media.length === 0 && (
+          <p className="text-xs text-slate-500 text-center py-2">No data yet. Create some above.</p>
+        )}
+        {datasets.map((ds) => (
+          <div key={ds.id} className="p-2 bg-slate-50 rounded text-xs">
+            <div className="font-semibold">📊 {ds.title}</div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onAttachDataset(ds)}
+              className="mt-1 text-xs h-6"
+            >
+              Attach
+            </Button>
           </div>
-          <div className="space-y-2">
-            {progressSummary.map((item) => (
-              <div key={item.id} className="border border-slate-200 rounded-lg p-2">
-                <p className="text-xs font-semibold text-slate-700">{item.title}</p>
-                <div className="h-1.5 bg-slate-100 rounded-full mt-1">
-                  <div
-                    className={`h-full rounded-full ${item.progress === 100 ? 'bg-green-500' : 'bg-amber-500'}`}
-                    style={{ width: `${item.progress}%` }}
-                  />
-                </div>
+        ))}
+        {kpis.map((kpi) => (
+          <div key={kpi.id} className="p-2 bg-slate-50 rounded text-xs">
+            <div className="font-semibold">📈 {kpi.title}</div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onAttachKpi(kpi)}
+              className="mt-1 text-xs h-6"
+            >
+              Attach
+            </Button>
+          </div>
+        ))}
+        {media.map((m) => (
+          <div key={m.id} className="p-2 bg-slate-50 rounded text-xs">
+            <div className="font-semibold">🖼️ {m.title}</div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onAttachMedia(m)}
+              className="mt-1 text-xs h-6"
+            >
+              Attach
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Context Tab Component
+function ContextTab({
+  section,
+  question,
+  validation,
+  template
+}: {
+  section: Section;
+  question: Question;
+  validation: any;
+  template: any;
+}) {
+  return (
+    <div className="space-y-3 text-xs">
+      {/* Requirements Validation */}
+      {validation && validation.issues.length > 0 && (
+        <div>
+          <h4 className="font-semibold mb-2">Requirements</h4>
+          <div className="space-y-1">
+            {validation.issues.map((issue: any, idx: number) => (
+              <div key={idx} className="p-2 bg-red-50 border border-red-200 rounded">
+                <span className="font-semibold text-red-700">
+                  {issue.severity === 'error' ? '❌' : '⚠️'} {issue.type}
+                </span>
+                <p className="text-red-600 mt-1">{issue.message}</p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Section Info */}
+      <div>
+        <h4 className="font-semibold mb-2">Section Info</h4>
+        <div className="space-y-1 text-slate-600">
+          <div>Title: {section.title}</div>
+          {section.description && <div>Description: {section.description}</div>}
+          <div>Questions: {section.questions.length}</div>
+        </div>
+      </div>
+
+      {/* Template Info */}
+      {template && (
+        <div>
+          <h4 className="font-semibold mb-2">Template</h4>
+          <div className="text-slate-600">
+            {template.name || template.id}
           </div>
         </div>
       )}

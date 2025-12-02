@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { ANCILLARY_SECTION_ID, METADATA_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
 import { BusinessPlan } from '@/features/editor/types/plan';
@@ -14,7 +14,6 @@ type SidebarProps = {
   onSelectSection: (sectionId: string) => void;
   filteredSectionIds?: string[] | null; // When provided, only show these sections (null = show all)
   collapsed?: boolean;
-  onToggleCollapse?: () => void;
   // Template management props (from Column 3)
   filteredSections?: SectionTemplate[];
   allSections?: SectionTemplate[]; // All sections for counting
@@ -44,7 +43,6 @@ export default function Sidebar({
   onSelectSection, 
   filteredSectionIds,
   collapsed = false,
-  onToggleCollapse,
   // Template management props
   filteredSections,
   allSections,
@@ -68,12 +66,8 @@ export default function Sidebar({
   programSummary
 }: SidebarProps) {
   const { t } = useI18n();
-  const [isCollapsed, setIsCollapsed] = useState(collapsed);
+  const isCollapsed = collapsed;
 
-  const handleToggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-    onToggleCollapse?.();
-  };
 
   // Calculate total sections count (all sections, not just filtered)
   const allSectionsCount = allSections?.length ?? plan.sections.length;
@@ -84,32 +78,27 @@ export default function Sidebar({
   return (
     <div className={`flex flex-col transition-all duration-300 ${
       isCollapsed ? 'w-[60px]' : 'w-[320px]'
-    }`}>
-      <div className="relative w-full flex-1 overflow-hidden flex flex-col">
+    }`} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="relative w-full flex-1 flex flex-col min-h-0 overflow-hidden" style={{ flexBasis: 0, minHeight: 0 }}>
         {!isCollapsed && (
-          <div className="mb-2 pb-1 border-b border-white/50 flex-shrink-0">
-            <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/50">
-              {(t('editor.desktop.sections.title' as any) as string) || 'Deine Abschnitte'} ({allSectionsCount})
-            </h2>
-          </div>
+          <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)' }}>
+            {(t('editor.desktop.sections.title' as any) as string) || 'Deine Abschnitte'} ({allSectionsCount})
+          </h2>
         )}
 
         {/* Header info and Add Section Button */}
         {!isCollapsed && (
           <>
-            <p className="text-[10px] text-white/70 mb-1 flex-shrink-0 -mt-2">
-              {t('editor.desktop.sections.subtitle' as any) || 'Entscheide welche Abschnitte du in dein Dokument miteinbeziehst.'}
-            </p>
-            <div className="text-[9px] text-white/40 mb-2 flex-shrink-0 flex items-center gap-3 -mt-1">
-              <span className="flex items-center gap-1">
+            <div className="text-[10px] text-white/50 mb-2 flex-shrink-0 flex items-center justify-between w-full">
+              <span className="flex items-center gap-1 flex-1">
                 <span>✏️</span>
                 <span>{t('editor.desktop.sections.legend.edit' as any) || 'Bearbeiten'}</span>
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 flex-1 justify-center">
                 <input type="checkbox" className="w-2.5 h-2.5" disabled />
-                <span>{t('editor.desktop.sections.legend.toggle' as any) || 'Zu Dokument hinzufügen'}</span>
+                <span>{t('editor.desktop.sections.legend.toggle' as any) || 'Hinzufügen'}</span>
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 flex-1 justify-end">
                 <span className="w-2 h-2 rounded-full bg-yellow-400/80" />
                 <span>{t('editor.desktop.sections.legend.source' as any) || 'Herkunft anzeigen'}</span>
               </span>
@@ -199,7 +188,7 @@ export default function Sidebar({
         )}
 
         {/* Sections Tree */}
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex-1 overflow-y-auto min-h-0 pb-14">
           <SectionNavigationTree
             plan={plan}
             activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
@@ -219,15 +208,6 @@ export default function Sidebar({
           />
         </div>
       </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleToggleCollapse}
-        className="mt-2 border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0"
-        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      >
-        {isCollapsed ? '►' : '◄'}
-      </Button>
     </div>
   );
 }
@@ -316,8 +296,11 @@ function SectionNavigationTree({
 
   const sections = sectionsWithTemplate;
   
-  // Determine if we should show as cards
-  const showAsCards = !collapsed && filteredSections && filteredSections.length > 0;
+  // Determine if we should show as cards - show cards when template management is available
+  // This ensures all products show the same card UI with emojis, edit icons, checkboxes, and origin indicators
+  // Show cards if we have template management props (allSections or handlers) OR if filteredSections has items
+  const hasTemplateManagement = allSections !== undefined || onToggleSection !== undefined || onEditSection !== undefined;
+  const showAsCards = !collapsed && (hasTemplateManagement || (filteredSections !== undefined && filteredSections.length > 0));
   
   // When showing cards, filter to show all sections (from allSections templates) but use plan section data
   const sectionsForCards = React.useMemo(() => {
@@ -405,7 +388,7 @@ function SectionNavigationTree({
           const isActive = section.id === activeSectionId || (isMetadata && (activeSectionId === METADATA_SECTION_ID || activeSectionId === ANCILLARY_SECTION_ID));
 
           const isDisabled = disabledSections.has(section.id);
-          const sectionTemplate = filteredSections?.find(s => s.id === section.id);
+          const sectionTemplate = filteredSections?.find(s => s.id === section.id) || allSections?.find(s => s.id === section.id);
           const sectionOrigin = sectionTemplate?.origin || section.origin;
           const isRequired = sectionTemplate?.required ?? section.required ?? false;
           const isCustom = sectionOrigin === 'custom';
@@ -443,13 +426,16 @@ function SectionNavigationTree({
             >
               <div className="absolute top-1 right-1 z-10 flex flex-col items-end gap-0.5">
                 <div className="flex items-center gap-1">
-                  {onEditSection && sectionTemplate && (
+                  {onEditSection && (sectionTemplate || allSections?.find(s => s.id === section.id)) && (
                     <button
                       type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        onEditSection(sectionTemplate, e);
+                        const template = sectionTemplate || allSections?.find(s => s.id === section.id);
+                        if (template) {
+                          onEditSection(template, e);
+                        }
                       }}
                       className="text-white/60 hover:text-white text-xs transition-opacity"
                     >
