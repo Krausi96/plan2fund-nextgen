@@ -45,21 +45,115 @@ export interface EnhancedProgramResult extends Program {
   reason: string;
 }
 
+// Updated scoring weights to match WIZARD_UPDATED_QA_TABLE.md
 const SCORE_WEIGHTS = {
-  location: 35,      // Reduced from 40 to make room for advanced questions
-  companyType: 20,   // Reduced from 25
-  funding: 20,       // Reduced from 25
-  industry: 10,      // Same
-  teamSize: 5,       // New: Advanced question
-  revenueStatus: 3,  // New: Advanced question
-  impactFocus: 4,    // New: Advanced question
-  deadlineUrgency: 3, // New: Advanced question
+  location: 35,        // Highest weight (Q4 - 35 pts)
+  organisationStage: 20, // Derived from organisation_stage (Q2 - 20 pts, critical)
+  funding: 20,         // Critical (Q5 - 20 pts)
+  industry: 10,        // Bonus (Q6 - 10 pts)
+  impactFocus: 4,      // Advanced (Q10 - 4 pts)
+  deadlineUrgency: 3,   // Advanced (Q9 - 3 pts)
+  useOfFunds: 2,       // Bonus (Q8 - +2 pts)
+  // REMOVED: teamSize (Q12 was removed from Q&A table)
+  // REMOVED: revenueStatus (used for filtering eligibility, not scoring)
 };
 
 function toArray(value: any): string[] {
   if (!value) return [];
   if (Array.isArray(value)) return value.map((v) => String(v).toLowerCase());
   return [String(value).toLowerCase()];
+}
+
+/**
+ * Derive company_type and company_stage from organisation_stage
+ * Maps the new merged question to backward-compatible values
+ */
+function deriveCompanyInfo(organisationStage: string | undefined): {
+  company_type: string | null;
+  company_stage: string | null;
+} {
+  if (!organisationStage) return { company_type: null, company_stage: null };
+  
+  const mapping: Record<string, { type: string; stage: string | null }> = {
+    'exploring_idea': { 
+      type: 'founder_idea', 
+      stage: 'pre_company' 
+    },
+    'early_stage_startup': { 
+      type: 'startup', 
+      stage: 'inc_lt_6m'  // < 6 months old
+    },
+    'growing_startup': { 
+      type: 'startup', 
+      stage: 'inc_6_36m'  // < 3 years old
+    },
+    'established_sme': { 
+      type: 'sme', 
+      stage: 'inc_gt_36m'  // 3+ years operating
+    },
+    'research_institution': { 
+      type: 'research', 
+      stage: 'research_org' 
+    },
+    'public_body': { 
+      type: 'public', 
+      stage: 'public_org' 
+    },
+    'other': { 
+      type: 'other', 
+      stage: null  // Will be inferred from other text if available
+    },
+  };
+  
+  return mapping[organisationStage] || { type: 'other', stage: null };
+}
+
+/**
+ * Check if program's funding types are eligible based on user's revenue_status and co_financing
+ * This filters programs BEFORE scoring to ensure users only see appropriate funding types
+ */
+function isFundingTypeEligible(
+  program: Program,
+  answers: UserAnswers
+): boolean {
+  const fundingTypes = program.funding_types || [];
+  
+  // If no funding types specified, allow it (will be scored normally)
+  if (fundingTypes.length === 0) return true;
+  
+  const revenueStatus = answers.revenue_status;
+  const coFinancing = answers.co_financing;
+
+  // CRITICAL: If user cannot provide co-financing, only grants/subsidies/support allowed
+  if (coFinancing === 'co_no') {
+    const allowedTypes = [
+      'grant', 'subsidy', 
+      'coaching', 'mentoring', 'networking', 'consultation',
+      'workshop', 'support_program', 'consulting_support', 
+      'acceleration_program', 'gründungsprogramm'
+    ];
+    return fundingTypes.some(type => allowedTypes.includes(type.toLowerCase()));
+  }
+
+  // Pre-revenue users: grants, subsidies, some equity (angel, crowdfunding), micro-credit
+  if (revenueStatus === 'pre_revenue') {
+    const allowedTypes = [
+      'grant', 'subsidy',
+      'angel_investment', 'crowdfunding',
+      'micro_credit', 'visa_application'
+    ];
+    return fundingTypes.some(type => allowedTypes.includes(type.toLowerCase()));
+  }
+
+  // Early revenue (< €500k/year): all types except large VC (usually requires €500k+ revenue)
+  if (revenueStatus === 'early_revenue') {
+    const restrictedTypes = ['venture_capital']; // Usually requires established revenue
+    return !fundingTypes.some(type => restrictedTypes.includes(type.toLowerCase()));
+  }
+
+  // Established revenue (€500k+/year) or not_applicable: all types allowed
+  // (not_applicable = public sector, research, non-profit - can access all funding types)
+  return true;
 }
 
 function getProgramAmount(program: Program) {
@@ -126,44 +220,8 @@ function industryMatches(answers: UserAnswers, program: Program) {
   return userIndustries.some((industry) => programIndustries.some((p) => p.includes(industry)));
 }
 
-// Advanced question matching functions
-function teamSizeMatches(answers: UserAnswers, program: Program): boolean {
-  if (!answers.team_size) return true; // No penalty if not answered
-  
-  // Check if program has team size requirements in categorized_requirements
-  const teamRequirements = program.categorized_requirements?.team || [];
-  if (teamRequirements.length === 0) return true; // No requirement = match
-  
-  // Simple matching: if program mentions team requirements, consider it a match
-  // More sophisticated matching could be added later
-  return true; // For now, just don't penalize
-}
-
-function revenueStatusMatches(answers: UserAnswers, program: Program): boolean {
-  if (!answers.revenue_status) return true;
-  
-  // Check if program has revenue requirements
-  const financialRequirements = program.categorized_requirements?.financial || [];
-  const hasRevenueRequirement = financialRequirements.some((req: any) => 
-    req.value?.toLowerCase().includes('revenue') || 
-    req.value?.toLowerCase().includes('profit') ||
-    req.value?.toLowerCase().includes('turnover')
-  );
-  
-  if (!hasRevenueRequirement) return true; // No requirement = match
-  
-  // Basic matching: pre-revenue users might not match programs requiring revenue
-  if (answers.revenue_status === 'pre_revenue' && hasRevenueRequirement) {
-    // Check if requirement explicitly allows pre-revenue
-    const allowsPreRevenue = financialRequirements.some((req: any) =>
-      req.value?.toLowerCase().includes('pre-revenue') ||
-      req.value?.toLowerCase().includes('no revenue required')
-    );
-    return allowsPreRevenue;
-  }
-  
-  return true; // Default: match
-}
+// REMOVED: teamSizeMatches - Q12 (team_size) was removed from Q&A table
+// REMOVED: revenueStatusMatches - revenue_status is now used for filtering eligibility, not scoring
 
 function impactFocusMatches(answers: UserAnswers, program: Program): boolean {
   if (!answers.impact_focus) return true;
@@ -245,14 +303,37 @@ export async function scoreProgramsEnhanced(
     return [];
   }
 
+  // Step 1: Filter programs by funding type eligibility BEFORE scoring
+  // This ensures users only see appropriate funding types based on revenue_status and co_financing
+  const eligiblePrograms = programs.filter((program) => 
+    isFundingTypeEligible(program, answers)
+  );
+
+  // Step 2: Derive company_type and company_stage from organisation_stage if available
+  // This supports the new merged question while maintaining backward compatibility
+  let userCompanyType: NormalizedCompanyType | null = null;
+  let userCompanyStage: string | null = null;
+  
+  if (answers.organisation_stage) {
+    const derived = deriveCompanyInfo(answers.organisation_stage);
+    if (derived.company_type) {
+      userCompanyType = normalizeCompanyTypeAnswer(derived.company_type);
+    }
+    userCompanyStage = derived.company_stage;
+  } else if (answers.company_type) {
+    // Fallback to old company_type if organisation_stage not available
+    userCompanyType = normalizeCompanyTypeAnswer(answers.company_type);
+    userCompanyStage = answers.company_stage || null;
+  }
+
   const userLocation = answers.location ? normalizeLocationAnswer(answers.location) : null;
-  const userCompanyType = answers.company_type ? normalizeCompanyTypeAnswer(answers.company_type) : null;
   const userFunding =
     answers.funding_amount !== undefined && answers.funding_amount !== null
       ? normalizeFundingAmountAnswer(answers.funding_amount)
       : null;
 
-  const scored = programs.map((program) => {
+  // Step 3: Score only eligible programs
+  const scored = eligiblePrograms.map((program) => {
     let score = 0;
     const matchedCriteria: EnhancedProgramResult["matchedCriteria"] = [];
     const gaps: EnhancedProgramResult["gaps"] = [];
@@ -268,15 +349,22 @@ export async function scoreProgramsEnhanced(
       gaps.push({ key: "location", description: "Program targets a different region." });
     }
 
+    // Use organisation_stage for scoring if available, otherwise fall back to company_type
+    const organisationStageKey = answers.organisation_stage ? "organisation_stage" : "company_type";
+    const organisationStageValue = answers.organisation_stage || answers.company_type;
+    
     if (companyTypeMatches(userCompanyType, program)) {
-      score += SCORE_WEIGHTS.companyType;
+      score += SCORE_WEIGHTS.organisationStage;
       matchedCriteria.push({
-        key: "company_type",
-        value: answers.company_type,
-        reason: "Company type is compatible.",
+        key: organisationStageKey,
+        value: organisationStageValue,
+        reason: "Organisation stage is compatible.",
       });
     } else {
-      gaps.push({ key: "company_type", description: "Company type is not compatible." });
+      gaps.push({ 
+        key: organisationStageKey, 
+        description: "Organisation stage is not compatible." 
+      });
     }
 
     if (fundingMatches(userFunding, program)) {
@@ -299,28 +387,8 @@ export async function scoreProgramsEnhanced(
       });
     }
 
-    // Advanced question matching (lower weights)
-    if (teamSizeMatches(answers, program)) {
-      score += SCORE_WEIGHTS.teamSize;
-      if (answers.team_size) {
-        matchedCriteria.push({
-          key: "team_size",
-          value: answers.team_size,
-          reason: "Team size is compatible with program requirements.",
-        });
-      }
-    }
-
-    if (revenueStatusMatches(answers, program)) {
-      score += SCORE_WEIGHTS.revenueStatus;
-      if (answers.revenue_status) {
-        matchedCriteria.push({
-          key: "revenue_status",
-          value: answers.revenue_status,
-          reason: "Revenue status aligns with program eligibility.",
-        });
-      }
-    }
+    // REMOVED: teamSize scoring (Q12 was removed from Q&A table)
+    // REMOVED: revenueStatus scoring (now used for filtering eligibility only, not scoring)
 
     if (impactFocusMatches(answers, program)) {
       score += SCORE_WEIGHTS.impactFocus;
@@ -344,11 +412,10 @@ export async function scoreProgramsEnhanced(
       }
     }
 
-    // Use of funds matching (if implemented)
+    // Use of funds matching (bonus points)
     if (useOfFundsMatches(answers, program)) {
-      // Add small bonus for use of funds match (not in weights to keep total <= 100)
       if (answers.use_of_funds) {
-        score += 2; // Small bonus
+        score += SCORE_WEIGHTS.useOfFunds; // +2 pts bonus
         matchedCriteria.push({
           key: "use_of_funds",
           value: answers.use_of_funds,

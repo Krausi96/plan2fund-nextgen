@@ -78,15 +78,19 @@ interface ProgramFinderProps {
 // Static questions - optimized order and with skip logic
 // REQUIRED CORE QUESTIONS (simple flow):
 // 1. funding_intent (gate – not sent to LLM/API)
-// 2. company_type (merged persona + maturity signal)
-// 3. project_scope (ensures a project/venture exists)
-// 4. location (CRITICAL for eligibility)
-// 5. industry_focus (CRITICAL for thematic matching)
-// 6. funding_amount (CRITICAL for amount matching)
-// OPTIONAL CORE QUESTION:
-// 7. use_of_funds (improves scoring + LLM profile)
+// UPDATED QUESTION ORDER (matches WIZARD_UPDATED_QA_TABLE.md):
+// 1. funding_intent (gate - not sent to API)
+// 2. organisation_stage (NEW - merged company_type + project_scope, Q2)
+// 3. revenue_status (NEW - moved to core, Q3)
+// 4. location (CRITICAL for eligibility, Q4)
+// 5. funding_amount (CRITICAL for amount matching, Q5)
+// 6. industry_focus (CRITICAL for thematic matching, Q6)
+// 7. co_financing (MOVED to core, Q7)
+// 8. use_of_funds (optional, Q8)
 // ADVANCED QUESTIONS (optional refinements):
-// - project_duration, deadline_urgency, impact_focus, co_financing, team_size
+// 9. deadline_urgency (Q9)
+// 10. impact_focus (Q10)
+// REMOVED: project_duration (Q8 old), team_size (Q12 old)
 type BaseQuestion = {
   id: string;
   label: string;
@@ -136,39 +140,39 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     isAdvanced: false,
   },
   {
-    id: 'company_type', // CRITICAL - Used in matching (must match)
-    label: 'Which description best fits you right now?',
+    id: 'organisation_stage', // NEW: Merged company_type + project_scope (Q2)
+    label: 'What best describes your organisation and current project stage?',
     type: 'single-select' as const,
     options: [
-      { value: 'founder_idea', label: 'Founder exploring an idea (no company yet)' },
-      { value: 'startup_building', label: 'Startup building its first product/prototype' },
-      { value: 'startup_traction', label: 'Startup with first traction (incorporated < ~3 years)' },
-      { value: 'sme_established', label: 'Established SME (3+ years of operations)' },
-      { value: 'other', label: 'Other – please specify (e.g., institutional team, advisor, municipality)' },
+      { value: 'exploring_idea', label: 'Exploring an idea (no company yet, planning phase)' },
+      { value: 'early_stage_startup', label: 'Early-stage startup (building first product/prototype, < 6 months old)' },
+      { value: 'growing_startup', label: 'Growing startup (incorporated, first customers, < 3 years old)' },
+      { value: 'established_sme', label: 'Established SME (3+ years operating, expanding/innovating)' },
+      { value: 'research_institution', label: 'Research institution or university' },
+      { value: 'public_body', label: 'Public body or municipality' },
+      { value: 'other', label: 'Other organisation type' },
     ],
     required: true,
-    priority: 4,
-    hasOtherTextInput: true,
-    isAdvanced: false, // Core question
-  },
-  {
-    id: 'project_scope',
-    label: 'What are you working on?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'exploring_plan', label: 'Exploring or drafting a plan' },
-      { value: 'building_product', label: 'Building a product or prototype' },
-      { value: 'research_innovation', label: 'Running research or innovation work' },
-      { value: 'scaling_expansion', label: 'Scaling or market expansion' },
-      { value: 'other', label: 'Other – please specify' },
-    ],
-    required: true,
-    priority: 3,
+    priority: 2,
     hasOtherTextInput: true,
     isAdvanced: false,
   },
   {
-    id: 'location', // CRITICAL - Used in matching (must match)
+    id: 'revenue_status', // NEW: Moved to core (Q3)
+    label: 'What best describes your current situation regarding funding?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'pre_revenue', label: 'Pre-revenue (no sales yet)' },
+      { value: 'early_revenue', label: 'Early revenue (some sales, < €500k/year)' },
+      { value: 'established_revenue', label: 'Established revenue (€500k+/year)' },
+      { value: 'not_applicable', label: 'Not applicable (public sector, research institution, non-profit)' },
+    ],
+    required: true,
+    priority: 3,
+    isAdvanced: false,
+  },
+  {
+    id: 'location', // CRITICAL - Used in matching (must match) (Q4)
     label: 'Where will the project or venture take place?',
     type: 'single-select' as const,
     options: [
@@ -178,7 +182,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
       { value: 'international', label: 'International' },
     ],
     required: true,
-    priority: 2,
+    priority: 4,
     isAdvanced: false, // Core question
     // Optional region input (text field, not dropdown)
     hasOptionalRegion: (value: string) => {
@@ -186,7 +190,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     },
   },
   {
-    id: 'funding_amount', // CRITICAL - Used in matching
+    id: 'funding_amount', // CRITICAL - Used in matching (Q5)
     label: 'How much funding do you plan to request (if any)?',
     type: 'range' as const,
     min: 0,
@@ -194,12 +198,12 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     step: 1000,
     unit: 'EUR',
     required: true,
-    priority: 6,
+    priority: 5,
     editableValue: true, // Allow editing the number directly
     isAdvanced: false, // Core question
   },
   {
-    id: 'industry_focus', // OPTIONAL - Used in matching but not critical
+    id: 'industry_focus', // OPTIONAL - Used in matching but not critical (Q6)
     label: 'Which focus best describes your project?',
     type: 'multi-select' as const,
     options: [
@@ -211,7 +215,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
       { value: 'other', label: 'Something else' },
     ],
     required: true,
-    priority: 5,
+    priority: 6,
     hasOtherTextInput: true,
     isAdvanced: false, // Core question - helps with matching
     // Enhanced: Industry subcategories for better matching
@@ -264,7 +268,21 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     },
   },
   {
-    id: 'use_of_funds',
+    id: 'co_financing', // MOVED: From advanced to core (Q7)
+    label: 'Can your organisation contribute part of the project budget?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'co_yes', label: 'Yes, we can cover a share (e.g., 20%+)' },
+      { value: 'co_no', label: 'No, we need full external funding' },
+      { value: 'co_flexible', label: 'Flexible, depends on program' },
+    ],
+    required: true,
+    priority: 7,
+    hasCoFinancingPercentage: true,
+    isAdvanced: false,
+  },
+  {
+    id: 'use_of_funds', // Optional (Q8)
     label: 'How will you invest support or funding?',
     type: 'multi-select' as const,
     options: [
@@ -277,41 +295,31 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
       { value: 'other', label: 'Other' },
     ],
     required: false,
-    priority: 7,
+    priority: 8,
     hasOtherTextInput: true,
     isAdvanced: false,
   },
 ];
 
 const ADVANCED_QUESTIONS: QuestionDefinition[] = [
+  // REMOVED: project_duration (Q8 old) - not used in matching
+  // REMOVED: team_size (Q12 old) - not used in matching
   {
-    id: 'project_duration',
-    label: 'How long will the funded work run?',
-    type: 'range' as const,
-    min: 1,
-    max: 36,
-    step: 1,
-    unit: 'months',
-    required: false,
-    priority: 8,
-    isAdvanced: true,
-  },
-  {
-    id: 'deadline_urgency',
+    id: 'deadline_urgency', // Advanced (Q9)
     label: 'When do you need a funding decision?',
     type: 'single-select' as const,
     options: [
-      { value: 'immediate', label: 'Within 1 month' },
-      { value: 'short_term', label: 'Within 1-3 months' },
-      { value: 'medium_term', label: 'Within 3-6 months' },
-      { value: 'long_term', label: '6+ months' },
+      { value: '1_month', label: 'Within 1 month' },
+      { value: '1_3_months', label: 'Within 1-3 months' },
+      { value: '3_6_months', label: 'Within 3-6 months' },
+      { value: '6_plus_months', label: '6+ months' },
     ],
     required: false,
     priority: 9,
     isAdvanced: true,
   },
   {
-    id: 'impact_focus',
+    id: 'impact_focus', // Advanced (Q10)
     label: 'Which impact areas apply?',
     type: 'multi-select' as const,
     options: [
@@ -327,44 +335,35 @@ const ADVANCED_QUESTIONS: QuestionDefinition[] = [
     priority: 10,
     isAdvanced: true,
   },
-  {
-    id: 'co_financing',
-    label: 'Can you contribute part of the project budget yourself?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'co_yes', label: 'Yes, we can cover a share (e.g., 20%+)' },
-      { value: 'co_no', label: 'No, we need full external funding' },
-      { value: 'co_uncertain', label: 'Not sure yet' },
-    ],
-    required: false,
-    priority: 11,
-    hasCoFinancingPercentage: true,
-    isAdvanced: true,
-  },
-  {
-    id: 'team_size',
-    label: 'How large is your active team?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'solo', label: 'Solo founder' },
-      { value: 'team_2_5', label: '2-5 people' },
-      { value: 'team_6_20', label: '6-20 people' },
-      { value: 'team_20_plus', label: '20+ people' },
-    ],
-    required: false,
-    priority: 12,
-    isAdvanced: true,
-  },
 ];
 
+// Map organisation_stage to company_type + company_stage for backward compatibility
+const ORGANISATION_STAGE_MAP: Record<string, { type: string; stage: string | null }> = {
+  exploring_idea: { type: 'founder_idea', stage: 'pre_company' },
+  early_stage_startup: { type: 'startup', stage: 'inc_lt_6m' },
+  growing_startup: { type: 'startup', stage: 'inc_6_36m' },
+  established_sme: { type: 'sme', stage: 'inc_gt_36m' },
+  research_institution: { type: 'research', stage: 'research_org' },
+  public_body: { type: 'public', stage: 'public_org' },
+  other: { type: 'other', stage: null },
+};
+
+// Legacy mapping for backward compatibility (if old company_type still exists)
 const COMPANY_STAGE_MAP: Record<string, string> = {
-  founder_idea: 'idea',
+  founder_idea: 'pre_company',
   startup_building: 'inc_lt_6m',
   startup_traction: 'inc_6_36m',
   sme_established: 'inc_gt_36m',
 };
 
 function inferCompanyStageFromAnswers(answersSnapshot: Record<string, any>): string | undefined {
+  // NEW: Check organisation_stage first
+  const organisationStage = answersSnapshot.organisation_stage as string | undefined;
+  if (organisationStage && ORGANISATION_STAGE_MAP[organisationStage]) {
+    return ORGANISATION_STAGE_MAP[organisationStage].stage || undefined;
+  }
+
+  // LEGACY: Fallback to old company_type for backward compatibility
   const companyTypeValue = answersSnapshot.company_type as string | undefined;
   if (!companyTypeValue) {
     return undefined;
@@ -628,7 +627,7 @@ export default function ProgramFinder({
   
 // Minimum questions for results (core questions before showing programs)
 const MIN_QUESTIONS_FOR_RESULTS = 5;
-const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'industry_focus', 'funding_amount'] as const;
+const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location', 'industry_focus', 'funding_amount', 'co_financing'] as const;
   const missingRequiredAnswers = REQUIRED_QUESTION_IDS.filter((questionId) => !isAnswerProvided(answers[questionId]));
   const missingRequiredLabels = missingRequiredAnswers.map((questionId) => {
     const question = translatedQuestions.find((q) => q.id === questionId);
@@ -654,6 +653,29 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
         newAnswers[questionId] = value;
       }
 
+      // NEW: Handle organisation_stage - derive company_type and company_stage for backward compatibility
+      if (questionId === 'organisation_stage' || questionId === 'organisation_stage_other') {
+        const orgStage = newAnswers.organisation_stage as string | undefined;
+        if (orgStage && ORGANISATION_STAGE_MAP[orgStage]) {
+          const mapped = ORGANISATION_STAGE_MAP[orgStage];
+          newAnswers.company_type = mapped.type;
+          if (mapped.stage) {
+            newAnswers.company_stage = mapped.stage;
+          } else {
+            delete newAnswers.company_stage;
+          }
+        } else {
+          // Fallback: try to infer from other text
+          const derivedStage = inferCompanyStageFromAnswers(newAnswers);
+          if (derivedStage) {
+            newAnswers.company_stage = derivedStage;
+          } else {
+            delete newAnswers.company_stage;
+          }
+        }
+      }
+      
+      // LEGACY: Handle old company_type for backward compatibility
       if (questionId === 'company_type' || questionId === 'company_type_other') {
         const derivedStage = inferCompanyStageFromAnswers(newAnswers);
         if (derivedStage) {
@@ -1035,10 +1057,10 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                                               type="text"
                                               placeholder={
                                                 locale === 'de' 
-                                                  ? (question.id === 'company_type' 
+                                                  ? (question.id === 'organisation_stage' || question.id === 'company_type'
                                                       ? 'z.B. Verein, Genossenschaft, Stiftung'
                                                       : 'Bitte angeben...')
-                                                  : (question.id === 'company_type'
+                                                  : (question.id === 'organisation_stage' || question.id === 'company_type'
                                                       ? 'e.g., Association, Cooperative, Foundation'
                                                       : 'Please specify...')
                                               }
@@ -1049,7 +1071,7 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                               autoFocus
                                             />
-                                            {question.id === 'company_type' && (
+                                            {(question.id === 'organisation_stage' || question.id === 'company_type') && (
                                               <p className="text-xs text-gray-500 mt-1">
                                                 {locale === 'de' 
                                                   ? 'Beispiele: Verein, Genossenschaft, Stiftung, GmbH, AG, etc.'

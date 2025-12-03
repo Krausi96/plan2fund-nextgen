@@ -298,39 +298,3 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
     clearTimeout(timeout);
   }
 }
-
-/**
- * Utility helper: try custom LLM, fall back to a provided handler on failure.
- */
-export async function withCustomLLMFallback(
-  request: ChatRequest,
-  fallback: () => Promise<string>
-): Promise<ChatResponse> {
-  if (!isCustomLLMEnabled()) {
-    const fallbackOutput = await fallback();
-    return {
-      id: `fallback-${Date.now()}`,
-      model: 'openai-fallback',
-      createdAt: new Date().toISOString(),
-      output: fallbackOutput,
-      latencyMs: 0,
-      provider: 'fallback',
-    };
-  }
-
-  try {
-    const custom = await callCustomLLM(request);
-    return custom;
-  } catch (error) {
-    console.warn('[CustomLLM] Falling back to OpenAI:', error);
-    const fallbackOutput = await fallback();
-    return {
-      id: `fallback-${Date.now()}`,
-      model: 'openai-fallback',
-      createdAt: new Date().toISOString(),
-      output: fallbackOutput,
-      latencyMs: 0,
-      provider: 'fallback',
-    };
-  }
-}

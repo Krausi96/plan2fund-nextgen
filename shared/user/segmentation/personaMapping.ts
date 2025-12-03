@@ -77,39 +77,3 @@ export function getPersonaFromTargetGroup(): Persona | null {
   return null;
 }
 
-/**
- * Get display label for persona
- */
-export function getPersonaLabel(persona: Persona): string {
-  switch (persona) {
-    case 'founder':
-      return 'Founder';
-    case 'advisor':
-      return 'Advisor';
-    case 'incubator':
-      return 'Incubator/University';
-    case 'sme':
-      return 'SME';
-    default:
-      return 'Founder';
-  }
-}
-
-/**
- * Get description for persona
- */
-export function getPersonaDescription(persona: Persona): string {
-  switch (persona) {
-    case 'founder':
-      return 'Solo founder or startup seeking funding';
-    case 'advisor':
-      return 'Business advisor or consultant helping clients';
-    case 'incubator':
-      return 'University or incubator managing cohorts';
-    case 'sme':
-      return 'Established SME seeking funding';
-    default:
-      return 'Solo founder or startup seeking funding';
-  }
-}
-

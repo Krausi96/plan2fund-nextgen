@@ -3,7 +3,7 @@ import HeroLite from '@/shared/components/common/HeroLite';
 import CTAStrip from '@/shared/components/common/CTAStrip';
 import SEOHead from '@/shared/components/common/SEOHead';
 import { useI18n } from "@/shared/contexts/I18nContext";
-import { Mail, ArrowRight, Lightbulb, Search, FileText, BookOpen, Shield, Scale, GraduationCap } from "lucide-react";
+import { Mail, ArrowRight, Search, FileText, BookOpen, Shield, Scale, GraduationCap } from "lucide-react";
 import Link from "next/link";
 
 export default function AboutPage() {
@@ -13,13 +13,13 @@ export default function AboutPage() {
     <>
       <SEOHead pageKey="about" />
       
-      <main className="bg-gray-50">
+      <main className="bg-gray-10">
         <HeroLite
           title={t('about.title')}
           subtitle={t('about.subtitle')}
         />
         
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <h1 className="sr-only">{t('about.title')}</h1>
 
           {/* Mission & Vision - Combined */}
@@ -27,8 +27,8 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-2 gap-8 mb-12">
               <Card className="p-8 rounded-2xl border-2 border-neutral-200 hover:shadow-lg hover:border-blue-200 transition-all bg-gradient-to-br from-white to-blue-50/30">
                 <div className="flex items-center mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
-                    <span className="text-2xl">🎯</span>
+                  <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                    <span className="text-3xl">🎯</span>
                   </div>
                   <h2 className="text-2xl font-bold text-neutral-900">{t('about.mission.title')}</h2>
                 </div>
@@ -39,8 +39,8 @@ export default function AboutPage() {
 
               <Card className="p-8 rounded-2xl border-2 border-neutral-200 hover:shadow-lg hover:border-yellow-200 transition-all bg-gradient-to-br from-white to-yellow-50/30">
                 <div className="flex items-center mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-yellow-100 to-yellow-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
-                    <Lightbulb className="w-8 h-8 text-yellow-600" />
+                  <div className="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                    <span className="text-3xl">🌟</span>
                   </div>
                   <h2 className="text-2xl font-bold text-neutral-900">{t('about.vision.title')}</h2>
                 </div>

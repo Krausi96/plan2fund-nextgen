@@ -228,6 +228,17 @@ export type ConversationMessage = {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  type?: 'question' | 'answer' | 'suggestion' | 'data' | 'system';
+  metadata?: {
+    questionId?: string;
+    dataId?: string;
+    actions?: Array<{
+      label: string;
+      action: string;
+      icon?: string;
+      onClick?: () => void;
+    }>;
+  };
 };
 
 // ----------------------------------------------------------------------------------
