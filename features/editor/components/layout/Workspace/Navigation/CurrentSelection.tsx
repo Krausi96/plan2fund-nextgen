@@ -1,5 +1,8 @@
 import React from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
+import type { ProductType, ProgramSummary } from '@/features/editor/types/plan';
+import type { SectionTemplate, DocumentTemplate } from '@templates';
+import type { ConnectCopy } from '@/features/editor/components/layout/Desktop/Desktop';
 
 type CurrentSelectionProps = {
   productLabel: string;
@@ -11,6 +14,18 @@ type CurrentSelectionProps = {
   totalDocumentsCount: number;
   sectionTitles: string[];
   documentTitles: string[];
+  // Configurator props (optional - only if configurator should be shown)
+  productType?: ProductType;
+  productOptions?: Array<{ value: ProductType; label: string; description: string; icon?: string }>;
+  selectedProductMeta?: { value: ProductType; label: string; description: string; icon?: string } | null;
+  connectCopy?: ConnectCopy;
+  programSummary?: ProgramSummary | null;
+  programError?: string | null;
+  programLoading?: boolean;
+  onChangeProduct?: (product: ProductType) => void;
+  onConnectProgram?: (value: string | null) => void;
+  onOpenProgramFinder?: () => void;
+  onTemplatesExtracted?: (templates: { sections?: SectionTemplate[]; documents?: DocumentTemplate[] }) => void;
 };
 
 export default function CurrentSelection({

@@ -326,7 +326,27 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const [filteredSectionIds, setFilteredSectionIds] = useState<string[] | null>(null);
   // Track editing section for inline editor - MUST BE DECLARED BEFORE useMemo
   // Auto-open editor when section is selected from sidebar
+  // Always show editor - default to active section if no explicit editingSectionId
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  
+  // Always show editor - simple logic: use editingSectionId, then activeSectionId, then default to first section or METADATA
+  const effectiveEditingSectionId = useMemo(() => {
+    if (!plan) return null;
+    
+    // Priority 1: Explicitly set editing section
+    if (editingSectionId) return editingSectionId;
+    
+    // Priority 2: Active section
+    if (activeSectionId) return activeSectionId;
+    
+    // Priority 3: First regular section
+    if (plan.sections && plan.sections.length > 0) {
+      return plan.sections[0].id;
+    }
+    
+    // Priority 4: METADATA (always available)
+    return METADATA_SECTION_ID;
+  }, [editingSectionId, activeSectionId, plan]);
   // Template management state from Desktop (for DocumentsBar and Sidebar)
   const [templateState, setTemplateState] = useState<{
     filteredDocuments: DocumentTemplate[];
@@ -369,112 +389,122 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     setActiveSection(sectionId);
   }, [setActiveSection]);
 
-  // Auto-open editor and scroll to section when activeSectionId changes (from sidebar selection)
+  // Auto-activate editor when plan loads or activeSectionId changes
   useEffect(() => {
-    if (activeSectionId) {
-      // Check if this is a metadata section
-      const isMetadataSection = activeSectionId === METADATA_SECTION_ID || 
-                                activeSectionId === ANCILLARY_SECTION_ID || 
-                                activeSectionId === REFERENCES_SECTION_ID || 
-                                activeSectionId === APPENDICES_SECTION_ID;
-      
-      // For metadata sections, set editingSectionId to enable editing (editing happens inline in preview)
-      // For regular sections, set editingSectionId to enable inline editor
-      if (isMetadataSection) {
-        setEditingSectionId(activeSectionId); // Enable edit mode for metadata sections
+    if (!plan) return;
+    
+    // If no active section, set one
+    if (!activeSectionId) {
+      if (plan.sections && plan.sections.length > 0) {
+        setActiveSection(plan.sections[0].id);
       } else {
-        setEditingSectionId(activeSectionId);
-        // Set first question as active if not already set
-        const section = plan?.sections.find(s => s.id === activeSectionId);
-        if (section && !activeQuestionId) {
-          setActiveQuestion(section.questions[0]?.id ?? null);
-        }
+        setActiveSection(METADATA_SECTION_ID);
       }
-
-      // If change was from user interaction (sidebar click) or preview click, scroll to section
-      if (sectionChangeSourceRef.current === 'user' || sectionChangeSourceRef.current === 'preview') {
-        const scrollToSection = () => {
-          const scrollContainer = document.getElementById('preview-scroll-container');
-          if (!scrollContainer) {
-            console.log('[Scroll] Scroll container not found');
-            return false;
-          }
-
-          // Find the section element - try multiple strategies
-          let sectionElement: HTMLElement | null = null;
-          
-          // Strategy 1: Query within scroll container (most reliable)
-          sectionElement = scrollContainer.querySelector(`[data-section-id="${activeSectionId}"]`) as HTMLElement;
-          
-          // Strategy 2: Query within export-preview class (where sections are rendered)
-          if (!sectionElement) {
-            const exportPreview = scrollContainer.querySelector('.export-preview');
-            if (exportPreview) {
-              sectionElement = exportPreview.querySelector(`[data-section-id="${activeSectionId}"]`) as HTMLElement;
-            }
-          }
-
-          // Strategy 3: Query entire document (fallback)
-          if (!sectionElement) {
-            sectionElement = document.querySelector(`[data-section-id="${activeSectionId}"]`) as HTMLElement;
-          }
-
-          if (sectionElement) {
-            // Use scrollIntoView for reliable scrolling
-            // This handles all edge cases including transforms and scaling
-            // For metadata sections, scroll to top of page
-            const isMetadataSection = activeSectionId === METADATA_SECTION_ID || 
-                                      activeSectionId === ANCILLARY_SECTION_ID || 
-                                      activeSectionId === REFERENCES_SECTION_ID || 
-                                      activeSectionId === APPENDICES_SECTION_ID;
-            
-            sectionElement.scrollIntoView({
-              behavior: 'smooth',
-              block: isMetadataSection ? 'start' : 'center',
-              inline: 'nearest'
-            });
-            
-            console.log('[Scroll] Scrolled to section:', activeSectionId);
-            return true;
-          } else {
-            console.log('[Scroll] Section element not found:', activeSectionId);
-          }
-          
-          return false;
-        };
-
-        // Use requestAnimationFrame to ensure DOM is ready
-        requestAnimationFrame(() => {
-          // Try immediately
-          if (!scrollToSection()) {
-            // Element not found yet, retry with increasing delays
-            const retries = [100, 300, 500, 1000, 2000];
-            let retryIndex = 0;
-            
-            const retryScroll = () => {
-              if (retryIndex < retries.length) {
-                setTimeout(() => {
-                  if (scrollToSection()) {
-                    // Success, stop retrying
-                    return;
-                  }
-                  retryIndex++;
-                  retryScroll();
-                }, retries[retryIndex]);
-              } else {
-                console.warn('[Scroll] Section element not found after all retries:', activeSectionId);
-              }
-            };
-            
-            retryScroll();
-          }
-        });
-      }
-      
-      // Reset source after handling
-      sectionChangeSourceRef.current = 'scroll';
+      return;
     }
-  }, [activeSectionId, plan, activeQuestionId, setActiveQuestion]);
+    
+    // Auto-open editor for active section
+    const isMetadataSection = activeSectionId === METADATA_SECTION_ID || 
+                              activeSectionId === ANCILLARY_SECTION_ID || 
+                              activeSectionId === REFERENCES_SECTION_ID || 
+                              activeSectionId === APPENDICES_SECTION_ID;
+    
+    // Always set editingSectionId to show editor
+    if (!editingSectionId || editingSectionId !== activeSectionId) {
+      setEditingSectionId(activeSectionId);
+    }
+    
+    // For regular sections, set first question as active if not already set
+    if (!isMetadataSection) {
+      const section = plan.sections.find(s => s.id === activeSectionId);
+      if (section && !activeQuestionId) {
+        setActiveQuestion(section.questions[0]?.id ?? null);
+      }
+    }
+
+    // If change was from user interaction (sidebar click) or preview click, scroll to section
+    if (sectionChangeSourceRef.current === 'user' || sectionChangeSourceRef.current === 'preview') {
+      const scrollToSection = () => {
+        const scrollContainer = document.getElementById('preview-scroll-container');
+        if (!scrollContainer) {
+          console.log('[Scroll] Scroll container not found');
+          return false;
+        }
+
+        // Find the section element - try multiple strategies
+        let sectionElement: HTMLElement | null = null;
+        
+        // Strategy 1: Query within scroll container (most reliable)
+        sectionElement = scrollContainer.querySelector(`[data-section-id="${activeSectionId}"]`) as HTMLElement;
+        
+        // Strategy 2: Query within export-preview class (where sections are rendered)
+        if (!sectionElement) {
+          const exportPreview = scrollContainer.querySelector('.export-preview');
+          if (exportPreview) {
+            sectionElement = exportPreview.querySelector(`[data-section-id="${activeSectionId}"]`) as HTMLElement;
+          }
+        }
+
+        // Strategy 3: Query entire document (fallback)
+        if (!sectionElement) {
+          sectionElement = document.querySelector(`[data-section-id="${activeSectionId}"]`) as HTMLElement;
+        }
+
+        if (sectionElement) {
+          // Use scrollIntoView for reliable scrolling
+          // This handles all edge cases including transforms and scaling
+          // For metadata sections, scroll to top of page
+          const isMetadataSectionScroll = activeSectionId === METADATA_SECTION_ID || 
+                                        activeSectionId === ANCILLARY_SECTION_ID || 
+                                        activeSectionId === REFERENCES_SECTION_ID || 
+                                        activeSectionId === APPENDICES_SECTION_ID;
+          
+          sectionElement.scrollIntoView({
+            behavior: 'smooth',
+            block: isMetadataSectionScroll ? 'start' : 'center',
+            inline: 'nearest'
+          });
+          
+          console.log('[Scroll] Scrolled to section:', activeSectionId);
+          return true;
+        } else {
+          console.log('[Scroll] Section element not found:', activeSectionId);
+        }
+        
+        return false;
+      };
+
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        // Try immediately
+        if (!scrollToSection()) {
+          // Element not found yet, retry with increasing delays
+          const retries = [100, 300, 500, 1000, 2000];
+          let retryIndex = 0;
+          
+          const retryScroll = () => {
+            if (retryIndex < retries.length) {
+              setTimeout(() => {
+                if (scrollToSection()) {
+                  // Success, stop retrying
+                  return;
+                }
+                retryIndex++;
+                retryScroll();
+              }, retries[retryIndex]);
+            } else {
+              console.warn('[Scroll] Section element not found after all retries:', activeSectionId);
+            }
+          };
+          
+          retryScroll();
+        }
+      });
+    }
+    
+    // Reset source after handling
+    sectionChangeSourceRef.current = 'scroll';
+  }, [activeSectionId, plan, activeQuestionId, editingSectionId, setActiveSection, setActiveQuestion, setEditingSectionId]);
 
   // Scroll detection to update active section when scrolling through preview
   // Uses IntersectionObserver for more reliable detection
@@ -600,17 +630,24 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const isAncillaryView = activeSectionId === ANCILLARY_SECTION_ID;
   const isMetadataView = activeSectionId === METADATA_SECTION_ID;
   const isSpecialWorkspace = isAncillaryView || isMetadataView;
-  // Get active section - also check editingSectionId to find section being edited
+  // Get active section - use effectiveEditingSectionId to find section being edited
   const activeSection: Section | null = useMemo(() => {
     if (!plan) return null;
-    // If editing a section, find that section
-    if (editingSectionId && editingSectionId !== METADATA_SECTION_ID && editingSectionId !== ANCILLARY_SECTION_ID && editingSectionId !== REFERENCES_SECTION_ID && editingSectionId !== APPENDICES_SECTION_ID) {
-      return plan.sections.find((section) => section.id === editingSectionId) ?? null;
+    // Use effectiveEditingSectionId (which defaults to activeSectionId if not explicitly set)
+    if (effectiveEditingSectionId) {
+      // For special sections, they're not in plan.sections, so return null
+      if (effectiveEditingSectionId === METADATA_SECTION_ID || 
+          effectiveEditingSectionId === ANCILLARY_SECTION_ID || 
+          effectiveEditingSectionId === REFERENCES_SECTION_ID || 
+          effectiveEditingSectionId === APPENDICES_SECTION_ID) {
+        return null;
+      }
+      return plan.sections.find((section) => section.id === effectiveEditingSectionId) ?? null;
     }
     // Otherwise use activeSectionId
     if (isSpecialWorkspace) return null;
     return plan.sections.find((section) => section.id === activeSectionId) ?? plan.sections[0] ?? null;
-  }, [plan, activeSectionId, isSpecialWorkspace, editingSectionId]);
+  }, [plan, activeSectionId, isSpecialWorkspace, effectiveEditingSectionId]);
   const activeQuestion: Question | null = useMemo(() => {
     if (!activeSection) return null;
     return (
@@ -718,7 +755,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                 {/* Workspace Container - Document-Centric Layout */}
                 <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm w-full">
                   {/* Grid Layout: 2 rows, 2 columns */}
-                  <div className="grid grid-cols-[320px_1fr] grid-rows-[auto_1fr] gap-4 h-[calc(100vh-380px)] min-h-[800px] max-h-[calc(100vh-200px)]" style={{ overflow: 'hidden' }}>
+                  <div className="grid grid-cols-[320px_1fr] grid-rows-[auto_1fr] gap-4 h-[calc(100vh-380px)] min-h-[800px] max-h-[calc(100vh-200px)]" style={{ overflow: 'visible' }}>
                     {/* Row 1, Col 1: Current Selection - Fills gap next to DocumentsBar */}
                     <div className="flex-shrink-0 overflow-visible relative" style={{ zIndex: 0 }}>
                       {templateState?.selectionSummary ? (
@@ -804,7 +841,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     </div>
                     
                     {/* Row 2, Col 2: Preview - Full Width */}
-                    <div className="min-w-0 min-h-0 overflow-hidden relative flex flex-col h-full min-h-[700px]" id="preview-container" style={{ zIndex: 1 }}>
+                    <div className="min-w-0 min-h-0 overflow-visible relative flex flex-col h-full min-h-[700px]" id="preview-container" style={{ zIndex: 1 }}>
                       {/* Preview - Always visible */}
                       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative" id="preview-scroll-container">
                         <PreviewWorkspace 
@@ -849,55 +886,51 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                           onAppendixUpdate={updateAppendix}
                           onAppendixDelete={deleteAppendix}
                         />
-                        
-                        {/* Inline Editor - Inside scrollable container, attached to section within preview */}
-                        {/* Don't show editor for metadata sections - editing happens directly in preview */}
-                        {editingSectionId && 
-                         editingSectionId !== METADATA_SECTION_ID && 
-                         editingSectionId !== ANCILLARY_SECTION_ID && 
-                         editingSectionId !== REFERENCES_SECTION_ID && 
-                         editingSectionId !== APPENDICES_SECTION_ID && (
-                          <InlineSectionEditor
-                            sectionId={editingSectionId}
-                            section={activeSection}
-                            activeQuestionId={activeQuestionId}
-                            plan={plan}
-                            onClose={() => setEditingSectionId(null)}
-                            onSelectQuestion={setActiveQuestion}
-                            onAnswerChange={(questionId, content) => {
-                              updateAnswer(questionId, content);
-                            }}
-                            onToggleUnknown={(questionId, note) => {
-                              toggleQuestionUnknown(questionId, note);
-                            }}
-                            onMarkComplete={(questionId) => {
-                              markQuestionComplete(questionId);
-                            }}
-                            onTitlePageChange={updateTitlePage}
-                            onAncillaryChange={updateAncillary}
-                            onReferenceAdd={addReference}
-                            onReferenceUpdate={updateReference}
-                            onReferenceDelete={deleteReference}
-                            onAppendixAdd={addAppendix}
-                            onAppendixUpdate={updateAppendix}
-                            onAppendixDelete={deleteAppendix}
-                            onRunRequirements={runRequirementsCheck}
-                            progressSummary={progressSummary}
-                            onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
-                            onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
-                            onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
-                            onAttachDataset={(dataset) =>
-                              activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
-                            }
-                            onAttachKpi={(kpi) =>
-                              activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
-                            }
-                            onAttachMedia={(asset) =>
-                              activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
-                            }
-                          />
-                        )}
                       </div>
+                      
+                      {/* Inline Editor - RENDERED OUTSIDE SCROLL CONTAINER TO AVOID OVERFLOW CLIPPING */}
+                      {/* ALWAYS VISIBLE when plan exists */}
+                      {plan && effectiveEditingSectionId && (
+                        <InlineSectionEditor
+                          sectionId={effectiveEditingSectionId}
+                          section={activeSection}
+                          activeQuestionId={activeQuestionId}
+                          plan={plan}
+                          onClose={() => setEditingSectionId(null)}
+                          onSelectQuestion={setActiveQuestion}
+                          onAnswerChange={(questionId, content) => {
+                            updateAnswer(questionId, content);
+                          }}
+                          onToggleUnknown={(questionId, note) => {
+                            toggleQuestionUnknown(questionId, note);
+                          }}
+                          onMarkComplete={(questionId) => {
+                            markQuestionComplete(questionId);
+                          }}
+                          onTitlePageChange={updateTitlePage}
+                          onAncillaryChange={updateAncillary}
+                          onReferenceAdd={addReference}
+                          onReferenceUpdate={updateReference}
+                          onReferenceDelete={deleteReference}
+                          onAppendixAdd={addAppendix}
+                          onAppendixUpdate={updateAppendix}
+                          onAppendixDelete={deleteAppendix}
+                          onRunRequirements={runRequirementsCheck}
+                          progressSummary={progressSummary}
+                          onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
+                          onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
+                          onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
+                          onAttachDataset={(dataset) =>
+                            activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
+                          }
+                          onAttachKpi={(kpi) =>
+                            activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
+                          }
+                          onAttachMedia={(asset) =>
+                            activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
+                          }
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

@@ -74,38 +74,38 @@ function deriveCompanyInfo(organisationStage: string | undefined): {
 } {
   if (!organisationStage) return { company_type: null, company_stage: null };
   
-  const mapping: Record<string, { type: string; stage: string | null }> = {
+  const mapping: Record<string, { company_type: string; company_stage: string | null }> = {
     'exploring_idea': { 
-      type: 'founder_idea', 
-      stage: 'pre_company' 
+      company_type: 'founder_idea', 
+      company_stage: 'pre_company' 
     },
     'early_stage_startup': { 
-      type: 'startup', 
-      stage: 'inc_lt_6m'  // < 6 months old
+      company_type: 'startup', 
+      company_stage: 'inc_lt_6m'  // < 6 months old
     },
     'growing_startup': { 
-      type: 'startup', 
-      stage: 'inc_6_36m'  // < 3 years old
+      company_type: 'startup', 
+      company_stage: 'inc_6_36m'  // < 3 years old
     },
     'established_sme': { 
-      type: 'sme', 
-      stage: 'inc_gt_36m'  // 3+ years operating
+      company_type: 'sme', 
+      company_stage: 'inc_gt_36m'  // 3+ years operating
     },
     'research_institution': { 
-      type: 'research', 
-      stage: 'research_org' 
+      company_type: 'research', 
+      company_stage: 'research_org' 
     },
     'public_body': { 
-      type: 'public', 
-      stage: 'public_org' 
+      company_type: 'public', 
+      company_stage: 'public_org' 
     },
     'other': { 
-      type: 'other', 
-      stage: null  // Will be inferred from other text if available
+      company_type: 'other', 
+      company_stage: null  // Will be inferred from other text if available
     },
   };
   
-  return mapping[organisationStage] || { type: 'other', stage: null };
+  return mapping[organisationStage] || { company_type: 'other', company_stage: null };
 }
 
 /**
@@ -312,18 +312,17 @@ export async function scoreProgramsEnhanced(
   // Step 2: Derive company_type and company_stage from organisation_stage if available
   // This supports the new merged question while maintaining backward compatibility
   let userCompanyType: NormalizedCompanyType | null = null;
-  let userCompanyStage: string | null = null;
   
   if (answers.organisation_stage) {
     const derived = deriveCompanyInfo(answers.organisation_stage);
     if (derived.company_type) {
       userCompanyType = normalizeCompanyTypeAnswer(derived.company_type);
     }
-    userCompanyStage = derived.company_stage;
+    // userCompanyStage = derived.company_stage; // Not currently used in matching
   } else if (answers.company_type) {
     // Fallback to old company_type if organisation_stage not available
     userCompanyType = normalizeCompanyTypeAnswer(answers.company_type);
-    userCompanyStage = answers.company_stage || null;
+    // userCompanyStage = answers.company_stage || null; // Not currently used in matching
   }
 
   const userLocation = answers.location ? normalizeLocationAnswer(answers.location) : null;

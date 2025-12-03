@@ -30,6 +30,9 @@ interface AIRequest {
     questionMode?: 'guidance' | 'critique';
     attachmentSummary?: string[];
     requirementHints?: string[];
+    sectionType?: 'normal' | 'metadata' | 'references' | 'appendices' | 'ancillary';
+    sectionOrigin?: 'template' | 'custom';
+    sectionEnabled?: boolean;
   };
   conversationHistory?: ConversationMessage[];
   action: 'generate' | 'improve' | 'compliance' | 'suggest';
@@ -49,6 +52,11 @@ interface AIResponse {
     value: number;
     unit?: string;
     description?: string;
+  }>;
+  recommendedActions?: Array<{
+    type: 'create_table' | 'create_kpi' | 'add_image' | 'add_reference' | 'configure_formatting';
+    reason: string;
+    priority: 'high' | 'medium' | 'low';
   }>;
 }
 
@@ -284,27 +292,47 @@ async function generateAIResponse(
 }
 
 function createSystemPrompt(action: string, context: AIRequest['context']): string {
-  const { sectionTitle, programType, programName, sectionGuidance, hints } = context;
+  const { sectionTitle, programType, programName, sectionGuidance, hints, sectionType, sectionOrigin, sectionEnabled } = context;
   
-  let basePrompt = `You are an expert business plan writing assistant specializing in ${programType} applications.`;
+  // Phase 2: Use section-specific guidance if provided (from sectionAiClient.ts)
+  let basePrompt = '';
   
-  if (programName) {
-    basePrompt += ` You are specifically helping with the ${programName} program.`;
+  if (sectionGuidance && sectionGuidance.length > 0 && sectionGuidance[0]) {
+    // Use section-specific prompt from sectionAiClient.ts
+    basePrompt = sectionGuidance[0];
+  } else {
+    // Fallback to generic prompt
+    basePrompt = `You are an expert business plan writing assistant specializing in ${programType} applications.`;
+    
+    if (programName) {
+      basePrompt += ` You are specifically helping with the ${programName} program.`;
+    }
+    
+    basePrompt += `\n\nCurrent section: ${sectionTitle}`;
   }
   
-  basePrompt += `\n\nCurrent section: ${sectionTitle}`;
-  
-  if (sectionGuidance && sectionGuidance.length > 0) {
-    basePrompt += `\n\nSection guidance: ${sectionGuidance.join(', ')}`;
+  // Add section metadata context
+  if (sectionType) {
+    basePrompt += `\n\nSection type: ${sectionType}`;
+  }
+  if (sectionOrigin) {
+    basePrompt += `\n\nSection origin: ${sectionOrigin === 'template' ? 'Template-based' : 'Custom'}`;
+  }
+  if (sectionEnabled !== undefined) {
+    basePrompt += `\n\nSection status: ${sectionEnabled ? 'Enabled' : 'Disabled'}`;
   }
   
+  // Add additional hints if provided
   if (hints && hints.length > 0) {
     basePrompt += `\n\nWriting hints: ${hints.join(', ')}`;
   }
   
+  // Add action-specific instructions
   switch (action) {
     case 'generate':
-      basePrompt += `\n\nGenerate new content for this section. Be specific, professional, and tailored to ${programType} requirements.`;
+      if (!sectionGuidance || sectionGuidance.length === 0) {
+        basePrompt += `\n\nGenerate new content for this section. Be specific, professional, and tailored to ${programType} requirements.`;
+      }
       break;
     case 'improve':
       basePrompt += `\n\nImprove the existing content. Make it more compelling, clear, and professional.`;
@@ -318,7 +346,8 @@ function createSystemPrompt(action: string, context: AIRequest['context']): stri
   }
   
   basePrompt += `\n\nWhen the section involves metrics, financial data, or measurable outcomes, you can suggest KPIs in your response.`;
-  basePrompt += `\n\nRespond in JSON format with: {"content": "your response", "suggestions": ["suggestion1", "suggestion2"], "complianceTips": ["tip1", "tip2"], "suggestedKPIs": [{"name": "KPI name", "value": 0, "unit": "€", "description": "KPI description"}]}`;
+  basePrompt += `\n\nWhen you identify opportunities for data visualization, tables, images, or references, suggest them as recommended actions.`;
+  basePrompt += `\n\nRespond in JSON format with: {"content": "your response", "suggestions": ["suggestion1", "suggestion2"], "complianceTips": ["tip1", "tip2"], "suggestedKPIs": [{"name": "KPI name", "value": 0, "unit": "€", "description": "KPI description"}], "recommendedActions": [{"type": "create_table" | "create_kpi" | "add_image" | "add_reference" | "configure_formatting", "reason": "why this action is helpful", "priority": "high" | "medium" | "low"}]}`;
   
   return basePrompt;
 }
@@ -341,19 +370,73 @@ function parseAIResponse(aiContent: string): AIResponse {
   try {
     // Try to parse as JSON first
     const parsed = JSON.parse(aiContent);
-    return {
+    
+    // Validate and normalize recommendedActions
+    const recommendedActions: Array<{
+      type: 'create_table' | 'create_kpi' | 'add_image' | 'add_reference' | 'configure_formatting';
+      reason: string;
+      priority: 'high' | 'medium' | 'low';
+    }> = Array.isArray(parsed.recommendedActions)
+      ? parsed.recommendedActions
+          .filter((action: any) => 
+            action && 
+            typeof action === 'object' &&
+            ['create_table', 'create_kpi', 'add_image', 'add_reference', 'configure_formatting'].includes(action.type) &&
+            typeof action.reason === 'string' &&
+            ['high', 'medium', 'low'].includes(action.priority)
+          )
+          .map((action: any) => ({
+            type: action.type as 'create_table' | 'create_kpi' | 'add_image' | 'add_reference' | 'configure_formatting',
+            reason: action.reason,
+            priority: action.priority as 'high' | 'medium' | 'low'
+          }))
+      : [];
+    
+    // Validate and normalize suggestedKPIs
+    const suggestedKPIs: Array<{
+      name: string;
+      value: number;
+      unit?: string;
+      description?: string;
+    }> = Array.isArray(parsed.suggestedKPIs)
+      ? parsed.suggestedKPIs
+          .filter((kpi: any) => 
+            kpi && 
+            typeof kpi === 'object' &&
+            typeof kpi.name === 'string' &&
+            typeof kpi.value === 'number'
+          )
+          .map((kpi: any) => ({
+            name: kpi.name,
+            value: kpi.value,
+            unit: typeof kpi.unit === 'string' ? kpi.unit : undefined,
+            description: typeof kpi.description === 'string' ? kpi.description : undefined
+          }))
+      : [];
+    
+    const response: AIResponse = {
       content: parsed.content || aiContent,
       wordCount: (parsed.content || aiContent).split(' ').length,
-      suggestions: parsed.suggestions || [],
+      suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
       citations: [],
       programSpecific: true,
-      sectionGuidance: parsed.complianceTips || [],
-      complianceTips: parsed.complianceTips || [],
-      readinessScore: 85,
-      suggestedKPIs: parsed.suggestedKPIs || []
+      sectionGuidance: Array.isArray(parsed.complianceTips) ? parsed.complianceTips : [],
+      complianceTips: Array.isArray(parsed.complianceTips) ? parsed.complianceTips : [],
+      readinessScore: typeof parsed.readinessScore === 'number' ? parsed.readinessScore : 85
     };
-  } catch {
+    
+    // Only add optional fields if they have values
+    if (suggestedKPIs.length > 0) {
+      response.suggestedKPIs = suggestedKPIs;
+    }
+    if (recommendedActions.length > 0) {
+      response.recommendedActions = recommendedActions;
+    }
+    
+    return response;
+  } catch (error) {
     // If not JSON, treat as plain text
+    console.warn('[AI Response Parser] Failed to parse JSON, using plain text fallback:', error);
     return {
       content: aiContent,
       wordCount: aiContent.split(' ').length,
@@ -363,7 +446,8 @@ function parseAIResponse(aiContent: string): AIResponse {
       sectionGuidance: ['Focus on clarity and impact', 'Use concrete examples'],
       complianceTips: ['Ensure all requirements are met', 'Check word count limits'],
       readinessScore: 80,
-      suggestedKPIs: []
+      suggestedKPIs: undefined,
+      recommendedActions: undefined
     };
   }
 }

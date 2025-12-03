@@ -198,18 +198,56 @@ export function DesktopConfigurator({
 
   const selectedMeta = selectedProductMeta ?? productOptions.find((option) => option.value === productType) ?? productOptions[0] ?? null;
 
-  return (
-      <div className="flex flex-col gap-2 w-full max-w-full overflow-y-auto min-h-0">
-      <div className="flex-shrink-0">
-        <div className="flex items-center gap-2 mb-1 pb-1 border-b border-white/50">
-          <h2 className="text-lg font-bold uppercase tracking-wide text-white">
-            {t('editor.desktop.config.title' as any) || 'Deine Konfiguration'}
-          </h2>
-        </div>
-      </div>
+  // Helper component for help tooltips
+  const HelpIcon = ({ content }: { content: string }) => {
+    const [isVisible, setIsVisible] = useState(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-      <div className="bg-white/5 border border-white/10 rounded-lg p-2">
-        <div className="flex items-center gap-2 mb-2 p-1 bg-white/5 rounded-lg">
+    const handleMouseEnter = () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setIsVisible(true);
+    };
+
+    const handleMouseLeave = () => {
+      timeoutRef.current = setTimeout(() => setIsVisible(false), 200);
+    };
+
+    useEffect(() => {
+      return () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      };
+    }, []);
+
+    return (
+      <div className="relative inline-flex items-center" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <span className="text-white/60 hover:text-white/90 cursor-help text-sm leading-none">ℹ️</span>
+        {isVisible && (
+          <div className="absolute left-full ml-2 top-0 w-64 rounded-lg border border-white/40 bg-slate-950 px-3 py-2.5 text-[10px] font-normal text-white z-[9999] shadow-2xl backdrop-blur-md pointer-events-none">
+            <p className="text-white/95 leading-relaxed whitespace-normal">{content}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Explanations
+  const explanations = {
+    productSelection: t('editor.desktop.explanations.productSelection' as any) || 
+      'Wählen Sie den Typ Ihres Plans: Strategieplan für langfristige Planung, Review für Überarbeitungen oder Einreichung für Förderanträge. Jeder Typ bietet unterschiedliche Abschnitte und Dokumente.',
+    programConnection: t('editor.desktop.explanations.programConnection' as any) || 
+      'Verbinden Sie ein Förderprogramm, um automatisch die passenden Anforderungen zu laden. Sie können Programme über den ProgramFinder finden, einen Link einfügen oder eine Vorlage hochladen.',
+    programFinder: t('editor.desktop.explanations.programFinder' as any) || 
+      'Der ProgramFinder analysiert Ihre Antworten und schlägt passende Förderprogramme vor. Öffnen Sie den Finder, um Programme zu durchsuchen und zu vergleichen.',
+    pasteLink: t('editor.desktop.explanations.pasteLink' as any) || 
+      'Fügen Sie einen direkten Link zu einem Förderprogramm ein (z.B. von AWS, FFG oder EU-Ausschreibungen). Das System extrahiert automatisch die Anforderungen.',
+    uploadTemplate: t('editor.desktop.explanations.uploadTemplate' as any) || 
+      'Laden Sie eine vorhandene Vorlage hoch (TXT, MD oder PDF). Das System extrahiert automatisch Abschnitte und Dokumente aus der Datei.'
+  };
+
+  return (
+      <div className="flex flex-col gap-4 w-full max-w-full overflow-y-auto min-h-0">
+      <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+        <div className="flex items-center gap-2 mb-3 p-1 bg-white/5 rounded-lg">
           <button
             onClick={() => onConfigViewChange('plan')}
             className={`flex-1 px-4 py-2 rounded text-base font-semibold transition-colors ${
@@ -233,7 +271,13 @@ export function DesktopConfigurator({
         </div>
 
         {configView === 'plan' && (
-          <div className="relative">
+          <div className="relative space-y-3">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-semibold text-white/90">
+                {t('editor.desktop.config.productLabel' as any) || 'Plan-Typ auswählen'}
+              </label>
+              <HelpIcon content={explanations.productSelection} />
+            </div>
             <button
               ref={productTriggerRef}
               type="button"

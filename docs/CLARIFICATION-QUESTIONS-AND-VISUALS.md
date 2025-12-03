@@ -294,7 +294,77 @@
 - Expanded content must have `overflow-y: auto` and proper max-height constraints
 - Panel should be scrollable when content exceeds viewport height
 
-### **Styling Details (Matching Current Theme)**
+---
+
+## 🎯 Key Design Decisions
+
+1. **Desktop removed from top** - All functionality moved into CurrentSelection
+2. **Progressive disclosure** - Collapsed shows summary + stats, expanded shows full configurator
+3. **Requirements stats always visible** - Even when collapsed, shows readiness at a glance
+4. **Theme consistency** - Uses existing blue gradient, white/opacity borders, same shadows
+5. **Space efficient** - Same 320px width base, expands horizontally to the right
+6. **Help integrated** - Explanations via tooltips or expandable sections within configurator
+7. **Overflow handling** - Expanded panel scrollable with proper max-height constraints
+
+---
+
+## 📋 Implementation Notes
+
+### **Expansion Behavior:**
+- CurrentSelection expands **horizontally to the right** (not vertically)
+- Expanded panel should be an **overlay/slide-out** panel (absolute or fixed positioning)
+- Panel slides out from the right edge of CurrentSelection base (320px)
+- Panel width: `400px` or `500px` (configurable)
+- Panel must handle **overflow** with `overflow-y: auto` and proper max-height
+
+### **Overflow Handling:**
+- Expanded panel content must be scrollable when it exceeds viewport height
+- Use `max-height: calc(100vh - 200px)` to prevent viewport overflow
+- Ensure scrollbar styling matches theme (dark, subtle)
+- Test with long content (many sections/documents) to verify scrolling works
+
+### **Component Structure:**
+- CurrentSelection becomes expandable container with two states:
+  - **Collapsed**: Shows summary + stats (320px wide)
+  - **Expanded**: Base panel (320px) + overlay panel (400-500px) to the right
+- DesktopConfigurator integrated as expanded content
+- Requirements stats calculated from `progressSummary` or enhanced `runRequirementsCheck()`
+- Explanations added as tooltips or expandable help sections
+- All styling matches existing dark blue gradient theme
+
+### **Positioning Strategy:**
+```typescript
+// Option A: Absolute positioning (relative to CurrentSelection container)
+.expanded-panel {
+  position: absolute;
+  left: 320px; // Starts after base panel
+  top: 0;
+  width: 400px;
+  height: 100%;
+  z-index: 50;
+  overflow-y: auto;
+}
+
+// Option B: Fixed positioning (relative to viewport)
+.expanded-panel {
+  position: fixed;
+  left: 320px; // Or calculate from CurrentSelection position
+  top: [calculate from CurrentSelection top];
+  width: 400px;
+  height: calc(100vh - [offset]);
+  z-index: 50;
+  overflow-y: auto;
+}
+```
+
+### **Animation:**
+- Smooth slide-in/out animation (300ms ease-in-out)
+- Consider backdrop overlay when expanded for better focus
+- Ensure animation doesn't cause layout shifts
+
+---
+
+## 🎨 Styling Details (Matching Current Theme)
 
 **Container (Collapsed):**
 - `h-full flex flex-col border-r border-white/10 pr-4`
@@ -367,68 +437,5 @@
 
 ---
 
-## 🎯 Key Design Decisions
-
-1. **Desktop removed from top** - All functionality moved into CurrentSelection
-2. **Progressive disclosure** - Collapsed shows summary + stats, expanded shows full configurator
-3. **Requirements stats always visible** - Even when collapsed, shows readiness at a glance
-4. **Theme consistency** - Uses existing blue gradient, white/opacity borders, same shadows
-5. **Space efficient** - Same 320px width, expands vertically within workspace grid
-6. **Help integrated** - Explanations via tooltips or expandable sections within configurator
-
----
-
-## 📋 Implementation Notes
-
-### **Expansion Behavior:**
-- CurrentSelection expands **horizontally to the right** (not vertically)
-- Expanded panel should be an **overlay/slide-out** panel (absolute or fixed positioning)
-- Panel slides out from the right edge of CurrentSelection base (320px)
-- Panel width: `400px` or `500px` (configurable)
-- Panel must handle **overflow** with `overflow-y: auto` and proper max-height
-
-### **Overflow Handling:**
-- Expanded panel content must be scrollable when it exceeds viewport height
-- Use `max-height: calc(100vh - 200px)` to prevent viewport overflow
-- Ensure scrollbar styling matches theme (dark, subtle)
-- Test with long content (many sections/documents) to verify scrolling works
-
-### **Component Structure:**
-- CurrentSelection becomes expandable container with two states:
-  - **Collapsed**: Shows summary + stats (320px wide)
-  - **Expanded**: Base panel (320px) + overlay panel (400-500px) to the right
-- DesktopConfigurator integrated as expanded content
-- Requirements stats calculated from `progressSummary` or enhanced `runRequirementsCheck()`
-- Explanations added as tooltips or expandable help sections
-- All styling matches existing dark blue gradient theme
-
-### **Positioning Strategy:**
-```typescript
-// Option A: Absolute positioning (relative to CurrentSelection container)
-.expanded-panel {
-  position: absolute;
-  left: 320px; // Starts after base panel
-  top: 0;
-  width: 400px;
-  height: 100%;
-  z-index: 50;
-  overflow-y: auto;
-}
-
-// Option B: Fixed positioning (relative to viewport)
-.expanded-panel {
-  position: fixed;
-  left: 320px; // Or calculate from CurrentSelection position
-  top: [calculate from CurrentSelection top];
-  width: 400px;
-  height: calc(100vh - [offset]);
-  z-index: 50;
-  overflow-y: auto;
-}
-```
-
-### **Animation:**
-- Smooth slide-in/out animation (300ms ease-in-out)
-- Consider backdrop overlay when expanded for better focus
-- Ensure animation doesn't cause layout shifts
+**This document provides a comprehensive analysis and recommendations for integrating Desktop into Current Selection, adding feature explanations, and placing requirements checker stats with horizontal expansion and overflow handling.**
 

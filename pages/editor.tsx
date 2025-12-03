@@ -66,18 +66,8 @@ function EditorPage() {
     return value && isProductType(value) ? value : 'submission';
   }, [product]);
 
-  // Show loading while router is ready
-  if (!router.isReady) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <div>Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
+  // Always render Editor component to ensure consistent SSR/client rendering
+  // The Editor component will handle its own loading states
   return (
     <ErrorBoundary>
       <PageEntryIndicator 
