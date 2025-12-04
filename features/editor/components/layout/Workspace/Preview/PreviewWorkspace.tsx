@@ -14,11 +14,12 @@ import {
 } from '@/features/editor/types/plan';
 import ExportRenderer from '@/features/export/renderer/renderer';
 
-interface PreviewPanelProps {
+export interface PreviewPanelProps {
   plan: BusinessPlan | null;
   focusSectionId?: string | null;
   onSectionClick?: (sectionId: string) => void;
   editingSectionId?: string | null;
+  disabledSections?: Set<string>;
   onTitlePageChange?: (titlePage: any) => void;
   onAncillaryChange?: (updates: Partial<any>) => void;
   onReferenceAdd?: (reference: any) => void;
@@ -297,10 +298,11 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
   };
 }
 
-export default function PreviewPanel({ 
+function PreviewPanel({ 
   plan, 
   onSectionClick,
   editingSectionId,
+  disabledSections = new Set(),
   onTitlePageChange,
   onAncillaryChange,
   onReferenceAdd,
@@ -310,11 +312,44 @@ export default function PreviewPanel({
   onAppendixUpdate,
   onAppendixDelete
 }: PreviewPanelProps) {
+  // Use disabledSections to ensure TypeScript recognizes it in the type
+  const _disabledSections = disabledSections;
+  
   const [viewMode, setViewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark, setShowWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<'100' | '120' | '140'>('100');
   const [fitScale, setFitScale] = useState(1);
   const viewportRef = useRef<HTMLDivElement | null>(null);
+  
+  // Calculate responsive preview padding based on screen width
+  const [previewPadding, setPreviewPadding] = useState(() => {
+    if (typeof window === 'undefined') return { left: '40px', right: '20px', maxWidth: 'none' };
+    const width = window.innerWidth;
+    if (width > 1600) {
+      return { left: 'auto', right: 'auto', maxWidth: '900px' };
+    } else if (width > 1200) {
+      return { left: '40px', right: '20px', maxWidth: 'none' };
+    } else {
+      return { left: '20px', right: '10px', maxWidth: 'none' };
+    }
+  });
+  
+  // Update padding on resize
+  useEffect(() => {
+    const updatePadding = () => {
+      const width = window.innerWidth;
+      if (width > 1600) {
+        setPreviewPadding({ left: 'auto', right: 'auto', maxWidth: '900px' });
+      } else if (width > 1200) {
+        setPreviewPadding({ left: '40px', right: '20px', maxWidth: 'none' });
+      } else {
+        setPreviewPadding({ left: '20px', right: '10px', maxWidth: 'none' });
+      }
+    };
+    updatePadding();
+    window.addEventListener('resize', updatePadding);
+    return () => window.removeEventListener('resize', updatePadding);
+  }, []);
 
   useEffect(() => {
     if (viewMode !== 'page') {
@@ -355,12 +390,20 @@ export default function PreviewPanel({
     return () => observer.disconnect();
   }, [viewMode]);
 
+  // Convert Set to sorted array string for reliable dependency tracking
+  const disabledSectionsKey = useMemo(() => {
+    return Array.from(disabledSections).sort().join(',');
+  }, [disabledSections]);
+  
   const planDocument = useMemo<PlanDocument | null>(() => {
     if (!plan || !plan.sections || plan.sections.length === 0) return null;
 
+    // Filter out disabled sections
+    const enabledSections = plan.sections.filter(section => !disabledSections.has(section.id));
+
     // Assign section numbers: Executive Summary is unnumbered, others start at 1
     let sectionNumber = 0;
-    const sections = plan.sections.map((section) => {
+    const sections = enabledSections.map((section) => {
       const isExecutiveSummary = section.title.toLowerCase().includes('executive summary');
       const currentSectionNumber = isExecutiveSummary ? null : ++sectionNumber;
       return convertSectionToPlanSection(section, currentSectionNumber);
@@ -428,7 +471,7 @@ export default function PreviewPanel({
       addonPack: false,
       versions: []
     };
-  }, [plan]);
+  }, [plan, disabledSectionsKey]);
 
   const zoomMultiplier =
     zoomPreset === '100'
@@ -508,7 +551,18 @@ export default function PreviewPanel({
               </div>
             </div>
             <div className="flex-1 overflow-y-auto overflow-x-hidden px-0 flex flex-col">
-              <div ref={viewportRef} className="flex-1 w-full overflow-x-hidden">
+              <div 
+                ref={viewportRef} 
+                className="flex-1 w-full overflow-x-hidden flex"
+                style={{
+                  justifyContent: previewPadding.left === 'auto' ? 'center' : 'flex-start',
+                  paddingLeft: previewPadding.left !== 'auto' ? previewPadding.left : undefined,
+                  paddingRight: previewPadding.right,
+                  maxWidth: previewPadding.maxWidth !== 'none' ? previewPadding.maxWidth : undefined,
+                  marginLeft: previewPadding.left === 'auto' ? 'auto' : undefined,
+                  marginRight: previewPadding.left === 'auto' ? 'auto' : undefined
+                }}
+              >
                 <ExportRenderer
                   plan={planDocument}
                   showWatermark={showWatermark}
@@ -523,6 +577,7 @@ export default function PreviewPanel({
                   style={zoomStyle}
                   onSectionClick={onSectionClick}
                   editingSectionId={editingSectionId}
+                  disabledSections={disabledSections}
                   onTitlePageChange={onTitlePageChange}
                   onAncillaryChange={onAncillaryChange}
                   onReferenceAdd={onReferenceAdd}
@@ -531,6 +586,7 @@ export default function PreviewPanel({
                   onAppendixAdd={onAppendixAdd}
                   onAppendixUpdate={onAppendixUpdate}
                   onAppendixDelete={onAppendixDelete}
+                  disabledSections={disabledSections}
                 />
               </div>
               <div className="flex-shrink-0 mt-4 mb-2 px-4 flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">
@@ -547,3 +603,7 @@ export default function PreviewPanel({
     </>
   );
 }
+
+// Explicitly type the default export to ensure TypeScript recognizes all props
+const PreviewWorkspace: React.FC<PreviewPanelProps> = PreviewPanel;
+export default PreviewWorkspace;
