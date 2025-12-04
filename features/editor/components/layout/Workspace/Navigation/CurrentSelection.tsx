@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { Button } from '@/shared/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
-import { normalizeProgramInput, type ProgressSummary } from '@/features/editor/hooks/useEditorStore';
+import { normalizeProgramInput, type ProgressSummary, METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
 import { extractTemplateFromFile } from '@/features/editor/templates/api';
 import type { ProductType, ProgramSummary } from '@/features/editor/types/plan';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
@@ -45,6 +45,21 @@ type CurrentSelectionProps = {
   disabledDocuments?: Set<string>;
   onToggleSection?: (sectionId: string) => void;
   onToggleDocument?: (documentId: string) => void;
+  // Add custom items
+  showAddDocument?: boolean;
+  showAddSection?: boolean;
+  newDocumentName?: string;
+  newDocumentDescription?: string;
+  newSectionTitle?: string;
+  newSectionDescription?: string;
+  onToggleAddDocument?: () => void;
+  onToggleAddSection?: () => void;
+  onAddCustomDocument?: () => void;
+  onAddCustomSection?: () => void;
+  onSetNewDocumentName?: (name: string) => void;
+  onSetNewDocumentDescription?: (desc: string) => void;
+  onSetNewSectionTitle?: (title: string) => void;
+  onSetNewSectionDescription?: (desc: string) => void;
 };
 
 export default function CurrentSelection({
@@ -82,7 +97,22 @@ export default function CurrentSelection({
   disabledSections = new Set(),
   disabledDocuments = new Set(),
   onToggleSection,
-  onToggleDocument
+  onToggleDocument,
+  // Add custom items
+  showAddDocument = false,
+  showAddSection = false,
+  newDocumentName = '',
+  newDocumentDescription = '',
+  newSectionTitle = '',
+  newSectionDescription = '',
+  onToggleAddDocument,
+  onToggleAddSection,
+  onAddCustomDocument,
+  onAddCustomSection,
+  onSetNewDocumentName,
+  onSetNewDocumentDescription,
+  onSetNewSectionTitle,
+  onSetNewSectionDescription
 }: CurrentSelectionProps) {
   const { t } = useI18n();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -90,11 +120,39 @@ export default function CurrentSelection({
   const containerRef = useRef<HTMLDivElement>(null);
   const [overlayPosition, setOverlayPosition] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   
+  // Track if component is mounted to prevent hydration mismatches
+  const isMountedRef = useRef(false);
+  
   // Change tracking for confirm/cancel functionality
-  const [pendingProduct, setPendingProduct] = useState<ProductType | undefined>(productType);
-  const [pendingProgram, setPendingProgram] = useState<string | null>(programSummary?.id || null);
-  const [originalProduct, setOriginalProduct] = useState<ProductType | undefined>(productType);
-  const [originalProgram, setOriginalProgram] = useState<string | null>(programSummary?.id || null);
+  // Initialize with undefined/null to avoid hydration mismatches, sync with props after mount
+  const [pendingProduct, setPendingProduct] = useState<ProductType | undefined>(undefined);
+  const [pendingProgram, setPendingProgram] = useState<string | null>(null);
+  const [originalProduct, setOriginalProduct] = useState<ProductType | undefined>(undefined);
+  const [originalProgram, setOriginalProgram] = useState<string | null>(null);
+  
+  // Sync state with props after mount to prevent hydration issues
+  useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      // Set initial values from props only after mount
+      setPendingProduct(productType);
+      setPendingProgram(programSummary?.id || null);
+      setOriginalProduct(productType);
+      setOriginalProgram(programSummary?.id || null);
+    }
+  }, []); // Only run once on mount
+  
+  // Sync state with props when they change (but only after mount and when configurator is closed)
+  useEffect(() => {
+    if (isMountedRef.current && !isExpanded) {
+      // Only sync when configurator is closed to avoid disrupting user changes
+      setPendingProduct(productType);
+      setPendingProgram(programSummary?.id || null);
+      setOriginalProduct(productType);
+      setOriginalProgram(programSummary?.id || null);
+    }
+  }, [productType, programSummary?.id, isExpanded]);
+  
   const hasChanges = useMemo(() => {
     return pendingProduct !== originalProduct || pendingProgram !== originalProgram;
   }, [pendingProduct, originalProduct, pendingProgram, originalProgram]);
@@ -208,21 +266,29 @@ export default function CurrentSelection({
     };
   }, [isExpanded, overlayContainerRef]);
   
+  // Track if configurator was just opened (to avoid hydration issues)
+  const wasExpandedRef = useRef(false);
+  
   // Initialize pending state when configurator opens
   useEffect(() => {
-    if (isExpanded) {
+    if (isExpanded && !wasExpandedRef.current) {
+      // First time opening - initialize state
       setOriginalProduct(productType);
       setOriginalProgram(programSummary?.id || null);
       setPendingProduct(productType);
       setPendingProgram(programSummary?.id || null);
-      // Set initial step based on current state
-      // Step 1 is required, Step 2 is optional, so if product exists, go to Step 3
-      if (!productType) {
-        setActiveStep(1);
-      } else {
-        // Product selected - go to Step 3 (Step 2 is optional, can be accessed later)
-        setActiveStep(3);
-      }
+      // Set initial step to Step 1 - let users manually navigate between steps
+      // No automatic navigation - users should explicitly choose which step to view
+      setActiveStep(1);
+      wasExpandedRef.current = true;
+    } else if (!isExpanded) {
+      // Configurator closed - reset the ref
+      wasExpandedRef.current = false;
+    } else if (isExpanded && wasExpandedRef.current) {
+      // Configurator is open and was already open - only update pending state if props changed
+      // Don't reset activeStep to avoid disrupting user navigation
+      setPendingProduct(productType);
+      setPendingProgram(programSummary?.id || null);
     }
   }, [isExpanded, productType, programSummary?.id]);
   
@@ -275,8 +341,7 @@ export default function CurrentSelection({
     onChangeProduct?.(product);
     setShowProductMenu(false);
     setProductMenuPosition(null);
-    // Auto-advance to step 2 after product selection
-    setActiveStep(2);
+    // Don't auto-advance - let user manually navigate between steps
   };
 
   const handleToggleProductMenu = () => {
@@ -301,8 +366,7 @@ export default function CurrentSelection({
     setPendingProgram(normalized);
     onConnectProgram?.(normalized);
     setShowManualInput(false);
-    // Auto-advance to step 3 after program connection
-    setActiveStep(3);
+    // Don't auto-advance - let user manually navigate between steps
   };
 
   const handleTemplateUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1202,69 +1266,95 @@ export default function CurrentSelection({
                           {t('editor.desktop.config.step3.description' as any) || 'Abschnitte und Dokumente werden automatisch basierend auf Ihrem Plan-Typ und verbundenem Programm generiert. Sie können sie anpassen.'}
                         </p>
                         
-                        {/* Sections List */}
-                        <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-semibold text-white/90 uppercase">
-                              {t('editor.desktop.selection.sectionsLabel' as any) || 'ABSCHNITTE'}
-                            </span>
-                            <span className="text-sm font-bold text-white">
-                              {enabledSectionsCount}/{totalSectionsCount}
-                            </span>
-                          </div>
-                          <div className="space-y-2 max-h-60 overflow-y-auto">
-                            {allSections.length > 0 ? (
-                              allSections.map((section) => {
-                                const isDisabled = disabledSections.has(section.id);
-                                const isCustom = section.origin === 'custom';
-                                return (
-                                  <div
-                                    key={section.id}
-                                    className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors"
-                                  >
-                                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                                      <span className="text-xs">
-                                        {isDisabled ? '❌' : '✅'}
-                                        {isCustom && ' ➕'}
-                                      </span>
-                                      <span className={`text-sm truncate ${isDisabled ? 'text-white/50' : 'text-white'}`}>
-                                        {section.title}
-                                      </span>
-                                    </div>
-                                    {onToggleSection && (
-                                      <button
-                                        onClick={() => onToggleSection(section.id)}
-                                        className={`ml-2 px-2 py-1 text-xs rounded transition-colors ${
-                                          isDisabled
-                                            ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                                            : 'bg-white/10 hover:bg-white/20 text-white'
-                                        }`}
-                                      >
-                                        {isDisabled ? 'Aktivieren' : 'Deaktivieren'}
-                                      </button>
-                                    )}
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              <p className="text-sm text-white/60 text-center py-4">
-                                {t('editor.desktop.sections.emptyHint' as any) || 'Keine Abschnitte verfügbar'}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Documents List */}
+                        {/* Documents List - Moved above Sections */}
                         <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                           <div className="flex items-center justify-between mb-3">
                             <span className="text-xs font-semibold text-white/90 uppercase">
                               {t('editor.desktop.selection.documentsLabel' as any) || 'DOKUMENTE'}
                             </span>
-                            <span className="text-sm font-bold text-white">
-                              {enabledDocumentsCount}/{totalDocumentsCount}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-white">
+                                {enabledDocumentsCount}/{totalDocumentsCount}
+                              </span>
+                              {onToggleAddDocument && (
+                                <button
+                                  onClick={onToggleAddDocument}
+                                  className="px-2 py-1 text-xs rounded bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+                                  title={t('editor.desktop.documents.addButton' as any) || 'Add Document'}
+                                >
+                                  + {t('editor.desktop.documents.addButton' as any) || 'Add'}
+                                </button>
+                              )}
+                            </div>
                           </div>
+                          
+                          {/* Add Document Form */}
+                          {showAddDocument && onSetNewDocumentName && onSetNewDocumentDescription && onAddCustomDocument && (
+                            <div className="mb-3 p-3 border border-blue-400/30 bg-blue-600/10 rounded-lg space-y-2">
+                              <p className="text-xs text-white/90 font-semibold mb-2">
+                                {t('editor.desktop.documents.custom.title' as any) || 'Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen'}
+                              </p>
+                              <div className="space-y-2">
+                                <div>
+                                  <label className="text-[10px] text-white/70 block mb-1">
+                                    {t('editor.desktop.documents.custom.name' as any) || 'Name *'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={newDocumentName}
+                                    onChange={(e) => onSetNewDocumentName(e.target.value)}
+                                    placeholder={t('editor.desktop.documents.custom.namePlaceholder' as any) || 'z.B. Finanzplan'}
+                                    className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                                    autoFocus
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-white/70 block mb-1">
+                                    {t('editor.desktop.documents.custom.description' as any) || 'Beschreibung'}
+                                  </label>
+                                  <textarea
+                                    value={newDocumentDescription}
+                                    onChange={(e) => onSetNewDocumentDescription(e.target.value)}
+                                    placeholder={t('editor.desktop.documents.custom.descriptionPlaceholder' as any) || 'Optionale Beschreibung des Dokuments'}
+                                    rows={2}
+                                    className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 pt-1">
+                                <button
+                                  onClick={onAddCustomDocument}
+                                  disabled={!newDocumentName.trim()}
+                                  className="px-3 py-1.5 text-xs rounded bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  {t('editor.desktop.documents.custom.add' as any) || 'Hinzufügen'}
+                                </button>
+                                <button
+                                  onClick={onToggleAddDocument}
+                                  className="px-3 py-1.5 text-xs rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
+                                >
+                                  {t('editor.desktop.documents.custom.cancel' as any) || 'Abbrechen'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          
                           <div className="space-y-2 max-h-60 overflow-y-auto">
+                            {/* Core Product Document - Always shown first */}
+                            {productType && selectedProductMeta && (
+                              <div className="flex items-center justify-between p-2 rounded-lg bg-blue-600/10 border border-blue-400/20">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="text-base">{selectedProductMeta.icon || '📄'}</span>
+                                  <span className="text-sm font-semibold text-white truncate">
+                                    {selectedProductMeta.label}
+                                  </span>
+                                  <span className="text-xs text-white/60">(Core Product)</span>
+                                </div>
+                                <span className="text-xs text-green-400 font-semibold">✓ Always Active</span>
+                              </div>
+                            )}
+                            
+                            {/* Additional Documents */}
                             {allDocuments.length > 0 ? (
                               allDocuments.map((document) => {
                                 const isDisabled = disabledDocuments.has(document.id);
@@ -1292,17 +1382,209 @@ export default function CurrentSelection({
                                             : 'bg-white/10 hover:bg-white/20 text-white'
                                         }`}
                                       >
-                                        {isDisabled ? 'Aktivieren' : 'Deaktivieren'}
+                                        {isDisabled 
+                                          ? (t('editor.desktop.sections.activate' as any) || 'Activate')
+                                          : (t('editor.desktop.sections.deactivate' as any) || 'Deactivate')
+                                        }
                                       </button>
                                     )}
                                   </div>
                                 );
                               })
-                            ) : (
+                            ) : !productType ? (
                               <p className="text-sm text-white/60 text-center py-4">
                                 {t('editor.desktop.documents.emptyHint' as any) || 'Keine Dokumente verfügbar'}
                               </p>
-                            )}
+                            ) : null}
+                          </div>
+                        </div>
+
+                        {/* Sections List */}
+                        <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-white/90 uppercase">
+                              {t('editor.desktop.selection.sectionsLabel' as any) || 'ABSCHNITTE'}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-white">
+                                {enabledSectionsCount}/{totalSectionsCount}
+                              </span>
+                              {onToggleAddSection && (
+                                <button
+                                  onClick={onToggleAddSection}
+                                  className="px-2 py-1 text-xs rounded bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+                                  title={t('editor.desktop.sections.addButton' as any) || 'Add Section'}
+                                >
+                                  + {t('editor.desktop.sections.addButton' as any) || 'Add'}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Add Section Form */}
+                          {showAddSection && onSetNewSectionTitle && onSetNewSectionDescription && onAddCustomSection && (
+                            <div className="mb-3 p-3 border border-blue-400/30 bg-blue-600/10 rounded-lg space-y-2">
+                              <p className="text-xs text-white/90 font-semibold mb-2">
+                                {t('editor.desktop.sections.custom.title' as any) || 'Ein benutzerdefinierter Abschnitt zu Ihrem Plan hinzufügen'}
+                              </p>
+                              <div className="space-y-2">
+                                <div>
+                                  <label className="text-[10px] text-white/70 block mb-1">
+                                    {t('editor.desktop.sections.custom.name' as any) || 'Titel *'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={newSectionTitle}
+                                    onChange={(e) => onSetNewSectionTitle(e.target.value)}
+                                    placeholder={t('editor.desktop.sections.custom.namePlaceholder' as any) || 'z.B. Zusammenfassung'}
+                                    className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                                    autoFocus
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-white/70 block mb-1">
+                                    {t('editor.desktop.sections.custom.description' as any) || 'Beschreibung'}
+                                  </label>
+                                  <textarea
+                                    value={newSectionDescription}
+                                    onChange={(e) => onSetNewSectionDescription(e.target.value)}
+                                    placeholder={t('editor.desktop.sections.custom.descriptionPlaceholder' as any) || 'Optionale Beschreibung des Abschnitts'}
+                                    rows={2}
+                                    className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 pt-1">
+                                <button
+                                  onClick={onAddCustomSection}
+                                  disabled={!newSectionTitle.trim()}
+                                  className="px-3 py-1.5 text-xs rounded bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  {t('editor.desktop.sections.custom.add' as any) || 'Hinzufügen'}
+                                </button>
+                                <button
+                                  onClick={onToggleAddSection}
+                                  className="px-3 py-1.5 text-xs rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
+                                >
+                                  {t('editor.desktop.sections.custom.cancel' as any) || 'Abbrechen'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="space-y-2 max-h-60 overflow-y-auto">
+                            {(() => {
+                              // Create special sections: METADATA, ANCILLARY (TOC), REFERENCES, APPENDICES
+                              const metadataSection: SectionTemplate = {
+                                id: METADATA_SECTION_ID,
+                                title: t('editor.section.metadata' as any) || 'Title Page',
+                                description: '',
+                                required: true,
+                                wordCountMin: 0,
+                                wordCountMax: 0,
+                                order: 0,
+                                category: 'metadata',
+                                prompts: [],
+                                questions: [],
+                                validationRules: { requiredFields: [], formatRequirements: [] },
+                                origin: 'master'
+                              };
+                              
+                              const ancillarySection: SectionTemplate = {
+                                id: ANCILLARY_SECTION_ID,
+                                title: t('editor.section.ancillary' as any) || 'Table of Contents',
+                                description: 'Includes List of Tables and List of Figures',
+                                required: false,
+                                wordCountMin: 0,
+                                wordCountMax: 0,
+                                order: 1,
+                                category: 'ancillary',
+                                prompts: [],
+                                questions: [],
+                                validationRules: { requiredFields: [], formatRequirements: [] },
+                                origin: 'master'
+                              };
+                              
+                              const referencesSection: SectionTemplate = {
+                                id: REFERENCES_SECTION_ID,
+                                title: t('editor.section.references' as any) || 'References',
+                                description: '',
+                                required: false,
+                                wordCountMin: 0,
+                                wordCountMax: 0,
+                                order: 9998,
+                                category: 'references',
+                                prompts: [],
+                                questions: [],
+                                validationRules: { requiredFields: [], formatRequirements: [] },
+                                origin: 'master'
+                              };
+                              
+                              const appendicesSection: SectionTemplate = {
+                                id: APPENDICES_SECTION_ID,
+                                title: t('editor.section.appendices' as any) || 'Appendices',
+                                description: '',
+                                required: false,
+                                wordCountMin: 0,
+                                wordCountMax: 0,
+                                order: 9999,
+                                category: 'appendices',
+                                prompts: [],
+                                questions: [],
+                                validationRules: { requiredFields: [], formatRequirements: [] },
+                                origin: 'master'
+                              };
+                              
+                              // Combine: METADATA, ANCILLARY first, then regular sections, then REFERENCES, APPENDICES last
+                              const sectionsToShow = [metadataSection, ancillarySection, ...allSections, referencesSection, appendicesSection];
+                              
+                              return sectionsToShow.length > 0 ? (
+                                sectionsToShow.map((section) => {
+                                  const isDisabled = disabledSections.has(section.id);
+                                  const isCustom = section.origin === 'custom';
+                                  const isSpecialSection = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID || section.id === REFERENCES_SECTION_ID || section.id === APPENDICES_SECTION_ID;
+                                  
+                                  return (
+                                    <div
+                                      key={section.id}
+                                      className={`flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors ${
+                                        isSpecialSection ? 'bg-blue-600/10 border border-blue-400/20' : ''
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        <span className="text-xs">
+                                          {isDisabled ? '❌' : '✅'}
+                                          {isCustom && ' ➕'}
+                                          {isSpecialSection && ' 📋'}
+                                        </span>
+                                        <span className={`text-sm truncate ${isDisabled ? 'text-white/50' : 'text-white'}`}>
+                                          {section.title}
+                                        </span>
+                                      </div>
+                                      {onToggleSection && (
+                                        <button
+                                          onClick={() => onToggleSection(section.id)}
+                                          className={`ml-2 px-2 py-1 text-xs rounded transition-colors ${
+                                            isDisabled
+                                              ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                                              : 'bg-white/10 hover:bg-white/20 text-white'
+                                          }`}
+                                        >
+                                          {isDisabled 
+                                            ? (t('editor.desktop.sections.activate' as any) || 'Activate')
+                                            : (t('editor.desktop.sections.deactivate' as any) || 'Deactivate')
+                                          }
+                                        </button>
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <p className="text-sm text-white/60 text-center py-4">
+                                  {t('editor.desktop.sections.emptyHint' as any) || 'Keine Abschnitte verfügbar'}
+                                </p>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>

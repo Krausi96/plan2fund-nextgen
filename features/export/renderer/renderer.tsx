@@ -65,6 +65,7 @@ interface ExportRendererProps extends PreviewOptions {
   style?: React.CSSProperties;
   onSectionClick?: (sectionId: string) => void;
   editingSectionId?: string | null;
+  disabledSections?: Set<string>;
   onTitlePageChange?: (titlePage: TitlePage) => void;
   onAncillaryChange?: (updates: Partial<any>) => void;
   onReferenceAdd?: (reference: any) => void;
@@ -85,6 +86,7 @@ function ExportRenderer({
   style,
   onSectionClick,
   editingSectionId = null,
+  disabledSections = new Set(),
   onTitlePageChange,
   onAncillaryChange,
   onReferenceAdd,
@@ -338,7 +340,7 @@ function ExportRenderer({
       )}
       
       <div className="relative z-10" style={{ margin: 0, padding: 0 }}>
-        {plan.settings.includeTitlePage && (() => {
+        {plan.settings.includeTitlePage && !disabledSections.has(METADATA_SECTION_ID) && (() => {
           return (
             <div 
               className={`preview-title-page export-preview-page ${!isEditingMetadata ? 'cursor-pointer hover:bg-blue-50/30 transition-colors' : ''}`}
@@ -589,6 +591,7 @@ function ExportRenderer({
           );
         })()}
 
+        {!disabledSections.has(ANCILLARY_SECTION_ID) && (
         <div 
           className={`export-preview-page export-preview-toc-page ${!isEditingAncillary ? 'cursor-pointer hover:bg-blue-50/30 transition-colors' : ''}`}
           data-section-id={ANCILLARY_SECTION_ID}
@@ -856,6 +859,7 @@ function ExportRenderer({
           </div>
           </div>
         </div>
+        )}
 
         {sectionsToRender.map((section, sectionIndex) => {
           const hasContent = section.content && section.content.trim().length > 0;
@@ -1624,6 +1628,7 @@ function ExportRenderer({
         })()}
 
         {/* References section */}
+        {!disabledSections.has(REFERENCES_SECTION_ID) && (
         <div 
           className={`export-preview-page export-preview-section ${!isEditingReferences ? 'cursor-pointer hover:bg-blue-50/30 transition-colors' : ''}`}
           data-section-id={REFERENCES_SECTION_ID}
@@ -1823,8 +1828,10 @@ function ExportRenderer({
           )}
         </div>
         </div>
+        )}
 
         {/* Appendices section */}
+        {!disabledSections.has(APPENDICES_SECTION_ID) && (
         <div 
           className={`export-preview-page export-preview-section ${!isEditingAppendices ? 'cursor-pointer hover:bg-blue-50/30 transition-colors' : ''}`}
           data-section-id={APPENDICES_SECTION_ID}
@@ -2077,6 +2084,7 @@ function ExportRenderer({
           )}
         </div>
         </div>
+        )}
       </div>
     </div>
   );

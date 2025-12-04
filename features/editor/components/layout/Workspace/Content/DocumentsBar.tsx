@@ -71,7 +71,7 @@ export default function DocumentsBar({
   }
 
   return (
-    <div className="w-full border-b border-white/10 pb-3 mb-3">
+    <div className="relative w-full border-b border-white/10 pb-3 mb-3">
       {/* Header - aligned with Sidebar header height */}
       <div className="flex-shrink-0 mb-2">
         <h2 className="text-lg font-bold uppercase tracking-wide text-white border-b border-white/50">
@@ -107,9 +107,9 @@ export default function DocumentsBar({
           </button>
         )}
 
-        {/* Add Document Form - Original style */}
+        {/* Add Document Form - Overlay style (absolute positioned to overlay content below) */}
         {showAddDocument && !expandedDocumentId && (
-          <div className="flex-shrink-0 col-span-3 border border-white/20 bg-white/10 rounded-lg p-2.5 space-y-2 min-w-[420px]">
+          <div className="absolute left-0 top-[80px] z-[100] border border-white/20 bg-slate-950/95 backdrop-blur-xl rounded-lg p-2.5 space-y-2 min-w-[420px] max-w-[420px] shadow-2xl">
             <p className="text-xs text-white/70 font-semibold mb-2">
               {t('editor.desktop.documents.custom.title' as any) || 'Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen'}
             </p>

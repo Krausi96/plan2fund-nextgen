@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ANCILLARY_SECTION_ID, METADATA_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
+import { ANCILLARY_SECTION_ID, METADATA_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
 import { BusinessPlan } from '@/features/editor/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
@@ -265,8 +265,17 @@ function SectionNavigationTree({
   const { t } = useI18n();
 
   const getSectionTitle = (sectionId: string, originalTitle: string): string => {
-    if (sectionId === METADATA_SECTION_ID || sectionId === ANCILLARY_SECTION_ID) {
-      return (t('editor.section.metadata' as any) as string) || 'Plan Metadata';
+    if (sectionId === METADATA_SECTION_ID) {
+      return (t('editor.section.metadata' as any) as string) || 'Title Page';
+    }
+    if (sectionId === ANCILLARY_SECTION_ID) {
+      return (t('editor.section.ancillary' as any) as string) || 'Table of Contents';
+    }
+    if (sectionId === REFERENCES_SECTION_ID) {
+      return (t('editor.section.references' as any) as string) || 'References';
+    }
+    if (sectionId === APPENDICES_SECTION_ID) {
+      return (t('editor.section.appendices' as any) as string) || 'Appendices';
     }
     if (originalTitle.startsWith('editor.section.')) {
       const translated = t(originalTitle as any) as string;
@@ -294,7 +303,15 @@ function SectionNavigationTree({
     const baseSections = [
       {
         id: METADATA_SECTION_ID,
-        title: getSectionTitle(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Plan Metadata'),
+        title: getSectionTitle(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Title Page'),
+        progress: undefined,
+        questions: [],
+        origin: undefined as any,
+        required: false
+      },
+      {
+        id: ANCILLARY_SECTION_ID,
+        title: getSectionTitle(ANCILLARY_SECTION_ID, (t('editor.section.ancillary' as any) as string) || 'Table of Contents'),
         progress: undefined,
         questions: [],
         origin: undefined as any,
@@ -308,7 +325,23 @@ function SectionNavigationTree({
           origin: templateInfo?.origin,
           required: templateInfo?.required ?? false
         };
-      })
+      }),
+      {
+        id: REFERENCES_SECTION_ID,
+        title: getSectionTitle(REFERENCES_SECTION_ID, (t('editor.section.references' as any) as string) || 'References'),
+        progress: undefined,
+        questions: [],
+        origin: undefined as any,
+        required: false
+      },
+      {
+        id: APPENDICES_SECTION_ID,
+        title: getSectionTitle(APPENDICES_SECTION_ID, (t('editor.section.appendices' as any) as string) || 'Appendices'),
+        progress: undefined,
+        questions: [],
+        origin: undefined as any,
+        required: false
+      }
     ];
     return baseSections;
   }, [planSectionsToShow, filteredSections, t, getSectionTitle]);
@@ -325,10 +358,19 @@ function SectionNavigationTree({
   const sectionsForCards = React.useMemo(() => {
     if (!showAsCards || !allSections) return sections;
     
-    // Always include metadata section first
+    // Always include special sections: METADATA first, ANCILLARY second
     const metadataSection = {
       id: METADATA_SECTION_ID,
-      title: getSectionTitle(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Plan Metadata'),
+      title: getSectionTitle(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Title Page'),
+      progress: undefined,
+      questions: [],
+      origin: undefined as any,
+      required: false
+    };
+    
+    const ancillarySection = {
+      id: ANCILLARY_SECTION_ID,
+      title: getSectionTitle(ANCILLARY_SECTION_ID, (t('editor.section.ancillary' as any) as string) || 'Table of Contents'),
       progress: undefined,
       questions: [],
       origin: undefined as any,
@@ -357,15 +399,30 @@ function SectionNavigationTree({
       };
     });
     
-    return [metadataSection, ...mappedSections];
+    // Always include REFERENCES and APPENDICES sections last
+    const referencesSection = {
+      id: REFERENCES_SECTION_ID,
+      title: getSectionTitle(REFERENCES_SECTION_ID, (t('editor.section.references' as any) as string) || 'References'),
+      progress: undefined,
+      questions: [],
+      origin: undefined as any,
+      required: false
+    };
+    
+    const appendicesSection = {
+      id: APPENDICES_SECTION_ID,
+      title: getSectionTitle(APPENDICES_SECTION_ID, (t('editor.section.appendices' as any) as string) || 'Appendices'),
+      progress: undefined,
+      questions: [],
+      origin: undefined as any,
+      required: false
+    };
+    
+    return [metadataSection, ancillarySection, ...mappedSections, referencesSection, appendicesSection];
   }, [showAsCards, allSections, sections, plan.sections, getSectionTitle, collapsed, filteredSections, t]);
 
   const handleClick = (sectionId: string) => {
-    if (sectionId === ANCILLARY_SECTION_ID) {
-      onSelectSection(METADATA_SECTION_ID);
-    } else {
-      onSelectSection(sectionId);
-    }
+    onSelectSection(sectionId);
   };
 
   if (collapsed) {
@@ -376,19 +433,22 @@ function SectionNavigationTree({
           const answeredQuestions = section.questions?.filter((question: any) => question.status === 'complete').length ?? 0;
           const completion =
             (section as any).progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
-          const isMetadata = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID;
-          const isActive = section.id === activeSectionId || (isMetadata && (activeSectionId === METADATA_SECTION_ID || activeSectionId === ANCILLARY_SECTION_ID));
+          const isActive = section.id === activeSectionId;
+          const isDisabled = disabledSections.has(section.id);
           
           return (
             <button
               key={section.id}
-              onClick={() => handleClick(section.id)}
+              onClick={() => !isDisabled && handleClick(section.id)}
+              disabled={isDisabled}
               className={`w-full p-2 rounded-lg transition-all ${
-                isActive
+                isDisabled
+                  ? 'bg-white/5 border border-white/10 opacity-40 cursor-not-allowed'
+                  : isActive
                   ? 'bg-blue-500/30 border border-blue-400'
                   : 'bg-white/10 border border-white/20 hover:bg-white/20'
               }`}
-              title={section.title}
+              title={isDisabled ? `${section.title} (Disabled)` : section.title}
             >
               <div className="flex flex-col items-center gap-1">
                 <span className="text-lg">
@@ -415,8 +475,7 @@ function SectionNavigationTree({
           const answeredQuestions = section.questions.filter((question) => question.status === 'complete').length;
           const completion =
             section.progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
-          const isMetadata = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID;
-          const isActive = section.id === activeSectionId || (isMetadata && (activeSectionId === METADATA_SECTION_ID || activeSectionId === ANCILLARY_SECTION_ID));
+          const isActive = section.id === activeSectionId;
 
           const isDisabled = disabledSections.has(section.id);
           const sectionTemplate = filteredSections?.find(s => s.id === section.id) || allSections?.find(s => s.id === section.id);
@@ -428,6 +487,7 @@ function SectionNavigationTree({
             <div
               key={section.id}
               onClick={(e) => {
+                if (isDisabled) return; // Don't allow clicking disabled sections
                 const target = e.target as HTMLElement;
                 if (
                   target.tagName === 'INPUT' && target.getAttribute('type') === 'checkbox'
@@ -445,15 +505,15 @@ function SectionNavigationTree({
                 }
                 handleClick(section.id);
               }}
-              className={`relative border rounded-lg p-2.5 cursor-pointer transition-all overflow-hidden ${
-                isActive
-                  ? 'border-blue-400/60 bg-blue-500/30 ring-2 ring-blue-400/40'
-                  : isDisabled 
-                  ? 'border-white/10 bg-white/5 opacity-60' 
+              className={`relative border rounded-lg p-2.5 transition-all overflow-hidden ${
+                isDisabled
+                  ? 'border-white/10 bg-white/5 opacity-40 cursor-not-allowed'
+                  : isActive
+                  ? 'border-blue-400/60 bg-blue-500/30 ring-2 ring-blue-400/40 cursor-pointer'
                   : isRequired
-                  ? 'border-amber-500/30 bg-amber-500/5'
-                  : 'border-white/20 bg-white/10'
-              } hover:border-white/40 group`}
+                  ? 'border-amber-500/30 bg-amber-500/5 cursor-pointer hover:border-white/40'
+                  : 'border-white/20 bg-white/10 cursor-pointer hover:border-white/40'
+              } group`}
               style={{ maxWidth: '100%', width: '100%' }}
             >
               <div className="absolute top-1 right-1 z-10 flex flex-col items-end gap-0.5">
@@ -597,8 +657,8 @@ function SectionNavigationTree({
         const answeredQuestions = section.questions?.filter((question: any) => question.status === 'complete').length ?? 0;
         const completion =
           (section as any).progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
-        const isMetadata = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID;
-        const isActive = section.id === activeSectionId || (isMetadata && (activeSectionId === METADATA_SECTION_ID || activeSectionId === ANCILLARY_SECTION_ID));
+        const isSpecialSection = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID || section.id === REFERENCES_SECTION_ID || section.id === APPENDICES_SECTION_ID;
+        const isActive = section.id === activeSectionId;
         const progressIntent: 'success' | 'warning' | 'neutral' =
           completion === 100 ? 'success' : completion > 0 ? 'warning' : 'neutral';
 
@@ -612,23 +672,24 @@ function SectionNavigationTree({
           <div
             key={section.id}
             className={`w-full rounded-lg border-2 px-3 py-2 transition-all ${
-              isActive
+              isDisabled
+                ? 'border-white/20 bg-white/5 opacity-40 cursor-not-allowed'
+                : isActive
                 ? 'border-blue-400 bg-blue-500/30 text-white shadow-lg'
-                : isDisabled
-                ? 'border-white/20 bg-white/5 opacity-60'
                 : isRequired
                 ? 'border-amber-500/30 bg-amber-500/5'
                 : 'border-white/50 bg-white/10 text-white hover:border-blue-300/70 hover:bg-white/20'
             }`}
           >
             <button
-              onClick={() => handleClick(section.id)}
+              onClick={() => !isDisabled && handleClick(section.id)}
+              disabled={isDisabled}
               className="w-full text-left"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    {!isMetadata && (
+                    {!isSpecialSection && (
                       <span className="text-[9px] font-bold tracking-wide text-white/70">
                         {String(sectionIndex).padStart(2, '0')}
                       </span>

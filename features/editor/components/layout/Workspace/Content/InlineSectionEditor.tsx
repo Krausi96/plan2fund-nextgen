@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/shared/components/ui/dialog';
-// import { useI18n } from '@/shared/contexts/I18nContext';
+import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore, validateQuestionRequirements, METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
 import {
   Dataset,
@@ -56,8 +56,28 @@ type EditorPosition = {
   visible: boolean;
 };
 
-const EDITOR_WIDTH = 600; // Wider panel for better readability
-const EDITOR_MAX_HEIGHT = 420; // Keep current height
+// Responsive panel sizing - optimized for chat and editing (significantly reduced)
+const getEditorWidth = () => {
+  if (typeof window === 'undefined') return 320;
+  if (window.innerWidth > 1400) return 340; // Large screens
+  if (window.innerWidth > 1000) return 320; // Medium screens
+  if (window.innerWidth > 768) return 300;  // Small screens
+  return Math.min(window.innerWidth - 32, 300); // Mobile
+};
+
+const getEditorHeight = () => {
+  if (typeof window === 'undefined') return 500;
+  // Use viewport height to ensure panel fits on screen
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const maxHeight = Math.min(vh * 0.7, 500); // Max 70% of viewport or 500px
+  if (window.innerWidth > 1400) return maxHeight; // Large screens
+  if (window.innerWidth > 1000) return Math.min(maxHeight, 480); // Medium screens
+  if (window.innerWidth > 768) return Math.min(maxHeight, 450);  // Small screens
+  return Math.min(vh * 0.75, 450); // Mobile (75vh max)
+};
+
+const EDITOR_WIDTH = 320; // Default, will be calculated dynamically (reduced for better chat)
+const EDITOR_MAX_HEIGHT = 500; // Default, will be calculated dynamically (reduced height)
 const GAP = 24; // Spacing from edges
 
 /**
@@ -140,7 +160,7 @@ export default function InlineSectionEditor({
   onMediaCreate,
   progressSummary: _progressSummary = []
 }: InlineSectionEditorProps) {
-  // const { t } = useI18n();
+  const { t } = useI18n();
   const { templates } = useEditorStore();
   // Initialize position - ALWAYS visible when plan exists (show welcome state if no sectionId)
   const [position, setPosition] = useState<EditorPosition>(() => ({
@@ -155,6 +175,22 @@ export default function InlineSectionEditor({
   const [dragOverTarget, setDragOverTarget] = useState<'logo' | 'attachment' | null>(null);
   const [isPanelDragging, setIsPanelDragging] = useState(false);
   const dragStartPos = useRef<{ x: number; y: number; startLeft: number; startTop: number } | null>(null);
+  
+  // Responsive panel dimensions
+  const [panelDimensions, setPanelDimensions] = useState(() => ({ 
+    width: typeof window !== 'undefined' ? getEditorWidth() : EDITOR_WIDTH, 
+    height: typeof window !== 'undefined' ? getEditorHeight() : EDITOR_MAX_HEIGHT 
+  }));
+  
+  // Update panel dimensions on resize
+  useEffect(() => {
+    const updateDimensions = () => {
+      setPanelDimensions({ width: getEditorWidth(), height: getEditorHeight() });
+    };
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
   
   // AI state
   const [aiMessages, setAiMessages] = useState<ConversationMessage[]>([]);
@@ -194,18 +230,56 @@ export default function InlineSectionEditor({
   const activeQuestion = section?.questions.find((q) => q.id === activeQuestionId) ?? section?.questions[0] ?? null;
   const template = section ? templates.find((tpl) => tpl.id === section.id) : null;
 
-  // Phase 2: Center-bottom positioning with draggable support
+  // Smart positioning: Relative to preview container, align with active section when possible
   // Panel should ALWAYS be visible when plan exists (show welcome state if no sectionId)
   const calculatePosition = useCallback(() => {
     const isDesktop = window.innerWidth > 768;
+    const currentWidth = panelDimensions.width;
+    const currentHeight = panelDimensions.height;
     
-    // Phase 2: Default to center-bottom of viewport
+    // Default: right edge of preview, center-bottom
     let top = typeof window !== 'undefined' 
-      ? window.innerHeight - EDITOR_MAX_HEIGHT - GAP 
+      ? window.innerHeight - currentHeight - GAP 
       : GAP;
     let left = typeof window !== 'undefined' 
-      ? (window.innerWidth - EDITOR_WIDTH) / 2 
+      ? window.innerWidth - currentWidth - GAP
       : GAP;
+    
+    // Position panel at right edge of viewport (not relative to preview)
+    // This ensures panel is always on the right side, giving more space for preview
+    left = typeof window !== 'undefined' 
+      ? window.innerWidth - currentWidth - GAP
+      : GAP;
+    
+    // Try to position relative to preview container for vertical alignment
+    const previewContainer = document.getElementById('preview-container');
+    if (previewContainer) {
+      const previewRect = previewContainer.getBoundingClientRect();
+      
+      // Try to align with active section if visible
+      if (sectionId) {
+        const activeSection = document.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement;
+        if (activeSection) {
+          const sectionRect = activeSection.getBoundingClientRect();
+          // Check if section is visible in preview
+          if (sectionRect.top >= previewRect.top && sectionRect.top < previewRect.bottom) {
+            // Align panel top with section top (relative to viewport)
+            top = sectionRect.top + GAP;
+            // Ensure panel doesn't go below viewport
+            if (top + currentHeight > window.innerHeight - GAP) {
+              top = window.innerHeight - currentHeight - GAP;
+            }
+          }
+        }
+      }
+      
+      // If section not visible or not found, use center-bottom of preview
+      if (top === window.innerHeight - currentHeight - GAP) {
+        top = previewRect.top + (previewRect.height / 2) - (currentHeight / 2);
+        // Clamp to preview bounds
+        top = Math.max(previewRect.top + GAP, Math.min(top, previewRect.bottom - currentHeight - GAP));
+      }
+    }
     
     // Try to load saved position from localStorage (only if user has moved it)
     if (typeof window !== 'undefined') {
@@ -214,8 +288,10 @@ export default function InlineSectionEditor({
         if (saved) {
           const parsed = JSON.parse(saved);
           // Only use saved position if it's significantly different from default (user moved it)
-          const defaultLeft = (window.innerWidth - EDITOR_WIDTH) / 2;
-          const defaultTop = window.innerHeight - EDITOR_MAX_HEIGHT - GAP;
+          const defaultLeft = previewContainer 
+            ? previewContainer.getBoundingClientRect().right - currentWidth - GAP
+            : (window.innerWidth - currentWidth) / 2;
+          const defaultTop = window.innerHeight - currentHeight - GAP;
           const diffX = Math.abs(parsed.left - defaultLeft);
           const diffY = Math.abs(parsed.top - defaultTop);
           
@@ -236,8 +312,8 @@ export default function InlineSectionEditor({
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
     const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
     
-    left = Math.max(GAP, Math.min(left, viewportWidth - EDITOR_WIDTH - GAP));
-    top = Math.max(GAP, Math.min(top, viewportHeight - EDITOR_MAX_HEIGHT - GAP));
+    left = Math.max(GAP, Math.min(left, viewportWidth - currentWidth - GAP));
+    top = Math.max(GAP, Math.min(top, viewportHeight - currentHeight - GAP));
     
     // ALWAYS set visible to true - component should always be visible when plan exists
     setPosition({
@@ -246,7 +322,7 @@ export default function InlineSectionEditor({
       placement: isDesktop ? 'right' : 'below',
       visible: true // ALWAYS visible when plan exists
     });
-  }, []);
+  }, [sectionId, panelDimensions]);
 
   // Styles are in globals.css - no need to inject dynamically
 
@@ -283,7 +359,7 @@ export default function InlineSectionEditor({
     };
   }, [activeQuestionId, sectionId, isSpecialSection]);
 
-  // Update position on mount, section change, and resize
+  // Update position on mount, section change, resize, and dimension changes
   // ALWAYS visible when plan exists (show welcome state if no sectionId)
   useEffect(() => {
     // IMMEDIATELY set visible - component should always be visible when plan exists
@@ -291,7 +367,7 @@ export default function InlineSectionEditor({
       ...prev,
       visible: true, // ALWAYS visible
       top: prev.top || 24,
-      left: prev.left || (typeof window !== 'undefined' ? window.innerWidth - EDITOR_WIDTH - GAP : 0)
+      left: prev.left || (typeof window !== 'undefined' ? window.innerWidth - panelDimensions.width - GAP : 0)
     }));
 
     // Calculate position once after a short delay to ensure DOM is ready
@@ -532,17 +608,12 @@ export default function InlineSectionEditor({
   }, [dragOverTarget, isMetadataSection, plan.titlePage, onTitlePageChange, onMediaCreate, onAppendixAdd, section]);
 
   // Ensure editor is visible when plan exists
-  // Hide only for ANCILLARY section (TOC/list of tables - auto-generated, no editing needed)
-  // Show welcome state if sectionId is null
+  // Show welcome state if sectionId is null, editor if sectionId exists
+  // ANCILLARY section (TOC) now has panel enabled for editing
   useEffect(() => {
-    if (isAncillarySection) {
-      // Hide only for ANCILLARY section
-      setPosition(prev => ({ ...prev, visible: false }));
-    } else {
-      // ALWAYS visible - show welcome state if sectionId is null, editor if sectionId exists
-      setPosition(prev => ({ ...prev, visible: true }));
-    }
-  }, [sectionId, isAncillarySection]);
+    // ALWAYS visible - show welcome state if sectionId is null, editor if sectionId exists
+    setPosition(prev => ({ ...prev, visible: true }));
+  }, [sectionId]);
 
   // Debug logging - after all variables are declared
   useEffect(() => {
@@ -565,61 +636,199 @@ export default function InlineSectionEditor({
   }, [activeQuestion?.id, activeQuestion?.answer, template?.id, section?.id]);
 
   // Request proactive AI suggestions when question loads
-  // Only call when question ID changes, not on every validation update
+  // Improved with better prompts, validation, and section-type-specific logic
   const requestProactiveSuggestions = useCallback(async () => {
-    if (isSpecialSection || !activeQuestion || !section) return;
+    if (!section) return;
     
     setIsLoadingSuggestions(true);
     try {
-      const currentValidation = activeQuestion && template && section
-        ? validateQuestionRequirements(activeQuestion, section, template)
-        : null;
+      let context = '';
+      let sectionType: 'normal' | 'metadata' | 'references' | 'appendices' | 'ancillary' = 'normal';
       
+      // Section-type-specific prompts
+      if (isMetadataSection) {
+        sectionType = 'metadata';
+        context = `Based on the title page structure, provide 3-4 specific, actionable suggestions for improving the title page. Focus on:
+- Logo quality and format requirements
+- Company name and legal form accuracy
+- Contact information completeness
+- Date and confidentiality statement formatting
+Provide suggestions that are directly applicable and can be implemented immediately.`;
+      } else if (isAncillarySection) {
+        sectionType = 'ancillary';
+        context = `Based on the table of contents structure, provide 3-4 specific suggestions for improving the TOC:
+- Structure and hierarchy improvements
+- Missing sections that should be included
+- Page numbering format
+- Subsection organization
+Provide actionable suggestions that improve document navigation.`;
+      } else if (isReferencesSection) {
+        sectionType = 'references';
+        context = `Based on the references section, provide 3-4 specific suggestions for improving citations:
+- Citation format consistency (APA, MLA, etc.)
+- Missing required references
+- Reference completeness and accuracy
+- Citation style improvements
+Provide suggestions that are directly applicable to reference management.`;
+      } else if (isAppendicesSection) {
+        sectionType = 'appendices';
+        context = `Based on the appendices section, provide 3-4 specific suggestions for organizing appendices:
+- Structure and organization improvements
+- Missing appendices that should be included
+- Formatting and labeling consistency
+- Supplementary material organization
+Provide actionable suggestions for better appendix management.`;
+      } else if (activeQuestion) {
+        // Normal section with question
+        const currentValidation = activeQuestion && template && section
+          ? validateQuestionRequirements(activeQuestion, section, template)
+          : null;
+        const currentAnswer = activeQuestion.answer || '';
+        const answerLength = currentAnswer.trim().length;
+        
+        context = `Based on this question: "${activeQuestion.prompt}"
+${answerLength > 0 ? `Current answer length: ${answerLength} characters` : 'No answer yet'}
+${currentValidation?.issues.length ? `Issues to address: ${currentValidation.issues.map(i => i.message).join(', ')}` : ''}
+
+Provide 3-4 specific, actionable suggestions that:
+- Are directly relevant to this question
+- Can be implemented immediately
+- Add concrete value to the answer
+- Are specific (not vague like "add more detail")
+- Don't duplicate existing answer content
+
+Format as a simple list, one suggestion per line.`;
+        
+        const response = await generateSectionContent({
+          sectionTitle: section.title,
+          context,
+          program: {
+            id: plan.metadata?.programId,
+            name: plan.metadata?.programName,
+            type: plan.metadata?.templateFundingType || 'grant'
+          },
+          questionMeta: {
+            questionPrompt: activeQuestion.prompt,
+            questionStatus: activeQuestion.status,
+            requirementHints: currentValidation?.issues.map(i => i.message) || []
+          },
+          conversationHistory: [],
+          documentType: (plan.metadata as any)?.documentType || 'business-plan',
+          assistantContext: _assistantContext,
+          sectionType: 'normal',
+          sectionOrigin: template ? 'template' : 'custom',
+          sectionEnabled: true
+        });
+        
+        // Extract and validate suggestions
+        const content = response.content || '';
+        const suggestionLines = content
+          .split('\n')
+          .map(line => line.trim())
+          .filter(line => {
+            // Match bullet points, numbered lists, or lines starting with common suggestion markers
+            return /^[•\-\*]\s+/.test(line) || 
+                   /^\d+[\.\)]\s+/.test(line) ||
+                   /^Consider|^Mention|^Include|^Describe|^Explain|^Add|^Provide/i.test(line);
+          })
+          .map(line => line.replace(/^[•\-\*]\s+/, '').replace(/^\d+[\.\)]\s+/, '').trim())
+          .filter(line => {
+            // Validation: filter out low-quality suggestions
+            const length = line.length;
+            // Must be between 10 and 150 characters
+            if (length < 10 || length > 150) return false;
+            // Filter out vague suggestions
+            const vaguePatterns = /^(add|include|mention|consider|think about|remember)/i;
+            if (vaguePatterns.test(line) && length < 30) return false;
+            // Check for duplicate content in answer
+            if (currentAnswer && line.toLowerCase().includes(currentAnswer.toLowerCase().substring(0, 20))) {
+              return false;
+            }
+            return true;
+          });
+        
+        if (suggestionLines.length > 0) {
+          setProactiveSuggestions(suggestionLines.slice(0, 4));
+        } else {
+          // Fallback: generate contextual suggestions
+          if (answerLength === 0) {
+            setProactiveSuggestions([
+              'Start with a clear overview statement',
+              'Include specific examples or data points',
+              'Explain the relevance to your business'
+            ]);
+          } else if (answerLength < 100) {
+            setProactiveSuggestions([
+              'Expand with more specific details',
+              'Add concrete examples or evidence',
+              'Explain the impact or significance'
+            ]);
+          } else {
+            setProactiveSuggestions([
+              'Refine key points for clarity',
+              'Add supporting data or metrics',
+              'Strengthen the conclusion'
+            ]);
+          }
+        }
+        return;
+      } else {
+        // No active question, skip
+        setProactiveSuggestions([]);
+        return;
+      }
+      
+      // For special sections (metadata, ancillary, references, appendices)
       const response = await generateSectionContent({
-        sectionTitle: section.title,
-        context: `Analyze this question and provide 3-5 brief suggestions for what to mention in the answer: ${activeQuestion.prompt}`,
+        sectionTitle: section.title || (isMetadataSection ? 'Title Page' : isAncillarySection ? 'Table of Contents' : isReferencesSection ? 'References' : 'Appendices'),
+        context,
         program: {
           id: plan.metadata?.programId,
           name: plan.metadata?.programName,
           type: plan.metadata?.templateFundingType || 'grant'
         },
         questionMeta: {
-          questionPrompt: activeQuestion.prompt,
-          questionStatus: activeQuestion.status,
-          requirementHints: currentValidation?.issues.map(i => i.message) || []
+          questionPrompt: isMetadataSection 
+            ? 'Help with title page design and formatting'
+            : isAncillarySection
+            ? 'Help with table of contents structure'
+            : isReferencesSection
+            ? 'Help with citations and references'
+            : 'Help with appendices',
+          questionStatus: activeQuestion?.status || 'blank',
+          requirementHints: []
         },
         conversationHistory: [],
         documentType: (plan.metadata as any)?.documentType || 'business-plan',
         assistantContext: _assistantContext,
-        sectionType: 'normal',
+        sectionType,
         sectionOrigin: template ? 'template' : 'custom',
-        sectionEnabled: true // Sections are enabled by default
+        sectionEnabled: true
       });
       
-      // Extract suggestions from AI response (look for bullet points or list items)
+      // Extract and validate suggestions
       const content = response.content || '';
       const suggestionLines = content
         .split('\n')
         .map(line => line.trim())
         .filter(line => {
-          // Match bullet points, numbered lists, or lines starting with common suggestion markers
           return /^[•\-\*]\s+/.test(line) || 
                  /^\d+[\.\)]\s+/.test(line) ||
-                 /^Consider|^Mention|^Include|^Describe|^Explain/i.test(line);
+                 /^Consider|^Mention|^Include|^Describe|^Explain|^Add|^Provide|^Use|^Ensure/i.test(line);
         })
         .map(line => line.replace(/^[•\-\*]\s+/, '').replace(/^\d+[\.\)]\s+/, '').trim())
-        .filter(line => line.length > 0 && line.length < 150);
+        .filter(line => {
+          const length = line.length;
+          if (length < 10 || length > 150) return false;
+          const vaguePatterns = /^(add|include|mention|consider)/i;
+          if (vaguePatterns.test(line) && length < 25) return false;
+          return true;
+        });
       
       if (suggestionLines.length > 0) {
-        // Phase 4: Limit to 3-4 suggestions (better quality over quantity)
         setProactiveSuggestions(suggestionLines.slice(0, 4));
       } else {
-        // Fallback: generate generic suggestions based on question type
-        setProactiveSuggestions([
-          'Provide specific examples',
-          'Include relevant details',
-          'Explain the context clearly'
-        ]);
+        setProactiveSuggestions([]);
       }
     } catch (error) {
       console.error('Failed to load proactive suggestions:', error);
@@ -627,7 +836,7 @@ export default function InlineSectionEditor({
     } finally {
       setIsLoadingSuggestions(false);
     }
-  }, [activeQuestion?.id, activeQuestion?.prompt, section?.id, section?.title, plan.metadata, isSpecialSection, template?.id]);
+  }, [activeQuestion?.id, activeQuestion?.prompt, activeQuestion?.answer, section?.id, section?.title, plan.metadata, isSpecialSection, isMetadataSection, isAncillarySection, isReferencesSection, isAppendicesSection, template?.id, _assistantContext]);
 
   // Initialize chat with question message when question changes, or welcome message for special sections
   useEffect(() => {
@@ -637,19 +846,26 @@ export default function InlineSectionEditor({
         id: `welcome_${sectionId}_${Date.now()}`,
         role: 'assistant',
         content: isMetadataSection 
-          ? 'I can help you with title page design, formatting, and document structure.'
+          ? 'Ich helfe dir beim Erstellen des Titelblatts. Du kannst Logo, Firmenname, Kontaktdaten und Datum hinzufügen. Frag mich einfach, wenn du Hilfe brauchst!'
+          : isAncillarySection
+          ? 'Ich helfe dir beim Erstellen des Inhaltsverzeichnisses. Ich kann die Struktur organisieren, Seitenzahlen hinzufügen und die Formatierung anpassen. Was möchtest du tun?'
           : isReferencesSection
-          ? 'I can help you manage citations, references, and attachments.'
+          ? 'Ich helfe dir beim Verwalten deiner Referenzen und Quellen. Du kannst Zitate hinzufügen, das Format anpassen oder Referenzen importieren. Wie kann ich helfen?'
           : isAppendicesSection
-          ? 'I can help you organize appendices and supplementary materials.'
-          : 'How can I assist you with this section?',
+          ? 'Ich helfe dir beim Organisieren deiner Anhänge. Du kannst neue Anhänge hinzufügen, bestehende bearbeiten oder die Struktur anpassen. Was benötigst du?'
+          : t('editor.ui.askAssistant' as any) || 'Wie kann ich dir bei diesem Abschnitt helfen?',
         timestamp: new Date().toISOString(),
         type: 'suggestion'
       };
       setAiMessages([welcomeMessage]);
       setAiInput('');
-      setAssistantContext(isMetadataSection ? 'design' : isReferencesSection ? 'references' : 'content');
-      setProactiveSuggestions([]);
+      setAssistantContext(isMetadataSection ? 'design' : isAncillarySection ? 'content' : isReferencesSection ? 'references' : 'content');
+      // Request suggestions for special sections too
+      if (section) {
+        requestProactiveSuggestions();
+      } else {
+        setProactiveSuggestions([]);
+      }
       return;
     }
     
@@ -724,20 +940,19 @@ export default function InlineSectionEditor({
     return (
       <div
         ref={editorRef}
-        className="absolute z-20 rounded-2xl border-2 border-blue-400/60 bg-slate-900/95 backdrop-blur-xl shadow-2xl overflow-hidden transition-all"
+        className="rounded-2xl border-2 border-blue-400/60 bg-slate-900/95 backdrop-blur-xl shadow-2xl overflow-hidden transition-all"
         style={{
-          top: position.top > 0 ? `${position.top}px` : '24px',
-          left: position.left > 0 ? `${position.left}px` : 'auto',
-          right: position.left === 0 || position.left < 100 ? '24px' : 'auto',
-          width: `${EDITOR_WIDTH}px`,
-          height: `${EDITOR_MAX_HEIGHT}px`,
           position: 'fixed',
-          overflowY: 'auto',
-          overflowX: 'hidden',
+          top: `${position.top}px`,
+          left: `${position.left}px`,
+          width: `${panelDimensions.width}px`,
+          height: `${panelDimensions.height}px`,
           zIndex: 9999,
           display: 'block',
           opacity: 1,
-          visibility: 'visible'
+          visibility: 'visible',
+          overflowY: 'auto',
+          overflowX: 'hidden'
         }}
       >
         <div className="relative h-full flex flex-col bg-slate-900/95 backdrop-blur-xl">
@@ -1133,9 +1348,40 @@ export default function InlineSectionEditor({
   const totalQuestions = !isSpecialSection && section ? section.questions.length : 0;
   const completionPercentage = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
+  // Calculate special section stats
+  const titlePageFields = useMemo(() => {
+    if (!isMetadataSection || !plan.titlePage) return { completed: 0, total: 4 };
+    const fields = [
+      plan.titlePage.logoUrl,
+      plan.titlePage.companyName,
+      plan.titlePage.planTitle,
+      plan.titlePage.date
+    ];
+    return {
+      completed: fields.filter(f => f && f.trim().length > 0).length,
+      total: 4
+    };
+  }, [isMetadataSection, plan.titlePage]);
+
+  const tocStats = useMemo(() => {
+    if (!isAncillarySection || !plan.ancillary) return { sections: 0, withPages: 0 };
+    return {
+      sections: plan.ancillary.tableOfContents?.length || 0,
+      withPages: plan.ancillary.tableOfContents?.filter(e => e.page).length || 0
+    };
+  }, [isAncillarySection, plan.ancillary]);
+
+  const referencesCount = useMemo(() => {
+    return isReferencesSection && plan.references ? plan.references.length : 0;
+  }, [isReferencesSection, plan.references]);
+
+  const appendicesCount = useMemo(() => {
+    return isAppendicesSection && plan.appendices ? plan.appendices.length : 0;
+  }, [isAppendicesSection, plan.appendices]);
+
   // Force visibility - component should ALWAYS be visible when plan exists
-  // Only hide for ANCILLARY section
-  const shouldBeVisible = !isAncillarySection;
+  // ANCILLARY section now has panel enabled
+  const shouldBeVisible = true;
   const effectiveVisible = shouldBeVisible && position.visible;
 
   // Debug: Log render state
@@ -1162,18 +1408,17 @@ export default function InlineSectionEditor({
   const editorContent = (
     <div
       ref={editorRef}
-      className={`absolute z-20 rounded-2xl border-2 ${
+      className={`rounded-2xl border-2 ${
         isDragging 
           ? 'border-blue-500 border-dashed bg-blue-900/50' 
           : 'border-blue-400/60 bg-slate-900/95'
-      } backdrop-blur-xl shadow-2xl overflow-hidden transition-all`}
+      } backdrop-blur-xl shadow-2xl overflow-hidden transition-all flex flex-col`}
       style={{
+        position: 'fixed',
         top: `${position.top}px`,
         left: `${position.left}px`,
-        width: `${EDITOR_WIDTH}px`,
-        height: `${EDITOR_MAX_HEIGHT}px`,
-        position: 'fixed',
-        overflow: 'hidden',
+        width: `${panelDimensions.width}px`,
+        height: `${panelDimensions.height}px`,
         zIndex: 9999,
         display: effectiveVisible ? 'flex' : 'none',
         flexDirection: 'column',
@@ -1209,7 +1454,7 @@ export default function InlineSectionEditor({
               {section?.title || 'Section'}
             </h2>
             
-            {/* Question Navigation - Inline with title */}
+            {/* Question Navigation - Inline with title (Normal Sections) */}
             {!isSpecialSection && section && section.questions.length > 1 && (
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 {section.questions.map((q, index) => {
@@ -1231,6 +1476,67 @@ export default function InlineSectionEditor({
                     </button>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Special Section Navigation - Field/View Navigation */}
+            {isSpecialSection && (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {isMetadataSection && (
+                  <>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      🖼️ Logo
+                    </button>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      🏢 {t('editor.desktop.selection.programLabel' as any) || 'Company'}
+                    </button>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      📧 Kontakt
+                    </button>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      📅 Datum
+                    </button>
+                  </>
+                )}
+                {isAncillarySection && (
+                  <>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      📋 Übersicht
+                    </button>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      🏗️ Struktur
+                    </button>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      🎨 Formatierung
+                    </button>
+                  </>
+                )}
+                {isReferencesSection && (
+                  <>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      📝 Liste
+                    </button>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      📐 Format
+                    </button>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      📥 Importieren
+                    </button>
+                  </>
+                )}
+                {isAppendicesSection && (
+                  <>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      📋 Liste
+                    </button>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      ➕ {t('editor.desktop.sections.addButton' as any) || 'Hinzufügen'}
+                    </button>
+                    <button className="flex items-center gap-1 rounded-full border border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700 px-2.5 py-1 text-xs font-medium transition-all">
+                      📦 Organisieren
+                    </button>
+                  </>
+                )}
               </div>
             )}
             
@@ -1265,10 +1571,143 @@ export default function InlineSectionEditor({
           </div>
         )}
 
+        {/* Enhanced Context Section for Special Sections */}
+        {isSpecialSection && section && (
+          <div className="border-b border-white/20 p-3 bg-slate-800/50 flex-shrink-0">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-semibold text-white/90 flex items-center gap-2">
+                {isMetadataSection && `📄 ${t('editor.section.metadata' as any) || 'Title Page'}`}
+                {isAncillarySection && `📑 ${t('editor.section.ancillary' as any) || 'Table of Contents'}`}
+                {isReferencesSection && `📚 ${t('editor.section.references' as any) || 'References'}`}
+                {isAppendicesSection && `📎 ${t('editor.section.appendices' as any) || 'Appendices'}`}
+              </div>
+              {/* Quick Actions */}
+              <div className="flex items-center gap-1.5">
+                {isMetadataSection && (
+                  <button
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file && onTitlePageChange) {
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            if (typeof reader.result === 'string') {
+                              onTitlePageChange({ ...plan.titlePage, logoUrl: reader.result });
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      };
+                      input.click();
+                    }}
+                    className="text-xs px-2 py-1 rounded border border-white/20 bg-slate-700/50 hover:bg-slate-600 text-white/80 hover:text-white transition-colors"
+                  >
+                    {t('editor.desktop.documents.addButton' as any) || 'Upload Logo'}
+                  </button>
+                )}
+                {isReferencesSection && plan.references && (
+                  <button
+                    onClick={() => {
+                      const citation = prompt(t('editor.ui.answerPlaceholder' as any) || 'Enter citation:');
+                      if (citation && _onReferenceAdd) {
+                        _onReferenceAdd({
+                          id: `ref_${Date.now()}`,
+                          citation: citation.trim(),
+                          url: ''
+                        });
+                      }
+                    }}
+                    className="text-xs px-2 py-1 rounded border border-white/20 bg-slate-700/50 hover:bg-slate-600 text-white/80 hover:text-white transition-colors"
+                  >
+                    + {t('editor.desktop.sections.addButton' as any) || 'Add'}
+                  </button>
+                )}
+                {isAppendicesSection && plan.appendices && (
+                  <button
+                    onClick={() => {
+                      const title = prompt(t('editor.ui.answerPlaceholder' as any) || 'Enter appendix title:');
+                      if (title && onAppendixAdd) {
+                        onAppendixAdd({
+                          id: `appendix_${Date.now()}`,
+                          title: title.trim(),
+                          description: ''
+                        });
+                      }
+                    }}
+                    className="text-xs px-2 py-1 rounded border border-white/20 bg-slate-700/50 hover:bg-slate-600 text-white/80 hover:text-white transition-colors"
+                  >
+                    + {t('editor.desktop.sections.addButton' as any) || 'Add'}
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {/* Context Information */}
+            <div className="text-xs text-white/70 space-y-1">
+              {isMetadataSection && (
+                <div className="flex items-center gap-2">
+                  <span className="text-white/60">
+                    {t('editor.ui.edit' as any) || 'Editing:'}
+                  </span>
+                  <span className="text-white/90">
+                    {plan.titlePage?.logoUrl 
+                      ? (t('editor.section.metadata' as any) || 'Logo')
+                      : plan.titlePage?.companyName
+                      ? (t('editor.section.metadata' as any) || 'Company')
+                      : (t('editor.section.metadata' as any) || 'General Information')}
+                  </span>
+                </div>
+              )}
+              {isAncillarySection && plan.ancillary && (
+                <div className="flex items-center gap-2">
+                  <span className="text-white/60">
+                    {t('editor.section.ancillary' as any) || 'TOC:'}
+                  </span>
+                  <span className="text-white/90">
+                    {plan.ancillary.tableOfContents?.length || 0} {t('editor.desktop.selection.sectionsLabel' as any) || 'sections'}
+                    {plan.ancillary.tableOfContents && plan.ancillary.tableOfContents.length > 0 && (
+                      <span className="text-white/60 ml-1">
+                        ({plan.ancillary.tableOfContents.filter(e => e.page).length} {t('editor.desktop.selection.sectionsLabel' as any) || 'with pages'})
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
+              {isReferencesSection && plan.references && (
+                <div className="flex items-center gap-2">
+                  <span className="text-white/60">
+                    {t('editor.section.references' as any) || 'References:'}
+                  </span>
+                  <span className="text-white/90">
+                    {plan.references.length} {plan.references.length === 1 
+                      ? (t('editor.section.references' as any) || 'reference')
+                      : (t('editor.section.references' as any) || 'references')}
+                  </span>
+                </div>
+              )}
+              {isAppendicesSection && plan.appendices && (
+                <div className="flex items-center gap-2">
+                  <span className="text-white/60">
+                    {t('editor.section.appendices' as any) || 'Appendices:'}
+                  </span>
+                  <span className="text-white/90">
+                    {plan.appendices.length} {plan.appendices.length === 1
+                      ? (t('editor.section.appendices' as any) || 'appendix')
+                      : (t('editor.section.appendices' as any) || 'appendices')}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Chat Area with Side Panel - Restructured */}
-        <div className="flex-1 flex overflow-hidden bg-slate-900/95 min-h-0">
+        <div className="flex-1 flex overflow-hidden bg-slate-900/95 min-h-0" style={{ minHeight: '180px', maxHeight: '300px' }}>
           {/* Chat Messages (left) */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0" style={{ minHeight: '120px' }}>
             {/* Chat Messages - Filter out question and answer messages (only show AI messages) */}
             {aiMessages.filter(msg => msg.type !== 'question' && msg.type !== 'answer').length === 0 && !isAiLoading && (
               <div className="flex items-center justify-center h-full min-h-[80px]">
@@ -1362,8 +1801,8 @@ export default function InlineSectionEditor({
             )}
           </div>
           
-          {/* Suggestions Side Panel (right) */}
-          {!isSpecialSection && activeQuestion && (proactiveSuggestions.length > 0 || isLoadingSuggestions) && (
+          {/* Suggestions Side Panel (right) - Now available for all section types */}
+          {(proactiveSuggestions.length > 0 || isLoadingSuggestions) && (
             <div className={`
               flex-shrink-0 border-l border-white/20 bg-slate-800/60
               transition-all duration-200
@@ -1484,7 +1923,7 @@ export default function InlineSectionEditor({
             </div>
           </div>
 
-        {/* Actions Footer - Phase 2: Simplified */}
+        {/* Actions Footer - Normal Sections */}
         {!isSpecialSection && section && !isComplete && (
           <div className="flex items-center justify-between gap-2 p-2.5 border-t border-white/20 bg-slate-800/50 flex-shrink-0">
             <div className="text-xs text-white/70">
@@ -1496,15 +1935,75 @@ export default function InlineSectionEditor({
                 onClick={handleSkipClick}
                 className="text-white/80 border-white/20 bg-slate-700/50 hover:bg-slate-700 text-xs px-3 py-1.5 rounded"
               >
-                {isUnknown ? 'Clear' : 'Skip'}
+                {isUnknown ? (t('editor.panel.clear' as any) || 'Clear') : (t('editor.panel.skip' as any) || 'Skip')}
               </Button>
               <Button
                 variant="success"
                 onClick={handleComplete}
                 className="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-1.5 rounded"
               >
-                ✓ Complete
+                ✓ {t('editor.panel.complete' as any) || 'Complete'}
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Footer for Special Sections */}
+        {isSpecialSection && section && (
+          <div className="flex items-center justify-between gap-2 p-2.5 border-t border-white/20 bg-slate-800/50 flex-shrink-0">
+            <div className="text-xs text-white/70 flex items-center gap-2">
+              {isMetadataSection && (
+                <>
+                  <span>
+                    {titlePageFields.completed}/{titlePageFields.total} {t('editor.ui.complete' as any) || 'fields'}
+                  </span>
+                  {titlePageFields.completed === titlePageFields.total && (
+                    <span className="text-green-400">✓ {t('editor.ui.complete' as any) || 'Complete'}</span>
+                  )}
+                </>
+              )}
+              {isAncillarySection && (
+                <>
+                  <span>
+                    {tocStats.sections} {t('editor.desktop.selection.sectionsLabel' as any) || 'sections'}
+                    {tocStats.withPages > 0 && (
+                      <span className="text-white/50 ml-1">
+                        ({tocStats.withPages} {t('editor.desktop.selection.sectionsLabel' as any) || 'with pages'})
+                      </span>
+                    )}
+                  </span>
+                </>
+              )}
+              {isReferencesSection && (
+                <>
+                  <span>
+                    {referencesCount} {t('editor.section.references' as any) || 'references'}
+                  </span>
+                </>
+              )}
+              {isAppendicesSection && (
+                <>
+                  <span>
+                    {appendicesCount} {t('editor.section.appendices' as any) || 'appendices'}
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {isMetadataSection && (
+                <button
+                  onClick={() => {
+                    // Scroll to preview title page or focus on it
+                    const titlePageElement = document.querySelector(`[data-section-id="${METADATA_SECTION_ID}"]`);
+                    if (titlePageElement) {
+                      titlePageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }}
+                  className="text-xs px-3 py-1.5 rounded border border-white/20 bg-slate-700/50 hover:bg-slate-600 text-white/80 hover:text-white transition-colors"
+                >
+                  {t('editor.ui.edit' as any) || 'View in Preview'}
+                </button>
+              )}
             </div>
           </div>
         )}

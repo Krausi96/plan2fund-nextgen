@@ -498,7 +498,7 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start !important;
     overflow-x: hidden;
   }
 
@@ -510,7 +510,7 @@
     margin: 0 !important;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
-    margin-left: auto !important;
+    margin-left: 0 !important;
     margin-right: auto !important;
     border: 1px solid;
     border-image: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.15)) 1;

@@ -393,10 +393,41 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const [customDocuments, setCustomDocuments] = useState<DocumentTemplate[]>([]);
   const [templateLoading, setTemplateLoading] = useState(true);
   const [_templateError, setTemplateError] = useState<string | null>(null);
-  // Initialize disabled state as empty Set to prevent hydration mismatches
-  // State will be restored from planMetadata on client-side only
-  const [disabledSections, setDisabledSections] = useState<Set<string>>(() => new Set());
-  const [disabledDocuments, setDisabledDocuments] = useState<Set<string>>(() => new Set());
+  // Initialize disabled state from plan.metadata synchronously to prevent hydration mismatches
+  // Initialize from plan.metadata if available, otherwise empty Set
+  // This ensures server and client start with same initial state
+  const [disabledSections, setDisabledSections] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') {
+      // Server-side: always start with empty Set
+      return new Set();
+    }
+    // Client-side: try to get from store if available
+    try {
+      const storeState = useEditorStore.getState();
+      if (storeState.plan?.metadata?.disabledSectionIds) {
+        return new Set(storeState.plan.metadata.disabledSectionIds);
+      }
+    } catch (e) {
+      // Store might not be ready yet
+    }
+    return new Set();
+  });
+  const [disabledDocuments, setDisabledDocuments] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') {
+      // Server-side: always start with empty Set
+      return new Set();
+    }
+    // Client-side: try to get from store if available
+    try {
+      const storeState = useEditorStore.getState();
+      if (storeState.plan?.metadata?.disabledDocumentIds) {
+        return new Set(storeState.plan.metadata.disabledDocumentIds);
+      }
+    } catch (e) {
+      // Store might not be ready yet
+    }
+    return new Set();
+  });
   
   const [showAddSection, setShowAddSection] = useState(false);
   const [showAddDocument, setShowAddDocument] = useState(false);
@@ -562,6 +593,19 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       return;
     }
     
+    // Don't trigger hydration if configurator is open or we're suppressing navigation
+    // This prevents jumps when toggling sections/documents
+    if (isConfiguratorOpen || suppressNavigationRef.current) {
+      // Still update refs to track the change, but don't hydrate yet
+      prevDisabledSectionsRef.current = disabledSectionsKey;
+      prevDisabledDocumentsRef.current = disabledDocumentsKey;
+      prevCustomSectionsLengthRef.current = customSections.length;
+      prevCustomDocumentsLengthRef.current = customDocuments.length;
+      prevCustomSectionsKeyRef.current = customSectionsKey;
+      prevCustomDocumentsKeyRef.current = customDocumentsKey;
+      return;
+    }
+    
     // Update refs
     prevDisabledSectionsRef.current = disabledSectionsKey;
     prevDisabledDocumentsRef.current = disabledDocumentsKey;
@@ -610,16 +654,29 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
   // Template management handlers
   const toggleSection = useCallback((sectionId: string) => {
+    // Mark that this is a toggle action to prevent auto-navigation
+    sectionChangeSourceRef.current = 'scroll'; // Use 'scroll' to prevent navigation in useEffect
+    suppressNavigationRef.current = true; // Suppress navigation during toggle
     setDisabledSections(prev => {
       const next = new Set(prev);
       if (next.has(sectionId)) {
         next.delete(sectionId);
       } else {
         next.add(sectionId);
+        // If disabling the active section and configurator is open, don't navigate
+        // Navigation will happen when configurator is closed
+        if (sectionId === activeSectionId && isConfiguratorOpen) {
+          // Just disable it, don't navigate yet
+          return next;
+        }
       }
       return next;
     });
-  }, []);
+    // Clear suppression after toggle completes
+    setTimeout(() => {
+      suppressNavigationRef.current = false;
+    }, 150);
+  }, [activeSectionId, isConfiguratorOpen]);
 
   const toggleDocument = useCallback((documentId: string) => {
     setDisabledDocuments(prev => {
@@ -1130,16 +1187,44 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
   // Track if activeSectionId change was from user interaction (sidebar click) vs scroll detection
   const sectionChangeSourceRef = useRef<'user' | 'scroll' | 'preview'>('scroll');
+  // Track if we should suppress navigation (e.g., from toggle or configurator closing)
+  const suppressNavigationRef = useRef(false);
+  const previousConfiguratorOpenRef = useRef(isConfiguratorOpen);
+  // Track the last section that was explicitly selected by the user (not from toggle/configurator)
+  const lastUserSelectedSectionRef = useRef<string | null>(null);
 
   // Wrapper for setActiveSection that tracks the source
   const handleSectionSelect = useCallback((sectionId: string, source: 'user' | 'scroll' | 'preview' = 'user') => {
     sectionChangeSourceRef.current = source;
+    suppressNavigationRef.current = false; // User interaction should allow navigation
     setActiveSection(sectionId);
   }, [setActiveSection]);
+
+  // Track configurator state changes to suppress navigation when closing
+  // This MUST run BEFORE the auto-activate effect to prevent jumps
+  useEffect(() => {
+    // If configurator just closed, suppress navigation temporarily
+    if (previousConfiguratorOpenRef.current && !isConfiguratorOpen) {
+      // Set suppression IMMEDIATELY and synchronously before any other effects run
+      suppressNavigationRef.current = true;
+      sectionChangeSourceRef.current = 'scroll'; // Mark as non-user action to prevent navigation
+      // Clear suppression after a longer delay to allow state to settle completely
+      setTimeout(() => {
+        suppressNavigationRef.current = false;
+      }, 500); // Increased delay to ensure all state updates complete
+    }
+    previousConfiguratorOpenRef.current = isConfiguratorOpen;
+  }, [isConfiguratorOpen]);
 
   // Auto-activate editor when plan loads or activeSectionId changes
   useEffect(() => {
     if (!plan) return;
+    
+    // Don't auto-navigate when configurator is open (user is configuring)
+    if (isConfiguratorOpen) return;
+    
+    // Don't auto-navigate if we're suppressing navigation (from toggle or configurator closing)
+    if (suppressNavigationRef.current) return;
     
     // If no active section, set one
     if (!activeSectionId) {
@@ -1157,13 +1242,42 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                               activeSectionId === REFERENCES_SECTION_ID || 
                               activeSectionId === APPENDICES_SECTION_ID;
     
-    // Always set editingSectionId to show editor
-    if (!editingSectionId || editingSectionId !== activeSectionId) {
+    // Check if active section is disabled - if so and configurator is closed, find first enabled section
+    // But only do this if the change was from user interaction (sidebar click), not from toggle or scroll
+    // When toggling, sectionChangeSourceRef is set to 'scroll' to prevent this navigation
+    if (disabledSections.has(activeSectionId) && !isConfiguratorOpen && sectionChangeSourceRef.current === 'user') {
+      const firstEnabledSection = plan.sections.find(s => !disabledSections.has(s.id));
+      if (firstEnabledSection) {
+        sectionChangeSourceRef.current = 'user';
+        setActiveSection(firstEnabledSection.id);
+      } else {
+        sectionChangeSourceRef.current = 'user';
+        setActiveSection(METADATA_SECTION_ID);
+      }
+      return;
+    }
+    
+    // Only set editingSectionId if activeSectionId actually changed from user interaction
+    // Don't change it if it was from a toggle (scroll) or configurator closing
+    // CRITICAL: Only update if:
+    // 1. Configurator is closed
+    // 2. Not suppressing navigation
+    // 3. Section is not disabled
+    // 4. Source is from user interaction (not scroll/toggle)
+    // 5. Active section matches the last user-selected section (prevents updates from toggles)
+    if (!isConfiguratorOpen && 
+        !suppressNavigationRef.current &&
+        (!disabledSections.has(activeSectionId)) && 
+        sectionChangeSourceRef.current !== 'scroll' &&
+        (sectionChangeSourceRef.current === 'user' || sectionChangeSourceRef.current === 'preview') &&
+        activeSectionId === lastUserSelectedSectionRef.current &&
+        (!editingSectionId || editingSectionId !== activeSectionId)) {
       setEditingSectionId(activeSectionId);
     }
     
     // For regular sections, set first question as active if not already set
-    if (!isMetadataSection) {
+    // But don't do this when configurator is open to prevent jumps
+    if (!isConfiguratorOpen && !isMetadataSection) {
       const section = plan.sections.find(s => s.id === activeSectionId);
       if (section && !activeQuestionId) {
         setActiveQuestion(section.questions[0]?.id ?? null);
@@ -1171,7 +1285,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     }
 
     // If change was from user interaction (sidebar click) or preview click, scroll to section
-    if (sectionChangeSourceRef.current === 'user' || sectionChangeSourceRef.current === 'preview') {
+    // But don't scroll when configurator is open
+    if (!isConfiguratorOpen && (sectionChangeSourceRef.current === 'user' || sectionChangeSourceRef.current === 'preview')) {
       const scrollToSection = () => {
         const scrollContainer = document.getElementById('preview-scroll-container');
         if (!scrollContainer) {
@@ -1250,9 +1365,12 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       });
     }
     
-    // Reset source after handling
-    sectionChangeSourceRef.current = 'scroll';
-  }, [activeSectionId, plan, activeQuestionId, editingSectionId, setActiveSection, setActiveQuestion, setEditingSectionId]);
+    // Reset source after handling (but don't reset if we're suppressing navigation)
+    // Also don't reset if source is already 'scroll' (from toggle/configurator close)
+    if (!suppressNavigationRef.current && sectionChangeSourceRef.current !== 'scroll') {
+      sectionChangeSourceRef.current = 'scroll';
+    }
+  }, [activeSectionId, plan, activeQuestionId, editingSectionId, setActiveSection, setActiveQuestion, setEditingSectionId, isConfiguratorOpen]);
 
   // Scroll detection to update active section when scrolling through preview
   // Uses IntersectionObserver for more reliable detection
@@ -1503,6 +1621,21 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                           disabledDocuments={templateState.disabledDocuments}
                           onToggleSection={templateState.handlers.onToggleSection}
                           onToggleDocument={templateState.handlers.onToggleDocument}
+                          // Add custom items
+                          showAddDocument={templateState.showAddDocument}
+                          showAddSection={templateState.showAddSection}
+                          newDocumentName={templateState.newDocumentName}
+                          newDocumentDescription={templateState.newDocumentDescription}
+                          newSectionTitle={templateState.newSectionTitle}
+                          newSectionDescription={templateState.newSectionDescription}
+                          onToggleAddDocument={templateState.handlers.onToggleAddDocument}
+                          onToggleAddSection={templateState.handlers.onToggleAddSection}
+                          onAddCustomDocument={templateState.handlers.onAddCustomDocument}
+                          onAddCustomSection={templateState.handlers.onAddCustomSection}
+                          onSetNewDocumentName={templateState.handlers.onSetNewDocumentName}
+                          onSetNewDocumentDescription={templateState.handlers.onSetNewDocumentDescription}
+                          onSetNewSectionTitle={templateState.handlers.onSetNewSectionTitle}
+                          onSetNewSectionDescription={templateState.handlers.onSetNewSectionDescription}
                         />
                       ) : (
                         <div className="h-full border-r border-white/10 pr-4">
@@ -1512,7 +1645,16 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     </div>
 
                     {/* Row 1, Col 2: Documents Bar - Same Width as Preview */}
-                    <div className="flex-shrink-0 relative min-h-0" style={{ zIndex: 0, overflow: 'hidden', contain: 'layout', maxHeight: '200px' }}>
+                    <div 
+                      className="flex-shrink-0 relative min-h-0" 
+                      style={{ 
+                        zIndex: templateState?.showAddDocument ? 50 : 0, 
+                        overflowY: templateState?.showAddDocument ? 'visible' : 'auto', 
+                        overflowX: 'visible', 
+                        contain: templateState?.showAddDocument ? 'none' : 'layout', 
+                        maxHeight: templateState?.showAddDocument ? 'none' : '200px' 
+                      }}
+                    >
                       {templateState ? (
                         <DocumentsBar
                           filteredDocuments={templateState.filteredDocuments}
@@ -1582,6 +1724,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                           plan={plan} 
                           focusSectionId={activeSectionId}
                           editingSectionId={editingSectionId}
+                          {...({ disabledSections } as any)}
                           onSectionClick={(sectionId: string) => {
                             // Click section in preview → Select it (triggers editor via useEffect)
                             const isMetadataSection = sectionId === METADATA_SECTION_ID || 
