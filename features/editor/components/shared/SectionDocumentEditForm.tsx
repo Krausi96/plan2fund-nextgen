@@ -3,7 +3,7 @@ import { Button } from '@/shared/components/ui/button';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
-type DesktopEditFormProps = {
+type SectionDocumentEditFormProps = {
   type: 'section' | 'document';
   item: SectionTemplate | DocumentTemplate;
   onSave: (item: SectionTemplate | DocumentTemplate) => void;
@@ -11,13 +11,13 @@ type DesktopEditFormProps = {
   getOriginBadge?: (origin?: string, isSelected?: boolean) => React.ReactNode;
 };
 
-export function DesktopEditForm({
+export function SectionDocumentEditForm({
   type,
   item,
   onSave,
   onCancel,
   getOriginBadge
-}: DesktopEditFormProps) {
+}: SectionDocumentEditFormProps) {
   const { t } = useI18n();
   const [title, setTitle] = useState(type === 'section' ? (item as SectionTemplate).title : (item as DocumentTemplate).name);
   const [description, setDescription] = useState(item.description || '');

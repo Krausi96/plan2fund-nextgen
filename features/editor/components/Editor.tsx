@@ -7,13 +7,15 @@ import React, {
 } from 'react';
 import { useRouter } from 'next/router';
 
-import { TemplateOverviewPanel, ConnectCopy } from './layout/Desktop/Desktop';
+import type { ConnectCopy } from '@/features/editor/types/configurator';
 import Sidebar from './layout/Workspace/Navigation/Sidebar';
 import PreviewWorkspace from './layout/Workspace/Preview/PreviewWorkspace';
 import InlineSectionEditor from './layout/Workspace/Content/InlineSectionEditor';
 import DocumentsBar from './layout/Workspace/Content/DocumentsBar';
 import CurrentSelection from './layout/Workspace/Navigation/CurrentSelection';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
+import { getSections, getDocuments } from '@templates';
+import { Badge } from '@/shared/components/ui/badge';
 import {
   ANCILLARY_SECTION_ID,
   METADATA_SECTION_ID,
@@ -36,6 +38,14 @@ import {
   loadSelectedProgram,
   saveSelectedProgram
 } from '@/shared/user/storage/planStore';
+
+// Template management constants
+const DOCUMENT_SELECTION_STORAGE_KEY = 'plan2fund-desktop-doc-selection';
+const createDefaultSelectionState = (): Record<ProductType, string | null> => ({
+  submission: null,
+  review: null,
+  strategy: null
+});
 
 type EditorProps = {
   product?: ProductType;
@@ -119,6 +129,10 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const [programSummary, setProgramSummary] = useState<ProgramSummary | null>(null);
   const [programLoading, setProgramLoading] = useState(false);
   const [programError, setProgramError] = useState<string | null>(null);
+  const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
+  const [pendingProductChange, setPendingProductChange] = useState<ProductType | null>(null);
+  const [pendingProgramChange, setPendingProgramChange] = useState<ProgramSummary | null | undefined>(undefined);
+  const workspaceGridRef = useRef<HTMLDivElement>(null);
   const storedProgramChecked = useRef(false);
   const hydrationInProgress = useRef(false);
 
@@ -181,11 +195,12 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
 
   // Hydrate plan when product/program is selected (but allow overview to show)
+  // IMPORTANT: Don't hydrate if configurator overlay is open - wait until it closes
   useEffect(() => {
-    if (selectedProduct && typeof window !== 'undefined' && !hydrationInProgress.current) {
+    if (selectedProduct && typeof window !== 'undefined' && !hydrationInProgress.current && !isConfiguratorOpen) {
       hydrationInProgress.current = true;
       console.log('[Editor] Triggering hydration', { selectedProduct, hasProgram: !!programSummary });
-      // Call with empty options initially - will be updated when TemplateOverviewPanel calls onUpdate
+      // Call with empty options initially - will be updated when template state changes
       applyHydration(programSummary, {
         disabledSectionIds: [],
         disabledDocumentIds: []
@@ -199,7 +214,22 @@ export default function Editor({ product = 'submission' }: EditorProps) {
         }, 1000);
       });
     }
-  }, [applyHydration, programSummary, selectedProduct]);
+  }, [applyHydration, programSummary, selectedProduct, isConfiguratorOpen]);
+
+  // Apply pending changes when configurator closes
+  useEffect(() => {
+    if (!isConfiguratorOpen && (pendingProductChange || pendingProgramChange !== undefined)) {
+      if (pendingProductChange) {
+        setSelectedProduct(pendingProductChange);
+        setProductType(pendingProductChange);
+        setPendingProductChange(null);
+      }
+      if (pendingProgramChange !== undefined) {
+        setProgramSummary(pendingProgramChange);
+        setPendingProgramChange(undefined);
+      }
+    }
+  }, [isConfiguratorOpen, pendingProductChange, pendingProgramChange, setProductType]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -284,10 +314,19 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
   const handleProductChange = useCallback(
     (next: ProductType) => {
-      setSelectedProduct(next);
-      setProductType(next);
+      // If configurator is open, store as pending change (don't hydrate yet)
+      if (isConfiguratorOpen) {
+        setPendingProductChange(next);
+        // Still update the UI state for immediate feedback
+        setSelectedProduct(next);
+        setProductType(next);
+      } else {
+        // If configurator is closed, apply immediately
+        setSelectedProduct(next);
+        setProductType(next);
+      }
     },
-    [setProductType]
+    [setProductType, isConfiguratorOpen]
   );
 
   const handleTemplateUpdate = useCallback((options: {
@@ -347,38 +386,745 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     // Priority 4: METADATA (always available)
     return METADATA_SECTION_ID;
   }, [editingSectionId, activeSectionId, plan]);
-  // Template management state from Desktop (for DocumentsBar and Sidebar)
-  const [templateState, setTemplateState] = useState<{
-    filteredDocuments: DocumentTemplate[];
-    disabledDocuments: Set<string>;
-    enabledDocumentsCount: number;
-    expandedDocumentId: string | null;
-    editingDocument: DocumentTemplate | null;
-    clickedDocumentId: string | null;
-    showAddDocument: boolean;
-    newDocumentName: string;
-    newDocumentDescription: string;
-    filteredSections: SectionTemplate[];
-    allSections: SectionTemplate[]; // All sections for counting
-    disabledSections: Set<string>;
-    expandedSectionId: string | null;
-    editingSection: SectionTemplate | null;
-    showAddSection: boolean;
-    newSectionTitle: string;
-    newSectionDescription: string;
-    selectionSummary?: {
-      productLabel: string;
-      productIcon?: string;
-      programLabel: string | null;
-      enabledSectionsCount: number;
-      totalSectionsCount: number;
-      enabledDocumentsCount: number;
-      totalDocumentsCount: number;
-      sectionTitles: string[];
-      documentTitles: string[];
+  // Template management state (moved from Desktop.tsx)
+  const [sections, setSections] = useState<SectionTemplate[]>([]);
+  const [documents, setDocuments] = useState<DocumentTemplate[]>([]);
+  const [customSections, setCustomSections] = useState<SectionTemplate[]>([]);
+  const [customDocuments, setCustomDocuments] = useState<DocumentTemplate[]>([]);
+  const [templateLoading, setTemplateLoading] = useState(true);
+  const [_templateError, setTemplateError] = useState<string | null>(null);
+  // Initialize disabled state as empty Set to prevent hydration mismatches
+  // State will be restored from planMetadata on client-side only
+  const [disabledSections, setDisabledSections] = useState<Set<string>>(() => new Set());
+  const [disabledDocuments, setDisabledDocuments] = useState<Set<string>>(() => new Set());
+  
+  const [showAddSection, setShowAddSection] = useState(false);
+  const [showAddDocument, setShowAddDocument] = useState(false);
+  const [newSectionTitle, setNewSectionTitle] = useState('');
+  const [newSectionDescription, setNewSectionDescription] = useState('');
+  const [newDocumentName, setNewDocumentName] = useState('');
+  const [newDocumentDescription, setNewDocumentDescription] = useState('');
+  const [sectionFilter] = useState<'all' | 'master' | 'program' | 'custom'>('all');
+  const [documentFilter] = useState<'all' | 'master' | 'program' | 'custom'>('all');
+  
+  const [expandedSectionId, setExpandedSectionId] = useState<string | null>(null);
+  const [expandedDocumentId, setExpandedDocumentId] = useState<string | null>(null);
+  const [editingSection, setEditingSection] = useState<SectionTemplate | null>(null);
+  const [editingDocument, setEditingDocument] = useState<DocumentTemplate | null>(null);
+  const [productDocumentSelections, setProductDocumentSelections] = useState<Record<ProductType, string | null>>(() => {
+    if (typeof window === 'undefined') {
+      return createDefaultSelectionState();
+    }
+    try {
+      const stored = window.sessionStorage.getItem(DOCUMENT_SELECTION_STORAGE_KEY);
+      if (!stored) {
+        return createDefaultSelectionState();
+      }
+      const parsed = JSON.parse(stored) as Partial<Record<ProductType, string | null>>;
+      return {
+        ...createDefaultSelectionState(),
+        ...parsed
+      };
+    } catch (err) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Editor] Failed to parse document selection cache:', err);
+      }
+      return createDefaultSelectionState();
+    }
+  });
+  const clickedDocumentId = productDocumentSelections[selectedProduct] ?? null;
+
+  // Template loading - only load templates client-side
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    async function loadTemplates() {
+      setTemplateLoading(true);
+      setTemplateError(null);
+      try {
+        const baseUrl = undefined;
+        const fundingType = programSummary?.fundingType ?? 'grants';
+        
+        const [loadedSections, loadedDocuments] = await Promise.all([
+          getSections(fundingType, selectedProduct, programSummary?.id, baseUrl),
+          getDocuments(fundingType, selectedProduct, programSummary?.id, baseUrl)
+        ]);
+        
+        setSections(loadedSections);
+        setDocuments(loadedDocuments);
+      } catch (err) {
+        setTemplateError(err instanceof Error ? err.message : 'Failed to load templates');
+      } finally {
+        setTemplateLoading(false);
+      }
+    }
+
+    loadTemplates();
+  }, [selectedProduct, programSummary?.id, programSummary?.fundingType]);
+
+  // Restore disabled state and custom templates from plan metadata
+  const restoringFromMetadata = useRef(false);
+  const lastMetadataRef = useRef<string>('');
+  
+  useEffect(() => {
+    if (!plan?.metadata) return;
+    
+    const metadataKey = JSON.stringify({
+      disabled: plan.metadata.disabledSectionIds || [],
+      docs: plan.metadata.disabledDocumentIds || [],
+      customSections: plan.metadata.customSections?.length || 0,
+      customDocuments: plan.metadata.customDocuments?.length || 0
+    });
+    
+    if (lastMetadataRef.current === metadataKey) {
+      return;
+    }
+    
+    if (restoringFromMetadata.current) {
+      return;
+    }
+    
+    restoringFromMetadata.current = true;
+    lastMetadataRef.current = metadataKey;
+    
+    if (plan.metadata.disabledSectionIds) {
+      setDisabledSections(new Set(plan.metadata.disabledSectionIds));
+    }
+    if (plan.metadata.disabledDocumentIds) {
+      setDisabledDocuments(new Set(plan.metadata.disabledDocumentIds));
+    }
+    if (plan.metadata.customSections && plan.metadata.customSections.length > 0) {
+      setCustomSections(plan.metadata.customSections as SectionTemplate[]);
+    }
+    if (plan.metadata.customDocuments && plan.metadata.customDocuments.length > 0) {
+      setCustomDocuments(plan.metadata.customDocuments as DocumentTemplate[]);
+    }
+    
+    setTimeout(() => {
+      restoringFromMetadata.current = false;
+    }, 100);
+  }, [plan?.metadata]);
+
+  // Notify parent of changes - use memoized arrays to prevent unnecessary effect triggers
+  const isInitialMount = useRef(true);
+  const lastUpdateRef = useRef<string>('');
+  
+  // Track previous values to detect actual changes
+  const prevDisabledSectionsRef = useRef<string>('');
+  const prevDisabledDocumentsRef = useRef<string>('');
+  const prevCustomSectionsLengthRef = useRef<number>(0);
+  const prevCustomDocumentsLengthRef = useRef<number>(0);
+  const prevCustomSectionsKeyRef = useRef<string>('');
+  const prevCustomDocumentsKeyRef = useRef<string>('');
+  
+  // Create stable string keys for dependencies
+  const disabledSectionsKey = useMemo(() => {
+    return Array.from(disabledSections).sort().join(',');
+  }, [disabledSections]);
+  
+  const disabledDocumentsKey = useMemo(() => {
+    return Array.from(disabledDocuments).sort().join(',');
+  }, [disabledDocuments]);
+  
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      // Initialize refs
+      const customSectionsKey = customSections.map(s => s.id).sort().join(',');
+      const customDocumentsKey = customDocuments.map(d => d.id).sort().join(',');
+      prevDisabledSectionsRef.current = disabledSectionsKey;
+      prevDisabledDocumentsRef.current = disabledDocumentsKey;
+      prevCustomSectionsLengthRef.current = customSections.length;
+      prevCustomDocumentsLengthRef.current = customDocuments.length;
+      prevCustomSectionsKeyRef.current = customSectionsKey;
+      prevCustomDocumentsKeyRef.current = customDocumentsKey;
+      return;
+    }
+    
+    if (restoringFromMetadata.current) {
+      return;
+    }
+    
+    // Create a stable key that includes custom section IDs to detect actual changes
+    const customSectionsKey = customSections.map(s => s.id).sort().join(',');
+    const customDocumentsKey = customDocuments.map(d => d.id).sort().join(',');
+    
+    // Check if anything actually changed
+    const hasChanged = 
+      prevDisabledSectionsRef.current !== disabledSectionsKey ||
+      prevDisabledDocumentsRef.current !== disabledDocumentsKey ||
+      prevCustomSectionsLengthRef.current !== customSections.length ||
+      prevCustomDocumentsLengthRef.current !== customDocuments.length ||
+      prevCustomSectionsKeyRef.current !== customSectionsKey ||
+      prevCustomDocumentsKeyRef.current !== customDocumentsKey;
+    
+    if (!hasChanged) {
+      return;
+    }
+    
+    // Update refs
+    prevDisabledSectionsRef.current = disabledSectionsKey;
+    prevDisabledDocumentsRef.current = disabledDocumentsKey;
+    prevCustomSectionsLengthRef.current = customSections.length;
+    prevCustomDocumentsLengthRef.current = customDocuments.length;
+    prevCustomSectionsKeyRef.current = customSectionsKey;
+    prevCustomDocumentsKeyRef.current = customDocumentsKey;
+    
+    const updateKey = JSON.stringify({
+      disabled: disabledSectionsKey,
+      docs: disabledDocumentsKey,
+      customSections: customSectionsKey,
+      customDocuments: customDocumentsKey
+    });
+    
+    if (lastUpdateRef.current === updateKey) {
+      return;
+    }
+    
+    lastUpdateRef.current = updateKey;
+    
+    handleTemplateUpdate({
+      disabledSectionIds: Array.from(disabledSections).sort(),
+      disabledDocumentIds: Array.from(disabledDocuments).sort(),
+      customSections: customSections.length > 0 ? customSections : undefined,
+      customDocuments: customDocuments.length > 0 ? customDocuments : undefined
+    });
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [disabledSectionsKey, disabledDocumentsKey, customSections, customDocuments]);
+
+  // Close edit forms when items are disabled
+  useEffect(() => {
+    if (expandedSectionId && disabledSections.has(expandedSectionId)) {
+      setExpandedSectionId(null);
+      setEditingSection(null);
+    }
+  }, [expandedSectionId, disabledSections]);
+
+  useEffect(() => {
+    if (expandedDocumentId && disabledDocuments.has(expandedDocumentId)) {
+      setExpandedDocumentId(null);
+      setEditingDocument(null);
+    }
+  }, [expandedDocumentId, disabledDocuments]);
+
+  // Template management handlers
+  const toggleSection = useCallback((sectionId: string) => {
+    setDisabledSections(prev => {
+      const next = new Set(prev);
+      if (next.has(sectionId)) {
+        next.delete(sectionId);
+      } else {
+        next.add(sectionId);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleDocument = useCallback((documentId: string) => {
+    setDisabledDocuments(prev => {
+      const next = new Set(prev);
+      if (next.has(documentId)) {
+        next.delete(documentId);
+      } else {
+        next.add(documentId);
+      }
+      return next;
+    });
+  }, []);
+
+  const addCustomSection = useCallback(() => {
+    if (!newSectionTitle.trim()) {
+      return;
+    }
+    // const _fundingType = programSummary?.fundingType ?? 'grants'; // Unused for now
+    const newSection: SectionTemplate = {
+      id: `custom_section_${Date.now()}`,
+      title: newSectionTitle.trim(),
+      description: newSectionDescription.trim() || 'Benutzerdefinierter Abschnitt',
+      required: false,
+      wordCountMin: 0,
+      wordCountMax: 0,
+      order: 1000 + customSections.length,
+      category: 'custom',
+      prompts: ['Beschreibe hier den Inhalt deines Abschnitts'],
+      questions: [],
+      validationRules: {
+        requiredFields: [],
+        formatRequirements: []
+      },
+      origin: 'custom',
+      visibility: 'advanced'
     };
-    handlers: any;
-  } | null>(null);
+    setCustomSections(prev => [...prev, newSection]);
+    setNewSectionTitle('');
+    setNewSectionDescription('');
+    setShowAddSection(false);
+    lastUpdateRef.current = '';
+  }, [newSectionTitle, newSectionDescription, customSections.length, programSummary?.fundingType]);
+
+  const addCustomDocument = useCallback(() => {
+    if (!newDocumentName.trim()) {
+      return;
+    }
+    const fundingType = programSummary?.fundingType ?? 'grants';
+    const newDocument: DocumentTemplate = {
+      id: `custom_doc_${Date.now()}`,
+      name: newDocumentName.trim(),
+      description: newDocumentDescription.trim() || 'Benutzerdefiniertes Dokument',
+      required: false,
+      format: 'pdf',
+      maxSize: '10MB',
+      template: '',
+      instructions: [],
+      examples: [],
+      commonMistakes: [],
+      category: 'custom',
+      fundingTypes: [fundingType],
+      origin: 'custom'
+    };
+    setCustomDocuments(prev => [...prev, newDocument]);
+    setNewDocumentName('');
+    setNewDocumentDescription('');
+    setShowAddDocument(false);
+  }, [newDocumentName, newDocumentDescription, programSummary?.fundingType]);
+
+  const removeCustomSection = useCallback((id: string) => {
+    setCustomSections(prev => prev.filter(s => s.id !== id));
+  }, []);
+
+  const removeCustomDocument = useCallback((id: string) => {
+    setCustomDocuments(prev => prev.filter(d => d.id !== id));
+  }, []);
+
+  const toggleAddSectionBadge = useCallback(() => {
+    setShowAddSection(prev => {
+      if (prev) {
+        setNewSectionTitle('');
+        setNewSectionDescription('');
+      }
+      return !prev;
+    });
+  }, []);
+
+  const toggleAddDocumentBadge = useCallback(() => {
+    setShowAddDocument(prev => {
+      if (prev) {
+        setNewDocumentName('');
+        setNewDocumentDescription('');
+      }
+      return !prev;
+    });
+  }, []);
+
+  const handleEditSection = useCallback((section: SectionTemplate, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditingSection({ ...section });
+    setExpandedSectionId(section.id);
+  }, []);
+
+  const updateProductSelection = useCallback((product: ProductType, selection: string | null) => {
+    setProductDocumentSelections(prev => {
+      if (prev[product] === selection) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [product]: selection
+      };
+    });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    try {
+      window.sessionStorage.setItem(
+        DOCUMENT_SELECTION_STORAGE_KEY,
+        JSON.stringify(productDocumentSelections)
+      );
+    } catch (err) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Editor] Failed to persist document selection cache:', err);
+      }
+    }
+  }, [productDocumentSelections]);
+
+  const handleSelectDocument = useCallback((docId: string | null) => {
+    updateProductSelection(selectedProduct, docId);
+    if (docId && expandedDocumentId === docId) {
+      setExpandedDocumentId(null);
+      setEditingDocument(null);
+    }
+  }, [expandedDocumentId, selectedProduct, updateProductSelection]);
+
+  const handleEditDocument = useCallback((doc: DocumentTemplate, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditingDocument({ ...doc });
+    setExpandedDocumentId(doc.id);
+  }, []);
+
+  const handleSaveSection = useCallback((item: SectionTemplate | DocumentTemplate) => {
+    const section = item as SectionTemplate;
+    if (section.origin === 'custom') {
+      setCustomSections(prev => prev.map(s => s.id === section.id ? section : s));
+    } else {
+      const updatedSection = { 
+        ...section, 
+        id: `custom_${section.id}_${Date.now()}`,
+        origin: 'custom' as const 
+      };
+      setCustomSections(prev => [...prev, updatedSection]);
+      setDisabledSections(prev => new Set([...prev, section.id]));
+    }
+    
+    setExpandedSectionId(null);
+    setEditingSection(null);
+  }, []);
+
+  const handleSaveDocument = useCallback((item: SectionTemplate | DocumentTemplate) => {
+    const document = item as DocumentTemplate;
+    if (document.origin === 'custom') {
+      setCustomDocuments(prev => prev.map(d => d.id === document.id ? document : d));
+    } else {
+      const updatedDocument = { 
+        ...document, 
+        id: `custom_${document.id}_${Date.now()}`,
+        origin: 'custom' as const 
+      };
+      setCustomDocuments(prev => [...prev, updatedDocument]);
+      setDisabledDocuments(prev => new Set([...prev, document.id]));
+    }
+    
+    setExpandedDocumentId(null);
+    setEditingDocument(null);
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    setExpandedSectionId(null);
+    setExpandedDocumentId(null);
+    setEditingSection(null);
+    setEditingDocument(null);
+  }, []);
+
+  const handleTemplatesExtracted = useCallback((templates: { sections?: SectionTemplate[]; documents?: DocumentTemplate[] }) => {
+    if (templates.sections && templates.sections.length > 0) {
+      setCustomSections(prev => [...prev, ...templates.sections!]);
+    }
+    if (templates.documents && templates.documents.length > 0) {
+      setCustomDocuments(prev => [...prev, ...templates.documents!]);
+    }
+  }, []);
+
+  // Computed values
+  const allSections = useMemo(() => [...sections, ...customSections], [sections, customSections]);
+  const allDocuments = useMemo(() => [...documents, ...customDocuments], [documents, customDocuments]);
+  const allDocumentsKey = useMemo(() => allDocuments.map(doc => doc.id).sort().join(','), [allDocuments]);
+
+  const restoreSelectionForProduct = useCallback(
+    (product: ProductType, docs: DocumentTemplate[]) => {
+      const savedSelection = productDocumentSelections[product];
+      if (!savedSelection) {
+        return null;
+      }
+      const exists = docs.some(doc => doc.id === savedSelection);
+      return exists ? savedSelection : null;
+    },
+    [productDocumentSelections]
+  );
+
+  useEffect(() => {
+    if (templateLoading) return;
+    const restoredSelection = restoreSelectionForProduct(selectedProduct, allDocuments);
+    if (!restoredSelection && clickedDocumentId) {
+      updateProductSelection(selectedProduct, null);
+      return;
+    }
+    if (restoredSelection && restoredSelection !== clickedDocumentId) {
+      updateProductSelection(selectedProduct, restoredSelection);
+    }
+  }, [
+    allDocuments,
+    allDocumentsKey,
+    clickedDocumentId,
+    templateLoading,
+    selectedProduct,
+    restoreSelectionForProduct,
+    updateProductSelection
+  ]);
+  
+  // Filter sections based on clicked document - match by category or name keywords
+  const getRelatedSections = useCallback((documentId: string | null) => {
+    if (!documentId) return allSections;
+    
+    const doc = allDocuments.find(d => d.id === documentId);
+    if (!doc) return allSections;
+    
+    const docNameLower = doc.name.toLowerCase();
+    const docCategoryLower = doc.category?.toLowerCase() || '';
+    
+    const keywordsByProduct: Record<string, Record<string, string[]>> = {
+      submission: {
+        'work plan': ['work', 'plan', 'timeline', 'milestone', 'project', 'implementation'],
+        'gantt': ['work', 'plan', 'timeline', 'schedule', 'project', 'milestone', 'implementation'],
+        'budget': ['budget', 'financial', 'cost', 'finance', 'funding', 'resources'],
+        'financial': ['budget', 'financial', 'cost', 'finance', 'funding', 'resources'],
+        'team': ['team', 'personnel', 'staff', 'organization', 'management'],
+        'cv': ['team', 'personnel', 'staff', 'biography', 'management'],
+        'pitch': ['executive', 'summary', 'overview', 'introduction'],
+        'deck': ['executive', 'summary', 'overview', 'introduction']
+      },
+      strategy: {
+        'work plan': ['strategy', 'planning', 'timeline', 'roadmap', 'vision'],
+        'gantt': ['strategy', 'planning', 'timeline', 'roadmap'],
+        'budget': ['budget', 'financial', 'investment', 'resources'],
+        'team': ['team', 'organization', 'structure', 'leadership']
+      },
+      review: {
+        'work plan': ['review', 'analysis', 'assessment', 'evaluation'],
+        'budget': ['budget', 'financial', 'review', 'analysis'],
+        'team': ['team', 'review', 'assessment']
+      }
+    };
+    
+    const productKeywords = keywordsByProduct[selectedProduct] || keywordsByProduct.submission;
+    
+    const matchingKeywords: string[] = [];
+    for (const [key, values] of Object.entries(productKeywords)) {
+      if (docNameLower.includes(key) || docCategoryLower.includes(key)) {
+        matchingKeywords.push(...values);
+      }
+    }
+    
+    const related = allSections.filter(section => {
+      const sectionTitleLower = section.title.toLowerCase();
+      const sectionCategoryLower = section.category?.toLowerCase() || '';
+      
+      if (docCategoryLower && sectionCategoryLower && docCategoryLower === sectionCategoryLower) {
+        return true;
+      }
+      
+      if (matchingKeywords.length > 0) {
+        return matchingKeywords.some(keyword => 
+          sectionTitleLower.includes(keyword) || sectionCategoryLower.includes(keyword)
+        );
+      }
+      
+      return false;
+    });
+    
+    return related;
+  }, [allSections, allDocuments, selectedProduct]);
+  
+  const filteredSections = clickedDocumentId 
+    ? getRelatedSections(clickedDocumentId)
+    : (sectionFilter === 'all' 
+      ? allSections 
+      : allSections.filter(s => s.origin === sectionFilter));
+  
+  const filteredDocuments = documentFilter === 'all'
+    ? allDocuments
+    : allDocuments.filter(d => d.origin === documentFilter);
+
+  const visibleSections = allSections.filter(s => !disabledSections.has(s.id));
+  const visibleDocuments = allDocuments.filter(d => !disabledDocuments.has(d.id));
+  
+  const visibleFilteredSections = useMemo(() => {
+    return filteredSections.filter(s => !disabledSections.has(s.id));
+  }, [filteredSections, disabledSections]);
+
+  // const _enabledSectionsCount = visibleSections.length; // Unused for now
+  const enabledDocumentsCount = visibleDocuments.length + 1; // +1 for core product
+  const totalDocumentsCount = allDocuments.length + 1; // +1 for core product
+
+  // getOriginBadge function
+  const getOriginBadge = useCallback((origin?: string, isSelected: boolean = false) => {
+    if (origin !== 'program') {
+      return null;
+    }
+    
+    const baseClasses = "border-0 text-[7px] px-0.5 py-0";
+    const selectedClasses = isSelected ? "ring-1 ring-blue-400/60" : "";
+    
+    return (
+      <Badge 
+        variant="info" 
+        className={`bg-blue-600/30 text-blue-200 ${baseClasses} ${selectedClasses} ${
+          isSelected ? 'bg-blue-500/50 text-blue-100' : ''
+        }`}
+      >
+        P
+      </Badge>
+    );
+  }, []);
+
+  // Handle document selection changes - navigate to first filtered section
+  const handleDocumentSelectionChange = useCallback((sectionIds: string[]) => {
+    if (!plan) return;
+    
+    // Store filtered section IDs for sidebar filtering
+    setFilteredSectionIds(sectionIds.length > 0 ? sectionIds : null);
+    
+    // Check if current active section is already in the filtered list - if so, don't navigate
+    if (activeSectionId && sectionIds.length > 0 && sectionIds.includes(activeSectionId)) {
+      return; // Already on a filtered section, no need to navigate
+    }
+    
+    if (sectionIds.length === 0) {
+      // If no filtered sections (core product selected), navigate to first available section or metadata
+      const firstSection = plan.sections[0];
+      if (firstSection && firstSection.id !== activeSectionId) {
+        setActiveSection(firstSection.id);
+      } else if (!activeSectionId || activeSectionId !== METADATA_SECTION_ID) {
+        setActiveSection(METADATA_SECTION_ID);
+      }
+      return;
+    }
+    
+    // Find the first filtered section that exists in the plan
+    const firstFilteredSection = plan.sections.find(section => 
+      sectionIds.includes(section.id)
+    );
+    
+    if (firstFilteredSection && firstFilteredSection.id !== activeSectionId) {
+      // Navigate to the first filtered section (only if different from current)
+      setActiveSection(firstFilteredSection.id);
+    } else if (!firstFilteredSection) {
+      // If filtered sections don't exist in plan yet, navigate to first available
+      const firstSection = plan.sections[0];
+      if (firstSection && firstSection.id !== activeSectionId) {
+        setActiveSection(firstSection.id);
+      } else if (!activeSectionId || activeSectionId !== METADATA_SECTION_ID) {
+        setActiveSection(METADATA_SECTION_ID);
+      }
+    }
+  }, [plan, setActiveSection, activeSectionId]);
+
+  // Notify parent when document selection changes and filtered sections are available
+  const lastNotifiedDocumentRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    if (templateLoading) return;
+    
+    if (lastNotifiedDocumentRef.current === clickedDocumentId) {
+      return;
+    }
+    
+    lastNotifiedDocumentRef.current = clickedDocumentId;
+    
+    const filteredSectionIds = visibleFilteredSections.map(s => s.id);
+    handleDocumentSelectionChange(filteredSectionIds);
+  }, [clickedDocumentId, visibleFilteredSections, templateLoading, handleDocumentSelectionChange]);
+
+  // Compute template state for DocumentsBar and Sidebar
+  const selectedProductMeta = productOptions.find((option) => option.value === selectedProduct) ?? productOptions[0] ?? null;
+  const templateState = useMemo(() => {
+    if (templateLoading) return null;
+    
+    const sectionTitles = visibleSections.map((section) => section.title);
+    const documentTitles = visibleDocuments.map((doc) => doc.name);
+    const productLabel = selectedProductMeta?.label ?? (t('editor.desktop.product.unselected' as any) || 'Not selected');
+    const programLabel = programSummary?.name ?? null;
+    
+    return {
+      filteredDocuments,
+      disabledDocuments,
+      enabledDocumentsCount,
+      expandedDocumentId,
+      editingDocument,
+      clickedDocumentId,
+      showAddDocument,
+      newDocumentName,
+      newDocumentDescription,
+      filteredSections,
+      allSections,
+      disabledSections,
+      expandedSectionId,
+      editingSection,
+      showAddSection,
+      newSectionTitle,
+      newSectionDescription,
+      selectionSummary: {
+        productLabel,
+        productIcon: selectedProductMeta?.icon,
+        programLabel,
+        enabledSectionsCount: visibleSections.length,
+        totalSectionsCount: allSections.length,
+        enabledDocumentsCount,
+        totalDocumentsCount,
+        sectionTitles,
+        documentTitles
+      },
+      handlers: {
+        onToggleDocument: toggleDocument,
+        onSelectDocument: handleSelectDocument,
+        onEditDocument: handleEditDocument,
+        onSaveDocument: handleSaveDocument,
+        onCancelEdit: handleCancelEdit,
+        onToggleAddDocument: toggleAddDocumentBadge,
+        onAddCustomDocument: addCustomDocument,
+        onSetNewDocumentName: setNewDocumentName,
+        onSetNewDocumentDescription: setNewDocumentDescription,
+        onRemoveCustomDocument: removeCustomDocument,
+        onToggleSection: toggleSection,
+        onEditSection: handleEditSection,
+        onSaveSection: handleSaveSection,
+        onToggleAddSection: toggleAddSectionBadge,
+        onAddCustomSection: addCustomSection,
+        onSetNewSectionTitle: setNewSectionTitle,
+        onSetNewSectionDescription: setNewSectionDescription,
+        onRemoveCustomSection: removeCustomSection,
+        getOriginBadge: (origin?: string, isSelected?: boolean) => getOriginBadge(origin, isSelected)
+      }
+    };
+  }, [
+    templateLoading,
+    filteredDocuments,
+    disabledDocuments,
+    enabledDocumentsCount,
+    expandedDocumentId,
+    editingDocument,
+    clickedDocumentId,
+    showAddDocument,
+    newDocumentName,
+    newDocumentDescription,
+    filteredSections,
+    allSections,
+    disabledSections,
+    expandedSectionId,
+    editingSection,
+    showAddSection,
+    newSectionTitle,
+    newSectionDescription,
+    visibleSections,
+    visibleDocuments,
+    totalDocumentsCount,
+    selectedProductMeta,
+    programSummary,
+    t,
+    toggleDocument,
+    handleSelectDocument,
+    handleEditDocument,
+    handleSaveDocument,
+    handleCancelEdit,
+    toggleAddDocumentBadge,
+    addCustomDocument,
+    setNewDocumentName,
+    setNewDocumentDescription,
+    removeCustomDocument,
+    toggleSection,
+    handleEditSection,
+    handleSaveSection,
+    toggleAddSectionBadge,
+    addCustomSection,
+    setNewSectionTitle,
+    setNewSectionDescription,
+    removeCustomSection,
+    getOriginBadge
+  ]);
 
   // Track if activeSectionId change was from user interaction (sidebar click) vs scroll detection
   const sectionChangeSourceRef = useRef<'user' | 'scroll' | 'preview'>('scroll');
@@ -657,48 +1403,20 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     );
   }, [activeSection, activeQuestionId]);
 
-
-  // Handle document selection changes from Desktop - navigate to first filtered section
-  const handleDocumentSelectionChange = useCallback((sectionIds: string[]) => {
-    if (!plan) return;
-    
-    // Store filtered section IDs for sidebar filtering
-    setFilteredSectionIds(sectionIds.length > 0 ? sectionIds : null);
-    
-    // Check if current active section is already in the filtered list - if so, don't navigate
-    if (activeSectionId && sectionIds.length > 0 && sectionIds.includes(activeSectionId)) {
-      return; // Already on a filtered section, no need to navigate
+  // Debug logging for InlineSectionEditor rendering
+  useEffect(() => {
+    if (plan) {
+      console.log('[Editor] InlineSectionEditor render state:', {
+        hasPlan: !!plan,
+        effectiveEditingSectionId,
+        activeSectionId,
+        editingSectionId,
+        hasActiveSection: !!activeSection,
+        activeQuestionId,
+        planSectionsCount: plan.sections?.length || 0
+      });
     }
-    
-    if (sectionIds.length === 0) {
-      // If no filtered sections (core product selected), navigate to first available section or metadata
-      const firstSection = plan.sections[0];
-      if (firstSection && firstSection.id !== activeSectionId) {
-        setActiveSection(firstSection.id);
-      } else if (!activeSectionId || activeSectionId !== METADATA_SECTION_ID) {
-        setActiveSection(METADATA_SECTION_ID);
-      }
-      return;
-    }
-    
-    // Find the first filtered section that exists in the plan
-    const firstFilteredSection = plan.sections.find(section => 
-      sectionIds.includes(section.id)
-    );
-    
-    if (firstFilteredSection && firstFilteredSection.id !== activeSectionId) {
-      // Navigate to the first filtered section (only if different from current)
-      setActiveSection(firstFilteredSection.id);
-    } else if (!firstFilteredSection) {
-      // If filtered sections don't exist in plan yet, navigate to first available
-      const firstSection = plan.sections[0];
-      if (firstSection && firstSection.id !== activeSectionId) {
-        setActiveSection(firstSection.id);
-      } else if (!activeSectionId || activeSectionId !== METADATA_SECTION_ID) {
-        setActiveSection(METADATA_SECTION_ID);
-      }
-    }
-  }, [plan, setActiveSection, activeSectionId]);
+  }, [plan, effectiveEditingSectionId, activeSectionId, editingSectionId, activeSection, activeQuestionId]);
 
   // Show loading/error states
   if (isLoading || !plan) {
@@ -733,31 +1451,22 @@ export default function Editor({ product = 'submission' }: EditorProps) {
           <div className="container pb-6">
             <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)]">
               <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900 rounded-[32px]" />
-              <div className="relative z-10 flex flex-col gap-2 p-4 lg:p-6 overflow-hidden">
-                {/* Dein Schreibtisch - Template Overview Panel */}
-                <TemplateOverviewPanel
-                  productType={selectedProduct}
-                  programSummary={programSummary}
-                  fundingType={programSummary?.fundingType ?? 'grants'}
-                  planMetadata={plan?.metadata}
-                  onUpdate={handleTemplateUpdate}
-                  onChangeProduct={handleProductChange}
-                  onConnectProgram={handleConnectProgram}
-                  onOpenProgramFinder={() => router.push('/reco')}
-                  programLoading={programLoading}
-                  programError={programError}
-                  productOptions={productOptions}
-                  connectCopy={connectCopy}
-                  onDocumentSelectionChange={handleDocumentSelectionChange}
-                  onTemplateStateExposed={setTemplateState}
-                />
+              <div className="relative z-10 flex flex-col gap-2 p-4 lg:p-6 min-h-0" style={{ overflowX: 'hidden', overflowY: 'visible', height: 'calc(100vh - 10px)', maxHeight: 'calc(100vh - 10px)' }}>
+                {/* Template management is now handled directly in Editor.tsx */}
+                
+                {/* Dein Schreibtisch Header */}
+                <div className="flex-shrink-0 mb-2">
+                  <h1 className="text-xl font-bold uppercase tracking-wide text-white">
+                    🖥️ {t('editor.desktop.title' as any) || 'Dein Schreibtisch'}
+                  </h1>
+                </div>
 
                 {/* Workspace Container - Document-Centric Layout */}
-                <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm w-full">
+                <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm w-full flex-1 min-h-0" style={{ overflow: 'visible', display: 'flex', flexDirection: 'column' }}>
                   {/* Grid Layout: 2 rows, 2 columns */}
-                  <div className="grid grid-cols-[320px_1fr] grid-rows-[auto_1fr] gap-4 h-[calc(100vh-380px)] min-h-[800px] max-h-[calc(100vh-200px)]" style={{ overflow: 'visible' }}>
+                  <div ref={workspaceGridRef} className="grid grid-cols-[320px_1fr] grid-rows-[minmax(0,200px)_1fr] gap-4 flex-1 min-h-0" style={{ overflow: 'visible', position: 'relative', contain: 'layout style' }}>
                     {/* Row 1, Col 1: Current Selection - Fills gap next to DocumentsBar */}
-                    <div className="flex-shrink-0 overflow-visible relative" style={{ zIndex: 0 }}>
+                    <div className="flex-shrink-0 relative min-h-0" style={{ zIndex: 0, overflow: 'hidden', contain: 'layout', maxHeight: '200px' }}>
                       {templateState?.selectionSummary ? (
                         <CurrentSelection
                           productLabel={templateState.selectionSummary.productLabel}
@@ -769,6 +1478,22 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                           totalDocumentsCount={templateState.selectionSummary.totalDocumentsCount}
                           sectionTitles={templateState.selectionSummary.sectionTitles}
                           documentTitles={templateState.selectionSummary.documentTitles}
+                          // Configurator props
+                          productType={selectedProduct}
+                          productOptions={productOptions}
+                          selectedProductMeta={productOptions.find((option) => option.value === selectedProduct) ?? null}
+                          connectCopy={connectCopy}
+                          programSummary={programSummary}
+                          programError={programError}
+                          programLoading={programLoading}
+                          onChangeProduct={handleProductChange}
+                          onConnectProgram={handleConnectProgram}
+                          onOpenProgramFinder={() => router.push('/reco')}
+                          onTemplatesExtracted={handleTemplatesExtracted}
+                          progressSummary={progressSummary}
+                          onRunRequirementsCheck={runRequirementsCheck}
+                          overlayContainerRef={workspaceGridRef}
+                          onOverlayOpenChange={setIsConfiguratorOpen}
                         />
                       ) : (
                         <div className="h-full border-r border-white/10 pr-4">
@@ -778,7 +1503,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     </div>
 
                     {/* Row 1, Col 2: Documents Bar - Same Width as Preview */}
-                    <div className="flex-shrink-0 overflow-visible relative" style={{ zIndex: 0 }}>
+                    <div className="flex-shrink-0 relative min-h-0" style={{ zIndex: 0, overflow: 'hidden', contain: 'layout', maxHeight: '200px' }}>
                       {templateState ? (
                         <DocumentsBar
                           filteredDocuments={templateState.filteredDocuments}
@@ -811,7 +1536,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     </div>
 
                     {/* Row 2, Col 1: Sidebar - Next to Preview */}
-                    <div className="border-r border-white/10 pr-4 min-h-0 flex flex-col relative h-full" style={{ maxWidth: '320px', width: '320px', minWidth: '320px', boxSizing: 'border-box', zIndex: 1 }}>
+                    <div className="border-r border-white/10 pr-4 min-h-0 flex flex-col relative" style={{ maxWidth: '320px', width: '320px', minWidth: '320px', boxSizing: 'border-box', zIndex: 1, overflow: 'hidden' }}>
                       <Sidebar
                         plan={plan}
                         activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
@@ -841,7 +1566,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     </div>
                     
                     {/* Row 2, Col 2: Preview - Full Width */}
-                    <div className="min-w-0 min-h-0 overflow-visible relative flex flex-col h-full min-h-[700px]" id="preview-container" style={{ zIndex: 1 }}>
+                    <div className="min-w-0 min-h-0 relative flex flex-col" id="preview-container" style={{ zIndex: 1, overflow: 'hidden' }}>
                       {/* Preview - Always visible */}
                       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative" id="preview-scroll-container">
                         <PreviewWorkspace 
@@ -889,8 +1614,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                       </div>
                       
                       {/* Inline Editor - RENDERED OUTSIDE SCROLL CONTAINER TO AVOID OVERFLOW CLIPPING */}
-                      {/* ALWAYS VISIBLE when plan exists */}
-                      {plan && effectiveEditingSectionId && (
+                      {/* ALWAYS VISIBLE when plan exists - show welcome state if no section selected */}
+                      {plan && (
                         <InlineSectionEditor
                           sectionId={effectiveEditingSectionId}
                           section={activeSection}

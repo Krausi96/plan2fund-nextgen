@@ -1,5 +1,159 @@
 # Clarification Questions & Visual Design
 
+## 📖 How the Configurator Works
+
+The "Aktuelle Auswahl" configurator overlay is organized into three main sections that guide users through the plan configuration process:
+
+### Three-Column Information Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CONFIGURATOR OVERLAY - THREE COLUMNS                      │
+├──────────────────────────────────┬──────────────────────────────────┬────────┤
+│  1. PRODUKT AUSWÄHLEN            │  2. PROGRAMM AUSWÄHLEN          │  3.    │
+│     (Product Selection)          │     (Program Selection)         │        │
+│                                  │                                  │        │
+│  ┌────────────────────────────┐ │  ┌────────────────────────────┐ │        │
+│  │ 🎯 Plan-Typ wählen         │ │  │ 🔗 Förderprogramm          │ │        │
+│  │                            │ │  │    verbinden                │ │        │
+│  │ [Dropdown Menu]            │ │  │                            │ │        │
+│  │                            │ │  │ [Program Finder]            │ │        │
+│  │ • Submission               │ │  │ [Link einfügen]             │ │        │
+│  │   Für Förderanträge        │ │  │ [Template hochladen]        │ │        │
+│  │                            │ │  │                            │ │        │
+│  │ • Review                   │ │  │ ℹ️ Automatisch lädt:       │ │        │
+│  │   Für Überarbeitungen      │ │  │   - Anforderungen          │ │        │
+│  │                            │ │  │   - Abschnitte             │ │        │
+│  │ • Strategy                 │ │  │   - Dokumente               │ │        │
+│  │   Für strategische Planung │ │  │                            │ │        │
+│  │                            │ │  │ [Programm-Info anzeigen]   │ │        │
+│  └────────────────────────────┘ │  └────────────────────────────┘ │        │
+│                                  │                                  │        │
+│  ℹ️ Jeder Plan-Typ hat:          │  ℹ️ Optional, aber empfohlen:     │        │
+│  • Spezifische Vorlagen         │  • Automatische Anpassung        │        │
+│  • Optimierte Abschnitte        │  • Programm-spezifische         │        │
+│  • Angepasste Anforderungen     │    Anforderungen                │        │
+│                                  │  • Vordefinierte Struktur      │        │
+└──────────────────────────────────┴──────────────────────────────────┴────────┘
+                                  │
+                                  │
+                    ┌─────────────▼─────────────┐
+                    │  3. ABSCHNITTE &          │
+                    │     DOKUMENTE             │
+                    │     (Sections & Documents)│
+                    │                           │
+                    │  📋 ABSCHNITTE            │
+                    │  ┌─────────────────────┐  │
+                    │  │ [Liste aller        │  │
+                    │  │  verfügbaren        │  │
+                    │  │  Abschnitte]        │  │
+                    │  │                     │  │
+                    │  │ ✅ Aktiviert        │  │
+                    │  │ ❌ Deaktiviert      │  │
+                    │  │ ➕ Benutzerdefiniert│  │
+                    │  └─────────────────────┘  │
+                    │                           │
+                    │  📄 DOKUMENTE             │
+                    │  ┌─────────────────────┐  │
+                    │  │ [Liste aller        │  │
+                    │  │  verfügbaren        │  │
+                    │  │  Dokumente]         │  │
+                    │  │                     │  │
+                    │  │ ✅ Aktiviert        │  │
+                    │  │ ❌ Deaktiviert      │  │
+                    │  │ ➕ Benutzerdefiniert│  │
+                    │  └─────────────────────┘  │
+                    │                           │
+                    │  ℹ️ Automatisch generiert │
+                    │     basierend auf:        │
+                    │  • Gewähltem Plan-Typ     │
+                    │  • Verbundenem Programm   │
+                    │  • Benutzerdefinierten    │
+                    │    Einstellungen          │
+                    └───────────────────────────┘
+```
+
+### Detailed Explanation
+
+#### 1. Produkt auswählen (Product Selection)
+
+**Purpose:** Choose the type of business plan you want to create.
+
+**Options:**
+- **Submission** 📝 - Optimized for funding applications. Contains all required sections for formal grant proposals.
+- **Review** 🔍 - Focused on revising existing documents. Streamlined sections for document review and improvement.
+- **Strategy** 🎯 - Designed for strategic planning and business development. Comprehensive sections for business strategy.
+
+**What happens:**
+- Selecting a product type loads the appropriate templates
+- Sections and documents are automatically filtered/enabled based on the product type
+- The plan structure adapts to the selected product's requirements
+
+**Info Tooltip:** Explains that each product type has specific templates, optimized sections, and tailored requirements.
+
+#### 2. Programm auswählen (Program Selection)
+
+**Purpose:** Connect a funding program to automatically load program-specific requirements, sections, and documents.
+
+**Methods:**
+1. **Program Finder** 🔍 - Answer questions to find matching funding programs
+2. **Paste Link** 🔗 - Insert a direct program link (e.g., from AWS, FFG, or EU calls)
+3. **Upload Template** 📄 - Upload an existing template file to extract sections and documents
+
+**What happens:**
+- Program requirements are automatically loaded
+- Sections are filtered/enabled based on program needs
+- Documents are adjusted to match program specifications
+- Requirements checker stats are calculated based on program requirements
+
+**Info Tooltip:** Explains that connecting a program automatically loads requirements, sections, and documents, and enables the requirements checker.
+
+#### 3. Abschnitte & Dokumente (Sections & Documents)
+
+**Purpose:** View and manage which sections and documents are included in your plan.
+
+**Sections (Abschnitte):**
+- List of all available sections for the selected product type
+- Sections can be:
+  - ✅ **Enabled** - Included in the plan
+  - ❌ **Disabled** - Excluded from the plan
+  - ➕ **Custom** - User-created custom sections
+
+**Documents (Dokumente):**
+- List of all available documents for the selected product type
+- Documents can be:
+  - ✅ **Enabled** - Included in the plan
+  - ❌ **Disabled** - Excluded from the plan
+  - ➕ **Custom** - User-created custom documents
+
+**What happens:**
+- Sections and documents are automatically generated based on:
+  - Selected product type (Submission/Review/Strategy)
+  - Connected program (if any)
+  - User customizations
+- Changes are reflected immediately in the plan structure
+- Requirements checker updates based on enabled sections/documents
+
+**Info Tooltip:** Explains that sections and documents are automatically generated based on product type, connected program, and user settings.
+
+### Workflow
+
+1. **Start:** User clicks ⚙️ button in "Aktuelle Auswahl"
+2. **Step 1:** Select product type (required)
+3. **Step 2:** Connect program (optional, but recommended)
+4. **Step 3:** Review and adjust sections/documents (automatic, but can be customized)
+5. **Complete:** Close overlay - plan is updated with new configuration
+
+### Requirements Checker Integration
+
+When a program is connected, the **Programm-Readiness** stats appear:
+- Shows overall completion percentage
+- Displays counts: ✅ Complete, ⚠️ Needs Work, ❌ Missing
+- Updates automatically when plan content changes
+- Can be manually refreshed with 🔄 button
+
+---
+
 ## 🔍 Clarifying Questions (Max 5)
 
 ### 1. **Requirements Checker Stats Calculation**
@@ -438,4 +592,5 @@
 ---
 
 **This document provides a comprehensive analysis and recommendations for integrating Desktop into Current Selection, adding feature explanations, and placing requirements checker stats with horizontal expansion and overflow handling.**
+
 

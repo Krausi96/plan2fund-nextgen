@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Section, BusinessPlan, ConversationMessage } from '@/features/editor/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -55,9 +56,9 @@ type EditorPosition = {
   visible: boolean;
 };
 
-const EDITOR_WIDTH = 450; // Increased from 320 to better match preview page proportions
-const EDITOR_MAX_HEIGHT = 600; // Increased from 360 for better usability
-const GAP = 24; // Increased gap for better spacing
+const EDITOR_WIDTH = 600; // Wider panel for better readability
+const EDITOR_MAX_HEIGHT = 420; // Keep current height
+const GAP = 24; // Spacing from edges
 
 /**
  * Simplifies template prompts to short, conversational questions.
@@ -141,17 +142,19 @@ export default function InlineSectionEditor({
 }: InlineSectionEditorProps) {
   // const { t } = useI18n();
   const { templates } = useEditorStore();
-  // Initialize position as visible if sectionId exists
+  // Initialize position - ALWAYS visible when plan exists (show welcome state if no sectionId)
   const [position, setPosition] = useState<EditorPosition>(() => ({
     top: 24,
     left: typeof window !== 'undefined' ? window.innerWidth - EDITOR_WIDTH - GAP : 0,
     placement: 'right',
-    visible: !!sectionId // Start visible if sectionId exists
+    visible: true // ALWAYS start visible - show welcome state if sectionId is null
   }));
   const editorRef = useRef<HTMLDivElement>(null);
   const positionUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOverTarget, setDragOverTarget] = useState<'logo' | 'attachment' | null>(null);
+  const [isPanelDragging, setIsPanelDragging] = useState(false);
+  const dragStartPos = useRef<{ x: number; y: number; startLeft: number; startTop: number } | null>(null);
   
   // AI state
   const [aiMessages, setAiMessages] = useState<ConversationMessage[]>([]);
@@ -170,10 +173,19 @@ export default function InlineSectionEditor({
   // Section guidance expandable state
   const [isSectionGuidanceOpen, setIsSectionGuidanceOpen] = useState(false);
   
+  // Question expandable state (for showing full question)
+  const [isQuestionExpanded, setIsQuestionExpanded] = useState(false);
+  
+  // Suggestions collapsible state
+  const [isSuggestionsExpanded, setIsSuggestionsExpanded] = useState(false);
+  
   // Skip dialog state
   const [showSkipDialog, setShowSkipDialog] = useState(false);
   const [skipReason, setSkipReason] = useState<'not_applicable' | 'later' | 'unclear' | 'other' | null>(null);
   const [skipNote, setSkipNote] = useState('');
+  
+  // Collapsible actions state - track which messages have expanded actions
+  const [expandedActions, setExpandedActions] = useState<Set<string>>(new Set());
 
   // Check if this is a metadata or ancillary section
   const isMetadataSection = sectionId === METADATA_SECTION_ID;
@@ -185,47 +197,59 @@ export default function InlineSectionEditor({
   const activeQuestion = section?.questions.find((q) => q.id === activeQuestionId) ?? section?.questions[0] ?? null;
   const template = section ? templates.find((tpl) => tpl.id === section.id) : null;
 
-  // Sidebar positioning: Always on right side of preview container (absolute positioning)
+  // Phase 2: Center-bottom positioning with draggable support
+  // Panel should ALWAYS be visible when plan exists (show welcome state if no sectionId)
   const calculatePosition = useCallback(() => {
-    if (!sectionId) {
-      setPosition(prev => ({ ...prev, visible: false }));
-      return;
-    }
-    
-    const previewContainer = document.getElementById('preview-container');
     const isDesktop = window.innerWidth > 768;
     
-    // Always set visible to true when sectionId exists
-    // For absolute positioning, we position relative to preview-container
-    let top = 24;
-    let left = 0; // Will use 'right' instead
+    // Phase 2: Default to center-bottom of viewport
+    let top = typeof window !== 'undefined' 
+      ? window.innerHeight - EDITOR_MAX_HEIGHT - GAP 
+      : GAP;
+    let left = typeof window !== 'undefined' 
+      ? (window.innerWidth - EDITOR_WIDTH) / 2 
+      : GAP;
     
-    if (previewContainer) {
-      // Use preview container for absolute positioning
-      if (isDesktop) {
-        // Desktop: Absolute positioning on right side of preview container
-        // Position relative to preview-container (which has position: relative)
-        top = GAP;
-        left = 0; // Use 'right' CSS property instead
-      } else {
-        // Mobile: Full width at bottom of container
-        top = 0; // Will use 'bottom' instead
-        left = GAP;
+    // Try to load saved position from localStorage (only if user has moved it)
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('inline-editor-position');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Only use saved position if it's significantly different from default (user moved it)
+          const defaultLeft = (window.innerWidth - EDITOR_WIDTH) / 2;
+          const defaultTop = window.innerHeight - EDITOR_MAX_HEIGHT - GAP;
+          const diffX = Math.abs(parsed.left - defaultLeft);
+          const diffY = Math.abs(parsed.top - defaultTop);
+          
+          // If user moved it more than 50px, use saved position
+          if ((diffX > 50 || diffY > 50) && 
+              parsed.top >= 0 && parsed.top < window.innerHeight && 
+              parsed.left >= 0 && parsed.left < window.innerWidth) {
+            top = parsed.top;
+            left = parsed.left;
+          }
+        }
+      } catch (e) {
+        // Ignore localStorage errors
       }
-    } else {
-      // Fallback: Default positioning
-      top = GAP;
-      left = 0;
     }
     
-    // Always set visible when sectionId exists
+    // Ensure editor stays within viewport
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
+    
+    left = Math.max(GAP, Math.min(left, viewportWidth - EDITOR_WIDTH - GAP));
+    top = Math.max(GAP, Math.min(top, viewportHeight - EDITOR_MAX_HEIGHT - GAP));
+    
+    // ALWAYS set visible to true - component should always be visible when plan exists
     setPosition({
-      top,
-      left,
+      top: Math.max(0, top),
+      left: Math.max(0, left),
       placement: isDesktop ? 'right' : 'below',
-      visible: true
+      visible: true // ALWAYS visible when plan exists
     });
-  }, [sectionId]);
+  }, []);
 
   // Styles are in globals.css - no need to inject dynamically
 
@@ -262,30 +286,21 @@ export default function InlineSectionEditor({
     };
   }, [activeQuestionId, sectionId, isSpecialSection]);
 
-  // Update position on mount, section change, and resize (no scroll tracking needed for sidebar)
+  // Update position on mount, section change, and resize
+  // ALWAYS visible when plan exists (show welcome state if no sectionId)
   useEffect(() => {
-    if (!sectionId) {
-      setPosition(prev => ({ ...prev, visible: false }));
-      return;
-    }
+    // IMMEDIATELY set visible - component should always be visible when plan exists
+    setPosition(prev => ({
+      ...prev,
+      visible: true, // ALWAYS visible
+      top: prev.top || 24,
+      left: prev.left || (typeof window !== 'undefined' ? window.innerWidth - EDITOR_WIDTH - GAP : 0)
+    }));
 
-    // Calculate position with retry logic to ensure DOM is ready
-    let retryCount = 0;
-    const maxRetries = 5;
-    
-    const tryCalculatePosition = () => {
-      const scrollContainer = document.getElementById('preview-scroll-container');
-      if (!scrollContainer && retryCount < maxRetries) {
-        // Retry if container not found yet
-        retryCount++;
-        setTimeout(tryCalculatePosition, 100);
-        return;
-      }
+    // Calculate position once after a short delay to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
       calculatePosition();
-    };
-
-    // Initial attempt after short delay
-    const timeoutId = setTimeout(tryCalculatePosition, 150);
+    }, 150);
 
     // Only listen to resize events (sidebar position doesn't change on scroll)
     const handleResize = () => {
@@ -319,6 +334,78 @@ export default function InlineSectionEditor({
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [sectionId, onClose]);
+
+  // Phase 2: Panel dragging functionality
+  const handlePanelMouseDown = useCallback((e: React.MouseEvent) => {
+    // Only drag from header area, not buttons or details
+    if (e.target instanceof HTMLElement && (
+      e.target.closest('button') || 
+      e.target.closest('details') ||
+      e.target.closest('summary')
+    )) {
+      return;
+    }
+    
+    setIsPanelDragging(true);
+    dragStartPos.current = {
+      x: e.clientX,
+      y: e.clientY,
+      startLeft: position.left,
+      startTop: position.top
+    };
+    e.preventDefault();
+  }, [position]);
+
+  useEffect(() => {
+    if (!isPanelDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragStartPos.current) return;
+      
+      const deltaX = e.clientX - dragStartPos.current.x;
+      const deltaY = e.clientY - dragStartPos.current.y;
+      
+      const newLeft = dragStartPos.current.startLeft + deltaX;
+      const newTop = dragStartPos.current.startTop + deltaY;
+      
+      // Keep within viewport
+      const maxLeft = window.innerWidth - EDITOR_WIDTH - GAP;
+      const maxTop = window.innerHeight - EDITOR_MAX_HEIGHT - GAP;
+      
+      const clampedLeft = Math.max(GAP, Math.min(newLeft, maxLeft));
+      const clampedTop = Math.max(GAP, Math.min(newTop, maxTop));
+      
+      setPosition(prev => ({
+        ...prev,
+        left: clampedLeft,
+        top: clampedTop
+      }));
+    };
+
+    const handleMouseUp = () => {
+      setIsPanelDragging(false);
+      if (dragStartPos.current && editorRef.current) {
+        // Save position to localStorage
+        try {
+          localStorage.setItem('inline-editor-position', JSON.stringify({
+            left: position.left,
+            top: position.top
+          }));
+        } catch (e) {
+          // Ignore localStorage errors
+        }
+      }
+      dragStartPos.current = null;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isPanelDragging, position]);
 
   // Handle drag and drop for files
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -434,13 +521,32 @@ export default function InlineSectionEditor({
     });
   }, [dragOverTarget, isMetadataSection, plan.titlePage, onTitlePageChange, onMediaCreate, onAppendixAdd, section]);
 
-  // Editor is visible for ALL sections including ANCILLARY (universal design/management panel)
-  // No need to hide for any section - all sections are editable/manageable
+  // Ensure editor is visible when plan exists
+  // Hide only for ANCILLARY section (TOC/list of tables - auto-generated, no editing needed)
+  // Show welcome state if sectionId is null
   useEffect(() => {
-    if (!sectionId) {
+    if (isAncillarySection) {
+      // Hide only for ANCILLARY section
       setPosition(prev => ({ ...prev, visible: false }));
+    } else {
+      // ALWAYS visible - show welcome state if sectionId is null, editor if sectionId exists
+      setPosition(prev => ({ ...prev, visible: true }));
     }
-  }, [sectionId]);
+  }, [sectionId, isAncillarySection]);
+
+  // Debug logging - after all variables are declared
+  useEffect(() => {
+    console.log('[InlineSectionEditor] Render state:', {
+      sectionId,
+      hasSection: !!section,
+      positionVisible: position.visible,
+      positionTop: position.top,
+      positionLeft: position.left,
+      isAncillarySection,
+      willShowWelcome: !sectionId,
+      willShowEditor: !!sectionId && !isAncillarySection
+    });
+  }, [sectionId, section, position, isAncillarySection]);
 
   // Memoize validation to prevent unnecessary recalculations
   const validation = useMemo(() => {
@@ -495,7 +601,8 @@ export default function InlineSectionEditor({
         .filter(line => line.length > 0 && line.length < 150);
       
       if (suggestionLines.length > 0) {
-        setProactiveSuggestions(suggestionLines.slice(0, 5));
+        // Phase 4: Limit to 3-4 suggestions (better quality over quantity)
+        setProactiveSuggestions(suggestionLines.slice(0, 4));
       } else {
         // Fallback: generate generic suggestions based on question type
         setProactiveSuggestions([
@@ -525,15 +632,13 @@ export default function InlineSectionEditor({
           ? 'I can help you manage citations, references, and attachments.'
           : isAppendicesSection
           ? 'I can help you organize appendices and supplementary materials.'
-          : isAncillarySection
-          ? 'I can help you customize the table of contents, list of tables, list of figures, and other document lists.'
           : 'How can I assist you with this section?',
         timestamp: new Date().toISOString(),
         type: 'suggestion'
       };
       setAiMessages([welcomeMessage]);
       setAiInput('');
-      setAssistantContext(isMetadataSection ? 'design' : isReferencesSection ? 'references' : isAncillarySection ? 'content' : 'content');
+      setAssistantContext(isMetadataSection ? 'design' : isReferencesSection ? 'references' : 'content');
       setProactiveSuggestions([]);
       return;
     }
@@ -572,13 +677,23 @@ export default function InlineSectionEditor({
     }
     
     setAiMessages(messages);
-    setAiInput('');
+    // Phase 3: Load existing answer into input field
+    setAiInput(activeQuestion.answer || '');
     
     // Reset AI usage tracking when question changes
     setHasUsedAI(false);
     setProactiveSuggestions([]);
+    // Reset expanded actions when question changes
+    setExpandedActions(new Set());
+    // Reset question expanded state
+    setIsQuestionExpanded(false);
+    // Reset suggestions expanded state
+    setIsSuggestionsExpanded(false);
     
-    // Don't load proactive suggestions automatically - only load after first AI interaction
+    // Phase 4: Load proactive suggestions when question loads (so they appear below question)
+    if (!isSpecialSection && activeQuestion) {
+      requestProactiveSuggestions();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeQuestionId, sectionId, isSpecialSection, isMetadataSection, isReferencesSection, isAppendicesSection]);
 
@@ -590,53 +705,64 @@ export default function InlineSectionEditor({
     onReferenceAdd: _onReferenceAdd
   }), [_onDatasetCreate, _onKpiCreate, onMediaCreate, _onReferenceAdd]);
 
-  // Early return if sectionId is null
-  // Don't check position.visible here - it might be false during initial calculation
-  // The editor should show whenever sectionId exists
+  // Panel should ALWAYS be visible when plan exists
+  // If no sectionId, show welcome/empty state
+  // Never return null - always render something when plan exists
+  
+  // Show welcome state if no section selected
   if (!sectionId) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[InlineSectionEditor] Not rendering - no sectionId');
-    }
-    return null;
+    return (
+      <div
+        ref={editorRef}
+        className="absolute z-20 rounded-2xl border-2 border-blue-400/60 bg-slate-900/95 backdrop-blur-xl shadow-2xl overflow-hidden transition-all"
+        style={{
+          top: position.top > 0 ? `${position.top}px` : '24px',
+          left: position.left > 0 ? `${position.left}px` : 'auto',
+          right: position.left === 0 || position.left < 100 ? '24px' : 'auto',
+          width: `${EDITOR_WIDTH}px`,
+          height: `${EDITOR_MAX_HEIGHT}px`,
+          position: 'fixed',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          zIndex: 9999,
+          display: 'block',
+          opacity: 1,
+          visibility: 'visible'
+        }}
+      >
+        <div className="relative h-full flex flex-col bg-slate-900/95 backdrop-blur-xl">
+          <div className="p-2.5 border-b border-white/20 bg-gradient-to-r from-slate-800/90 to-slate-900/90">
+            <div className="flex items-center justify-between mb-1.5">
+              <h2 className="text-sm font-semibold text-white truncate flex-1 min-w-0">Editor</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="text-white/70 hover:bg-white/10 hover:text-white flex-shrink-0 ml-2 h-6 w-6 p-0"
+                aria-label="Close editor"
+              >
+                ✕
+              </Button>
+            </div>
+          </div>
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center">
+              <div className="text-4xl mb-4">📝</div>
+              <h3 className="text-lg font-semibold text-white mb-2">Select a Section</h3>
+              <p className="text-sm text-white/70">
+                Choose a section from the sidebar to start editing
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
-  
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[InlineSectionEditor] Rendering:', {
-      sectionId,
-      positionVisible: position.visible,
-      positionTop: position.top,
-      positionLeft: position.left,
-      isSpecialSection,
-      hasSection: !!section,
-      hasActiveQuestion: !!activeQuestion,
-      willRender: true
-    });
-  }
-  
-  // Force position to be visible if sectionId exists (even if calculation hasn't completed)
-  useEffect(() => {
-    if (sectionId && !position.visible) {
-      // Trigger position calculation immediately
-      calculatePosition();
-    }
-  }, [sectionId, position.visible, calculatePosition]);
-
-  // For normal sections without questions, show a message instead of hiding
-  // Editor should ALWAYS be visible when sectionId exists
-  if (!isSpecialSection && !section) {
-    // Section not found - this shouldn't happen, but show editor anyway
-    console.warn('[InlineSectionEditor] Section not found for sectionId:', sectionId);
-  }
-  
-  // For normal sections, if no activeQuestion, we'll still show the editor (it will show section info)
 
   // Type guards for normal sections
   const isUnknown = !isSpecialSection && activeQuestion ? activeQuestion.status === 'unknown' : false;
   const isComplete = !isSpecialSection && activeQuestion ? activeQuestion.status === 'complete' : false;
-  const isLastQuestion = !isSpecialSection && section && activeQuestion 
-    ? section.questions[section.questions.length - 1]?.id === activeQuestion.id 
-    : false;
+  // Removed isLastQuestion - not used after UI simplification
 
   // Get next question helper (only for normal sections)
   const getNextQuestion = () => {
@@ -733,7 +859,7 @@ export default function InlineSectionEditor({
       
       try {
         const response = await generateSectionContent({
-          sectionTitle: section?.title || (isMetadataSection ? 'Title Page' : isReferencesSection ? 'References' : isAppendicesSection ? 'Appendices' : isAncillarySection ? 'Table of Contents & Lists' : 'Section'),
+          sectionTitle: section.title || (isMetadataSection ? 'Title Page' : isReferencesSection ? 'References' : 'Appendices'),
           context: inputValue,
           program: {
             id: plan.metadata?.programId,
@@ -745,16 +871,12 @@ export default function InlineSectionEditor({
               ? 'Help with title page design and formatting'
               : isReferencesSection
               ? 'Help with citations and references'
-              : isAppendicesSection
-              ? 'Help with appendices'
-              : isAncillarySection
-              ? 'Help with table of contents, list of tables, and document lists'
-              : 'Help with this section'
+              : 'Help with appendices'
           },
           conversationHistory: [...aiMessages, userMessage],
           documentType: (plan.metadata as any)?.documentType || 'business-plan',
           assistantContext: detectedContext,
-          sectionType: isMetadataSection ? 'metadata' : isReferencesSection ? 'references' : isAppendicesSection ? 'appendices' : isAncillarySection ? 'ancillary' : 'normal',
+          sectionType: isMetadataSection ? 'metadata' : isReferencesSection ? 'references' : isAppendicesSection ? 'appendices' : 'normal',
           sectionOrigin: template ? 'template' : 'custom',
           sectionEnabled: true // Sections are enabled by default
         });
@@ -776,6 +898,10 @@ export default function InlineSectionEditor({
           }
         };
         setAiMessages(prev => [...prev, assistantMessage]);
+        // Phase 5: Auto-expand actions when AI suggests them
+        if (helpfulActions.length > 0) {
+          setExpandedActions(prev => new Set([...prev, assistantMessage.id]));
+        }
       } catch (error) {
         console.error('AI send failed:', error);
         const errorMessage: ConversationMessage = {
@@ -880,6 +1006,10 @@ export default function InlineSectionEditor({
           }
         };
         setAiMessages(prev => [...prev, suggestionMessage]);
+        // Phase 5: Auto-expand actions when AI suggests them
+        if (actions.length > 0) {
+          setExpandedActions(prev => new Set([...prev, suggestionMessage.id]));
+        }
         
         // Load proactive suggestions after first AI interaction (answer submission)
         if (!hasUsedAI) {
@@ -957,6 +1087,10 @@ export default function InlineSectionEditor({
           }
         };
         setAiMessages(prev => [...prev, assistantMessage]);
+        // Phase 5: Auto-expand actions when AI suggests them
+        if (actions.length > 0) {
+          setExpandedActions(prev => new Set([...prev, assistantMessage.id]));
+        }
         
         // Load proactive suggestions after first AI interaction (chat message)
         // Only for normal sections, and only on first AI interaction
@@ -989,6 +1123,32 @@ export default function InlineSectionEditor({
   const totalQuestions = !isSpecialSection && section ? section.questions.length : 0;
   const completionPercentage = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
+  // Force visibility - component should ALWAYS be visible when plan exists
+  // Only hide for ANCILLARY section
+  const shouldBeVisible = !isAncillarySection;
+  const effectiveVisible = shouldBeVisible && position.visible;
+
+  // Debug: Log render state
+  useEffect(() => {
+    if (editorRef.current) {
+      const rect = editorRef.current.getBoundingClientRect();
+      const computed = window.getComputedStyle(editorRef.current);
+      console.log('[InlineSectionEditor] DOM state:', {
+        exists: !!editorRef.current,
+        visible: effectiveVisible,
+        display: computed.display,
+        opacity: computed.opacity,
+        visibility: computed.visibility,
+        zIndex: computed.zIndex,
+        position: computed.position,
+        top: computed.top,
+        left: computed.left,
+        rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+        inViewport: rect.top >= 0 && rect.left >= 0 && rect.top < window.innerHeight && rect.left < window.innerWidth
+      });
+    }
+  }, [effectiveVisible, position]);
+
   const editorContent = (
     <div
       ref={editorRef}
@@ -998,19 +1158,20 @@ export default function InlineSectionEditor({
           : 'border-blue-400/60 bg-slate-900/95'
       } backdrop-blur-xl shadow-2xl overflow-hidden transition-all`}
       style={{
-        top: position.visible && position.top > 0 ? `${position.top}px` : '24px', // Default position if not calculated yet
-        left: position.visible && position.left > 0 ? `${position.left}px` : 'auto', // Default position if not calculated yet
-        right: position.visible ? '24px' : 'auto', // Right side of preview-container
-        bottom: typeof window !== 'undefined' && window.innerWidth <= 768 ? '24px' : 'auto', // Mobile: bottom
+        top: `${position.top}px`,
+        left: `${position.left}px`,
         width: `${EDITOR_WIDTH}px`,
-        maxHeight: `${EDITOR_MAX_HEIGHT}px`,
-        position: 'absolute', // Absolute positioning relative to preview-container
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        zIndex: 9999, // Very high z-index to ensure it appears above everything
-        display: 'block', // Always show when component renders
-        opacity: 1, // Always visible when component renders
-        visibility: 'visible' // Force visibility
+        height: `${EDITOR_MAX_HEIGHT}px`,
+        position: 'fixed',
+        overflow: 'hidden',
+        zIndex: 9999,
+        display: effectiveVisible ? 'flex' : 'none',
+        flexDirection: 'column',
+        opacity: effectiveVisible ? 1 : 0,
+        visibility: effectiveVisible ? 'visible' : 'hidden',
+        pointerEvents: effectiveVisible ? 'auto' : 'none',
+        cursor: isPanelDragging ? 'grabbing' : 'default',
+        userSelect: isPanelDragging ? 'none' : 'auto'
       }}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
@@ -1027,11 +1188,40 @@ export default function InlineSectionEditor({
           </div>
         </div>
       )}
-      <div className="relative h-full flex flex-col bg-slate-900/95 backdrop-blur-xl">
-        {/* Header */}
-        <div className="p-2.5 border-b border-white/20 bg-gradient-to-r from-slate-800/90 to-slate-900/90">
-          <div className="flex items-center justify-between mb-1.5">
-            <h2 className="text-xs font-semibold text-white truncate flex-1 min-w-0">{section?.title || 'Section'}</h2>
+      <div className="relative h-full flex flex-col bg-slate-900/95 backdrop-blur-xl overflow-hidden">
+        {/* Header - Phase 2: Draggable */}
+        <div 
+          className="p-2.5 border-b border-white/20 bg-gradient-to-r from-slate-800/90 to-slate-900/90 cursor-move select-none flex-shrink-0"
+          onMouseDown={handlePanelMouseDown}
+        >
+          <div className="flex items-center justify-between mb-2 gap-2">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <h2 className="text-sm font-semibold text-white truncate">{section?.title || 'Section'}</h2>
+              {/* Question Navigation - Moved to header with spacing */}
+              {!isSpecialSection && section && section.questions.length > 1 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto border-l border-white/20 pl-3">
+                  {section.questions.map((q, index) => {
+                    const isActive = q.id === activeQuestionId;
+                    const status = q.status;
+                    return (
+                      <button
+                        key={q.id}
+                        onClick={() => onSelectQuestion(q.id)}
+                        className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-all flex-shrink-0 ${
+                          isActive
+                            ? 'border-blue-500 bg-blue-500 text-white shadow-md'
+                            : 'border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700'
+                        }`}
+                      >
+                        <span>{index + 1}</span>
+                        {status === 'complete' && <span className="text-xs">✅</span>}
+                        {status === 'unknown' && <span className="text-xs">❓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -1042,169 +1232,167 @@ export default function InlineSectionEditor({
               ✕
             </Button>
           </div>
-          {/* Section Guidance - Expandable */}
+          {/* Section Guidance - Expandable with spacing */}
           {section?.description && (
             <details 
               open={isSectionGuidanceOpen}
               onToggle={(e) => setIsSectionGuidanceOpen(e.currentTarget.open)}
-              className="mt-1"
+              className="mt-2 pt-2 border-t border-white/10"
             >
-              <summary className="cursor-pointer text-[10px] text-white/70 hover:text-white/90 flex items-center gap-1">
+              <summary className="cursor-pointer text-xs text-white/70 hover:text-white/90 flex items-center gap-1">
                 <span>📋 Section Guidance</span>
-                <span className="text-white/50 text-[9px]">{isSectionGuidanceOpen ? '▲' : '▼'}</span>
+                <span className="text-white/50 text-xs">{isSectionGuidanceOpen ? '▲' : '▼'}</span>
               </summary>
-              <p className="text-[10px] text-white/70 mt-1.5 leading-relaxed">{section?.description}</p>
+              <p className="text-xs text-white/70 mt-2 leading-relaxed">{section?.description}</p>
             </details>
           )}
         </div>
 
-        {/* Question Navigation - Only for normal sections */}
-        {!isSpecialSection && section && section.questions.length > 1 && (
-          <div className="px-3 py-2 border-b border-white/20 bg-slate-800/50">
-            <div className="flex items-center gap-1.5 overflow-x-auto">
-              {section.questions.map((q, index) => {
-                const isActive = q.id === activeQuestionId;
-                const status = q.status;
-                return (
-                  <button
-                    key={q.id}
-                    onClick={() => onSelectQuestion(q.id)}
-                    className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-all flex-shrink-0 ${
-                      isActive
-                        ? 'border-blue-500 bg-blue-500 text-white shadow-md'
-                        : 'border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700'
-                    }`}
-                  >
-                    <span>{index + 1}</span>
-                    {status === 'complete' && <span className="text-[9px]">✅</span>}
-                    {status === 'unknown' && <span className="text-[9px]">❓</span>}
-                  </button>
-                );
-              })}
+        {/* Suggestions Section - Compact, collapsible, above question */}
+        {!isSpecialSection && activeQuestion && proactiveSuggestions.length > 0 && (
+          <div className="border-b border-white/20 px-3 py-2 bg-slate-800/40 flex-shrink-0">
+            <button
+              onClick={() => setIsSuggestionsExpanded(!isSuggestionsExpanded)}
+              className="w-full flex items-center justify-between text-xs font-semibold text-white/70 hover:text-white/90 transition-colors"
+            >
+              <span className="flex items-center gap-1.5">
+                <span>💡</span>
+                <span>Suggestions ({proactiveSuggestions.length})</span>
+              </span>
+              <span className="text-white/50">{isSuggestionsExpanded ? '▲' : '▼'}</span>
+            </button>
+            {isSuggestionsExpanded && (
+              <div className="mt-2 pt-2 border-t border-white/10">
+                <div className="flex flex-wrap gap-1.5">
+                  {proactiveSuggestions.slice(0, 4).map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        // Add suggestion to input field
+                        setAiInput(prev => {
+                          const current = prev.trim();
+                          if (current) {
+                            return `${current}\n\n${suggestion}`;
+                          }
+                          return suggestion;
+                        });
+                        // Remove suggestion after adding
+                        setProactiveSuggestions(prev => prev.filter((_, i) => i !== idx));
+                      }}
+                      className="text-xs text-white/80 bg-slate-700/50 hover:bg-slate-600/70 border border-white/10 rounded-full px-2.5 py-1 transition-colors cursor-pointer"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Loading suggestions indicator */}
+        {!isSpecialSection && activeQuestion && isLoadingSuggestions && proactiveSuggestions.length === 0 && (
+          <div className="border-b border-white/20 px-3 py-2 bg-slate-800/40 flex-shrink-0">
+            <div className="text-xs text-white/50 flex items-center gap-1.5">
+              <span>💡</span>
+              <span>Loading suggestions...</span>
             </div>
           </div>
         )}
 
-        {/* Unified Content Area - Merged Chat + Assistant */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-slate-900/95 relative">
-          {/* Answer Input Section - Only for normal sections without existing answer */}
-          {!isSpecialSection && activeQuestion && !activeQuestion.answer?.trim() && (
-            <div className="border-b border-white/20 p-3 bg-slate-800/50">
-              <div className="text-[10px] font-semibold text-white/90 mb-2">
-                {simplifyPrompt(activeQuestion.prompt || '')}
-              </div>
-              <textarea
-                value={aiInput}
-                onChange={(e) => setAiInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                    e.preventDefault();
-                    handleChatSend();
-                  }
-                }}
-                placeholder={activeQuestion.placeholder || 'Type your answer here...'}
-                disabled={isAiLoading}
-                className="w-full min-h-[80px] px-2 py-1.5 rounded border border-white/20 bg-slate-800/50 text-white text-[10px] placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
-              />
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-[9px] text-white/50">Press Ctrl+Enter to submit</span>
-                <Button
-                  onClick={handleChatSend}
-                  disabled={isAiLoading || !aiInput.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-3 py-1.5 rounded"
-                >
-                  Submit Answer
-                </Button>
-              </div>
+        {/* Question Section - Compact, separate section */}
+        {!isSpecialSection && activeQuestion && (
+          <div className="border-b border-white/20 p-3 bg-slate-800/50 flex-shrink-0">
+            <div className="text-sm font-semibold text-white/90">
+              ❓ {isQuestionExpanded ? activeQuestion.prompt : simplifyPrompt(activeQuestion.prompt || '')}
             </div>
-          )}
+            {activeQuestion.prompt && activeQuestion.prompt.length > 80 && (
+              <button
+                onClick={() => setIsQuestionExpanded(!isQuestionExpanded)}
+                className="text-xs text-white/60 hover:text-white/80 mt-1 flex items-center gap-1"
+              >
+                {isQuestionExpanded ? 'Show less ▲' : 'Show full question ▼'}
+              </button>
+            )}
+          </div>
+        )}
 
-          {/* Unified Scrollable Area */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {/* Chat Messages */}
-            {aiMessages.map((msg) => {
+        {/* Chat Area - Scrollable section for AI messages only */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-slate-900/95 min-h-0">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
+            {/* Chat Messages - Filter out question and answer messages (only show AI messages) */}
+            {aiMessages.filter(msg => msg.type !== 'question' && msg.type !== 'answer').length === 0 && !isAiLoading && (
+              <div className="flex items-center justify-center h-full min-h-[80px]">
+                <div className="text-center text-white/40 text-sm">
+                  <div className="mb-2">💬</div>
+                  <div>AI suggestions will appear here</div>
+                </div>
+              </div>
+            )}
+            {aiMessages.filter(msg => msg.type !== 'question' && msg.type !== 'answer').map((msg) => {
               const isUser = msg.role === 'user';
-              const isQuestion = msg.type === 'question';
-              const isAnswer = msg.type === 'answer';
+              const hasActions = msg.metadata?.actions && msg.metadata.actions.length > 0;
+              const actionCount = msg.metadata?.actions?.length || 0;
+              const isActionsExpanded = expandedActions.has(msg.id);
               
               return (
                 <div
                   key={msg.id}
                   className={`flex gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
                 >
-                  {/* Avatar - Phase 5: Improved Styling */}
-                  <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all ${
+                  {/* Avatar */}
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
                     isUser 
                       ? 'bg-blue-600/40 border border-blue-500/30' 
-                      : isQuestion
-                      ? 'bg-slate-700/60 border border-slate-600/40'
                       : 'bg-slate-700/50 border border-slate-600/30'
                   }`}>
-                    {isUser ? '👤' : isQuestion ? '❓' : '🤖'}
+                    {isUser ? '👤' : '🤖'}
                   </div>
                   
-                  {/* Message Content - Phase 5: Improved Styling */}
-                  <div className={`flex-1 rounded-lg p-2.5 text-[10px] transition-all ${
+                  {/* Message Content */}
+                  <div className={`flex-1 rounded-lg p-3 text-sm transition-all ${
                     isUser
                       ? 'bg-blue-600/30 text-blue-100 border border-blue-500/20'
-                      : isQuestion
-                      ? 'bg-slate-700/50 text-white/90 font-semibold border border-slate-600/30'
                       : 'bg-slate-700/50 text-white/90 border border-slate-600/20'
                   }`}>
                     <div className="whitespace-pre-wrap break-words">{msg.content}</div>
                     
-                    {/* Word count for answer messages */}
-                    {isAnswer && msg.content && (
-                      <div className="mt-1.5 text-[9px] text-white/50">
-                        {msg.content.trim().split(/\s+/).filter(Boolean).length} words
-                      </div>
-                    )}
-                    
-                    {/* Edit/Delete buttons for answer messages */}
-                    {isAnswer && activeQuestion && (
-                      <div className="flex gap-1.5 mt-1.5">
+                    {/* Collapsible Action buttons for AI messages */}
+                    {hasActions && (
+                      <div className="mt-3 pt-3 border-t border-blue-500/30">
                         <button
                           onClick={() => {
-                            // Allow editing by focusing chat input with current answer
-                            setAiInput(msg.content);
-                            // Remove this answer message temporarily
-                            setAiMessages(prev => prev.filter(m => m.id !== msg.id));
+                            setExpandedActions(prev => {
+                              const next = new Set(prev);
+                              if (isActionsExpanded) {
+                                next.delete(msg.id);
+                              } else {
+                                next.add(msg.id);
+                              }
+                              return next;
+                            });
                           }}
-                          className="text-[9px] text-blue-400 hover:text-blue-300"
+                          className="flex items-center gap-1 text-xs text-blue-300 font-semibold hover:text-blue-200 transition-colors w-full"
                         >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            // Delete answer
-                            onAnswerChange(activeQuestion.id, '');
-                            setAiMessages(prev => prev.filter(m => m.id !== msg.id));
-                          }}
-                          className="text-[9px] text-red-400 hover:text-red-300"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                    
-                    {/* Action buttons for AI messages - Phase 4: Proactive Suggestions */}
-                    {msg.metadata?.actions && msg.metadata.actions.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-blue-500/30 bg-blue-900/20 rounded p-2">
-                        <div className="text-[9px] text-blue-300 font-semibold mb-1.5 w-full flex items-center gap-1">
                           <span>⚡</span>
-                          <span>Quick Actions:</span>
-                        </div>
-                        {msg.metadata.actions.map((action, idx) => (
-                          <Button
-                            key={idx}
-                            size="sm"
-                            onClick={action.onClick}
-                            className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] px-3 py-1.5 rounded-md transition-all shadow-md hover:shadow-lg hover:scale-105 flex items-center gap-1.5"
-                          >
-                            {action.icon && <span>{action.icon}</span>}
-                            <span className="font-medium">{action.label}</span>
-                          </Button>
-                        ))}
+                          <span>Quick Actions ({actionCount})</span>
+                          <span className="ml-auto">{isActionsExpanded ? '▲' : '▼'}</span>
+                        </button>
+                        {isActionsExpanded && hasActions && msg.metadata?.actions && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {msg.metadata.actions.map((action, idx) => (
+                              <Button
+                                key={idx}
+                                size="sm"
+                                onClick={action.onClick}
+                                className="bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2 rounded-md transition-all shadow-md hover:shadow-lg hover:scale-105 flex items-center gap-1.5"
+                              >
+                                {action.icon && <span>{action.icon}</span>}
+                                <span className="font-medium">{action.label}</span>
+                              </Button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1215,118 +1403,78 @@ export default function InlineSectionEditor({
             {/* Loading indicator */}
             {isAiLoading && (
               <div className="flex gap-2">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs bg-slate-700/50">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm bg-slate-700/50">
                   🤖
                 </div>
-                <div className="flex-1 rounded-lg p-2 text-[10px] bg-slate-700/50 text-white/50">
+                <div className="flex-1 rounded-lg p-3 text-sm bg-slate-700/50 text-white/50">
                   Thinking...
-                </div>
-              </div>
-            )}
-            
-            {/* Proactive Suggestions - Moved below chat messages, integrated into conversation flow */}
-            {!isSpecialSection && proactiveSuggestions.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-white/10">
-                <div className="flex gap-2">
-                  <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs bg-slate-700/50 border border-slate-600/30">
-                    💡
-                  </div>
-                  <div className="flex-1 rounded-lg p-2.5 bg-slate-700/50 text-white/90 border border-slate-600/20">
-                    <div className="text-[10px] font-semibold text-white/90 mb-2">Consider mentioning:</div>
-                    <ul className="space-y-1.5">
-                      {proactiveSuggestions.map((suggestion, idx) => (
-                        <li key={idx} className="text-[10px] text-white/80 flex items-start gap-1.5">
-                          <span className="text-white/50 mt-0.5">•</span>
-                          <span>{suggestion}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Loading suggestions indicator */}
-            {isLoadingSuggestions && proactiveSuggestions.length === 0 && (
-              <div className="flex gap-2">
-                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs bg-slate-700/50">
-                  💡
-                </div>
-                <div className="flex-1 rounded-lg p-2 text-[10px] bg-slate-700/50 text-white/50">
-                  Loading suggestions...
                 </div>
               </div>
             )}
           </div>
           
-          {/* AI Chat Input - Only show if answer exists or for special sections */}
-          {((!isSpecialSection && activeQuestion && activeQuestion.answer?.trim()) || isSpecialSection) && (
-            <div className="border-t border-white/20 p-2.5 bg-slate-800/50">
-              <div className="flex gap-1.5">
-                <input
-                  value={aiInput}
-                  onChange={(e) => setAiInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleChatSend();
-                    }
-                  }}
-                  placeholder={
-                    isSpecialSection
-                      ? isMetadataSection
-                        ? 'Ask about title page, formatting, or design...'
-                        : isReferencesSection
-                        ? 'Ask about citations, references, or attachments...'
-                        : isAppendicesSection
-                        ? 'Ask about appendices organization...'
-                        : isAncillarySection
-                        ? 'Ask about table of contents, lists, or document navigation...'
-                        : 'How can I help you?'
-                      : 'Ask AI for help...'
+          {/* Input Section - Separate from chat, always visible at bottom */}
+          <div className="border-t-2 border-white/30 p-3 bg-slate-800/70 flex-shrink-0">
+            <div className="flex gap-2">
+              <textarea
+                value={aiInput}
+                onChange={(e) => setAiInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    handleChatSend();
                   }
-                  disabled={isAiLoading}
-                  className="flex-1 px-2 py-1.5 rounded border border-white/20 bg-slate-800/50 text-white text-[10px] placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-                <Button
-                  onClick={handleChatSend}
-                  disabled={isAiLoading || !aiInput.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-3 py-1.5 rounded"
-                >
-                  Send
-                </Button>
-              </div>
+                }}
+                placeholder={
+                  isSpecialSection
+                    ? isMetadataSection
+                      ? 'Type your answer or ask about title page, formatting, or design...'
+                      : isReferencesSection
+                      ? 'Type your answer or ask about citations, references, or attachments...'
+                      : 'Type your answer or ask for help...'
+                    : !isSpecialSection && activeQuestion && !activeQuestion.answer?.trim()
+                    ? 'Type your answer here or ask AI to improve it...'
+                    : 'Type your answer or ask AI for help...'
+                }
+                disabled={isAiLoading}
+                rows={3}
+                className="flex-1 px-3 py-2 rounded-lg border-2 border-white/30 bg-slate-900/80 text-white text-sm placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              />
+              <Button
+                onClick={handleChatSend}
+                disabled={isAiLoading || !aiInput.trim()}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg self-end font-semibold shadow-lg hover:shadow-xl transition-all flex-shrink-0"
+              >
+                Send
+              </Button>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Actions Footer */}
-        <div className="flex flex-wrap gap-2 p-2.5 border-t border-white/20 bg-slate-800/50">
-          {/* Progress indicator */}
-          {!isSpecialSection && section && (
-            <div className="w-full text-[10px] text-white/70 mb-2">
-              Progress: {answeredCount}/{totalQuestions} questions answered ({completionPercentage}%)
+        {/* Actions Footer - Phase 2: Simplified */}
+        {!isSpecialSection && section && !isComplete && (
+          <div className="flex items-center justify-between gap-2 p-2.5 border-t border-white/20 bg-slate-800/50 flex-shrink-0">
+            <div className="text-xs text-white/70">
+              {answeredCount}/{totalQuestions} ({completionPercentage}%)
             </div>
-          )}
-          {!isComplete && (
-            <Button
-              variant="success"
-              onClick={handleComplete}
-              className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex-1"
-            >
-              {isLastQuestion ? '✓ Complete Section' : '✓ Complete'}
-            </Button>
-          )}
-          {!isComplete && (
-            <Button
-              variant="outline"
-              onClick={handleSkipClick}
-              className="text-white/80 border-white/20 bg-slate-700/50 hover:bg-slate-700 text-xs font-semibold px-3 py-2 rounded-lg"
-            >
-              {isUnknown ? 'Clear Skip' : 'Skip'}
-            </Button>
-          )}
-        </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleSkipClick}
+                className="text-white/80 border-white/20 bg-slate-700/50 hover:bg-slate-700 text-xs px-3 py-1.5 rounded"
+              >
+                {isUnknown ? 'Clear' : 'Skip'}
+              </Button>
+              <Button
+                variant="success"
+                onClick={handleComplete}
+                className="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-1.5 rounded"
+              >
+                ✓ Complete
+              </Button>
+            </div>
+          </div>
+        )}
         
         {/* Skip Reason Dialog */}
         <Dialog open={showSkipDialog} onOpenChange={setShowSkipDialog}>
@@ -1423,8 +1571,11 @@ export default function InlineSectionEditor({
     </div>
   );
 
-  // Render directly in page (absolute positioning relative to preview-container)
-  // No portal needed - preview-container has overflow-visible and position: relative
-  return editorContent;
+  // Render via portal to escape CSS containment
+  if (typeof window === 'undefined') {
+    return editorContent;
+  }
+
+  return createPortal(editorContent, document.body);
 }
 

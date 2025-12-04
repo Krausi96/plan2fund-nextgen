@@ -5,7 +5,7 @@ import { BusinessPlan } from '@/features/editor/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { DesktopEditForm } from '@/features/editor/components/layout/Desktop/DesktopEditForm';
+import { SectionDocumentEditForm } from '@/features/editor/components/shared/SectionDocumentEditForm';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 
 type SidebarProps = {
@@ -194,7 +194,7 @@ export default function Sidebar({
         {/* Edit Section Form */}
         {!isCollapsed && isEditing && editingSection && onSaveSection && onCancelEdit && (
           <div className="mb-2 flex-shrink-0 border border-white/20 bg-white/10 rounded-lg p-3">
-            <DesktopEditForm
+            <SectionDocumentEditForm
               type="section"
               item={editingSection}
               onSave={onSaveSection}

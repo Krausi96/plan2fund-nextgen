@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/shared/components/ui/button';
-import { DesktopEditForm } from '@/features/editor/components/layout/Desktop/DesktopEditForm';
+import { SectionDocumentEditForm } from '@/features/editor/components/shared/SectionDocumentEditForm';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
@@ -58,7 +58,7 @@ export default function DocumentsBar({
     return (
       <div className="w-full border-b border-white/10 pb-3 mb-3">
         <div className="bg-white/10 rounded-lg border border-white/20 p-3">
-          <DesktopEditForm
+          <SectionDocumentEditForm
             type="document"
             item={editingDocument}
             onSave={onSaveDocument}
