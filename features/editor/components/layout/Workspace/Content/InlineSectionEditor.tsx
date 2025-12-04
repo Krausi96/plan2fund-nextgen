@@ -170,14 +170,11 @@ export default function InlineSectionEditor({
   // Phase 2: Will be passed to AI context for specialized prompts
   const [_assistantContext, setAssistantContext] = useState<AIContext>('content');
   
-  // Section guidance expandable state
-  const [isSectionGuidanceOpen, setIsSectionGuidanceOpen] = useState(false);
-  
   // Question expandable state (for showing full question)
   const [isQuestionExpanded, setIsQuestionExpanded] = useState(false);
   
-  // Suggestions collapsible state
-  const [isSuggestionsExpanded, setIsSuggestionsExpanded] = useState(false);
+  // Suggestions collapsible state - default to expanded
+  const [isSuggestionsExpanded, setIsSuggestionsExpanded] = useState(true);
   
   // Skip dialog state
   const [showSkipDialog, setShowSkipDialog] = useState(false);
@@ -322,6 +319,19 @@ export default function InlineSectionEditor({
       window.removeEventListener('resize', handleResize);
     };
   }, [sectionId, calculatePosition]);
+
+  // Auto-collapse suggestions side panel on narrow screens
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 500) {
+        setIsSuggestionsExpanded(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    // Check on mount
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Close on ESC key
   useEffect(() => {
@@ -1189,116 +1199,54 @@ export default function InlineSectionEditor({
         </div>
       )}
       <div className="relative h-full flex flex-col bg-slate-900/95 backdrop-blur-xl overflow-hidden">
-        {/* Header - Phase 2: Draggable */}
+        {/* Header - Simplified: Title, Navigation, Close */}
         <div 
           className="p-2.5 border-b border-white/20 bg-gradient-to-r from-slate-800/90 to-slate-900/90 cursor-move select-none flex-shrink-0"
           onMouseDown={handlePanelMouseDown}
         >
-          <div className="flex items-center justify-between mb-2 gap-2">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <h2 className="text-sm font-semibold text-white truncate">{section?.title || 'Section'}</h2>
-              {/* Question Navigation - Moved to header with spacing */}
-              {!isSpecialSection && section && section.questions.length > 1 && (
-                <div className="flex items-center gap-1.5 overflow-x-auto border-l border-white/20 pl-3">
-                  {section.questions.map((q, index) => {
-                    const isActive = q.id === activeQuestionId;
-                    const status = q.status;
-                    return (
-                      <button
-                        key={q.id}
-                        onClick={() => onSelectQuestion(q.id)}
-                        className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-all flex-shrink-0 ${
-                          isActive
-                            ? 'border-blue-500 bg-blue-500 text-white shadow-md'
-                            : 'border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700'
-                        }`}
-                      >
-                        <span>{index + 1}</span>
-                        {status === 'complete' && <span className="text-xs">✅</span>}
-                        {status === 'unknown' && <span className="text-xs">❓</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-white truncate flex-1 min-w-0">
+              {section?.title || 'Section'}
+            </h2>
+            
+            {/* Question Navigation - Inline with title */}
+            {!isSpecialSection && section && section.questions.length > 1 && (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {section.questions.map((q, index) => {
+                  const isActive = q.id === activeQuestionId;
+                  const status = q.status;
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => onSelectQuestion(q.id)}
+                      className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
+                        isActive
+                          ? 'border-blue-500 bg-blue-500 text-white shadow-md'
+                          : 'border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700'
+                      }`}
+                    >
+                      <span>{index + 1}</span>
+                      {status === 'complete' && <span className="text-xs">✅</span>}
+                      {status === 'unknown' && <span className="text-xs">❓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-white/70 hover:bg-white/10 hover:text-white flex-shrink-0 ml-2 h-6 w-6 p-0"
+              className="text-white/70 hover:bg-white/10 hover:text-white flex-shrink-0 h-6 w-6 p-0"
               aria-label="Close editor"
             >
               ✕
             </Button>
           </div>
-          {/* Section Guidance - Expandable with spacing */}
-          {section?.description && (
-            <details 
-              open={isSectionGuidanceOpen}
-              onToggle={(e) => setIsSectionGuidanceOpen(e.currentTarget.open)}
-              className="mt-2 pt-2 border-t border-white/10"
-            >
-              <summary className="cursor-pointer text-xs text-white/70 hover:text-white/90 flex items-center gap-1">
-                <span>📋 Section Guidance</span>
-                <span className="text-white/50 text-xs">{isSectionGuidanceOpen ? '▲' : '▼'}</span>
-              </summary>
-              <p className="text-xs text-white/70 mt-2 leading-relaxed">{section?.description}</p>
-            </details>
-          )}
         </div>
 
-        {/* Suggestions Section - Compact, collapsible, above question */}
-        {!isSpecialSection && activeQuestion && proactiveSuggestions.length > 0 && (
-          <div className="border-b border-white/20 px-3 py-2 bg-slate-800/40 flex-shrink-0">
-            <button
-              onClick={() => setIsSuggestionsExpanded(!isSuggestionsExpanded)}
-              className="w-full flex items-center justify-between text-xs font-semibold text-white/70 hover:text-white/90 transition-colors"
-            >
-              <span className="flex items-center gap-1.5">
-                <span>💡</span>
-                <span>Suggestions ({proactiveSuggestions.length})</span>
-              </span>
-              <span className="text-white/50">{isSuggestionsExpanded ? '▲' : '▼'}</span>
-            </button>
-            {isSuggestionsExpanded && (
-              <div className="mt-2 pt-2 border-t border-white/10">
-                <div className="flex flex-wrap gap-1.5">
-                  {proactiveSuggestions.slice(0, 4).map((suggestion, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        // Add suggestion to input field
-                        setAiInput(prev => {
-                          const current = prev.trim();
-                          if (current) {
-                            return `${current}\n\n${suggestion}`;
-                          }
-                          return suggestion;
-                        });
-                        // Remove suggestion after adding
-                        setProactiveSuggestions(prev => prev.filter((_, i) => i !== idx));
-                      }}
-                      className="text-xs text-white/80 bg-slate-700/50 hover:bg-slate-600/70 border border-white/10 rounded-full px-2.5 py-1 transition-colors cursor-pointer"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Loading suggestions indicator */}
-        {!isSpecialSection && activeQuestion && isLoadingSuggestions && proactiveSuggestions.length === 0 && (
-          <div className="border-b border-white/20 px-3 py-2 bg-slate-800/40 flex-shrink-0">
-            <div className="text-xs text-white/50 flex items-center gap-1.5">
-              <span>💡</span>
-              <span>Loading suggestions...</span>
-            </div>
-          </div>
-        )}
+        {/* Suggestions removed from here - moved to side panel */}
 
         {/* Question Section - Compact, separate section */}
         {!isSpecialSection && activeQuestion && (
@@ -1317,8 +1265,9 @@ export default function InlineSectionEditor({
           </div>
         )}
 
-        {/* Chat Area - Scrollable section for AI messages only */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-slate-900/95 min-h-0">
+        {/* Chat Area with Side Panel - Restructured */}
+        <div className="flex-1 flex overflow-hidden bg-slate-900/95 min-h-0">
+          {/* Chat Messages (left) */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
             {/* Chat Messages - Filter out question and answer messages (only show AI messages) */}
             {aiMessages.filter(msg => msg.type !== 'question' && msg.type !== 'answer').length === 0 && !isAiLoading && (
@@ -1413,8 +1362,93 @@ export default function InlineSectionEditor({
             )}
           </div>
           
-          {/* Input Section - Separate from chat, always visible at bottom */}
-          <div className="border-t-2 border-white/30 p-3 bg-slate-800/70 flex-shrink-0">
+          {/* Suggestions Side Panel (right) */}
+          {!isSpecialSection && activeQuestion && (proactiveSuggestions.length > 0 || isLoadingSuggestions) && (
+            <div className={`
+              flex-shrink-0 border-l border-white/20 bg-slate-800/60
+              transition-all duration-200
+              ${isSuggestionsExpanded ? 'w-[180px]' : 'w-[40px]'}
+            `}>
+              {/* Header */}
+              <div className="p-2 bg-slate-700/50 border-b border-white/10">
+                <button
+                  onClick={() => setIsSuggestionsExpanded(!isSuggestionsExpanded)}
+                  className="flex items-center justify-between w-full text-xs font-semibold text-white/70 hover:text-white/90"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>💡</span>
+                    {isSuggestionsExpanded && (
+                      <span>Suggestions ({proactiveSuggestions.length})</span>
+                    )}
+                  </span>
+                  <span className="text-white/50">{isSuggestionsExpanded ? '▼' : '▶'}</span>
+                </button>
+              </div>
+              
+              {/* Suggestions List */}
+              {isSuggestionsExpanded && (
+                <div className="p-2 space-y-2 overflow-y-auto max-h-full">
+                  {isLoadingSuggestions && proactiveSuggestions.length === 0 ? (
+                    <div className="text-xs text-white/50 text-center py-4">
+                      Loading suggestions...
+                    </div>
+                  ) : proactiveSuggestions.length === 0 ? (
+                    <div className="text-xs text-white/50 text-center py-4">
+                      No suggestions yet.
+                      <br />
+                      AI will suggest ideas after you start typing.
+                    </div>
+                  ) : (
+                    <>
+                      {proactiveSuggestions.slice(0, 4).map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            // Add suggestion to input field
+                            setAiInput(prev => {
+                              const current = prev.trim();
+                              if (current) {
+                                return `${current}\n\n${suggestion}`;
+                              }
+                              return suggestion;
+                            });
+                            // Remove suggestion after adding
+                            setProactiveSuggestions(prev => prev.filter((_, i) => i !== idx));
+                          }}
+                          className="w-full text-left text-xs text-white/80 bg-slate-700/50 hover:bg-slate-600/70 border border-white/10 rounded px-2 py-1.5 transition-colors"
+                        >
+                          • {suggestion}
+                        </button>
+                      ))}
+                      {proactiveSuggestions.length > 0 && (
+                        <button
+                          onClick={() => {
+                            // Add all suggestions
+                            const allSuggestions = proactiveSuggestions.join('\n\n');
+                            setAiInput(prev => {
+                              const current = prev.trim();
+                              if (current) {
+                                return `${current}\n\n${allSuggestions}`;
+                              }
+                              return allSuggestions;
+                            });
+                            setProactiveSuggestions([]);
+                          }}
+                          className="w-full text-xs text-blue-300 hover:text-blue-200 mt-2 pt-2 border-t border-white/10 text-center"
+                        >
+                          [Click to add all →]
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Input Section - Separate from chat, always visible at bottom */}
+        <div className="border-t-2 border-white/30 p-3 bg-slate-800/70 flex-shrink-0">
             <div className="flex gap-2">
               <textarea
                 value={aiInput}
@@ -1449,7 +1483,6 @@ export default function InlineSectionEditor({
               </Button>
             </div>
           </div>
-        </div>
 
         {/* Actions Footer - Phase 2: Simplified */}
         {!isSpecialSection && section && !isComplete && (

@@ -1031,6 +1031,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     
     return {
       filteredDocuments,
+      allDocuments,
       disabledDocuments,
       enabledDocumentsCount,
       expandedDocumentId,
@@ -1083,6 +1084,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   }, [
     templateLoading,
     filteredDocuments,
+    allDocuments,
     disabledDocuments,
     enabledDocumentsCount,
     expandedDocumentId,
@@ -1494,6 +1496,13 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                           onRunRequirementsCheck={runRequirementsCheck}
                           overlayContainerRef={workspaceGridRef}
                           onOverlayOpenChange={setIsConfiguratorOpen}
+                          // Sections & Documents management
+                          allSections={templateState.allSections}
+                          allDocuments={templateState.allDocuments}
+                          disabledSections={templateState.disabledSections}
+                          disabledDocuments={templateState.disabledDocuments}
+                          onToggleSection={templateState.handlers.onToggleSection}
+                          onToggleDocument={templateState.handlers.onToggleDocument}
                         />
                       ) : (
                         <div className="h-full border-r border-white/10 pr-4">
