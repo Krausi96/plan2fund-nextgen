@@ -8,7 +8,7 @@ import analytics from "@/shared/user/analytics";
 import { useI18n } from "@/shared/contexts/I18nContext";
 import { Switch } from "@/shared/components/ui/switch";
 import { Label } from "@/shared/components/ui/label";
-import ExportRenderer from "@/features/export/renderer/renderer";
+import ExportRenderer from "@/features/editor/components/preview/DocumentRenderer";
 import { getDocuments } from "@templates";
 import { withAuth } from "@/shared/user/auth/withAuth";
 import { useUser } from "@/shared/user/context/UserContext";

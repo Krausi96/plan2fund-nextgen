@@ -1,6 +1,6 @@
 // Export System with PDF Generation and Watermarks
 import { PlanDocument } from '@/features/editor/lib/types/plan';
-// import analytics from './analytics';
+import analytics from '@/shared/user/analytics';
 import { isFeatureEnabled } from '@/shared/user/featureFlags';
 
 export interface ExportOptions {
@@ -33,7 +33,13 @@ class ExportManager {
   private async generatePDF(plan: PlanDocument, options: ExportOptions, subscriptionTier: 'free' | 'premium' | 'enterprise' = 'free'): Promise<ExportResult> {
     try {
       // Track export start
-      // await analytics.trackExportStart(plan.id, 'PDF');
+      await analytics.trackUserAction('export_started', {
+        plan_id: plan.id,
+        format: 'PDF',
+        subscription_tier: subscriptionTier,
+        is_paid: options.isPaid,
+        has_watermark: options.includeWatermark
+      });
 
       // Test mode: return mock PDF
       if (this.testMode) {
@@ -69,7 +75,13 @@ class ExportManager {
         document.body.removeChild(element);
 
         // Track export completion
-        // await analytics.trackExportComplete(plan.id, 'PDF', options.isPaid);
+        await analytics.trackUserAction('export_completed', {
+          plan_id: plan.id,
+          format: 'PDF',
+          subscription_tier: subscriptionTier,
+          is_paid: options.isPaid,
+          success: true
+        });
 
         return {
           success: true,
@@ -80,6 +92,15 @@ class ExportManager {
       }
     } catch (error) {
       console.error('Error generating PDF:', error);
+      
+      // Track export failure
+      await analytics.trackUserAction('export_failed', {
+        plan_id: plan.id,
+        format: 'PDF',
+        subscription_tier: subscriptionTier,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -607,6 +628,14 @@ class ExportManager {
     try {
       // Check if user has paid access
       if (options.format === 'PDF' && options.isPaid && !isFeatureEnabled('pdf_export', subscriptionTier)) {
+        // Track blocked export attempt
+        await analytics.trackUserAction('export_blocked', {
+          plan_id: plan.id,
+          format: options.format,
+          subscription_tier: subscriptionTier,
+          reason: 'feature_not_enabled'
+        });
+        
         return {
           success: false,
           error: 'Export feature not available'
@@ -623,6 +652,15 @@ class ExportManager {
       }
     } catch (error) {
       console.error('Export error:', error);
+      
+      // Track general export error
+      await analytics.trackUserAction('export_failed', {
+        plan_id: plan.id,
+        format: options.format,
+        subscription_tier: subscriptionTier,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Export failed'
@@ -632,6 +670,14 @@ class ExportManager {
 
   private async generateDOCX(plan: PlanDocument, options: ExportOptions): Promise<ExportResult> {
     try {
+      // Track export start
+      await analytics.trackUserAction('export_started', {
+        plan_id: plan.id,
+        format: 'DOCX',
+        is_paid: options.isPaid,
+        has_watermark: options.includeWatermark
+      });
+
       // Import DOCX library dynamically
       const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak } = await import('docx');
       const { saveAs } = await import('file-saver');
@@ -751,12 +797,29 @@ class ExportManager {
       const filename = `${(plan.settings.titlePage?.title || 'Business Plan').replace(/[^a-z0-9]/gi, '_').toLowerCase()}.docx`;
       saveAs(blob, filename);
 
+      // Track export completion
+      await analytics.trackUserAction('export_completed', {
+        plan_id: plan.id,
+        format: 'DOCX',
+        is_paid: options.isPaid,
+        success: true,
+        file_size: buffer.length
+      });
+
       return {
         success: true,
         fileSize: buffer.length
       };
     } catch (error) {
       console.error('Error generating DOCX:', error);
+      
+      // Track export failure
+      await analytics.trackUserAction('export_failed', {
+        plan_id: plan.id,
+        format: 'DOCX',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
       return {
         success: false,
         error: error instanceof Error ? error.message : 'DOCX generation failed'
