@@ -343,7 +343,6 @@ export default function CurrentSelection({
       if (!containerRef.current || !overlayContainerRef?.current) return;
       
       const gridRect = overlayContainerRef.current.getBoundingClientRect();
-      const currentSelectionRect = containerRef.current.getBoundingClientRect();
       
       // Overlay covers:
       // - All of CurrentSelection (Row 1, Col 1) - 320px wide
@@ -460,6 +459,7 @@ export default function CurrentSelection({
   // User can click on steps to navigate, or we auto-advance based on completion
 
   const selectionCurrentLabel = t('editor.desktop.selection.current' as any) || 'AKTUELLE AUSWAHL';
+  const productLabelCopy = t('editor.desktop.selection.productLabel' as any) || 'PRODUCT';
   const programLabelCopy = t('editor.desktop.selection.programLabel' as any) || 'PROGRAMM/VORLAGE';
   const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'Kein Programm';
   const sectionsLabel = t('editor.desktop.selection.sectionsLabel' as any) || 'ABSCHNITTE';
@@ -618,7 +618,7 @@ export default function CurrentSelection({
                 <span className="text-base leading-none flex-shrink-0">{productIcon}</span>
               )}
               <div className="flex-1 min-w-0">
-                <span className="text-white/70 text-[9px] font-semibold uppercase tracking block mb-0.5">Product</span>
+                <span className="text-white/70 text-[9px] font-semibold uppercase tracking block mb-0.5">{productLabelCopy}</span>
                 <span className="truncate text-white font-semibold text-xs block" title={productLabel}>
                   {productLabel}
                 </span>

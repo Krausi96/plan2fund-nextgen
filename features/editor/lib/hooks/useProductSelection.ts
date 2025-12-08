@@ -49,12 +49,37 @@ export function useProductSelection(
   useEffect(() => {
     if (selectedProduct && typeof window !== 'undefined' && !hydrationInProgress.current && !isConfiguratorOpen) {
       const currentPlan = useEditorStore.getState().plan;
-      // Only hydrate if plan doesn't exist or product type changed
-      const needsHydration = !currentPlan || currentPlan.productType !== selectedProduct;
+      const currentProgramId = currentPlan?.metadata?.programId;
+      const newProgramId = programSummary?.id || null;
+      
+      // Hydrate if:
+      // 1. Plan doesn't exist
+      // 2. Product type changed
+      // 3. Program changed (connected, disconnected, or switched)
+      const programChanged = currentProgramId !== newProgramId;
+      const programConnected = !currentProgramId && newProgramId; // New program connected
+      const programDisconnected = currentProgramId && !newProgramId; // Program disconnected
+      const programSwitched = currentProgramId && newProgramId && currentProgramId !== newProgramId; // Program switched
+      
+      const needsHydration = 
+        !currentPlan || 
+        currentPlan.productType !== selectedProduct ||
+        programChanged;
       
       if (needsHydration) {
         hydrationInProgress.current = true;
-        console.log('[useProductSelection] Triggering hydration', { selectedProduct, hasProgram: !!programSummary, isConfiguratorOpen, hasPlan: !!currentPlan });
+        console.log('[useProductSelection] Triggering hydration', { 
+          selectedProduct, 
+          hasProgram: !!programSummary,
+          programId: newProgramId,
+          previousProgramId: currentProgramId,
+          programChanged,
+          programConnected,
+          programDisconnected,
+          programSwitched,
+          isConfiguratorOpen, 
+          hasPlan: !!currentPlan 
+        });
         // Call with empty options initially - will be updated when template state changes
         applyHydration(programSummary, {
           disabledSectionIds: [],
@@ -67,7 +92,11 @@ export function useProductSelection(
           hydrationInProgress.current = false;
         });
       } else {
-        console.log('[useProductSelection] Skipping hydration - plan already exists with correct product type');
+        console.log('[useProductSelection] Skipping hydration - plan already exists with correct product type and program', {
+          currentProgramId,
+          newProgramId,
+          programChanged
+        });
       }
     } else {
       console.log('[useProductSelection] Skipping hydration', { 

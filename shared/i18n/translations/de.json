@@ -1103,6 +1103,7 @@
   "editor.desktop.toggle.open": "Bearbeitung starten",
   "editor.desktop.product.unselected": "Nicht ausgewählt",
   "editor.desktop.selection.current": "Aktuelle Auswahl",
+  "editor.desktop.selection.productLabel": "PRODUKT",
   "editor.desktop.selection.programLabel": "Programm/Vorlage",
   "editor.desktop.selection.noProgram": "Kein Programm",
   "editor.desktop.selection.sectionsLabel": "Abschnitte",

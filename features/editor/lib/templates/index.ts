@@ -21,10 +21,27 @@ export async function getSections(
     origin: 'master' as const
   }));
   
+  console.log('[getSections] Loading sections', {
+    productType,
+    programId,
+    masterSectionsCount: masterWithOrigin.length
+  });
+  
   if (programId) {
     const programSections = await loadProgramSections(programId);
     if (programSections.length > 0) {
-      return mergeSections(masterWithOrigin, programSections);
+      const merged = mergeSections(masterWithOrigin, programSections);
+      console.log('[getSections] Merged sections', {
+        productType,
+        programId,
+        masterCount: masterWithOrigin.length,
+        programCount: programSections.length,
+        mergedCount: merged.length,
+        programSectionIds: merged.filter(s => s.origin === 'program').map(s => s.id)
+      });
+      return merged;
+    } else {
+      console.log('[getSections] No program sections found', { programId });
     }
   }
   

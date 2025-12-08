@@ -36,6 +36,13 @@ export function useProgramConnection() {
     try {
       // Use localStorage data instead of database (no database needed)
       const saved = loadSelectedProgram();
+      console.log('[useProgramConnection] Loading program details', { 
+        requestedId: id, 
+        savedId: saved?.id,
+        hasSaved: !!saved,
+        hasCategorizedRequirements: !!(saved as any)?.categorized_requirements
+      });
+      
       if (!saved || saved.id !== id) {
         throw new Error('Program not found in localStorage. Please select a program from ProgramFinder.');
       }
@@ -53,10 +60,21 @@ export function useProgramConnection() {
           : null,
         region: (saved as any).region || null
       };
+      
+      console.log('[useProgramConnection] Program summary created', {
+        id: summary.id,
+        name: summary.name,
+        fundingType: summary.fundingType,
+        fundingProgramTag: summary.fundingProgramTag,
+        hasCategorizedRequirements: !!(saved as any)?.categorized_requirements,
+        categorizedRequirementsKeys: (saved as any)?.categorized_requirements ? Object.keys((saved as any).categorized_requirements) : []
+      });
+      
       setProgramSummary(summary);
       // Update localStorage with complete summary
       saveSelectedProgram({ id: saved.id, name: saved.name, type: summary.fundingProgramTag });
     } catch (err) {
+      console.error('[useProgramConnection] Error loading program details', err);
       setProgramSummary(null);
       // Show user-friendly error, hide technical details
       const isDev = process.env.NODE_ENV === 'development';
@@ -78,6 +96,7 @@ export function useProgramConnection() {
   const handleConnectProgram = useCallback(
     (rawInput: string | null) => {
       if (!rawInput) {
+        console.log('[useProgramConnection] Disconnecting program');
         setProgramId(null);
         setProgramSummary(null);
         setProgramError(null);
@@ -91,9 +110,11 @@ export function useProgramConnection() {
       }
       const normalized = normalizeProgramInput(rawInput);
       if (!normalized) {
+        console.warn('[useProgramConnection] Invalid program input', { rawInput });
         setProgramError('Please enter a valid program ID or paste a program URL. You can also select a program from ProgramFinder.');
         return;
       }
+      console.log('[useProgramConnection] Connecting program', { rawInput, normalized });
       setProgramError(null);
       setProgramId(normalized);
       const nextQuery = { ...router.query, programId: normalized };
