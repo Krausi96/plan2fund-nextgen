@@ -2,19 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
-  normalizeLocationAnswer,
-  normalizeCompanyTypeAnswer,
-  normalizeCompanyStageAnswer,
-  normalizeFundingAmountAnswer,
-  normalizeFundingAmountExtraction,
-  matchLocations,
-  matchCompanyTypes,
-  matchCompanyStages,
-  matchFundingAmounts,
+  matchesAnswers,
   scoreProgramsEnhanced,
   type Program,
   type EnhancedProgramResult,
-} from '../../../features/reco/engine/recoEngine';
+} from '../../../features/reco/engine/scoring';
 
 type UserAnswers = Record<string, any>;
 
@@ -147,7 +139,7 @@ async function generateProgramsWithLLM(
   const fundingPreference = inferFundingPreference(answers);
 
   // Import simplified prompt builder
-  const { buildRecommendPrompt } = await import('../../../features/reco/prompts/recommendPrompt');
+  const { buildRecommendPrompt } = await import('../../../features/reco/prompts/programRecommendation');
 
   // Build instructions with retry variations (simplified)
   // OLD PROMPT REMOVED - Now using simplified version from recommendPrompt.ts
@@ -162,7 +154,7 @@ async function generateProgramsWithLLM(
     });
   };
 
-  const { isCustomLLMEnabled, callCustomLLM } = await import('../../../shared/lib/ai/customLLM');
+  const { isCustomLLMEnabled, callCustomLLM } = await import('../../../features/ai/clients/customLLM');
   const OpenAI = (await import('openai')).default;
 
   const CUSTOM_MAX_TOKENS = 6000;
@@ -369,25 +361,28 @@ async function generateProgramsWithLLM(
             id: program.id || `llm_${index}`,
             name: program.name || `Program ${index + 1}`,
             url: program.website || program.url || null,
+            description: program.description || null,
             location: program.location || null,
+            region: program.region || program.location || null,
             company_type: program.company_type || null,
+            company_stage: program.company_stage || null,
             funding_types: Array.isArray(program.funding_types) ? program.funding_types : [],
+            funding_amount_min: program.funding_amount_min ?? null,
+            funding_amount_max: program.funding_amount_max ?? null,
+            currency: program.currency || 'EUR',
+            program_focus: Array.isArray(program.program_focus) ? program.program_focus : (program.metadata?.program_focus || []),
+            co_financing_required: program.co_financing_required ?? program.metadata?.co_financing_required ?? null,
+            co_financing_percentage: program.co_financing_percentage ?? program.metadata?.co_financing_percentage ?? null,
+            deadline: program.deadline || null,
+            open_deadline: program.open_deadline ?? false,
+            use_of_funds: Array.isArray(program.use_of_funds) ? program.use_of_funds : null,
+            impact_focus: Array.isArray(program.impact_focus) ? program.impact_focus : null,
             metadata: {
-              funding_amount_min: program.funding_amount_min ?? null,
-              funding_amount_max: program.funding_amount_max ?? null,
-              currency: program.currency || 'EUR',
-              location: program.location || null,
-              description: program.description || null,
-              region: program.location || null,
-              company_stage: program.company_stage || null,
-              organization: program.metadata?.organization || null,
-              co_financing_required: program.metadata?.co_financing_required ?? null,
-              co_financing_percentage: program.metadata?.co_financing_percentage ?? null,
-              application_deadlines: program.metadata?.application_deadlines || null,
-              typical_timeline: program.metadata?.typical_timeline || null,
-              competitiveness: program.metadata?.competitiveness || null,
-              program_focus: program.metadata?.program_focus || null,
+              organization: program.organization || program.metadata?.organization || null,
+              typical_timeline: program.typical_timeline || program.metadata?.typical_timeline || null,
+              competitiveness: program.competitiveness || program.metadata?.competitiveness || null,
             },
+            categorized_requirements: program.categorized_requirements || {},
             source: 'llm_generated',
           };
         }),
@@ -557,99 +552,7 @@ function sanitizeLLMResponse(text: string): string {
   return trimmed;
 }
 
-function normalizeCompanyStageValue(value: any): string | null {
-  if (value === undefined || value === null) return null;
-  if (typeof value === 'number') {
-    if (value < 0) return 'pre_company';
-    if (value < 6) return 'inc_lt_6m';
-    if (value < 36) return 'inc_6_36m';
-    return 'inc_gt_36m';
-  }
-  if (typeof value === 'string' && value.trim().length > 0) {
-    return value;
-  }
-  return null;
-}
-
-function matchesAnswers(program: GeneratedProgram, answers: UserAnswers): boolean {
-  const categorized = program.categorized_requirements || {};
-  const metadata = program.metadata || {};
-
-  if (answers.location) {
-    const userLocation = normalizeLocationAnswer(answers.location);
-    const programLocation = metadata.location || program.location || categorized.geographic?.[0]?.value;
-    if (programLocation) {
-      const normalizedProgramLocation = normalizeLocationAnswer(programLocation);
-      
-      // More lenient: Allow EU-wide programs for EU countries
-      const userCountries = userLocation.countries || [];
-      const programCountries = normalizedProgramLocation.countries || [];
-      const programScope = normalizedProgramLocation.scope;
-      const userIsEuCountry =
-        userCountries.includes('austria') ||
-        userCountries.includes('germany') ||
-        userCountries.includes('eu');
-      const programIsEuWide = programCountries.includes('eu') || programScope === 'eu';
-      const programIsInternational = programCountries.includes('international') || programScope === 'international';
-
-      if (userIsEuCountry && (programIsEuWide || programIsInternational)) {
-        // Accept EU-wide/international programs for EU countries
-      } else if (!matchLocations(userLocation, normalizedProgramLocation)) {
-        return false;
-      }
-    }
-  }
-
-  if (answers.company_type) {
-    const userType = normalizeCompanyTypeAnswer(answers.company_type);
-    const programType = program.company_type || categorized.eligibility?.[0]?.value;
-    if (programType) {
-      const normalizedProgramType = normalizeCompanyTypeAnswer(programType);
-      if (!matchCompanyTypes(userType, normalizedProgramType)) {
-        return false;
-      }
-    }
-  }
-
-  if (answers.company_stage !== undefined && answers.company_stage !== null) {
-    const userStageValue = normalizeCompanyStageValue(answers.company_stage);
-    if (userStageValue) {
-      const userStage = normalizeCompanyStageAnswer(userStageValue);
-      const programStageValue =
-        (program as any).company_stage ||
-        metadata.company_stage ||
-        categorized.eligibility?.find((item: any) => item.type === 'company_stage')?.value;
-      if (programStageValue) {
-        const normalizedProgramStage = normalizeCompanyStageAnswer(programStageValue);
-        if (!matchCompanyStages(userStage, normalizedProgramStage)) {
-          return false;
-        }
-      }
-    }
-  }
-
-  if (answers.funding_amount !== undefined && answers.funding_amount !== null) {
-    const userAmount = normalizeFundingAmountAnswer(answers.funding_amount);
-    const programAmount = normalizeFundingAmountExtraction(
-      metadata.funding_amount_min ?? null,
-      metadata.funding_amount_max ?? null
-    );
-    if (programAmount && !matchFundingAmounts(userAmount, programAmount)) {
-      const userNeed = typeof answers.funding_amount === 'number' ? answers.funding_amount : userAmount.max;
-      const min = metadata.funding_amount_min || 0;
-      const max = metadata.funding_amount_max || 0;
-      const tolerance = userNeed < 10000 ? 5 : 3;
-      const withinTolerance =
-        (min === 0 || min <= userNeed * tolerance) &&
-        (max === 0 || max <= userNeed * tolerance * 1.5);
-      if (!withinTolerance) {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
+// Functions moved to recoEngine.ts - now imported
 
 const SCRAPED_PROGRAMS_PATH = path.join(
   process.cwd(),

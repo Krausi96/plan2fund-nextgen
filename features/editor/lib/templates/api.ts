@@ -2,38 +2,33 @@
 // API LOGIC FOR LOADING PROGRAM REQUIREMENTS AND MERGING
 // ============================================================================
 
-import type { DocumentTemplate, SectionTemplate } from './types';
+import type { DocumentTemplate, SectionTemplate } from '../types/templates';
+import { loadSelectedProgram } from '@/shared/user/storage/planStore';
 
-export async function loadProgramDocuments(programId: string, baseUrl?: string): Promise<DocumentTemplate[]> {
+/**
+ * Load program documents from localStorage (no database)
+ * Programs are saved to localStorage by ProgramFinder when selected
+ */
+export async function loadProgramDocuments(programId: string): Promise<DocumentTemplate[]> {
   try {
-    // Always use relative URL on client-side (baseUrl should be undefined)
-    // For server-side, use environment variable or fallback
-    let apiUrl: string;
-    if (baseUrl) {
-      apiUrl = `${baseUrl}/api/programs/${programId}/requirements`;
-    } else if (typeof window !== 'undefined') {
-      // Client-side: use relative URL
-      apiUrl = `/api/programs/${programId}/requirements`;
-    } else {
-      // Server-side: use environment variable
-      const serverUrl = process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}`
-        : process.env.NEXT_PUBLIC_BASE_URL || '';
-      apiUrl = serverUrl 
-        ? `${serverUrl}/api/programs/${programId}/requirements`
-        : `/api/programs/${programId}/requirements`;
-    }
-    
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      console.warn(`Failed to load program documents: ${response.status} ${response.statusText}`);
+    // NO DATABASE: Load from localStorage instead
+    if (typeof window === 'undefined') {
+      // Server-side: return empty (can't access localStorage)
       return [];
     }
     
-    const data = await response.json();
-    const categorizedRequirements = data.categorized_requirements;
+    const saved = loadSelectedProgram();
+    if (!saved || saved.id !== programId) {
+      // Program not found in localStorage
+      return [];
+    }
     
-    if (!categorizedRequirements || !categorizedRequirements.documents) return [];
+    // Extract categorized_requirements from saved program data
+    const categorizedRequirements = (saved as any).categorized_requirements;
+    
+    if (!categorizedRequirements || !categorizedRequirements.documents) {
+      return [];
+    }
     
     const documents = categorizedRequirements.documents as Array<{
       value: string | string[];
@@ -43,6 +38,9 @@ export async function loadProgramDocuments(programId: string, baseUrl?: string):
       requirements?: string[];
     }>;
     
+    const programType = (saved as any).type || 'grants';
+    const programName = saved.name || programId;
+    
     return documents.map((doc, idx) => {
       const value = Array.isArray(doc.value) ? doc.value.join(', ') : doc.value;
       const docId = `prog_doc_${idx}`;
@@ -51,7 +49,7 @@ export async function loadProgramDocuments(programId: string, baseUrl?: string):
         id: docId,
         name: value || 'Required Document',
         description: doc.description || value || '',
-        required: doc.required !== false,
+        required: doc.required !== false, // Defaults to true
         format: (doc.format?.toLowerCase() as any) || 'pdf',
         maxSize: '10MB',
         template: `# ${value}\n\n## Document Description\n${doc.description || 'Program-specific required document.'}\n\n## Requirements\n${doc.requirements ? doc.requirements.map(r => `- ${r}`).join('\n') : '- Please provide as required by program'}`,
@@ -59,16 +57,18 @@ export async function loadProgramDocuments(programId: string, baseUrl?: string):
         examples: [],
         commonMistakes: [],
         category: 'submission',
-        fundingTypes: [data.program_type || 'grants'],
+        fundingTypes: [programType],
+        origin: 'program',
+        programId: programId,
         source: {
           verified: true,
           verifiedDate: new Date().toISOString(),
-          officialProgram: data.program_name
+          officialProgram: programName
         }
       };
     });
   } catch (error) {
-    console.error('Error loading program documents:', error);
+    console.error('Error loading program documents from localStorage:', error);
     return [];
   }
 }
@@ -108,37 +108,25 @@ export function mergeDocuments(
 }
 
 /**
- * Load program section requirements from API
+ * Load program section requirements from localStorage (no database)
  * Similar to loadProgramDocuments but for sections
  */
-export async function loadProgramSections(programId: string, baseUrl?: string): Promise<SectionTemplate[]> {
+export async function loadProgramSections(programId: string): Promise<SectionTemplate[]> {
   try {
-    // Always use relative URL on client-side (baseUrl should be undefined)
-    // For server-side, use environment variable or fallback
-    let apiUrl: string;
-    if (baseUrl) {
-      apiUrl = `${baseUrl}/api/programs/${programId}/requirements`;
-    } else if (typeof window !== 'undefined') {
-      // Client-side: use relative URL
-      apiUrl = `/api/programs/${programId}/requirements`;
-    } else {
-      // Server-side: use environment variable
-      const serverUrl = process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}`
-        : process.env.NEXT_PUBLIC_BASE_URL || '';
-      apiUrl = serverUrl 
-        ? `${serverUrl}/api/programs/${programId}/requirements`
-        : `/api/programs/${programId}/requirements`;
-    }
-    
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      console.warn(`Failed to load program sections: ${response.status} ${response.statusText}`);
+    // NO DATABASE: Load from localStorage instead
+    if (typeof window === 'undefined') {
+      // Server-side: return empty (can't access localStorage)
       return [];
     }
     
-    const data = await response.json();
-    const categorizedRequirements = data.categorized_requirements;
+    const saved = loadSelectedProgram();
+    if (!saved || saved.id !== programId) {
+      // Program not found in localStorage
+      return [];
+    }
+    
+    // Extract categorized_requirements from saved program data
+    const categorizedRequirements = (saved as any).categorized_requirements;
     
     if (!categorizedRequirements) return [];
     

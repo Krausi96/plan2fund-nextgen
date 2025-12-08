@@ -2,7 +2,7 @@
 // DOCUMENT TEMPLATES
 // ============================================================================
 
-import type { DocumentTemplate } from './types';
+import type { DocumentTemplate } from '../types/templates';
 
 // Additional documents for different funding types and product types
 // Note: submission documents are empty by default (business plan has no additional documents)

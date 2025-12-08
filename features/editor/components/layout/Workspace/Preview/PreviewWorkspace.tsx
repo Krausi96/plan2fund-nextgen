@@ -7,10 +7,11 @@ import {
   PlanDocument,
   Route
 } from '@/features/editor/lib/types/plan';
-import ExportRenderer from '@/features/editor/components/preview/DocumentRenderer';
+import ExportRenderer from '@/features/editor/components/layout/Renderer/DocumentRenderer';
 import {
   convertSectionToPlanSection
-} from './PreviewWorkspace.utils';
+} from '@/features/editor/lib/helpers/preview';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface PreviewPanelProps {
   plan: BusinessPlan | null;
@@ -26,11 +27,16 @@ interface PreviewPanelProps {
   onAppendixAdd?: (item: any) => void;
   onAppendixUpdate?: (item: any) => void;
   onAppendixDelete?: (appendixId: string) => void;
+  selectedProductMeta?: { value: string; label: string; description: string; icon?: string } | null;
+  selectedDocumentName?: string | null; // Name of additional document if viewing one
+  isNewUser?: boolean; // True if this is a new user (no plan content yet)
+  onOpenConfigurator?: () => void; // Callback to open the configurator
 }
 
 
 function PreviewPanel({ 
   plan, 
+  focusSectionId,
   onSectionClick,
   editingSectionId,
   disabledSections = new Set(),
@@ -41,8 +47,13 @@ function PreviewPanel({
   onReferenceDelete,
   onAppendixAdd,
   onAppendixUpdate,
-  onAppendixDelete
+  onAppendixDelete,
+  selectedProductMeta,
+  selectedDocumentName,
+  isNewUser = false,
+  onOpenConfigurator
 }: PreviewPanelProps) {
+  const { t } = useI18n();
   const [viewMode, setViewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark, setShowWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<'100' | '120' | '140'>('100');
@@ -50,21 +61,17 @@ function PreviewPanel({
   const viewportRef = useRef<HTMLDivElement | null>(null);
   
   // Calculate responsive preview padding based on screen width
-  const [previewPadding, setPreviewPadding] = useState(() => {
-    if (typeof window === 'undefined') return { left: '40px', right: '20px', maxWidth: 'none' };
-    const width = window.innerWidth;
-    if (width > 1600) {
-      return { left: 'auto', right: 'auto', maxWidth: '900px' };
-    } else if (width > 1200) {
-      return { left: '40px', right: '20px', maxWidth: 'none' };
-    } else {
-      return { left: '20px', right: '10px', maxWidth: 'none' };
-    }
-  });
+  // Use consistent default for SSR to avoid hydration mismatch
+  const [previewPadding, setPreviewPadding] = useState(() => ({
+    left: '40px',
+    right: '20px',
+    maxWidth: 'none'
+  }));
   
-  // Update padding on resize
+  // Update padding on mount and resize (client-side only)
   useEffect(() => {
     const updatePadding = () => {
+      if (typeof window === 'undefined') return;
       const width = window.innerWidth;
       if (width > 1600) {
         setPreviewPadding({ left: 'auto', right: 'auto', maxWidth: '900px' });
@@ -74,7 +81,11 @@ function PreviewPanel({
         setPreviewPadding({ left: '20px', right: '10px', maxWidth: 'none' });
       }
     };
+    
+    // Update on mount (client-side)
     updatePadding();
+    
+    // Update on resize
     window.addEventListener('resize', updatePadding);
     return () => window.removeEventListener('resize', updatePadding);
   }, []);
@@ -124,7 +135,20 @@ function PreviewPanel({
   }, [disabledSections]);
   
   const planDocument = useMemo<PlanDocument | null>(() => {
-    if (!plan || !plan.sections || plan.sections.length === 0) return null;
+    if (!plan) return null;
+    
+    // For new users (activeSectionId is null), return null to show empty state
+    // This ensures new users see the empty state instead of title page
+    // Unified logic: if user hasn't started configuring (no activeSectionId), show empty state
+    // CRITICAL: Check isNewUser FIRST before any other processing
+    if (isNewUser) {
+      console.log('[PreviewWorkspace] isNewUser is true, returning null for planDocument');
+      return null;
+    }
+    
+    // Allow preview even with empty sections (for additional documents with just title page)
+    // plan.sections can be an empty array, which is valid - we still want to show title page
+    if (!Array.isArray(plan.sections)) return null;
 
     // Filter out disabled sections
     const enabledSections = plan.sections.filter(section => !disabledSections.has(section.id));
@@ -149,9 +173,12 @@ function PreviewPanel({
     const targetLength = editorSettings.targetLength ?? 'standard';
     const formatting = editorSettings.formatting;
 
+    // Determine title: use document name if viewing additional document, otherwise use product name or fallback
     const titlePageTitle =
+      selectedDocumentName || // Additional document name takes priority
       plan.titlePage?.planTitle ||
       plan.titlePage?.companyName ||
+      selectedProductMeta?.label || // Use product name (e.g., "Submission", "Review", "Strategy")
       plan.programSummary?.name ||
       'Business Plan Draft';
 
@@ -199,7 +226,7 @@ function PreviewPanel({
       addonPack: false,
       versions: []
     };
-  }, [plan, disabledSectionsKey]);
+  }, [plan, disabledSectionsKey, isNewUser]);
 
   const zoomMultiplier =
     zoomPreset === '100'
@@ -218,10 +245,165 @@ function PreviewPanel({
     '--preview-viewport-zoom': viewportZoom.toString()
   } as React.CSSProperties;
 
+  // If no plan exists, show empty state (user hasn't selected a product yet)
   if (!plan) {
     return (
-      <div className="text-center py-8 text-sm text-slate-400">
-        Nothing to preview yet.
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
+        <div className="max-w-md space-y-6">
+          <div className="text-6xl mb-2">📝</div>
+          
+          {/* CTA Button */}
+          {onOpenConfigurator && (
+            <button
+              onClick={onOpenConfigurator}
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            >
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.cta';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Start Your Plan' : translated;
+              })()}
+            </button>
+          )}
+          
+          {/* Description */}
+          <p className="text-white/80 text-sm leading-relaxed">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.description';
+              const translated = t(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? 'There are many ways, choose yours.' : translated;
+            })()}
+          </p>
+          
+          {/* Options */}
+          <div className="mt-4 flex flex-col gap-3 text-left text-xs text-white/60">
+            <div className="flex items-start gap-2">
+              <span className="text-blue-400 font-semibold">
+                {(() => {
+                  const key = 'editor.desktop.preview.emptyState.optionALabel';
+                  const translated = t(key as any) as string;
+                  const isMissing = !translated || translated === key || translated === String(key);
+                  return isMissing ? 'Option A:' : translated;
+                })()}
+              </span>
+                  <span>{(() => {
+                const key = 'editor.desktop.preview.emptyState.optionA';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Find or connect a funding program to get recommended documents and requirements, or upload your own template' : translated;
+              })()}</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-blue-400 font-semibold">
+                {(() => {
+                  const key = 'editor.desktop.preview.emptyState.optionBLabel';
+                  const translated = t(key as any) as string;
+                  const isMissing = !translated || translated === key || translated === String(key);
+                  return isMissing ? 'Option B:' : translated;
+                })()}
+              </span>
+                  <span>{(() => {
+                const key = 'editor.desktop.preview.emptyState.optionB';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Create business plans, strategy documents for the idea phase, or upload your existing plan' : translated;
+              })()}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Debug: Log the state to help diagnose issues
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[PreviewWorkspace] Render state', {
+      hasPlan: !!plan,
+      planDocument: !!planDocument,
+      isNewUser,
+      shouldShowEmpty: isNewUser || !planDocument
+    });
+  }
+
+  // CRITICAL: If isNewUser is true, always show empty state, even if planDocument exists
+  // This is a safety check to ensure new users never see the title page
+  if (isNewUser) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[PreviewWorkspace] Showing empty state - isNewUser is true', { 
+        isNewUser, 
+        hasPlan: !!plan, 
+        focusSectionId,
+        planDocument: !!planDocument 
+      });
+    }
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
+        <div className="max-w-md space-y-6">
+          <div className="text-6xl mb-2">📝</div>
+          
+          {/* CTA Button */}
+          {onOpenConfigurator && (
+            <button
+              onClick={onOpenConfigurator}
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            >
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.cta';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Start Your Plan' : translated;
+              })()}
+            </button>
+          )}
+          
+          {/* Description */}
+          <p className="text-white/80 text-sm leading-relaxed">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.description';
+              const translated = t(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? 'There are many ways, choose yours.' : translated;
+            })()}
+          </p>
+          
+          {/* Options */}
+          <div className="mt-4 flex flex-col gap-3 text-left text-xs text-white/60">
+            <div className="flex items-start gap-2">
+              <span className="text-blue-400 font-semibold">
+                {(() => {
+                  const key = 'editor.desktop.preview.emptyState.optionALabel';
+                  const translated = t(key as any) as string;
+                  const isMissing = !translated || translated === key || translated === String(key);
+                  return isMissing ? 'Option A:' : translated;
+                })()}
+              </span>
+                  <span>{(() => {
+                const key = 'editor.desktop.preview.emptyState.optionA';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Find or connect a funding program to get recommended documents and requirements, or upload your own template' : translated;
+              })()}</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-blue-400 font-semibold">
+                {(() => {
+                  const key = 'editor.desktop.preview.emptyState.optionBLabel';
+                  const translated = t(key as any) as string;
+                  const isMissing = !translated || translated === key || translated === String(key);
+                  return isMissing ? 'Option B:' : translated;
+                })()}
+              </span>
+                  <span>{(() => {
+                const key = 'editor.desktop.preview.emptyState.optionB';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Create business plans, strategy documents for the idea phase, or upload your existing plan' : translated;
+              })()}</span>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -293,8 +475,6 @@ function PreviewPanel({
               >
                 <ExportRenderer
                   plan={planDocument}
-                  showWatermark={showWatermark}
-                  watermarkText="DRAFT"
                   previewMode={viewMode === 'page' ? 'formatted' : 'preview'}
                   previewSettings={{
                     showCompletionStatus: true,
@@ -316,9 +496,72 @@ function PreviewPanel({
                   onAppendixDelete={onAppendixDelete}
                 />
               </div>
-              <div className="flex-shrink-0 mt-4 mb-2 px-4 flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">
-                <span>{planDocument.sections.length} sections</span>
-                <span>Drag to scroll</span>
+            </div>
+          </div>
+        ) : isNewUser ? (
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
+            <div className="max-w-md space-y-6">
+              <div className="text-6xl mb-2">📝</div>
+              
+              {/* CTA Button */}
+              {onOpenConfigurator && (
+                <button
+                  onClick={onOpenConfigurator}
+                  className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  {(() => {
+                    const key = 'editor.desktop.preview.emptyState.cta';
+                    const translated = t(key as any) as string;
+                    const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                    return isMissing ? 'Start Your Plan' : translated;
+                  })()}
+                </button>
+              )}
+              
+              {/* Description */}
+              <p className="text-white/80 text-sm leading-relaxed">
+                {(() => {
+                  const key = 'editor.desktop.preview.emptyState.description';
+                  const translated = t(key as any) as string;
+                  const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                  return isMissing ? 'There are many ways, choose yours.' : translated;
+                })()}
+              </p>
+              
+              {/* Options */}
+              <div className="mt-4 flex flex-col gap-3 text-left text-xs text-white/60">
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-400 font-semibold">
+                {(() => {
+                  const key = 'editor.desktop.preview.emptyState.optionALabel';
+                  const translated = t(key as any) as string;
+                  const isMissing = !translated || translated === key || translated === String(key);
+                  return isMissing ? 'Option A:' : translated;
+                })()}
+              </span>
+                  <span>{(() => {
+                const key = 'editor.desktop.preview.emptyState.optionA';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Find or connect a funding program to get recommended documents and requirements, or upload your own template' : translated;
+              })()}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-400 font-semibold">
+                {(() => {
+                  const key = 'editor.desktop.preview.emptyState.optionBLabel';
+                  const translated = t(key as any) as string;
+                  const isMissing = !translated || translated === key || translated === String(key);
+                  return isMissing ? 'Option B:' : translated;
+                })()}
+              </span>
+                  <span>{(() => {
+                const key = 'editor.desktop.preview.emptyState.optionB';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Create business plans, strategy documents for the idea phase, or upload your existing plan' : translated;
+              })()}</span>
+                </div>
               </div>
             </div>
           </div>

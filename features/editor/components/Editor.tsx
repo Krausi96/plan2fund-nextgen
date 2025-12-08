@@ -7,24 +7,23 @@ import React, {
 } from 'react';
 import { useRouter } from 'next/router';
 
-import type { ConnectCopy } from '@/features/editor/lib/types/configurator';
-import Sidebar from './layout/Workspace/Navigation/Sidebar';
+import type { ConnectCopy } from '@/features/editor/lib/types/editor/configurator';
+import Sidebar from './layout/Workspace/Navigation/Sidebar/Sidebar';
 import PreviewWorkspace from './layout/Workspace/Preview/PreviewWorkspace';
-import InlineSectionEditor from './layout/Workspace/Content/InlineSectionEditor';
-import DocumentsBar from './layout/Workspace/Navigation/DocumentsBar';
-import CurrentSelection from './layout/Workspace/Navigation/CurrentSelection';
+import InlineSectionEditor from './layout/Workspace/SectionEditor/SectionEditor';
+import DocumentsBar from './layout/Workspace/Navigation/Documents/DocumentsBar';
+import CurrentSelection from './layout/Workspace/Navigation/Configuration/CurrentSelection/CurrentSelection';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
-import { getSections, getDocuments } from '@templates';
 import { Badge } from '@/shared/components/ui/badge';
 import {
   ANCILLARY_SECTION_ID,
   METADATA_SECTION_ID,
   REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
-  mapProgramTypeToFunding,
-  normalizeProgramInput,
   useEditorActions,
-  useEditorStore
+  useEditorStore,
+  defaultTitlePage,
+  defaultAncillary
 } from '@/features/editor/lib/hooks/useEditorStore';
 import {
   ProductType,
@@ -33,22 +32,15 @@ import {
   Section
 } from '@/features/editor/lib/types/plan';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import {
-  clearSelectedProgram,
-  loadSelectedProgram,
-  saveSelectedProgram
-} from '@/shared/user/storage/planStore';
+import DevClearCacheButton from './DevTools/DevClearCacheButton';
+import { useProgramConnection } from '@/features/editor/lib/hooks/useProgramConnection';
+import { useDocumentManagement } from '@/features/editor/lib/hooks/useDocumentManagement';
+import { useTemplateManagement } from '@/features/editor/lib/hooks/useTemplateManagement';
+import { useProductSelection } from '@/features/editor/lib/hooks/useProductSelection';
 
-// Template management constants
-const DOCUMENT_SELECTION_STORAGE_KEY = 'plan2fund-desktop-doc-selection';
-const createDefaultSelectionState = (): Record<ProductType, string | null> => ({
-  submission: null,
-  review: null,
-  strategy: null
-});
 
 type EditorProps = {
-  product?: ProductType;
+  product?: ProductType | null;
 };
 
 type ProductConfig = {
@@ -79,7 +71,7 @@ const PRODUCT_TYPE_CONFIG: ProductConfig[] = [
   }
 ] as const;
 
-export default function Editor({ product = 'submission' }: EditorProps) {
+export default function Editor({ product = null }: EditorProps) {
   const router = useRouter();
   const { t } = useI18n();
 
@@ -121,20 +113,64 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     deleteAppendix,
     runRequirementsCheck,
     toggleQuestionUnknown,
-    setProductType
   } = useEditorActions((actions) => actions);
 
-  const [selectedProduct, setSelectedProduct] = useState<ProductType>(product);
-  const [programId, setProgramId] = useState<string | null>(null);
-  const [programSummary, setProgramSummary] = useState<ProgramSummary | null>(null);
-  const [programLoading, setProgramLoading] = useState(false);
-  const [programError, setProgramError] = useState<string | null>(null);
   const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
-  const [pendingProductChange, setPendingProductChange] = useState<ProductType | null>(null);
-  const [pendingProgramChange, setPendingProgramChange] = useState<ProgramSummary | null | undefined>(undefined);
   const workspaceGridRef = useRef<HTMLDivElement>(null);
-  const storedProgramChecked = useRef(false);
-  const hydrationInProgress = useRef(false);
+
+  // Use custom hooks for program connection
+  const {
+    programSummary,
+    programLoading,
+    programError,
+    handleConnectProgram,
+    setProgramSummary
+  } = useProgramConnection();
+
+  // Use custom hook for product selection and hydration
+  const {
+    selectedProduct,
+    handleProductChange,
+    handleTemplateUpdate
+  } = useProductSelection(product, programSummary, isConfiguratorOpen);
+
+  // Use custom hook for template management
+  const templateManagement = useTemplateManagement(selectedProduct, programSummary, isConfiguratorOpen);
+  const {
+    customSections,
+    customDocuments,
+    templateLoading,
+    disabledSections,
+    disabledDocuments,
+    allSections: allSectionsFromHook,
+    allDocuments: allDocumentsFromHook,
+    setCustomSections,
+    setCustomDocuments,
+    setDisabledSections,
+    setDisabledDocuments,
+    toggleSection: toggleSectionBase,
+    toggleDocument,
+    removeCustomSection,
+    removeCustomDocument
+  } = templateManagement;
+
+  // Use custom hook for document management
+  const documentManagement = useDocumentManagement(
+    selectedProduct || 'submission', // Default to submission if null
+    programSummary,
+    allSectionsFromHook,
+    allDocumentsFromHook,
+    disabledSections,
+    setActiveSection
+  );
+  const {
+    clickedDocumentId,
+    productDocumentSelections,
+    updateProductSelection,
+    handleSelectDocument,
+    addCustomDocument: addCustomDocumentBase,
+    documentPlan
+  } = documentManagement;
 
   const connectCopy = useMemo<ConnectCopy>(
     () => ({
@@ -167,199 +203,15 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     [t]
   );
 
-  const applyHydration = useCallback(
-    async (summary: ProgramSummary | null, options?: {
-      disabledSectionIds: string[];
-      disabledDocumentIds: string[];
-      customSections?: any[];
-      customDocuments?: any[];
-    }) => {
-      const fundingType = summary?.fundingType ?? 'grants';
-      await hydrate(selectedProduct, {
-        fundingType,
-        programId: summary?.id,
-        programName: summary?.name,
-        summary: summary ?? undefined,
-        disabledSectionIds: options?.disabledSectionIds,
-        disabledDocumentIds: options?.disabledDocumentIds,
-        customSections: options?.customSections,
-        customDocuments: options?.customDocuments
-      });
-    },
-    [hydrate, selectedProduct]
-  );
-
+  // Apply pending program changes when configurator closes
+  const [pendingProgramChange, setPendingProgramChange] = useState<ProgramSummary | null | undefined>(undefined);
+  
   useEffect(() => {
-    setSelectedProduct(product);
-  }, [product]);
-
-
-  // Hydrate plan when product/program is selected (but allow overview to show)
-  // IMPORTANT: Don't hydrate if configurator overlay is open - wait until it closes
-  useEffect(() => {
-    if (selectedProduct && typeof window !== 'undefined' && !hydrationInProgress.current && !isConfiguratorOpen) {
-      hydrationInProgress.current = true;
-      console.log('[Editor] Triggering hydration', { selectedProduct, hasProgram: !!programSummary });
-      // Call with empty options initially - will be updated when template state changes
-      applyHydration(programSummary, {
-        disabledSectionIds: [],
-        disabledDocumentIds: []
-      }).catch((err) => {
-        console.error('[Editor] Hydration error:', err);
-        hydrationInProgress.current = false;
-      }).finally(() => {
-        // Reset after a delay to allow for updates
-        setTimeout(() => {
-          hydrationInProgress.current = false;
-        }, 1000);
-      });
+    if (!isConfiguratorOpen && pendingProgramChange !== undefined) {
+      setProgramSummary(pendingProgramChange);
+      setPendingProgramChange(undefined);
     }
-  }, [applyHydration, programSummary, selectedProduct, isConfiguratorOpen]);
-
-  // Apply pending changes when configurator closes
-  useEffect(() => {
-    if (!isConfiguratorOpen && (pendingProductChange || pendingProgramChange !== undefined)) {
-      if (pendingProductChange) {
-        setSelectedProduct(pendingProductChange);
-        setProductType(pendingProductChange);
-        setPendingProductChange(null);
-      }
-      if (pendingProgramChange !== undefined) {
-        setProgramSummary(pendingProgramChange);
-        setPendingProgramChange(undefined);
-      }
-    }
-  }, [isConfiguratorOpen, pendingProductChange, pendingProgramChange, setProductType]);
-
-  useEffect(() => {
-    if (!router.isReady) return;
-    const queryProgramId = router.query.programId as string | undefined;
-    if (queryProgramId) {
-      setProgramId(queryProgramId);
-      return;
-    }
-    if (storedProgramChecked.current) return;
-    if (typeof window !== 'undefined') {
-      const saved = loadSelectedProgram();
-      if (saved?.id) {
-        setProgramId(saved.id);
-      }
-    }
-    storedProgramChecked.current = true;
-  }, [router.isReady, router.query.programId]);
-
-  const fetchProgramDetails = useCallback(async (id: string) => {
-    setProgramLoading(true);
-    setProgramError(null);
-    try {
-      const response = await fetch(`/api/programs/${id}/requirements`);
-      if (!response.ok) {
-        throw new Error('Unable to load program metadata.');
-      }
-      const data = await response.json();
-      const mapping = mapProgramTypeToFunding(data.program_type);
-      const summary: ProgramSummary = {
-        id,
-        name: data.program_name ?? data.program_id ?? id,
-        fundingType: mapping.templateFundingType,
-        fundingProgramTag: mapping.fundingProgramTag,
-        deadline: data?.library?.[0]?.deadlines?.[0] ?? null,
-        amountRange: data?.library?.[0]?.funding_amount ?? null,
-        region: data?.library?.[0]?.region ?? null
-      };
-      setProgramSummary(summary);
-      saveSelectedProgram({ id, name: summary.name, type: summary.fundingProgramTag });
-    } catch (err) {
-      setProgramSummary(null);
-      setProgramError(err instanceof Error ? err.message : 'Failed to load program metadata.');
-    } finally {
-      setProgramLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!programId) {
-      setProgramSummary(null);
-      return;
-    }
-    fetchProgramDetails(programId);
-  }, [programId, fetchProgramDetails]);
-
-  const handleConnectProgram = useCallback(
-    (rawInput: string | null) => {
-      if (!rawInput) {
-        setProgramId(null);
-        setProgramSummary(null);
-        setProgramError(null);
-        clearSelectedProgram();
-        if (router.query.programId) {
-          const nextQuery = { ...router.query };
-          delete nextQuery.programId;
-          router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true });
-        }
-        return;
-      }
-      const normalized = normalizeProgramInput(rawInput);
-      if (!normalized) {
-        setProgramError('Enter a program ID like page_123 or paste a URL that contains it.');
-        return;
-      }
-      setProgramError(null);
-      setProgramId(normalized);
-      const nextQuery = { ...router.query, programId: normalized };
-      router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true });
-    },
-    [router]
-  );
-
-  const handleProductChange = useCallback(
-    (next: ProductType) => {
-      // If configurator is open, store as pending change (don't hydrate yet)
-      if (isConfiguratorOpen) {
-        setPendingProductChange(next);
-        // Still update the UI state for immediate feedback
-        setSelectedProduct(next);
-        setProductType(next);
-      } else {
-        // If configurator is closed, apply immediately
-        setSelectedProduct(next);
-        setProductType(next);
-      }
-    },
-    [setProductType, isConfiguratorOpen]
-  );
-
-  const handleTemplateUpdate = useCallback((options: {
-    disabledSectionIds: string[];
-    disabledDocumentIds: string[];
-    customSections?: any[];
-    customDocuments?: any[];
-  }) => {
-    // Only update if we have a plan or are not currently loading
-    // This prevents infinite loops
-    if (isLoading || hydrationInProgress.current) {
-      console.log('[Editor] Skipping template update - still loading');
-      return;
-    }
-    
-    hydrationInProgress.current = true;
-    
-    // Update hydration with new disabled sections/documents and custom templates
-    applyHydration(programSummary, {
-      disabledSectionIds: options.disabledSectionIds,
-      disabledDocumentIds: options.disabledDocumentIds,
-      customSections: options.customSections,
-      customDocuments: options.customDocuments
-    }).catch((err) => {
-      console.error('[Editor] Template update error:', err);
-      hydrationInProgress.current = false;
-    }).then(() => {
-      // Reset after a delay to allow for updates
-      setTimeout(() => {
-        hydrationInProgress.current = false;
-      }, 500);
-    });
-  }, [applyHydration, programSummary, isLoading]);
+  }, [isConfiguratorOpen, pendingProgramChange, setProgramSummary]);
 
   // Track filtered section IDs for sidebar filtering
   const [filteredSectionIds, setFilteredSectionIds] = useState<string[] | null>(null);
@@ -386,49 +238,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     // Priority 4: METADATA (always available)
     return METADATA_SECTION_ID;
   }, [editingSectionId, activeSectionId, plan]);
-  // Template management state (moved from Desktop.tsx)
-  const [sections, setSections] = useState<SectionTemplate[]>([]);
-  const [documents, setDocuments] = useState<DocumentTemplate[]>([]);
-  const [customSections, setCustomSections] = useState<SectionTemplate[]>([]);
-  const [customDocuments, setCustomDocuments] = useState<DocumentTemplate[]>([]);
-  const [templateLoading, setTemplateLoading] = useState(true);
-  const [_templateError, setTemplateError] = useState<string | null>(null);
-  // Initialize disabled state from plan.metadata synchronously to prevent hydration mismatches
-  // Initialize from plan.metadata if available, otherwise empty Set
-  // This ensures server and client start with same initial state
-  const [disabledSections, setDisabledSections] = useState<Set<string>>(() => {
-    if (typeof window === 'undefined') {
-      // Server-side: always start with empty Set
-      return new Set();
-    }
-    // Client-side: try to get from store if available
-    try {
-      const storeState = useEditorStore.getState();
-      if (storeState.plan?.metadata?.disabledSectionIds) {
-        return new Set(storeState.plan.metadata.disabledSectionIds);
-      }
-    } catch (e) {
-      // Store might not be ready yet
-    }
-    return new Set();
-  });
-  const [disabledDocuments, setDisabledDocuments] = useState<Set<string>>(() => {
-    if (typeof window === 'undefined') {
-      // Server-side: always start with empty Set
-      return new Set();
-    }
-    // Client-side: try to get from store if available
-    try {
-      const storeState = useEditorStore.getState();
-      if (storeState.plan?.metadata?.disabledDocumentIds) {
-        return new Set(storeState.plan.metadata.disabledDocumentIds);
-      }
-    } catch (e) {
-      // Store might not be ready yet
-    }
-    return new Set();
-  });
   
+  // UI state for template management
   const [showAddSection, setShowAddSection] = useState(false);
   const [showAddDocument, setShowAddDocument] = useState(false);
   const [newSectionTitle, setNewSectionTitle] = useState('');
@@ -442,99 +253,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const [expandedDocumentId, setExpandedDocumentId] = useState<string | null>(null);
   const [editingSection, setEditingSection] = useState<SectionTemplate | null>(null);
   const [editingDocument, setEditingDocument] = useState<DocumentTemplate | null>(null);
-  const [productDocumentSelections, setProductDocumentSelections] = useState<Record<ProductType, string | null>>(() => {
-    if (typeof window === 'undefined') {
-      return createDefaultSelectionState();
-    }
-    try {
-      const stored = window.sessionStorage.getItem(DOCUMENT_SELECTION_STORAGE_KEY);
-      if (!stored) {
-        return createDefaultSelectionState();
-      }
-      const parsed = JSON.parse(stored) as Partial<Record<ProductType, string | null>>;
-      return {
-        ...createDefaultSelectionState(),
-        ...parsed
-      };
-    } catch (err) {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('[Editor] Failed to parse document selection cache:', err);
-      }
-      return createDefaultSelectionState();
-    }
-  });
-  const clickedDocumentId = productDocumentSelections[selectedProduct] ?? null;
-
-  // Template loading - only load templates client-side
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    async function loadTemplates() {
-      setTemplateLoading(true);
-      setTemplateError(null);
-      try {
-        const baseUrl = undefined;
-        const fundingType = programSummary?.fundingType ?? 'grants';
-        
-        const [loadedSections, loadedDocuments] = await Promise.all([
-          getSections(fundingType, selectedProduct, programSummary?.id, baseUrl),
-          getDocuments(fundingType, selectedProduct, programSummary?.id, baseUrl)
-        ]);
-        
-        setSections(loadedSections);
-        setDocuments(loadedDocuments);
-      } catch (err) {
-        setTemplateError(err instanceof Error ? err.message : 'Failed to load templates');
-      } finally {
-        setTemplateLoading(false);
-      }
-    }
-
-    loadTemplates();
-  }, [selectedProduct, programSummary?.id, programSummary?.fundingType]);
-
-  // Restore disabled state and custom templates from plan metadata
-  const restoringFromMetadata = useRef(false);
-  const lastMetadataRef = useRef<string>('');
-  
-  useEffect(() => {
-    if (!plan?.metadata) return;
-    
-    const metadataKey = JSON.stringify({
-      disabled: plan.metadata.disabledSectionIds || [],
-      docs: plan.metadata.disabledDocumentIds || [],
-      customSections: plan.metadata.customSections?.length || 0,
-      customDocuments: plan.metadata.customDocuments?.length || 0
-    });
-    
-    if (lastMetadataRef.current === metadataKey) {
-      return;
-    }
-    
-    if (restoringFromMetadata.current) {
-      return;
-    }
-    
-    restoringFromMetadata.current = true;
-    lastMetadataRef.current = metadataKey;
-    
-    if (plan.metadata.disabledSectionIds) {
-      setDisabledSections(new Set(plan.metadata.disabledSectionIds));
-    }
-    if (plan.metadata.disabledDocumentIds) {
-      setDisabledDocuments(new Set(plan.metadata.disabledDocumentIds));
-    }
-    if (plan.metadata.customSections && plan.metadata.customSections.length > 0) {
-      setCustomSections(plan.metadata.customSections as SectionTemplate[]);
-    }
-    if (plan.metadata.customDocuments && plan.metadata.customDocuments.length > 0) {
-      setCustomDocuments(plan.metadata.customDocuments as DocumentTemplate[]);
-    }
-    
-    setTimeout(() => {
-      restoringFromMetadata.current = false;
-    }, 100);
-  }, [plan?.metadata]);
 
   // Notify parent of changes - use memoized arrays to prevent unnecessary effect triggers
   const isInitialMount = useRef(true);
@@ -569,10 +287,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       prevCustomDocumentsLengthRef.current = customDocuments.length;
       prevCustomSectionsKeyRef.current = customSectionsKey;
       prevCustomDocumentsKeyRef.current = customDocumentsKey;
-      return;
-    }
-    
-    if (restoringFromMetadata.current) {
       return;
     }
     
@@ -652,107 +366,122 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     }
   }, [expandedDocumentId, disabledDocuments]);
 
-  // Template management handlers
+  // Template management handlers - wrap hook functions with navigation suppression
   const toggleSection = useCallback((sectionId: string) => {
     // Mark that this is a toggle action to prevent auto-navigation
     sectionChangeSourceRef.current = 'scroll'; // Use 'scroll' to prevent navigation in useEffect
     suppressNavigationRef.current = true; // Suppress navigation during toggle
-    setDisabledSections(prev => {
-      const next = new Set(prev);
-      if (next.has(sectionId)) {
-        next.delete(sectionId);
-      } else {
-        next.add(sectionId);
-        // If disabling the active section and configurator is open, don't navigate
-        // Navigation will happen when configurator is closed
-        if (sectionId === activeSectionId && isConfiguratorOpen) {
-          // Just disable it, don't navigate yet
-          return next;
-        }
-      }
-      return next;
-    });
+    toggleSectionBase(sectionId, activeSectionId);
     // Clear suppression after toggle completes
     setTimeout(() => {
       suppressNavigationRef.current = false;
     }, 150);
-  }, [activeSectionId, isConfiguratorOpen]);
-
-  const toggleDocument = useCallback((documentId: string) => {
-    setDisabledDocuments(prev => {
-      const next = new Set(prev);
-      if (next.has(documentId)) {
-        next.delete(documentId);
-      } else {
-        next.add(documentId);
-      }
-      return next;
-    });
-  }, []);
+  }, [activeSectionId, isConfiguratorOpen, toggleSectionBase]);
 
   const addCustomSection = useCallback(() => {
     if (!newSectionTitle.trim()) {
       return;
     }
-    // const _fundingType = programSummary?.fundingType ?? 'grants'; // Unused for now
-    const newSection: SectionTemplate = {
-      id: `custom_section_${Date.now()}`,
-      title: newSectionTitle.trim(),
-      description: newSectionDescription.trim() || 'Benutzerdefinierter Abschnitt',
-      required: false,
-      wordCountMin: 0,
-      wordCountMax: 0,
-      order: 1000 + customSections.length,
-      category: 'custom',
-      prompts: ['Beschreibe hier den Inhalt deines Abschnitts'],
-      questions: [],
-      validationRules: {
-        requiredFields: [],
-        formatRequirements: []
-      },
-      origin: 'custom',
-      visibility: 'advanced'
-    };
-    setCustomSections(prev => [...prev, newSection]);
+    
+    // Check if an additional document is selected
+    const currentPlan = useEditorStore.getState().plan;
+    const isAdditionalDocument = clickedDocumentId && currentPlan?.metadata?.customDocuments?.some(doc => doc.id === clickedDocumentId);
+    
+    if (isAdditionalDocument && clickedDocumentId && currentPlan) {
+      // Add section to document-specific sections (Section[], not SectionTemplate[])
+      const sectionId = `custom_section_${Date.now()}`;
+      const newSection: Section = {
+        id: sectionId,
+        title: newSectionTitle.trim(),
+        description: newSectionDescription.trim() || 'Benutzerdefinierter Abschnitt',
+        questions: [],
+        datasets: [],
+        kpis: [],
+        media: [],
+        collapsed: false,
+        category: 'custom',
+        progress: 0
+      };
+      
+      const documentSections = currentPlan.metadata?.documentSections || {};
+      const currentDocumentSections = documentSections[clickedDocumentId] || [];
+      
+      useEditorStore.setState({
+        plan: {
+          ...currentPlan,
+          id: currentPlan.id || `plan_${Date.now()}`,
+          metadata: {
+            ...currentPlan.metadata,
+            documentSections: {
+              ...documentSections,
+              [clickedDocumentId]: [...currentDocumentSections, newSection]
+            }
+          }
+        }
+      });
+      
+      // Also add as SectionTemplate for consistency (needed for template management)
+      const newSectionTemplate: SectionTemplate = {
+        id: sectionId,
+        title: newSectionTitle.trim(),
+        description: newSectionDescription.trim() || 'Benutzerdefinierter Abschnitt',
+        required: false,
+        wordCountMin: 0,
+        wordCountMax: 0,
+        order: 1000 + customSections.length,
+        category: 'custom',
+        prompts: ['Beschreibe hier den Inhalt deines Abschnitts'],
+        questions: [],
+        validationRules: {
+          requiredFields: [],
+          formatRequirements: []
+        },
+        origin: 'custom',
+        visibility: 'advanced'
+      };
+      setCustomSections(prev => [...prev, newSectionTemplate]);
+    } else {
+      // Add to core product custom sections (original behavior)
+      const newSection: SectionTemplate = {
+        id: `custom_section_${Date.now()}`,
+        title: newSectionTitle.trim(),
+        description: newSectionDescription.trim() || 'Benutzerdefinierter Abschnitt',
+        required: false,
+        wordCountMin: 0,
+        wordCountMax: 0,
+        order: 1000 + customSections.length,
+        category: 'custom',
+        prompts: ['Beschreibe hier den Inhalt deines Abschnitts'],
+        questions: [],
+        validationRules: {
+          requiredFields: [],
+          formatRequirements: []
+        },
+        origin: 'custom',
+        visibility: 'advanced'
+      };
+      setCustomSections(prev => [...prev, newSection]);
+    }
+    
     setNewSectionTitle('');
     setNewSectionDescription('');
     setShowAddSection(false);
     lastUpdateRef.current = '';
-  }, [newSectionTitle, newSectionDescription, customSections.length, programSummary?.fundingType]);
+  }, [newSectionTitle, newSectionDescription, customSections.length, clickedDocumentId, programSummary?.fundingType]);
 
+  // Wrapper for addCustomDocument that updates local state
   const addCustomDocument = useCallback(() => {
-    if (!newDocumentName.trim()) {
-      return;
+    const newDocument = addCustomDocumentBase(newDocumentName, newDocumentDescription, () => {
+      setEditingSectionId(null); // Clear any editing section
+    });
+    if (newDocument) {
+      setCustomDocuments(prev => [...prev, newDocument]);
+      setNewDocumentName('');
+      setNewDocumentDescription('');
+      setShowAddDocument(false);
     }
-    const fundingType = programSummary?.fundingType ?? 'grants';
-    const newDocument: DocumentTemplate = {
-      id: `custom_doc_${Date.now()}`,
-      name: newDocumentName.trim(),
-      description: newDocumentDescription.trim() || 'Benutzerdefiniertes Dokument',
-      required: false,
-      format: 'pdf',
-      maxSize: '10MB',
-      template: '',
-      instructions: [],
-      examples: [],
-      commonMistakes: [],
-      category: 'custom',
-      fundingTypes: [fundingType],
-      origin: 'custom'
-    };
-    setCustomDocuments(prev => [...prev, newDocument]);
-    setNewDocumentName('');
-    setNewDocumentDescription('');
-    setShowAddDocument(false);
-  }, [newDocumentName, newDocumentDescription, programSummary?.fundingType]);
+  }, [newDocumentName, newDocumentDescription, addCustomDocumentBase, setCustomDocuments]);
 
-  const removeCustomSection = useCallback((id: string) => {
-    setCustomSections(prev => prev.filter(s => s.id !== id));
-  }, []);
-
-  const removeCustomDocument = useCallback((id: string) => {
-    setCustomDocuments(prev => prev.filter(d => d.id !== id));
-  }, []);
 
   const toggleAddSectionBadge = useCallback(() => {
     setShowAddSection(prev => {
@@ -781,41 +510,15 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     setExpandedSectionId(section.id);
   }, []);
 
-  const updateProductSelection = useCallback((product: ProductType, selection: string | null) => {
-    setProductDocumentSelections(prev => {
-      if (prev[product] === selection) {
-        return prev;
-      }
-      return {
-        ...prev,
-        [product]: selection
-      };
-    });
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    try {
-      window.sessionStorage.setItem(
-        DOCUMENT_SELECTION_STORAGE_KEY,
-        JSON.stringify(productDocumentSelections)
-      );
-    } catch (err) {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('[Editor] Failed to persist document selection cache:', err);
-      }
-    }
-  }, [productDocumentSelections]);
-
-  const handleSelectDocument = useCallback((docId: string | null) => {
-    updateProductSelection(selectedProduct, docId);
+  // Wrapper for handleSelectDocument that also handles expandedDocumentId
+  const handleSelectDocumentWrapper = useCallback((docId: string | null) => {
+    handleSelectDocument(docId);
+    
     if (docId && expandedDocumentId === docId) {
       setExpandedDocumentId(null);
       setEditingDocument(null);
     }
-  }, [expandedDocumentId, selectedProduct, updateProductSelection]);
+  }, [expandedDocumentId, handleSelectDocument]);
 
   const handleEditDocument = useCallback((doc: DocumentTemplate, e: React.MouseEvent) => {
     e.preventDefault();
@@ -876,9 +579,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     }
   }, []);
 
-  // Computed values
-  const allSections = useMemo(() => [...sections, ...customSections], [sections, customSections]);
-  const allDocuments = useMemo(() => [...documents, ...customDocuments], [documents, customDocuments]);
+  // Use values from hooks
+  const allSections = allSectionsFromHook;
+  const allDocuments = allDocumentsFromHook;
   const allDocumentsKey = useMemo(() => allDocuments.map(doc => doc.id).sort().join(','), [allDocuments]);
 
   const restoreSelectionForProduct = useCallback(
@@ -894,7 +597,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   );
 
   useEffect(() => {
-    if (templateLoading) return;
+    if (templateLoading || !selectedProduct) return;
     const restoredSelection = restoreSelectionForProduct(selectedProduct, allDocuments);
     if (!restoredSelection && clickedDocumentId) {
       updateProductSelection(selectedProduct, null);
@@ -947,12 +650,13 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       }
     };
     
-    const productKeywords = keywordsByProduct[selectedProduct] || keywordsByProduct.submission;
+    const productKeywords = selectedProduct ? (keywordsByProduct[selectedProduct] || keywordsByProduct.submission) : keywordsByProduct.submission;
     
     const matchingKeywords: string[] = [];
     for (const [key, values] of Object.entries(productKeywords)) {
       if (docNameLower.includes(key) || docCategoryLower.includes(key)) {
-        matchingKeywords.push(...values);
+        const valuesArray = Array.isArray(values) ? values : [];
+        matchingKeywords.push(...valuesArray);
       }
     }
     
@@ -1077,14 +781,171 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   }, [clickedDocumentId, visibleFilteredSections, templateLoading, handleDocumentSelectionChange]);
 
   // Compute template state for DocumentsBar and Sidebar
-  const selectedProductMeta = productOptions.find((option) => option.value === selectedProduct) ?? productOptions[0] ?? null;
+  const selectedProductMeta = selectedProduct ? productOptions.find((option) => option.value === selectedProduct) ?? null : null;
   const templateState = useMemo(() => {
-    if (templateLoading) return null;
+    // If no product is selected, return a default state with empty counts
+    if (!selectedProduct) {
+      return {
+        filteredDocuments: [],
+        allDocuments: [],
+        disabledDocuments: new Set(),
+        enabledDocumentsCount: 0,
+        expandedDocumentId: null,
+        editingDocument: null,
+        clickedDocumentId: null,
+        showAddDocument: false,
+        newDocumentName: '',
+        newDocumentDescription: '',
+        filteredSections: [],
+        allSections: [],
+        disabledSections: new Set(),
+        expandedSectionId: null,
+        editingSection: null,
+        showAddSection: false,
+        newSectionTitle: '',
+        newSectionDescription: '',
+        selectionSummary: {
+          productLabel: t('editor.desktop.product.unselected' as any) || 'Not selected',
+          productIcon: undefined,
+          programLabel: null,
+          selectedDocumentName: null,
+          enabledSectionsCount: 0,
+          totalSectionsCount: 0,
+          enabledDocumentsCount: 0,
+          totalDocumentsCount: 0,
+          sectionTitles: [],
+          documentTitles: []
+        },
+        handlers: {
+          onToggleDocument: () => {},
+          onSelectDocument: () => {},
+          onEditDocument: () => {},
+          onSaveDocument: () => {},
+          onCancelEdit: () => {},
+          onToggleAddDocument: () => {},
+          onAddCustomDocument: () => {},
+          onSetNewDocumentName: () => {},
+          onSetNewDocumentDescription: () => {},
+          onToggleSection: () => {},
+          onEditSection: () => {},
+          onSaveSection: () => {},
+          onCancelEditSection: () => {},
+          onToggleAddSection: () => {},
+          onAddCustomSection: () => {},
+          onSetNewSectionTitle: () => {},
+          onSetNewSectionDescription: () => {},
+          onRemoveCustomSection: () => {},
+          getOriginBadge: () => null
+        }
+      };
+    }
     
-    const sectionTitles = visibleSections.map((section) => section.title);
+    // If templates are loading, return a loading state (but still return an object)
+    if (templateLoading) {
+      return {
+        filteredDocuments: [],
+        allDocuments: [],
+        disabledDocuments: new Set(),
+        enabledDocumentsCount: 0,
+        expandedDocumentId: null,
+        editingDocument: null,
+        clickedDocumentId: null,
+        showAddDocument: false,
+        newDocumentName: '',
+        newDocumentDescription: '',
+        filteredSections: [],
+        allSections: [],
+        disabledSections: new Set(),
+        expandedSectionId: null,
+        editingSection: null,
+        showAddSection: false,
+        newSectionTitle: '',
+        newSectionDescription: '',
+        selectionSummary: {
+          productLabel: selectedProductMeta?.label ?? (t('editor.desktop.product.unselected' as any) || 'Not selected'),
+          productIcon: selectedProductMeta?.icon,
+          programLabel: programSummary?.name ?? null,
+          selectedDocumentName: null,
+          enabledSectionsCount: 0,
+          totalSectionsCount: 0,
+          enabledDocumentsCount: 0,
+          totalDocumentsCount: 0,
+          sectionTitles: [],
+          documentTitles: []
+        },
+        handlers: {
+          onToggleDocument: () => {},
+          onSelectDocument: () => {},
+          onEditDocument: () => {},
+          onSaveDocument: () => {},
+          onCancelEdit: () => {},
+          onToggleAddDocument: () => {},
+          onAddCustomDocument: () => {},
+          onSetNewDocumentName: () => {},
+          onSetNewDocumentDescription: () => {},
+          onToggleSection: () => {},
+          onEditSection: () => {},
+          onSaveSection: () => {},
+          onCancelEditSection: () => {},
+          onToggleAddSection: () => {},
+          onAddCustomSection: () => {},
+          onSetNewSectionTitle: () => {},
+          onSetNewSectionDescription: () => {},
+          onRemoveCustomSection: () => {},
+          getOriginBadge: () => null
+        }
+      };
+    }
+    
+    // When an additional document is selected, use document-specific sections for counts
+    let sectionsForCount = visibleSections;
+    let totalSectionsForCount = allSections.length;
+    let sectionTitlesForCount = visibleSections.map((section) => section.title);
+    
+    if (clickedDocumentId && plan) {
+      const isAdditionalDocument = plan.metadata?.customDocuments?.some(doc => doc.id === clickedDocumentId);
+      if (isAdditionalDocument) {
+        // Use document-specific sections (these are Section[], not SectionTemplate[])
+        const documentSections = plan.metadata?.documentSections?.[clickedDocumentId] || [];
+        // Convert to section titles for display
+        sectionTitlesForCount = documentSections.map((section) => section.title);
+        totalSectionsForCount = documentSections.length;
+        // For additional documents, enabledSectionsCount should be documentSections.length (not visibleSections)
+        sectionsForCount = documentSections as any; // Use document sections for count
+      }
+    }
+    
+    const sectionTitles = sectionTitlesForCount;
     const documentTitles = visibleDocuments.map((doc) => doc.name);
     const productLabel = selectedProductMeta?.label ?? (t('editor.desktop.product.unselected' as any) || 'Not selected');
     const programLabel = programSummary?.name ?? null;
+    
+    // Get selected document name if additional document is selected
+    const selectedDocumentName = clickedDocumentId && plan
+      ? (() => {
+          const isAdditionalDocument = plan.metadata?.customDocuments?.some(doc => doc.id === clickedDocumentId);
+          if (isAdditionalDocument) {
+            const doc = plan.metadata?.customDocuments?.find(doc => doc.id === clickedDocumentId);
+            return doc?.name || null;
+          }
+          return null;
+        })()
+      : null;
+    
+    // When an additional document is selected, filter allSections to show only document-specific sections
+    let sectionsForCurrentSelection = allSections;
+    if (clickedDocumentId && plan) {
+      const isAdditionalDocument = plan.metadata?.customDocuments?.some(doc => doc.id === clickedDocumentId);
+      if (isAdditionalDocument) {
+        // For additional documents, only show sections that exist in documentPlan
+        const documentSections = plan.metadata?.documentSections?.[clickedDocumentId] || [];
+        const documentSectionIds = new Set(documentSections.map(s => s.id));
+        // Filter allSections to only include sections that are in the document
+        // For additional documents, show sections that exist in documentSections
+        // This will be empty initially, but sections will appear as they're added
+        sectionsForCurrentSelection = allSections.filter(section => documentSectionIds.has(section.id));
+      }
+    }
     
     return {
       filteredDocuments,
@@ -1098,7 +959,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       newDocumentName,
       newDocumentDescription,
       filteredSections,
-      allSections,
+      allSections: sectionsForCurrentSelection, // Filtered for additional documents
       disabledSections,
       expandedSectionId,
       editingSection,
@@ -1109,8 +970,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
         productLabel,
         productIcon: selectedProductMeta?.icon,
         programLabel,
-        enabledSectionsCount: visibleSections.length,
-        totalSectionsCount: allSections.length,
+        selectedDocumentName,
+        enabledSectionsCount: sectionsForCount.length,
+        totalSectionsCount: totalSectionsForCount,
         enabledDocumentsCount,
         totalDocumentsCount,
         sectionTitles,
@@ -1118,7 +980,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       },
       handlers: {
         onToggleDocument: toggleDocument,
-        onSelectDocument: handleSelectDocument,
+        onSelectDocument: handleSelectDocumentWrapper,
         onEditDocument: handleEditDocument,
         onSaveDocument: handleSaveDocument,
         onCancelEdit: handleCancelEdit,
@@ -1152,7 +1014,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     newDocumentDescription,
     filteredSections,
     allSections,
+    customSections, // Include customSections so templateState updates when sections are added
     disabledSections,
+    plan, // Include plan so templateState updates when documentSections change
     expandedSectionId,
     editingSection,
     showAddSection,
@@ -1184,6 +1048,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     removeCustomSection,
     getOriginBadge
   ]);
+
 
   // Track if activeSectionId change was from user interaction (sidebar click) vs scroll detection
   const sectionChangeSourceRef = useRef<'user' | 'scroll' | 'preview'>('scroll');
@@ -1226,13 +1091,11 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     // Don't auto-navigate if we're suppressing navigation (from toggle or configurator closing)
     if (suppressNavigationRef.current) return;
     
-    // If no active section, set one
+    // For new users (activeSectionId is null), don't auto-navigate - let them configure first
+    // Unified logic: if activeSectionId is null, user hasn't started configuring yet
+    // This works for both new users and when they're on the configurator
     if (!activeSectionId) {
-      if (plan.sections && plan.sections.length > 0) {
-        setActiveSection(plan.sections[0].id);
-      } else {
-        setActiveSection(METADATA_SECTION_ID);
-      }
+      // New user or configurator open - don't auto-navigate, keep them on configurator
       return;
     }
     
@@ -1497,8 +1360,10 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const isMetadataView = activeSectionId === METADATA_SECTION_ID;
   const isSpecialWorkspace = isAncillaryView || isMetadataView;
   // Get active section - use effectiveEditingSectionId to find section being edited
+  // Use documentPlan to get correct sections (document-specific or core product)
   const activeSection: Section | null = useMemo(() => {
-    if (!plan) return null;
+    if (!plan || !documentPlan) return null;
+    const currentPlan = documentPlan; // Use document-specific plan if additional document is selected
     // Use effectiveEditingSectionId (which defaults to activeSectionId if not explicitly set)
     if (effectiveEditingSectionId) {
       // For special sections, they're not in plan.sections, so return null
@@ -1508,12 +1373,12 @@ export default function Editor({ product = 'submission' }: EditorProps) {
           effectiveEditingSectionId === APPENDICES_SECTION_ID) {
         return null;
       }
-      return plan.sections.find((section) => section.id === effectiveEditingSectionId) ?? null;
+      return currentPlan.sections.find((section) => section.id === effectiveEditingSectionId) ?? null;
     }
     // Otherwise use activeSectionId
     if (isSpecialWorkspace) return null;
-    return plan.sections.find((section) => section.id === activeSectionId) ?? plan.sections[0] ?? null;
-  }, [plan, activeSectionId, isSpecialWorkspace, effectiveEditingSectionId]);
+    return currentPlan.sections.find((section) => section.id === activeSectionId) ?? currentPlan.sections[0] ?? null;
+  }, [plan, documentPlan, activeSectionId, isSpecialWorkspace, effectiveEditingSectionId]);
   const activeQuestion: Question | null = useMemo(() => {
     if (!activeSection) return null;
     return (
@@ -1539,39 +1404,59 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   }, [plan, effectiveEditingSectionId, activeSectionId, editingSectionId, activeSection, activeQuestionId]);
 
   // Show loading/error states
-  if (isLoading || !plan) {
+  // Note: We don't show a special state for null product - we show the full UI with empty states
+
+  // Show loading only if we have a product selected and are actually loading
+  // If no product is selected, show the full UI (user needs to select product first)
+  // Also check if plan is being created (isLoading) or if we're waiting for plan after hydration
+  // IMPORTANT: Only show loading if we're actively loading AND have a product selected
+  // Don't show loading if product is selected but plan doesn't exist yet (hydration might be in progress)
+  // Give hydration a reasonable timeout - if it takes more than 10 seconds, something is wrong
+  const isWaitingForPlan = selectedProduct && isLoading;
+  // Remove hasNoPlanAfterProduct check - if hydration completes, plan will exist
+  // If plan doesn't exist after loading completes, it's an error state, not a loading state
+  
+  if (isWaitingForPlan) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center text-gray-500 space-y-2">
-        <div>{(t('editor.ui.loadingEditor' as any) as string) || 'Loading editor...'}</div>
-        {isLoading && <div className="text-xs text-gray-400">Initializing plan...</div>}
-        {!plan && !isLoading && <div className="text-xs text-gray-400">Waiting for plan data...</div>}
-      </div>
+      <>
+        <DevClearCacheButton />
+        <div className="h-screen flex flex-col items-center justify-center text-gray-500 space-y-2">
+          <div>{(t('editor.ui.loadingEditor' as any) as string) || 'Loading editor...'}</div>
+          <div className="text-xs text-gray-400">{(t('editor.ui.initializingPlan' as any) as string) || 'Initializing plan...'}</div>
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center space-y-4">
-        <p className="text-red-500 font-semibold">{error}</p>
-        <button
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-          onClick={() => hydrate(product)}
-        >
-          Retry
-        </button>
-      </div>
+      <>
+        <DevClearCacheButton />
+        <div className="h-screen flex flex-col items-center justify-center space-y-4">
+          <p className="text-red-500 font-semibold">{error}</p>
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+            onClick={() => hydrate(product)}
+          >
+            Retry
+          </button>
+        </div>
+      </>
     );
   }
 
   return (
     <div className="bg-neutral-200 text-textPrimary">
-      {/* Workspace - show if plan exists */}
-      {plan ? (
+      {/* Dev Tools - Clear Cache Button */}
+      <DevClearCacheButton />
+      
+      {/* Workspace - always show (will show empty states when no product/plan) */}
+      {(
         <>
           <div className="container pb-6">
             <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)]">
               <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900 rounded-[32px]" />
-              <div className="relative z-10 flex flex-col gap-2 p-4 lg:p-6 min-h-0" style={{ overflowX: 'hidden', overflowY: 'visible', height: 'calc(100vh - 10px)', maxHeight: 'calc(100vh - 10px)' }}>
+              <div className="relative z-10 flex flex-col gap-2 p-4 lg:p-6 min-h-0" style={{ overflowX: 'hidden', overflowY: 'visible', height: 'calc(100vh + 90px)', maxHeight: 'calc(100vh + 90px)' }}>
                 {/* Template management is now handled directly in Editor.tsx */}
                 
                 {/* Dein Schreibtisch Header */}
@@ -1584,14 +1469,15 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                 {/* Workspace Container - Document-Centric Layout */}
                 <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm w-full flex-1 min-h-0" style={{ overflow: 'visible', display: 'flex', flexDirection: 'column' }}>
                   {/* Grid Layout: 2 rows, 2 columns */}
-                  <div ref={workspaceGridRef} className="grid grid-cols-[320px_1fr] grid-rows-[minmax(0,200px)_1fr] gap-4 flex-1 min-h-0" style={{ overflow: 'visible', position: 'relative', contain: 'layout style' }}>
-                    {/* Row 1, Col 1: Current Selection - Fills gap next to DocumentsBar */}
-                    <div className="flex-shrink-0 relative min-h-0" style={{ zIndex: 0, overflow: 'hidden', contain: 'layout', maxHeight: '200px' }}>
-                      {templateState?.selectionSummary ? (
+                  <div ref={workspaceGridRef} className="grid grid-cols-[320px_1fr] grid-rows-[auto_1fr] gap-4 flex-1 min-h-0" style={{ overflow: 'visible', position: 'relative', contain: 'layout style' }}>
+                    {/* Row 1, Col 1: Current Selection - Matches DocumentsBar height */}
+                    <div className="flex-shrink-0 relative min-h-0 flex flex-col" style={{ zIndex: 0, overflow: 'visible', contain: 'none', height: 'fit-content', maxHeight: 'fit-content' }}>
+                      {templateState && templateState.selectionSummary ? (
                         <CurrentSelection
                           productLabel={templateState.selectionSummary.productLabel}
                           productIcon={templateState.selectionSummary.productIcon}
                           programLabel={templateState.selectionSummary.programLabel}
+                          selectedDocumentName={templateState?.selectionSummary?.selectedDocumentName}
                           enabledSectionsCount={templateState.selectionSummary.enabledSectionsCount}
                           totalSectionsCount={templateState.selectionSummary.totalSectionsCount}
                           enabledDocumentsCount={templateState.selectionSummary.enabledDocumentsCount}
@@ -1613,12 +1499,13 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                           progressSummary={progressSummary}
                           onRunRequirementsCheck={runRequirementsCheck}
                           overlayContainerRef={workspaceGridRef}
+                          isOpen={isConfiguratorOpen}
                           onOverlayOpenChange={setIsConfiguratorOpen}
                           // Sections & Documents management
                           allSections={templateState.allSections}
                           allDocuments={templateState.allDocuments}
-                          disabledSections={templateState.disabledSections}
-                          disabledDocuments={templateState.disabledDocuments}
+                          disabledSections={templateState.disabledSections as Set<string>}
+                          disabledDocuments={templateState.disabledDocuments as Set<string>}
                           onToggleSection={templateState.handlers.onToggleSection}
                           onToggleDocument={templateState.handlers.onToggleDocument}
                           // Add custom items
@@ -1644,21 +1531,22 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                       )}
                     </div>
 
-                    {/* Row 1, Col 2: Documents Bar - Same Width as Preview */}
+                    {/* Row 1, Col 2: Documents Bar - Matches CurrentSelection height */}
                     <div 
-                      className="flex-shrink-0 relative min-h-0" 
+                      className="flex-shrink-0 relative min-h-0 flex flex-col" 
                       style={{ 
                         zIndex: templateState?.showAddDocument ? 50 : 0, 
-                        overflowY: templateState?.showAddDocument ? 'visible' : 'auto', 
+                        overflowY: templateState?.showAddDocument ? 'visible' : 'visible', 
                         overflowX: 'visible', 
                         contain: templateState?.showAddDocument ? 'none' : 'layout', 
-                        maxHeight: templateState?.showAddDocument ? 'none' : '200px' 
+                        height: 'fit-content',
+                        maxHeight: 'fit-content'
                       }}
                     >
                       {templateState ? (
                         <DocumentsBar
                           filteredDocuments={templateState.filteredDocuments}
-                          disabledDocuments={templateState.disabledDocuments}
+                          disabledDocuments={templateState.disabledDocuments as Set<string>}
                           enabledDocumentsCount={templateState.enabledDocumentsCount}
                           expandedDocumentId={templateState.expandedDocumentId}
                           editingDocument={templateState.editingDocument}
@@ -1676,7 +1564,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                           onAddCustomDocument={templateState.handlers.onAddCustomDocument}
                           onSetNewDocumentName={templateState.handlers.onSetNewDocumentName}
                           onSetNewDocumentDescription={templateState.handlers.onSetNewDocumentDescription}
-                          onRemoveCustomDocument={templateState.handlers.onRemoveCustomDocument}
+                          onRemoveCustomDocument={templateState.handlers.onRemoveCustomDocument || (() => {})}
                           getOriginBadge={templateState.handlers.getOriginBadge}
                         />
                       ) : (
@@ -1688,14 +1576,27 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
                     {/* Row 2, Col 1: Sidebar - Next to Preview */}
                     <div className="border-r border-white/10 pr-4 min-h-0 flex flex-col relative" style={{ maxWidth: '320px', width: '320px', minWidth: '320px', boxSizing: 'border-box', zIndex: 1, overflow: 'hidden' }}>
-                      <Sidebar
-                        plan={plan}
-                        activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+                      {plan || !selectedProduct ? (
+                        <Sidebar
+                          plan={documentPlan || plan || {
+                            id: 'empty',
+                            productType: 'submission' as ProductType,
+                            titlePage: defaultTitlePage(),
+                            sections: [],
+                            references: [],
+                            appendices: [],
+                            ancillary: defaultAncillary()
+                          }}
+                          activeSectionId={activeSectionId ?? null}
                         onSelectSection={(sectionId) => handleSectionSelect(sectionId, 'user')}
-                        filteredSectionIds={filteredSectionIds}
-                        filteredSections={templateState?.filteredSections}
-                        allSections={templateState?.allSections}
-                        disabledSections={templateState?.disabledSections}
+                        filteredSectionIds={clickedDocumentId ? (() => {
+                          // For additional documents, include METADATA_SECTION_ID plus all document sections
+                          const documentSections = plan?.metadata?.documentSections?.[clickedDocumentId] || [];
+                          return [METADATA_SECTION_ID, ...documentSections.map(s => s.id)];
+                        })() : filteredSectionIds}
+                        filteredSections={clickedDocumentId ? [] : templateState?.filteredSections}
+                        allSections={clickedDocumentId ? [] : templateState?.allSections}
+                        disabledSections={templateState?.disabledSections as Set<string> | undefined}
                         expandedSectionId={templateState?.expandedSectionId}
                         editingSection={templateState?.editingSection}
                         showAddSection={templateState?.showAddSection}
@@ -1713,15 +1614,45 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                         getOriginBadge={templateState?.handlers?.getOriginBadge}
                         selectedProductMeta={productOptions.find((option) => option.value === selectedProduct) ?? null}
                         programSummary={programSummary ? { name: programSummary.name, amountRange: programSummary.amountRange ?? undefined } : null}
+                        selectedProduct={selectedProduct}
+                        isNewUser={(() => {
+                          // New user if: no plan exists OR (plan exists but no active section and no clicked document)
+                          const isNew = !plan || (!activeSectionId && plan && !clickedDocumentId);
+                          if (process.env.NODE_ENV === 'development') {
+                            console.log('[Editor] Passing isNewUser to Sidebar', { 
+                              activeSectionId, 
+                              hasPlan: !!plan, 
+                              clickedDocumentId, 
+                              isNew 
+                            });
+                          }
+                          return isNew;
+                        })()}
                       />
+                      ) : (
+                        <div className="text-white/60 text-sm p-4">Select a product to see sections</div>
+                      )}
                     </div>
                     
                     {/* Row 2, Col 2: Preview - Full Width */}
                     <div className="min-w-0 min-h-0 relative flex flex-col" id="preview-container" style={{ zIndex: 1, overflow: 'hidden' }}>
+                      {/* Preview Header - Matches Sidebar header height exactly */}
+                      <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)' }}>
+                        {t('editor.desktop.preview.title' as any) || 'Preview'}
+                      </h2>
                       {/* Preview - Always visible */}
                       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative" id="preview-scroll-container">
-                        <PreviewWorkspace 
-                          plan={plan} 
+                        {plan || !selectedProduct ? (
+                          <PreviewWorkspace 
+                            plan={documentPlan || plan || {
+                              id: 'empty',
+                              productType: 'submission' as ProductType,
+                              titlePage: defaultTitlePage(),
+                              sections: [],
+                              references: [],
+                              appendices: [],
+                              ancillary: defaultAncillary()
+                            }} 
                           focusSectionId={activeSectionId}
                           editingSectionId={editingSectionId}
                           {...({ disabledSections } as any)}
@@ -1746,7 +1677,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                               }, 100);
                             } else {
                               // For regular sections, enable inline editor
-                              const sectionToEdit = plan.sections.find(s => s.id === sectionId);
+                              // Use documentPlan to get the correct sections (document-specific or core product)
+                              const currentPlan = documentPlan || plan;
+                              const sectionToEdit = currentPlan?.sections.find(s => s.id === sectionId);
                               if (sectionToEdit) {
                                 handleSectionSelect(sectionId, 'preview');
                                 setEditingSectionId(sectionId); // Enable edit mode
@@ -1762,7 +1695,40 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                           onAppendixAdd={addAppendix}
                           onAppendixUpdate={updateAppendix}
                           onAppendixDelete={deleteAppendix}
+                          selectedProductMeta={productOptions.find((option) => option.value === selectedProduct) ?? null}
+                          selectedDocumentName={clickedDocumentId && plan
+                            ? (() => {
+                                const isAdditionalDocument = plan.metadata?.customDocuments?.some(doc => doc.id === clickedDocumentId);
+                                if (isAdditionalDocument) {
+                                  const doc = plan.metadata?.customDocuments?.find(doc => doc.id === clickedDocumentId);
+                                  return doc?.name || null;
+                                }
+                                return null;
+                              })()
+                            : null}
+                          isNewUser={(() => {
+                            // New user if: no plan exists OR (plan exists but no active section and no clicked document)
+                            const isNew = !plan || (!activeSectionId && plan && !clickedDocumentId);
+                            if (process.env.NODE_ENV === 'development') {
+                              console.log('[Editor] isNewUser calculation', {
+                                activeSectionId,
+                                hasPlan: !!plan,
+                                clickedDocumentId,
+                                isNew
+                              });
+                            }
+                            return isNew;
+                          })()}
+                          onOpenConfigurator={() => setIsConfiguratorOpen(true)}
                         />
+                        ) : (
+                          <div className="flex-1 flex items-center justify-center text-white/60">
+                            <div className="text-center">
+                              <p className="text-lg mb-2">Select a product to start</p>
+                              <p className="text-sm">Click "Start" to configure your plan</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       
                       {/* Inline Editor - RENDERED OUTSIDE SCROLL CONTAINER TO AVOID OVERFLOW CLIPPING */}
@@ -1772,7 +1738,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                           sectionId={effectiveEditingSectionId}
                           section={activeSection}
                           activeQuestionId={activeQuestionId}
-                          plan={plan}
+                          plan={documentPlan || plan}
                           onClose={() => setEditingSectionId(null)}
                           onSelectQuestion={setActiveQuestion}
                           onAnswerChange={(questionId, content) => {
@@ -1815,7 +1781,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             </div>
           </div>
         </>
-      ) : null}
+      )}
     </div>
   );
 }

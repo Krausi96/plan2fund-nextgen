@@ -1,12 +1,12 @@
-// ========= PLAN2FUND — OPENAI INTEGRATION =========
-// OpenAI API integration for AI Assistant
-// Provides real LLM responses for creative writing help
+// ========= PLAN2FUND — AI ASSISTANT ENDPOINT =========
+// AI Assistant API for Editor
+// Provides LLM responses for creative writing help (generate, improve, compliance, suggest)
 // Supports custom LLM endpoints with OpenAI fallback
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import type { ConversationMessage } from '@/features/editor/lib/types/plan';
-import { isCustomLLMEnabled, callCustomLLM } from '@/shared/lib/ai/customLLM';
+import { isCustomLLMEnabled, callCustomLLM } from '@/features/ai/clients/customLLM';
 
 // Initialize OpenAI client (only if API key is set)
 const openai = process.env.OPENAI_API_KEY
@@ -90,7 +90,7 @@ export default async function handler(
     
     res.status(200).json(response);
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    console.error('AI Assistant API error:', error);
     res.status(500).json({ 
       error: 'Failed to generate AI response'
     });
@@ -451,4 +451,3 @@ function parseAIResponse(aiContent: string): AIResponse {
     };
   }
 }
-

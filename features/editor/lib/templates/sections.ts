@@ -2,7 +2,7 @@
 // SECTION TEMPLATES
 // ============================================================================
 
-import type { SectionTemplate } from './types';
+import type { SectionTemplate } from '../types/templates';
 
 // Strategy sections have been converted to documents - see documents.ts STRATEGY_DOCUMENTS
 

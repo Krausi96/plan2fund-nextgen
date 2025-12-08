@@ -61,9 +61,9 @@ function EditorPage() {
   const router = useRouter();
   const { product } = router.query;
 
-  const selectedProduct: ProductType = useMemo(() => {
+  const selectedProduct: ProductType | null = useMemo(() => {
     const value = typeof product === 'string' ? product : undefined;
-    return value && isProductType(value) ? value : 'submission';
+    return value && isProductType(value) ? value : null;
   }, [product]);
 
   // Always render Editor component to ensure consistent SSR/client rendering

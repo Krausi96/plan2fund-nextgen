@@ -23,9 +23,9 @@ import {
   Table,
   TitlePage
 } from '@/features/editor/lib/types/plan';
-import { generateSectionContent } from '@/features/editor/lib/engine/sectionAiClient';
+import { generateSectionContent } from '@/features/editor/components/layout/Workspace/SectionEditor/lib/sectionAiClient';
 import { SectionTemplate, DocumentTemplate, getSections } from '@templates';
-import { calculateSectionProgress, calculateSectionCompletion, determineQuestionStatus } from '@/features/editor/lib/utils';
+import { calculateSectionProgress, calculateSectionCompletion, determineQuestionStatus } from '@/features/editor/lib/helpers/progress';
 import {
   loadPlanSections,
   savePlanSections,
@@ -68,7 +68,7 @@ export interface EditorStoreState {
   activeQuestionId: string | null;
   progressSummary: ProgressSummary[];
   hydrate: (
-    product: ProductType,
+    product: ProductType | null,
     context?: {
       fundingType?: TemplateFundingType;
       programId?: string;
@@ -244,8 +244,16 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
     activeQuestionId: null,
     progressSummary: [],
   hydrate: async (product, context) => {
+    // Don't hydrate if product is null
+    if (!product) {
+      set({ isLoading: false, error: null });
+      return;
+    }
     set({ isLoading: true, error: null });
     try {
+      // Preserve existing plan data (especially documentSections and documentTitlePages)
+      const existingPlan = get().plan;
+      
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       const questionStates: QuestionStateMap =
         typeof window !== 'undefined' ? loadQuestionStates() : {};
@@ -312,15 +320,24 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
         });
       }
 
+      // Preserve existing plan data when switching products
+      // This is critical for additional documents - preserve their sections and title pages
+      const preservedDocumentSections = existingPlan?.metadata?.documentSections || {};
+      const preservedDocumentTitlePages = existingPlan?.metadata?.documentTitlePages || {};
+      const preservedTitlePage = existingPlan?.titlePage || defaultTitlePage();
+      const preservedReferences = existingPlan?.references || [];
+      const preservedAppendices = existingPlan?.appendices || [];
+      const preservedAncillary = existingPlan?.ancillary || defaultAncillary();
+
       const plan: BusinessPlan = {
-        id: `plan_${Date.now()}`,
+        id: existingPlan?.id || `plan_${Date.now()}`,
         productType: product,
         fundingProgram: context?.summary?.fundingProgramTag ?? 'grant',
-        titlePage: defaultTitlePage(),
+        titlePage: preservedTitlePage, // Preserve existing title page
         sections,
-        references: [],
-        appendices: [],
-        ancillary: defaultAncillary(),
+        references: preservedReferences, // Preserve existing references
+        appendices: preservedAppendices, // Preserve existing appendices
+        ancillary: preservedAncillary, // Preserve existing ancillary
         programSummary: context?.summary,
         metadata: {
           lastSavedAt: new Date().toISOString(),
@@ -330,23 +347,43 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
           disabledSectionIds: context?.disabledSectionIds,
           disabledDocumentIds: context?.disabledDocumentIds,
           customSections: context?.customSections,
-          customDocuments: context?.customDocuments
+          customDocuments: context?.customDocuments,
+          // CRITICAL: Preserve document-specific data when switching products
+          documentSections: preservedDocumentSections,
+          documentTitlePages: preservedDocumentTitlePages
         }
       };
 
-      // Decide initial workspace: metadata first until required fields exist, otherwise recommended section
+      // For new users, don't auto-navigate to metadata - keep them on the configurator
+      // Only set activeSectionId if there's already a plan (user is returning)
+      const shouldAutoNavigate = existingPlan !== null; // Only auto-navigate if plan already existed
+      
+      // Decide initial workspace: for new users, don't set activeSectionId (stay on configurator)
+      // For returning users, navigate to metadata first until required fields exist, otherwise recommended section
       const metadataComplete = isMetadataComplete(plan.titlePage);
       const projectDescriptionSection = sections.length > 0 ? sections.find(s => s.id === 'project_description') : null;
       const initialSection = metadataComplete && sections.length > 0 ? (projectDescriptionSection ?? sections[0] ?? null) : null;
       
+      console.log('[hydrate] Setting plan state', { 
+        planId: plan.id, 
+        sectionsCount: plan.sections.length,
+        metadataComplete,
+        shouldAutoNavigate,
+        existingPlan: !!existingPlan
+      });
       set({
         plan,
         templates: allEnabledTemplates,
         isLoading: false,
-        activeSectionId: metadataComplete ? initialSection?.id ?? null : METADATA_SECTION_ID,
-        activeQuestionId: initialSection?.questions[0]?.id ?? null,
+        // For new users (no existing plan), don't set activeSectionId - keep them on configurator
+        // For returning users, navigate to appropriate section
+        activeSectionId: shouldAutoNavigate 
+          ? (metadataComplete ? initialSection?.id ?? null : METADATA_SECTION_ID)
+          : null,
+        activeQuestionId: shouldAutoNavigate ? (initialSection?.questions[0]?.id ?? null) : null,
         progressSummary: []
       });
+      console.log('[hydrate] Hydration completed successfully');
     } catch (error: any) {
       console.error('[hydrate] Error during hydration:', error);
       set({

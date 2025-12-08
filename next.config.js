@@ -26,10 +26,13 @@ const nextConfig = {
   // Bundle analyzer (uncomment for analysis)
   webpack: (config, { isServer }) => {
     // Add path aliases for webpack (must match tsconfig.json paths)
+    const path = require('path');
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': require('path').resolve(__dirname),
-      '@templates': require('path').resolve(__dirname, 'features/editor/lib/templates'),
+      '@/features': path.resolve(__dirname, 'features'),
+      '@/shared': path.resolve(__dirname, 'shared'),
+      '@/database': path.resolve(__dirname, 'database'),
+      '@templates': path.resolve(__dirname, 'features/editor/lib/templates/index.ts'),
     };
 
     if (!isServer) {

@@ -5,13 +5,13 @@
 import { MASTER_SECTIONS } from './sections';
 import { MASTER_DOCUMENTS } from './documents';
 import { loadProgramDocuments, loadProgramSections, mergeDocuments, mergeSections } from './api';
-import type { SectionTemplate, DocumentTemplate } from './types';
+import type { SectionTemplate, DocumentTemplate } from '../types/templates';
 
 export async function getSections(
   _fundingType: string,
   productType: string = 'submission',
   programId?: string,
-  baseUrl?: string
+  _baseUrl?: string
 ): Promise<SectionTemplate[]> {
   const masterSections = MASTER_SECTIONS[productType] || MASTER_SECTIONS.submission;
   
@@ -22,7 +22,7 @@ export async function getSections(
   }));
   
   if (programId) {
-    const programSections = await loadProgramSections(programId, baseUrl);
+    const programSections = await loadProgramSections(programId);
     if (programSections.length > 0) {
       return mergeSections(masterWithOrigin, programSections);
     }
@@ -35,12 +35,12 @@ export async function getDocuments(
   fundingType: string,
   productType: string,
   programId?: string,
-  baseUrl?: string
+  _baseUrl?: string
 ): Promise<DocumentTemplate[]> {
   const masterDocs = MASTER_DOCUMENTS[fundingType]?.[productType] || [];
   
   if (programId) {
-    const programDocs = await loadProgramDocuments(programId, baseUrl);
+    const programDocs = await loadProgramDocuments(programId);
     if (programDocs.length > 0) {
       return mergeDocuments(masterDocs, programDocs);
     }
@@ -72,6 +72,6 @@ export async function getSection(
 }
 
 // Re-export types for convenience
-export type { SectionTemplate, DocumentTemplate, SectionQuestion } from './types';
-export type { StandardSection, AdditionalDocument } from './types';
+export type { SectionTemplate, DocumentTemplate, SectionQuestion } from '../types/templates';
+export type { StandardSection, AdditionalDocument } from '../types/templates';
 

@@ -9,7 +9,7 @@ import { Wand2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 // Progress bar implemented with custom div (not using Progress component)
-import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/recoEngine';
+import { scoreProgramsEnhanced, EnhancedProgramResult, deriveCompanyInfo } from '@/features/reco/engine/scoring';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 const DAILY_GENERATION_LIMIT = 3;
@@ -337,52 +337,7 @@ const ADVANCED_QUESTIONS: QuestionDefinition[] = [
   },
 ];
 
-// Map organisation_stage to company_type + company_stage for backward compatibility
-const ORGANISATION_STAGE_MAP: Record<string, { type: string; stage: string | null }> = {
-  exploring_idea: { type: 'founder_idea', stage: 'pre_company' },
-  early_stage_startup: { type: 'startup', stage: 'inc_lt_6m' },
-  growing_startup: { type: 'startup', stage: 'inc_6_36m' },
-  established_sme: { type: 'sme', stage: 'inc_gt_36m' },
-  research_institution: { type: 'research', stage: 'research_org' },
-  public_body: { type: 'public', stage: 'public_org' },
-  other: { type: 'other', stage: null },
-};
-
-// Legacy mapping for backward compatibility (if old company_type still exists)
-const COMPANY_STAGE_MAP: Record<string, string> = {
-  founder_idea: 'pre_company',
-  startup_building: 'inc_lt_6m',
-  startup_traction: 'inc_6_36m',
-  sme_established: 'inc_gt_36m',
-};
-
-function inferCompanyStageFromAnswers(answersSnapshot: Record<string, any>): string | undefined {
-  // NEW: Check organisation_stage first
-  const organisationStage = answersSnapshot.organisation_stage as string | undefined;
-  if (organisationStage && ORGANISATION_STAGE_MAP[organisationStage]) {
-    return ORGANISATION_STAGE_MAP[organisationStage].stage || undefined;
-  }
-
-  // LEGACY: Fallback to old company_type for backward compatibility
-  const companyTypeValue = answersSnapshot.company_type as string | undefined;
-  if (!companyTypeValue) {
-    return undefined;
-  }
-
-  if (COMPANY_STAGE_MAP[companyTypeValue]) {
-    return COMPANY_STAGE_MAP[companyTypeValue];
-  }
-
-  if (companyTypeValue === 'other') {
-    const otherRaw = (answersSnapshot['company_type_other'] || '').toString().toLowerCase();
-    if (otherRaw.includes('research') || otherRaw.includes('university') || otherRaw.includes('lab')) {
-      return 'research_org';
-    }
-    return 'other';
-  }
-
-  return 'other';
-}
+// Organization stage mapping is now handled by deriveCompanyInfo() from scoring.ts
 
 const ALL_QUESTIONS: QuestionDefinition[] = [...CORE_QUESTIONS, ...ADVANCED_QUESTIONS];
 
@@ -390,7 +345,7 @@ export default function ProgramFinder({
   onProgramSelect
 }: ProgramFinderProps) {
   const router = useRouter();
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   
   // Get translated questions
   const translatedQuestions = useMemo<QuestionDefinition[]>(() => {
@@ -518,12 +473,24 @@ export default function ProgramFinder({
     if (typeof window === 'undefined') return;
     const programId = program.id || `program_${Date.now()}`;
     try {
+      // Save comprehensive program data to localStorage (no database needed)
       localStorage.setItem('selectedProgram', JSON.stringify({
         id: programId,
         name: program.name,
         categorized_requirements: program.categorized_requirements || {},
         type: program.type || (program.funding_types?.[0]) || 'grant',
         url: (program as any).url || (program as any).source_url || null,
+        description: program.description || (program as any).metadata?.description || '',
+        funding_amount_min: (program as any).funding_amount_min ?? program.metadata?.funding_amount_min ?? null,
+        funding_amount_max: (program as any).funding_amount_max ?? program.metadata?.funding_amount_max ?? null,
+        currency: (program as any).currency || program.metadata?.currency || 'EUR',
+        region: (program as any).region || program.metadata?.region || program.region || null,
+        deadline: (program as any).deadline || program.metadata?.deadline || null,
+        open_deadline: (program as any).open_deadline ?? program.metadata?.open_deadline ?? false,
+        use_of_funds: (program as any).use_of_funds || null,
+        impact_focus: (program as any).impact_focus || null,
+        program_focus: (program as any).program_focus || program.metadata?.program_focus || [],
+        funding_types: program.funding_types || [],
       }));
     } catch (error) {
       console.warn('Failed to persist selected program:', error);
@@ -653,36 +620,25 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
         newAnswers[questionId] = value;
       }
 
-      // NEW: Handle organisation_stage - derive company_type and company_stage for backward compatibility
+      // Handle organisation_stage - derive company_type and company_stage using recoEngine
       if (questionId === 'organisation_stage' || questionId === 'organisation_stage_other') {
         const orgStage = newAnswers.organisation_stage as string | undefined;
-        if (orgStage && ORGANISATION_STAGE_MAP[orgStage]) {
-          const mapped = ORGANISATION_STAGE_MAP[orgStage];
-          newAnswers.company_type = mapped.type;
-          if (mapped.stage) {
-            newAnswers.company_stage = mapped.stage;
-          } else {
-            delete newAnswers.company_stage;
-          }
+        const { company_type, company_stage } = deriveCompanyInfo(orgStage);
+        if (company_type) {
+          newAnswers.company_type = company_type;
+        }
+        if (company_stage) {
+          newAnswers.company_stage = company_stage;
         } else {
-          // Fallback: try to infer from other text
-          const derivedStage = inferCompanyStageFromAnswers(newAnswers);
-          if (derivedStage) {
-            newAnswers.company_stage = derivedStage;
-          } else {
-            delete newAnswers.company_stage;
-          }
+          delete newAnswers.company_stage;
         }
       }
       
       // LEGACY: Handle old company_type for backward compatibility
       if (questionId === 'company_type' || questionId === 'company_type_other') {
-        const derivedStage = inferCompanyStageFromAnswers(newAnswers);
-        if (derivedStage) {
-          newAnswers.company_stage = derivedStage;
-        } else {
-          delete newAnswers.company_stage;
-        }
+        // For legacy company_type, we can't derive stage without organisation_stage
+        // This is handled by the scoring engine which normalizes both
+        delete newAnswers.company_stage;
       }
 
       console.log('handleAnswer called:', { questionId, value, newAnswers });
@@ -1056,13 +1012,9 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                                             <input
                                               type="text"
                                               placeholder={
-                                                locale === 'de' 
-                                                  ? (question.id === 'organisation_stage' || question.id === 'company_type'
-                                                      ? 'z.B. Verein, Genossenschaft, Stiftung'
-                                                      : 'Bitte angeben...')
-                                                  : (question.id === 'organisation_stage' || question.id === 'company_type'
-                                                      ? 'e.g., Association, Cooperative, Foundation'
-                                                      : 'Please specify...')
+                                                question.id === 'organisation_stage' || question.id === 'company_type'
+                                                  ? ((t('reco.ui.otherPlaceholderOrg' as any) as string) || 'e.g., Association, Cooperative, Foundation')
+                                                  : ((t('reco.ui.otherPlaceholder' as any) as string) || 'Please specify...')
                                               }
                                               value={otherTextValue}
                                               onChange={(e) => {
@@ -1073,9 +1025,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                                             />
                                             {(question.id === 'organisation_stage' || question.id === 'company_type') && (
                                               <p className="text-xs text-gray-500 mt-1">
-                                                {locale === 'de' 
-                                                  ? 'Beispiele: Verein, Genossenschaft, Stiftung, GmbH, AG, etc.'
-                                                  : 'Examples: Association, Cooperative, Foundation, LLC, Inc., etc.'}
+                                                {(t('reco.ui.otherExamples' as any) as string) || 'Examples: Association, Cooperative, Foundation, LLC, Inc., etc.'}
                                               </p>
                                             )}
                                           </div>
@@ -1272,11 +1222,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                                             </label>
                                             <input
                                               type="text"
-                                              placeholder={
-                                                locale === 'de'
-                                                  ? 'Bitte angeben...'
-                                                  : 'Please specify...'
-                                              }
+                                              placeholder={(t('reco.ui.otherPlaceholder' as any) as string) || 'Please specify...'}
                                               value={otherTextValue}
                                               onChange={(e) => {
                                                 handleAnswer(`${question.id}_other`, e.target.value);
@@ -1542,12 +1488,10 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                   
                   <div className="text-center space-y-2">
                     <h3 className="text-2xl font-bold text-gray-900 animate-pulse">
-                      {locale === 'de' ? 'Förderprogramme werden generiert...' : 'Generating Funding Programs...'}
+                      {(t('reco.ui.generatingPrograms' as any) as string) || 'Generating Funding Programs...'}
                     </h3>
                     <p className="text-gray-600 text-sm">
-                      {locale === 'de' 
-                        ? 'Dies kann ein paar Momente dauern. Bitte haben Sie etwas Geduld.'
-                        : 'This may take just a moment. Thanks for your patience.'}
+                      {(t('reco.ui.generatingProgramsDescription' as any) as string) || 'This may take just a moment. Thanks for your patience.'}
                     </p>
                   </div>
                   
@@ -1555,15 +1499,15 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                   <div className="w-full space-y-3 mt-6">
                     <div className="flex items-center gap-3 text-sm text-gray-700 animate-in slide-in-from-left duration-500">
                       <div className="w-3 h-3 rounded-full bg-blue-600 animate-pulse"></div>
-                      <span className="font-medium">{locale === 'de' ? 'Analysiere Ihr Profil...' : 'Analyzing your profile...'}</span>
+                      <span className="font-medium">{(t('reco.ui.analyzingProfile' as any) as string) || 'Analyzing your profile...'}</span>
                     </div>
                     <div className="flex items-center gap-3 text-sm text-gray-600 animate-in slide-in-from-left duration-700 delay-200">
                       <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse delay-300"></div>
-                      <span>{locale === 'de' ? 'Finde passende Programme...' : 'Finding matching programs...'}</span>
+                      <span>{(t('reco.ui.findingPrograms' as any) as string) || 'Finding matching programs...'}</span>
                     </div>
                     <div className="flex items-center gap-3 text-sm text-gray-600 animate-in slide-in-from-left duration-700 delay-500">
                       <div className="w-3 h-3 rounded-full bg-blue-400 animate-pulse delay-500"></div>
-                      <span>{locale === 'de' ? 'Bewerte Relevanz...' : 'Scoring relevance...'}</span>
+                      <span>{(t('reco.ui.scoringRelevance' as any) as string) || 'Scoring relevance...'}</span>
                     </div>
                   </div>
                   
@@ -1589,12 +1533,10 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>
-                  {locale === 'de' ? 'Projekt zuerst vorbereiten' : 'Set up your project first'}
+                  {(t('reco.planningModal.title' as any) as string) || 'Set up your project first'}
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-600">
-                  {locale === 'de'
-                    ? 'ProgramFinder benötigt ein konkretes Projekt oder Vorhaben. Starten Sie im Editor, erstellen Sie grob Ihren Plan und kommen Sie dann zurück, um passende Förderungen zu finden.'
-                    : 'ProgramFinder needs a defined project or venture to match funding. Jump into the editor, sketch your plan, and then return to discover the best programs.'}
+                  {(t('reco.planningModal.description' as any) as string) || 'ProgramFinder needs a defined project or venture to match funding. Jump into the editor, sketch your plan, and then return to discover the best programs.'}
                 </DialogDescription>
               </DialogHeader>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -1606,7 +1548,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                   }}
                   className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors"
                 >
-                  {locale === 'de' ? 'Editor öffnen' : 'Open editor'}
+                  {(t('reco.planningModal.openEditor' as any) as string) || 'Open editor'}
                 </button>
                 <button
                   type="button"
@@ -1616,7 +1558,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                   }}
                   className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
                 >
-                  {locale === 'de' ? 'Hier bleiben' : 'Stay in ProgramFinder'}
+                  {(t('reco.planningModal.stay' as any) as string) || 'Stay in ProgramFinder'}
                 </button>
               </div>
             </DialogContent>
@@ -1632,13 +1574,11 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
             <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-6 md:p-8">
               <DialogHeader className="mb-6">
                 <DialogTitle className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                  {locale === 'de' ? 'Gefundene Förderprogramme' : 'Found Funding Programs'} 
+                  {(t('reco.results.title' as any) as string) || 'Found Funding Programs'} 
                   <span className="ml-2 text-lg md:text-xl font-semibold text-gray-600">({visibleResults.length})</span>
                 </DialogTitle>
                 <DialogDescription className="text-base text-gray-600">
-                  {locale === 'de' 
-                    ? 'Hier sind die passendsten Förderprogramme für Sie.'
-                    : 'Here are the most suitable funding programs for you.'}
+                  {(t('reco.results.description' as any) as string) || 'Here are the most suitable funding programs for you.'}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-5 md:space-y-6 mt-2">
@@ -1710,34 +1650,34 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                     const getFundingTypeLabel = (type: string) => {
                       const normalized = type.toLowerCase();
                       // Financial instruments
-                      if (normalized.includes('grant')) return locale === 'de' ? 'Zuschuss' : 'Grant';
-                      if (normalized.includes('subsidy')) return locale === 'de' ? 'Subvention' : 'Subsidy';
-                      if (normalized.includes('gründungsprogramm')) return locale === 'de' ? 'Gründungsprogramm' : 'Startup Program';
-                      if (normalized.includes('loan') && !normalized.includes('bank_loan')) return locale === 'de' ? 'Darlehen' : 'Loan';
-                      if (normalized.includes('bank_loan')) return locale === 'de' ? 'Bankdarlehen' : 'Bank Loan';
-                      if (normalized.includes('micro_credit')) return locale === 'de' ? 'Mikrokredit' : 'Micro Credit';
-                      if (normalized.includes('repayable_advance')) return locale === 'de' ? 'Rückzahlbarer Vorschuss' : 'Repayable Advance';
-                      if (normalized.includes('equity')) return locale === 'de' ? 'Beteiligung' : 'Equity';
-                      if (normalized.includes('venture_capital')) return locale === 'de' ? 'Wagniskapital' : 'Venture Capital';
-                      if (normalized.includes('angel_investment')) return locale === 'de' ? 'Business Angel' : 'Angel Investment';
-                      if (normalized.includes('crowdfunding')) return locale === 'de' ? 'Crowdfunding' : 'Crowdfunding';
-                      if (normalized.includes('guarantee')) return locale === 'de' ? 'Bürgschaft' : 'Guarantee';
-                      if (normalized.includes('export_insurance')) return locale === 'de' ? 'Exportversicherung' : 'Export Insurance';
-                      if (normalized.includes('convertible')) return locale === 'de' ? 'Wandelanleihe' : 'Convertible';
-                      if (normalized.includes('leasing')) return locale === 'de' ? 'Leasing' : 'Leasing';
+                      if (normalized.includes('grant')) return (t('reco.fundingTypes.grant' as any) as string) || 'Grant';
+                      if (normalized.includes('subsidy')) return (t('reco.fundingTypes.subsidy' as any) as string) || 'Subsidy';
+                      if (normalized.includes('gründungsprogramm')) return (t('reco.fundingTypes.startupProgram' as any) as string) || 'Startup Program';
+                      if (normalized.includes('loan') && !normalized.includes('bank_loan')) return (t('reco.fundingTypes.loan' as any) as string) || 'Loan';
+                      if (normalized.includes('bank_loan')) return (t('reco.fundingTypes.bankLoan' as any) as string) || 'Bank Loan';
+                      if (normalized.includes('micro_credit')) return (t('reco.fundingTypes.microCredit' as any) as string) || 'Micro Credit';
+                      if (normalized.includes('repayable_advance')) return (t('reco.fundingTypes.repayableAdvance' as any) as string) || 'Repayable Advance';
+                      if (normalized.includes('equity')) return (t('reco.fundingTypes.equity' as any) as string) || 'Equity';
+                      if (normalized.includes('venture_capital')) return (t('reco.fundingTypes.ventureCapital' as any) as string) || 'Venture Capital';
+                      if (normalized.includes('angel_investment')) return (t('reco.fundingTypes.angelInvestment' as any) as string) || 'Angel Investment';
+                      if (normalized.includes('crowdfunding')) return (t('reco.fundingTypes.crowdfunding' as any) as string) || 'Crowdfunding';
+                      if (normalized.includes('guarantee')) return (t('reco.fundingTypes.guarantee' as any) as string) || 'Guarantee';
+                      if (normalized.includes('export_insurance')) return (t('reco.fundingTypes.exportInsurance' as any) as string) || 'Export Insurance';
+                      if (normalized.includes('convertible')) return (t('reco.fundingTypes.convertible' as any) as string) || 'Convertible';
+                      if (normalized.includes('leasing')) return (t('reco.fundingTypes.leasing' as any) as string) || 'Leasing';
                       // Support services
-                      if (normalized.includes('coaching')) return locale === 'de' ? 'Coaching' : 'Coaching';
-                      if (normalized.includes('mentoring')) return locale === 'de' ? 'Mentoring' : 'Mentoring';
-                      if (normalized.includes('consultation') || normalized.includes('consulting_support')) return locale === 'de' ? 'Beratung' : 'Consultation';
-                      if (normalized.includes('networking')) return locale === 'de' ? 'Netzwerk' : 'Networking';
-                      if (normalized.includes('workshop')) return locale === 'de' ? 'Workshop' : 'Workshop';
-                      if (normalized.includes('support_program')) return locale === 'de' ? 'Unterstützungsprogramm' : 'Support Program';
-                      if (normalized.includes('acceleration_program')) return locale === 'de' ? 'Beschleunigungsprogramm' : 'Acceleration Program';
+                      if (normalized.includes('coaching')) return (t('reco.fundingTypes.coaching' as any) as string) || 'Coaching';
+                      if (normalized.includes('mentoring')) return (t('reco.fundingTypes.mentoring' as any) as string) || 'Mentoring';
+                      if (normalized.includes('consultation') || normalized.includes('consulting_support')) return (t('reco.fundingTypes.consultation' as any) as string) || 'Consultation';
+                      if (normalized.includes('networking')) return (t('reco.fundingTypes.networking' as any) as string) || 'Networking';
+                      if (normalized.includes('workshop')) return (t('reco.fundingTypes.workshop' as any) as string) || 'Workshop';
+                      if (normalized.includes('support_program')) return (t('reco.fundingTypes.supportProgram' as any) as string) || 'Support Program';
+                      if (normalized.includes('acceleration_program')) return (t('reco.fundingTypes.accelerationProgram' as any) as string) || 'Acceleration Program';
                       // Specialized
-                      if (normalized.includes('intellectual_property')) return locale === 'de' ? 'Geistiges Eigentum' : 'Intellectual Property';
-                      if (normalized.includes('patent_support')) return locale === 'de' ? 'Patentunterstützung' : 'Patent Support';
-                      if (normalized.includes('export_support')) return locale === 'de' ? 'Exportunterstützung' : 'Export Support';
-                      if (normalized.includes('innovation_support')) return locale === 'de' ? 'Innovationsunterstützung' : 'Innovation Support';
+                      if (normalized.includes('intellectual_property')) return (t('reco.fundingTypes.intellectualProperty' as any) as string) || 'Intellectual Property';
+                      if (normalized.includes('patent_support')) return (t('reco.fundingTypes.patentSupport' as any) as string) || 'Patent Support';
+                      if (normalized.includes('export_support')) return (t('reco.fundingTypes.exportSupport' as any) as string) || 'Export Support';
+                      if (normalized.includes('innovation_support')) return (t('reco.fundingTypes.innovationSupport' as any) as string) || 'Innovation Support';
                       // Fallback: capitalize first letter
                       return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
                     };
@@ -1757,7 +1697,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                                   program.score >= 40 ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
                                   'bg-gray-100 text-gray-800 border border-gray-300'
                                 }`}>
-                                  {Math.round(program.score)}% {locale === 'de' ? 'Match' : 'Match'}
+                                  {Math.round(program.score)}% {(t('reco.ui.match' as any) as string) || 'Match'}
                                 </span>
                               )}
                             </div>
@@ -1811,7 +1751,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                                   )}
                                   {watchOuts.length > 0 && (
                                     <div className="text-xs text-gray-600 italic">
-                                      {locale === 'de' ? 'Zu beachten: ' : 'Note: '}
+                                      {(t('reco.ui.note' as any) as string) || 'Note: '}
                                       {watchOuts.join(', ')}
                                     </div>
                                   )}
@@ -1824,7 +1764,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                               {program.amount && (program.amount.min > 0 || program.amount.max > 0) && (
                                 <div className="flex items-start gap-2">
                                   <span className="font-semibold text-gray-700 min-w-[80px]">
-                                    {locale === 'de' ? 'Betrag:' : 'Amount:'}
+                                    {(t('reco.programDetails.amount' as any) as string) || 'Amount:'}
                                   </span>
                                   <span className="text-gray-600">
                                     €{program.amount.min?.toLocaleString('de-DE') || '0'} - €{program.amount.max?.toLocaleString('de-DE') || '0'}
@@ -1835,7 +1775,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                               {(program as any).region && (
                                 <div className="flex items-start gap-2">
                                   <span className="font-semibold text-gray-700 min-w-[80px]">
-                                    {locale === 'de' ? 'Region:' : 'Region:'}
+                                    {(t('reco.programDetails.region' as any) as string) || 'Region:'}
                                   </span>
                                   <span className="text-gray-600">{(program as any).region}</span>
                                 </div>
@@ -1843,7 +1783,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                               {(program as any).metadata?.organization && (
                                 <div className="flex items-start gap-2">
                                   <span className="font-semibold text-gray-700 min-w-[80px]">
-                                    {locale === 'de' ? 'Organisation:' : 'Organization:'}
+                                    {(t('reco.programDetails.organization' as any) as string) || 'Organization:'}
                                   </span>
                                   <span className="text-gray-600">{(program as any).metadata.organization}</span>
                                 </div>
@@ -1851,27 +1791,47 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                               {(program as any).metadata?.co_financing_required === true && (
                                 <div className="flex items-start gap-2">
                                   <span className="font-semibold text-gray-700 min-w-[80px]">
-                                    {locale === 'de' ? 'Co-Finanzierung:' : 'Co-Financing:'}
+                                    {(t('reco.programDetails.coFinancing' as any) as string) || 'Co-Financing:'}
                                   </span>
                                   <span className="text-orange-600 font-medium">
                                     {(program as any).metadata.co_financing_percentage 
-                                      ? `${(program as any).metadata.co_financing_percentage}% ${locale === 'de' ? 'erforderlich' : 'required'}`
-                                      : locale === 'de' ? 'Erforderlich' : 'Required'}
+                                      ? `${(program as any).metadata.co_financing_percentage}% ${(t('reco.programDetails.required' as any) as string) || 'required'}`
+                                      : (t('reco.programDetails.required' as any) as string) || 'Required'}
                                   </span>
                                 </div>
                               )}
-                              {(program as any).metadata?.application_deadlines && (
+                              {((program as any).deadline || (program as any).open_deadline) && (
                                 <div className="flex items-start gap-2">
                                   <span className="font-semibold text-gray-700 min-w-[80px]">
-                                    {locale === 'de' ? 'Fristen:' : 'Deadlines:'}
+                                    {(t('reco.programDetails.deadline' as any) as string) || 'Deadline:'}
                                   </span>
-                                  <span className="text-gray-600">{(program as any).metadata.application_deadlines}</span>
+                                  <span className="text-gray-600">
+                                    {(program as any).open_deadline 
+                                      ? (t('reco.programDetails.rollingDeadline' as any) as string) || 'Rolling / Ongoing'
+                                      : (program as any).deadline || 'N/A'}
+                                  </span>
+                                </div>
+                              )}
+                              {Array.isArray((program as any).use_of_funds) && (program as any).use_of_funds.length > 0 && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-semibold text-gray-700 min-w-[80px]">
+                                    {(t('reco.programDetails.useOfFunds' as any) as string) || 'Use of Funds:'}
+                                  </span>
+                                  <span className="text-gray-600">{(program as any).use_of_funds.join(', ')}</span>
+                                </div>
+                              )}
+                              {Array.isArray((program as any).impact_focus) && (program as any).impact_focus.length > 0 && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-semibold text-gray-700 min-w-[80px]">
+                                    {(t('reco.programDetails.impactFocus' as any) as string) || 'Impact Focus:'}
+                                  </span>
+                                  <span className="text-gray-600">{(program as any).impact_focus.join(', ')}</span>
                                 </div>
                               )}
                               {(program as any).metadata?.typical_timeline && (
                                 <div className="flex items-start gap-2">
                                   <span className="font-semibold text-gray-700 min-w-[80px]">
-                                    {locale === 'de' ? 'Zeitrahmen:' : 'Timeline:'}
+                                    {(t('reco.programDetails.timeline' as any) as string) || 'Timeline:'}
                                   </span>
                                   <span className="text-gray-600">{(program as any).metadata.typical_timeline}</span>
                                 </div>
@@ -1879,16 +1839,16 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                               {(program as any).metadata?.competitiveness && (
                                 <div className="flex items-start gap-2">
                                   <span className="font-semibold text-gray-700 min-w-[80px]">
-                                    {locale === 'de' ? 'Wettbewerb:' : 'Competitiveness:'}
+                                    {(t('reco.programDetails.competitiveness' as any) as string) || 'Competitiveness:'}
                                   </span>
                                   <span className={`font-medium ${
                                     (program as any).metadata.competitiveness === 'high' ? 'text-red-600' :
                                     (program as any).metadata.competitiveness === 'medium' ? 'text-yellow-600' :
                                     'text-green-600'
                                   }`}>
-                                    {(program as any).metadata.competitiveness === 'high' ? (locale === 'de' ? 'Hoch' : 'High') :
-                                     (program as any).metadata.competitiveness === 'medium' ? (locale === 'de' ? 'Mittel' : 'Medium') :
-                                     (locale === 'de' ? 'Niedrig' : 'Low')}
+                                    {(program as any).metadata.competitiveness === 'high' ? ((t('reco.programDetails.competitivenessHigh' as any) as string) || 'High') :
+                                     (program as any).metadata.competitiveness === 'medium' ? ((t('reco.programDetails.competitivenessMedium' as any) as string) || 'Medium') :
+                                     ((t('reco.programDetails.competitivenessLow' as any) as string) || 'Low')}
                                   </span>
                                 </div>
                               )}
@@ -1908,7 +1868,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                               }}
                               className="w-full md:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm shadow-sm hover:shadow-md whitespace-nowrap"
                             >
-                              {locale === 'de' ? 'Auswählen' : 'Select'}
+                              {(t('reco.ui.select' as any) as string) || 'Select'}
                             </button>
                           </div>
                         </div>
@@ -1941,7 +1901,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
 
               <div className="mt-4 space-y-3 text-sm text-gray-700">
                 <p className="font-semibold text-gray-900">
-                  {confirmProgram?.name || (locale === 'de' ? 'Gewähltes Programm' : 'Selected program')}
+                  {confirmProgram?.name || ((t('reco.confirmDialog.selectedProgram' as any) as string) || 'Selected program')}
                 </p>
                 {confirmDialogCopy.points.length > 0 && (
                   <ul className="list-disc list-inside space-y-1 text-gray-700">
@@ -1980,14 +1940,10 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                   if (!hasEnoughAnswers) {
                   if (!hasRequiredAnswers) {
                     const requiredList = missingRequiredLabels.join(', ');
-                    alert(locale === 'de'
-                      ? `Bitte beantworten Sie zuerst die Pflichtfragen: ${requiredList}.`
-                      : `Please complete the required questions first: ${requiredList}.`);
+                    alert((t('reco.errors.missingRequiredQuestions' as any) as string)?.replace('{list}', requiredList) || `Please complete the required questions first: ${requiredList}.`);
                     return;
                   }
-                    alert(locale === 'de' 
-                      ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen, um Förderprogramme zu generieren.`
-                      : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
+                    alert((t('reco.errors.minQuestionsRequired' as any) as string)?.replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS)) || `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
                     return;
                   }
                 const quotaStatus = getQuotaStatus();
@@ -2040,12 +1996,8 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                       .join(', ');
 
                     const friendlyMessage = missingFieldLabels
-                      ? (locale === 'de'
-                          ? `Bitte beantworten Sie zuerst: ${missingFieldLabels}.`
-                          : `Please complete: ${missingFieldLabels} before generating programs.`)
-                      : (locale === 'de'
-                          ? 'Es konnten keine Programme generiert werden. Bitte versuchen Sie es später erneut.'
-                          : 'We could not generate programs right now. Please try again shortly.');
+                      ? ((t('reco.errors.completeFields' as any) as string)?.replace('{fields}', missingFieldLabels) || `Please complete: ${missingFieldLabels} before generating programs.`)
+                      : ((t('reco.errors.generationFailed' as any) as string) || 'We could not generate programs right now. Please try again shortly.');
 
                     alert(friendlyMessage);
                     setEmptyResults();
@@ -2091,18 +2043,24 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                     const extractionResults = data.extraction_results || data.extractionResults || [];
                     const hasLLMError = extractionResults.some((r: any) => r.error);
                     
-                    // Show user-friendly message
+                    // Show user-friendly message (hide technical details from users)
                     if (data.error) {
                       console.error('API Error:', data.error, data.message);
-                      alert(`Error generating programs: ${data.message || data.error}. Please check your LLM configuration (OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT).`);
+                      // Only show technical details in development
+                      const isDev = process.env.NODE_ENV === 'development';
+                      const technicalDetails = isDev ? ` (${data.message || data.error})` : '';
+                      alert((t('reco.errors.generationFailed' as any) as string) || `We could not generate programs right now. Please try again shortly.${technicalDetails}`);
                     } else if (hasLLMError) {
                       const llmError = extractionResults.find((r: any) => r.error);
                       console.error('LLM Error:', llmError);
-                      alert(`Error generating programs: ${llmError.error || 'LLM generation failed'}. Please check your LLM configuration and try again.`);
+                      // Only show technical details in development
+                      const isDev = process.env.NODE_ENV === 'development';
+                      const technicalDetails = isDev ? ` (${llmError.error || 'LLM generation failed'})` : '';
+                      alert((t('reco.errors.generationFailed' as any) as string) || `We could not generate programs right now. Please try again shortly.${technicalDetails}`);
                     } else {
                       console.error('API returned success but no programs. This should not happen with the new fixes.');
                       console.error('Check server logs for details. Emergency fallback should have triggered.');
-                      alert('No programs were generated. This is unexpected - please try again or contact support. The system should always return at least some programs.');
+                      alert((t('reco.errors.noProgramsFound' as any) as string) || 'No programs were generated. Please try again or contact support.');
                     }
                     setEmptyResults();
                     setIsLoading(false);
@@ -2160,9 +2118,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                     console.error('   2. Scoring returned 0 programs');
                     console.error('   3. Programs were filtered out');
                     console.error('❌ Check browser console and server logs for details');
-                    alert(locale === 'de' 
-                      ? 'Keine Programme gefunden. Bitte überprüfen Sie die Server-Logs für Details.'
-                      : 'No programs found. Please check server logs for details.');
+                    alert((t('reco.errors.noProgramsFound' as any) as string) || 'No programs found. Please check server logs for details.');
                   }
                 } catch (error: any) {
                   console.error('❌ Error generating programs:', error);
@@ -2170,9 +2126,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                     message: error.message,
                     stack: error.stack,
                   });
-                  alert(locale === 'de' 
-                    ? `Fehler beim Generieren der Förderprogramme: ${error.message || 'Unbekannter Fehler'}`
-                    : `Error generating programs: ${error.message || 'Unknown error'}`);
+                  alert(((t('reco.errors.generationError' as any) as string)?.replace('{error}', error.message || 'Unknown error') || `Error generating programs: ${error.message || 'Unknown error'}`));
                 } finally {
                   setIsLoading(false);
                   console.log('🏁 Program generation finished');
@@ -2180,13 +2134,9 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
               }}
                 disabled={isLoading || !hasEnoughAnswers}
                 className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400 min-w-[280px]"
-                title={!hasEnoughAnswers ? (locale === 'de' 
-                  ? (hasRequiredAnswers
-                      ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen`
-                      : 'Bitte füllen Sie alle Pflichtfragen aus')
-                  : (hasRequiredAnswers
-                      ? `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`
-                      : 'Please complete all required questions')) : undefined}
+                title={!hasEnoughAnswers ? (hasRequiredAnswers
+                      ? ((t('reco.ui.minQuestionsTooltip' as any) as string)?.replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS)) || `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`)
+                      : ((t('reco.ui.requiredQuestionsTooltip' as any) as string) || 'Please complete all required questions')) : undefined}
               >
                 {isLoading ? (
                   <>
@@ -2194,23 +2144,19 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    {locale === 'de' ? 'Generiere Programme...' : 'Generating Programs...'}
+                    {(t('reco.ui.generatingPrograms' as any) as string) || 'Generating Programs...'}
                   </>
                 ) : !hasEnoughAnswers ? (
                   <>
                     <Wand2 className="w-5 h-5" />
                     {hasRequiredAnswers
-                      ? (locale === 'de' 
-                          ? `Noch ${remainingQuestions} Fragen` 
-                          : `${remainingQuestions} more questions`)
-                      : (locale === 'de'
-                          ? 'Pflichtfragen fehlen'
-                          : 'Required answers missing')}
+                      ? ((t('reco.ui.remainingQuestions' as any) as string)?.replace('{count}', String(remainingQuestions)) || `${remainingQuestions} more questions`)
+                      : ((t('reco.ui.requiredAnswersMissing' as any) as string) || 'Required answers missing')}
                   </>
                 ) : (
                   <>
                     <Wand2 className="w-5 h-5" />
-                    {locale === 'de' ? 'Förderprogramm generieren' : 'Generate Funding Programs'}
+                    {(t('reco.ui.generateFundingPrograms' as any) as string) || 'Generate Funding Programs'}
                   </>
                 )}
               </button>

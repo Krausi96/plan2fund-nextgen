@@ -1,10 +1,29 @@
 // ========= PLAN2FUND — CANONICAL PLAN TYPES =========
 // Business plan editor data contracts (new model + legacy compatibility)
+//
+// See PRODUCTS_AND_DOCUMENTS.md for detailed explanation of:
+// - Product types (submission/review/strategy)
+// - How additional documents work with each product
+// - Custom documents vs program documents vs master documents
 
 // ----------------------------------------------------------------------------------
 // Modern Business Plan model (used by the unified editor shell)
 // ----------------------------------------------------------------------------------
 
+/**
+ * Product Types - Three mutually exclusive product options:
+ * 
+ * - 'submission': Full business plan for funding submission (no default additional documents)
+ * - 'review': Business plan for review/feedback (no default additional documents)
+ * - 'strategy': Strategic planning documents (has default additional documents like Executive Summary, Market Analysis, etc.)
+ * 
+ * Additional documents are product-specific and can be:
+ * - Master documents (defined in templates/documents.ts)
+ * - Program-specific documents (loaded via programId)
+ * - Custom documents (user-created, stored in BusinessPlan.metadata.customDocuments)
+ * 
+ * See PRODUCTS_AND_DOCUMENTS.md for full details.
+ */
 export type ProductType = 'submission' | 'review' | 'strategy';
 
 export type FundingProgramType = 'grant' | 'loan' | 'equity' | 'visa' | 'other';
@@ -199,12 +218,30 @@ export interface AncillaryContent {
   lastGenerated?: string;
 }
 
+/**
+ * Modern Business Plan Model
+ * 
+ * This is the canonical plan structure used by the editor.
+ * 
+ * Product + Documents:
+ * - productType determines which product (submission/review/strategy)
+ * - metadata.customDocuments stores user-created additional documents
+ * - Additional documents are loaded from templates based on productType + fundingType
+ * 
+ * Documents Flow:
+ * 1. Master documents: Loaded from MASTER_DOCUMENTS[fundingType][productType]
+ * 2. Program documents: Merged from program-specific templates (if programId exists)
+ * 3. Custom documents: Stored in metadata.customDocuments (user-created)
+ * 4. Final list: [...master, ...program, ...custom]
+ * 
+ * See PRODUCTS_AND_DOCUMENTS.md for complete documentation.
+ */
 export interface BusinessPlan {
   id: string;
-  productType: ProductType;
+  productType: ProductType; // Which product: submission | review | strategy
   fundingProgram?: FundingProgramType;
   titlePage: TitlePage;
-  sections: Section[];
+  sections: Section[]; // Main business plan sections
   references: Reference[];
   appendices?: AppendixItem[];
   ancillary: AncillaryContent;
@@ -213,13 +250,16 @@ export interface BusinessPlan {
     ownerId?: string;
     lastSavedAt?: string;
     version?: string;
-    programId?: string;
+    programId?: string; // Used to load program-specific documents/sections
     programName?: string;
     templateFundingType?: TemplateFundingType;
-    disabledSectionIds?: string[];
-    disabledDocumentIds?: string[];
-    customSections?: any[]; // SectionTemplate[] - stored as serializable objects
-    customDocuments?: any[]; // DocumentTemplate[] - stored as serializable objects
+    disabledSectionIds?: string[]; // Sections user has disabled
+    disabledDocumentIds?: string[]; // Documents user has disabled
+    customSections?: any[]; // SectionTemplate[] - user-created sections
+    customDocuments?: any[]; // DocumentTemplate[] - user-created additional documents
+    // Document-specific sections: each additional document has its own sections (separate from core product)
+    documentSections?: Record<string, Section[]>; // Map of documentId -> sections array
+    documentTitlePages?: Record<string, TitlePage>; // Map of documentId -> title page
   };
 }
 

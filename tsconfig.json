@@ -9,7 +9,7 @@
     ],
     "module": "ESNext",
     "skipLibCheck": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -21,7 +21,6 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
       "@/features/*": ["./features/*"],
       "@/shared/*": ["./shared/*"],
       "@/database/*": ["./database/*"],
@@ -32,10 +31,9 @@
     "esModuleInterop": true
   },
   "include": [
-    "src",
     "pages",
     "features",
-    "shared",
+    "shared"
   ],
   "exclude": [
     "node_modules",
