@@ -11,10 +11,10 @@ import {
   Route,
   MediaAsset,
   Table
-} from '@/features/editor/types/plan';
+} from '@/features/editor/lib/types/plan';
 import ExportRenderer from '@/features/export/renderer/renderer';
 
-export interface PreviewPanelProps {
+interface PreviewPanelProps {
   plan: BusinessPlan | null;
   focusSectionId?: string | null;
   onSectionClick?: (sectionId: string) => void;
@@ -312,9 +312,6 @@ function PreviewPanel({
   onAppendixUpdate,
   onAppendixDelete
 }: PreviewPanelProps) {
-  // Use disabledSections to ensure TypeScript recognizes it in the type
-  const _disabledSections = disabledSections;
-  
   const [viewMode, setViewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark, setShowWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<'100' | '120' | '140'>('100');
@@ -586,7 +583,6 @@ function PreviewPanel({
                   onAppendixAdd={onAppendixAdd}
                   onAppendixUpdate={onAppendixUpdate}
                   onAppendixDelete={onAppendixDelete}
-                  disabledSections={disabledSections}
                 />
               </div>
               <div className="flex-shrink-0 mt-4 mb-2 px-4 flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">
@@ -604,6 +600,6 @@ function PreviewPanel({
   );
 }
 
-// Explicitly type the default export to ensure TypeScript recognizes all props
-const PreviewWorkspace: React.FC<PreviewPanelProps> = PreviewPanel;
+// Export as PreviewWorkspace to match import name
+const PreviewWorkspace = PreviewPanel;
 export default PreviewWorkspace;

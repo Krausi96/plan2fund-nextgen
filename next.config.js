@@ -29,7 +29,7 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': require('path').resolve(__dirname),
-      '@templates': require('path').resolve(__dirname, 'features/editor/templates'),
+      '@templates': require('path').resolve(__dirname, 'features/editor/lib/templates'),
     };
 
     if (!isServer) {

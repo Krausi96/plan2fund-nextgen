@@ -165,18 +165,18 @@ export function isProgramFresh(program: any, windowHours: number = 24): boolean 
 // DATABASE CONNECTION
 // ============================================================================
 
-// Database connection handled by scraper-lite/src/db/neon-client.ts
-// No need for separate pool here
+// Database connection handled by shared/lib/database.ts
+// Uses NEON PostgreSQL database (pages and requirements tables)
 
 // Fallback data from latest scraped programs
 function getFallbackData() {
   try {
-    // Always use latest scraped data (what scraper just saved)
+    // Fallback to JSON files if database is unavailable
     const latestDataPath = path.join(process.cwd(), 'scraper-lite', 'data', 'legacy', 'scraped-programs-latest.json');
     
     let dataPath = latestDataPath;
     if (!fs.existsSync(latestDataPath)) {
-      throw new Error('No scraped data found. Run: npm run scraper:run');
+      throw new Error('No scraped data found. Database is the primary source. JSON fallback files are optional.');
     } else {
       console.log('✅ Using scraped-programs-latest.json');
     }
@@ -265,7 +265,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { type, enhanced } = req.query;
     
-    // PRIMARY: Try NEON database first (scraper-lite pages table)
+    // PRIMARY: Try NEON database first (pages table)
     // This is the source of truth - always use database if available
     try {
       // Check DATABASE_URL first
@@ -534,8 +534,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.error('❌ CRITICAL: Database module loading failed.');
         console.error('   Possible fixes:');
         console.error('   1. Restart Next.js dev server (npm run dev)');
-        console.error('   2. Check that scraper-lite/src/db/*.ts files exist');
-        console.error('   3. Verify tsconfig.json includes scraper-lite directory');
+        console.error('   2. Check that shared/lib/database.ts exists');
+        console.error('   3. Verify DATABASE_URL is set correctly');
       } else if (dbError?.message?.includes('DATABASE_URL')) {
         console.error('❌ CRITICAL: DATABASE_URL not configured.');
         console.error('   Add DATABASE_URL to .env.local file');

@@ -1,4 +1,4 @@
-import type { ConversationMessage, QuestionStatus, Section, Dataset, KPI, MediaAsset } from '@/features/editor/types/plan';
+import type { ConversationMessage, QuestionStatus, Section, Dataset, KPI, MediaAsset } from '@/features/editor/lib/types/plan';
 
 type SectionAiProgram = {
   id?: string | null;

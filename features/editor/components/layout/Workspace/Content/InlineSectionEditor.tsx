@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Section, BusinessPlan, ConversationMessage } from '@/features/editor/types/plan';
+import { Section, BusinessPlan, ConversationMessage } from '@/features/editor/lib/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import {
   Dialog,
@@ -10,13 +10,13 @@ import {
   DialogDescription,
 } from '@/shared/components/ui/dialog';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useEditorStore, validateQuestionRequirements, METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
+import { useEditorStore, validateQuestionRequirements, METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/lib/hooks/useEditorStore';
 import {
   Dataset,
   KPI,
   MediaAsset
-} from '@/features/editor/types/plan';
-import { generateSectionContent, detectAIContext, parseAIActions, type AIContext, type AIActionCallbacks } from '@/features/editor/engine/sectionAiClient';
+} from '@/features/editor/lib/types/plan';
+import { generateSectionContent, detectAIContext, parseAIActions, type AIContext, type AIActionCallbacks } from '@/features/editor/lib/engine/sectionAiClient';
 // CSS will be injected dynamically since classes are applied to preview DOM elements
 
 type InlineSectionEditorProps = {

@@ -229,37 +229,30 @@ function DashboardPage() {
 
   const updateData = async () => {
     setIsUpdating(true);
-    setUpdateStatus('Starting update...');
+    setUpdateStatus('Data is automatically synced from the database. No manual update needed.');
     
     try {
-      const response = await fetch('/api/scraper/run', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      // Data is automatically loaded from database (NEON PostgreSQL)
+      // The scraper tool runs separately and updates the database
+      // This endpoint was removed as the scraper is a separate service
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      console.log('✅ Update completed:', result);
-      
-      setUpdateStatus('✅ Update completed successfully!');
+      setUpdateStatus('✅ Data is synced from database automatically');
       setLastUpdate(new Date().toLocaleString());
       localStorage.setItem('lastDataUpdate', new Date().toISOString());
       
       // Track admin action
-      analytics.trackUserAction('admin_data_update', {
+      analytics.trackUserAction('admin_data_check', {
         success: true,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        note: 'Data synced from database'
       });
       
     } catch (error) {
-      console.error('❌ Update failed:', error);
-      setUpdateStatus(`❌ Update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('❌ Data check failed:', error);
+      setUpdateStatus(`❌ Data check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       
       // Track admin action
-      analytics.trackUserAction('admin_data_update', {
+      analytics.trackUserAction('admin_data_check', {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()

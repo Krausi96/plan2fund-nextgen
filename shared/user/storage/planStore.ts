@@ -1,4 +1,4 @@
-import type { ConversationMessage, QuestionStatus } from '@/features/editor/types/plan';
+import type { ConversationMessage, QuestionStatus } from '@/features/editor/lib/types/plan';
 
 export type PlanSection = { 
   id: string; 

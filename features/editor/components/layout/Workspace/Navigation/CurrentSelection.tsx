@@ -3,11 +3,11 @@ import { createPortal } from 'react-dom';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { Button } from '@/shared/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
-import { normalizeProgramInput, type ProgressSummary, METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
-import { extractTemplateFromFile } from '@/features/editor/templates/api';
-import type { ProductType, ProgramSummary } from '@/features/editor/types/plan';
+import { normalizeProgramInput, type ProgressSummary, METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/lib/hooks/useEditorStore';
+import { extractTemplateFromFile } from '@/features/editor/lib/templates/api';
+import type { ProductType, ProgramSummary } from '@/features/editor/lib/types/plan';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
-import type { ConnectCopy } from '@/features/editor/types/configurator';
+import type { ConnectCopy } from '@/features/editor/lib/types/configurator';
 
 type CurrentSelectionProps = {
   productLabel: string;
@@ -35,7 +35,7 @@ type CurrentSelectionProps = {
   progressSummary?: ProgressSummary[];
   onRunRequirementsCheck?: () => void;
   // Overlay positioning
-  overlayContainerRef?: React.RefObject<HTMLDivElement>;
+  overlayContainerRef?: React.RefObject<HTMLDivElement | null>;
   // Overlay state callback
   onOverlayOpenChange?: (isOpen: boolean) => void;
   // Sections & Documents management (for Step 3)

@@ -1,7 +1,7 @@
 // ========= PLAN2FUND — SECTION PROGRESS HELPERS =========
 // Shared functions for question status + completion calculations
 
-import { PlanSection, Question, QuestionStatus } from '@/features/editor/types/plan';
+import { PlanSection, Question, QuestionStatus } from '@/features/editor/lib/types/plan';
 
 /**
  * Determines whether an answer meets the minimum threshold to count as drafted content.

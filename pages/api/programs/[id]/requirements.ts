@@ -1,7 +1,7 @@
 // API endpoint for program requirements (Decision Tree, Editor, Library)
 import { NextApiRequest, NextApiResponse } from 'next';
 
-// Database connection handled by scraper-lite/src/db/neon-client.ts
+// Database connection handled by shared/lib/database.ts
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;

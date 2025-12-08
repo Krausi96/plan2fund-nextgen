@@ -4,7 +4,7 @@
 import { useRouter } from 'next/router';
 import React, { useMemo } from 'react';
 import Editor from '@/features/editor/components/Editor';
-import type { ProductType } from '@/features/editor/types/plan';
+import type { ProductType } from '@/features/editor/lib/types/plan';
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 class ErrorBoundary extends React.Component<

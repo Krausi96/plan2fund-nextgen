@@ -22,10 +22,10 @@ import {
   TemplateFundingType,
   Table,
   TitlePage
-} from '@/features/editor/types/plan';
-import { generateSectionContent } from '@/features/editor/engine/sectionAiClient';
+} from '@/features/editor/lib/types/plan';
+import { generateSectionContent } from '@/features/editor/lib/engine/sectionAiClient';
 import { SectionTemplate, DocumentTemplate, getSections } from '@templates';
-import { calculateSectionProgress, calculateSectionCompletion, determineQuestionStatus } from '@/features/editor/utils';
+import { calculateSectionProgress, calculateSectionCompletion, determineQuestionStatus } from '@/features/editor/lib/utils';
 import {
   loadPlanSections,
   savePlanSections,

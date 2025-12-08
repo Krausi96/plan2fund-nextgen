@@ -5,7 +5,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
-import type { ConversationMessage } from '@/features/editor/types/plan';
+import type { ConversationMessage } from '@/features/editor/lib/types/plan';
 import { isCustomLLMEnabled, callCustomLLM } from '@/shared/lib/ai/customLLM';
 
 // Initialize OpenAI client (only if API key is set)

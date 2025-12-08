@@ -9,11 +9,12 @@ import {
   normalizeFundingAmountExtraction,
   matchLocations,
   matchCompanyTypes,
-  matchFundingAmounts,
   matchCompanyStages,
-} from '../../../features/reco/engine/normalization';
-import { scoreProgramsEnhanced } from '../../../features/reco/engine/enhancedRecoEngine';
-import type { Program, EnhancedProgramResult } from '../../../features/reco/engine/enhancedRecoEngine';
+  matchFundingAmounts,
+  scoreProgramsEnhanced,
+  type Program,
+  type EnhancedProgramResult,
+} from '../../../features/reco/engine/recoEngine';
 
 type UserAnswers = Record<string, any>;
 

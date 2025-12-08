@@ -9,7 +9,7 @@ import { Wand2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 // Progress bar implemented with custom div (not using Progress component)
-import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
+import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/recoEngine';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 const DAILY_GENERATION_LIMIT = 3;

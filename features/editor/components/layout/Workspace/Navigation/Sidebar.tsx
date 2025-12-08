@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { ANCILLARY_SECTION_ID, METADATA_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
-import { BusinessPlan } from '@/features/editor/types/plan';
+import { ANCILLARY_SECTION_ID, METADATA_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/lib/hooks/useEditorStore';
+import { BusinessPlan } from '@/features/editor/lib/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
 import { useI18n } from '@/shared/contexts/I18nContext';

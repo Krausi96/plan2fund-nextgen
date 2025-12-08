@@ -2,8 +2,8 @@
 // Lightweight component that renders plan previews inside the editor
 
 import React, { useState } from 'react';
-import { PlanDocument, Table, TitlePage } from '@/features/editor/types/plan';
-import { METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
+import { PlanDocument, Table, TitlePage } from '@/features/editor/lib/types/plan';
+import { METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/lib/hooks/useEditorStore';
 
 function formatTableLabel(key: string): string {
   return key

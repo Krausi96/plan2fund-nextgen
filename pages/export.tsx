@@ -6,7 +6,7 @@ import { loadPlanSections, loadUserAnswers, type PlanSection } from "@/shared/us
 import analytics from "@/shared/user/analytics";
 import { getDocuments, getDocument } from "@templates";
 import { exportManager } from "@/features/export/engine/export";
-import { PlanDocument } from "@/features/editor/types/plan";
+import { PlanDocument } from "@/features/editor/lib/types/plan";
 import { withAuth } from "@/shared/user/auth/withAuth";
 import { useUser } from "@/shared/user/context/UserContext";
 import { getPlanPaymentStatus, saveExportedDocument } from "@/shared/user/storage/planStore";

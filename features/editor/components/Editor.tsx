@@ -7,11 +7,11 @@ import React, {
 } from 'react';
 import { useRouter } from 'next/router';
 
-import type { ConnectCopy } from '@/features/editor/types/configurator';
+import type { ConnectCopy } from '@/features/editor/lib/types/configurator';
 import Sidebar from './layout/Workspace/Navigation/Sidebar';
 import PreviewWorkspace from './layout/Workspace/Preview/PreviewWorkspace';
 import InlineSectionEditor from './layout/Workspace/Content/InlineSectionEditor';
-import DocumentsBar from './layout/Workspace/Content/DocumentsBar';
+import DocumentsBar from './layout/Workspace/Navigation/DocumentsBar';
 import CurrentSelection from './layout/Workspace/Navigation/CurrentSelection';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 import { getSections, getDocuments } from '@templates';
@@ -25,13 +25,13 @@ import {
   normalizeProgramInput,
   useEditorActions,
   useEditorStore
-} from '@/features/editor/hooks/useEditorStore';
+} from '@/features/editor/lib/hooks/useEditorStore';
 import {
   ProductType,
   ProgramSummary,
   Question,
   Section
-} from '@/features/editor/types/plan';
+} from '@/features/editor/lib/types/plan';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import {
   clearSelectedProgram,

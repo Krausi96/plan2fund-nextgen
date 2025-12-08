@@ -1,5 +1,5 @@
 // Export System with PDF Generation and Watermarks
-import { PlanDocument } from '@/features/editor/types/plan';
+import { PlanDocument } from '@/features/editor/lib/types/plan';
 // import analytics from './analytics';
 import { isFeatureEnabled } from '@/shared/user/featureFlags';
 
