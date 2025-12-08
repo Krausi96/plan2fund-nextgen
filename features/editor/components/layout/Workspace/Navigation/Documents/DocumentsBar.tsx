@@ -26,6 +26,7 @@ type DocumentsBarProps = {
   onSetNewDocumentDescription: (desc: string) => void;
   onRemoveCustomDocument: (id: string) => void;
   getOriginBadge: (origin?: string, isSelected?: boolean) => React.ReactNode;
+  isNewUser?: boolean; // True if this is a new user (no plan content yet)
 };
 
 export default function DocumentsBar({
@@ -49,7 +50,8 @@ export default function DocumentsBar({
   onSetNewDocumentName,
   onSetNewDocumentDescription,
   onRemoveCustomDocument,
-  getOriginBadge
+  getOriginBadge,
+  isNewUser = false
 }: DocumentsBarProps) {
   const { t } = useI18n();
 
@@ -78,21 +80,31 @@ export default function DocumentsBar({
           {t('editor.desktop.documents.title' as any) || 'Deine Dokumente'} ({enabledDocumentsCount})
         </h2>
       </div>
-      <div className="text-xs text-white/50 mb-2 flex-shrink-0 flex items-center gap-3">
-        <span className="flex items-center gap-1">
-          <span>✏️</span>
-          <span>{t('editor.desktop.documents.legend.edit' as any) || 'Bearbeiten'}</span>
-        </span>
-        <span className="flex items-center gap-1">
-          <input type="checkbox" className="w-2.5 h-2.5" disabled />
-          <span>{t('editor.desktop.documents.legend.toggle' as any) || 'Hinzufügen/Deselektieren'}</span>
-        </span>
-      </div>
+      {!isNewUser && (
+        <div className="text-xs text-white/50 mb-2 flex-shrink-0 flex items-center gap-3">
+          <span className="flex items-center gap-1">
+            <span>✏️</span>
+            <span>{t('editor.desktop.documents.legend.edit' as any) || 'Bearbeiten'}</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <input type="checkbox" className="w-2.5 h-2.5" disabled />
+            <span>{t('editor.desktop.documents.legend.toggle' as any) || 'Hinzufügen/Deselektieren'}</span>
+          </span>
+        </div>
+      )}
 
       {/* Horizontal Scrollable Container - Original 3-column grid style, but horizontal */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+        {/* New User Message - No Documents Yet */}
+        {isNewUser && (
+          <div className="relative flex-shrink-0 border rounded-lg p-1.5 flex flex-col items-center justify-center gap-1.5 text-center text-[11px] font-semibold tracking-tight w-[110px] h-[90px] border-white/20 bg-white/10 text-white/60">
+            <span className="text-2xl leading-none">📄</span>
+            <span>{t('editor.desktop.documents.noDocumentsYet' as any) || 'No document yet'}</span>
+          </div>
+        )}
+
         {/* Add Document Button - Original style */}
-        {!expandedDocumentId && (
+        {!expandedDocumentId && !isNewUser && (
           <button
             type="button"
             onClick={onToggleAddDocument}

@@ -278,38 +278,52 @@ function PreviewPanel({
           </p>
           
           {/* Options */}
-          <div className="mt-4 flex flex-col gap-3 text-left text-xs text-white/60">
-            <div className="flex items-start gap-2">
-              <span className="text-blue-400 font-semibold">
-                {(() => {
-                  const key = 'editor.desktop.preview.emptyState.optionALabel';
-                  const translated = t(key as any) as string;
-                  const isMissing = !translated || translated === key || translated === String(key);
-                  return isMissing ? 'Option A:' : translated;
-                })()}
+          <div className="mt-4 flex flex-col gap-6 text-left text-xs text-white/60">
+            <div className="group relative flex items-center gap-3">
+              <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
+                📋
               </span>
-                  <span>{(() => {
+              <span className="flex-1 cursor-help">{(() => {
                 const key = 'editor.desktop.preview.emptyState.optionA';
                 const translated = t(key as any) as string;
                 const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Find or connect a funding program to get recommended documents and requirements, or upload your own template' : translated;
+                return isMissing ? 'Start by selecting a plan (Strategy, Review, or Submission). You can add a funding program later to get program-specific requirements and recommendations.' : translated;
               })()}</span>
+              <div className="absolute left-0 top-full mt-2 w-80 rounded-lg border border-white/40 bg-slate-950 px-4 py-3 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
+                <div className="space-y-3">
+                  <div>
+                    <p className="font-semibold text-white mb-1">{t('planTypes.strategy.title' as any)}</p>
+                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.strategy.description' as any)}</p>
+                  </div>
+                  <div className="border-t border-white/20 pt-2">
+                    <p className="font-semibold text-white mb-1">{t('planTypes.custom.title' as any)}</p>
+                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.custom.description' as any)}</p>
+                  </div>
+                  <div className="border-t border-white/20 pt-2">
+                    <p className="font-semibold text-white mb-1">{t('planTypes.review.title' as any)}</p>
+                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.review.description' as any)}</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-start gap-2">
-              <span className="text-blue-400 font-semibold">
-                {(() => {
-                  const key = 'editor.desktop.preview.emptyState.optionBLabel';
-                  const translated = t(key as any) as string;
-                  const isMissing = !translated || translated === key || translated === String(key);
-                  return isMissing ? 'Option B:' : translated;
-                })()}
+            <div className="group relative flex items-center gap-3">
+              <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
+                🔍
               </span>
-                  <span>{(() => {
+              <span className="flex-1 cursor-help">{(() => {
                 const key = 'editor.desktop.preview.emptyState.optionB';
                 const translated = t(key as any) as string;
                 const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Create business plans, strategy documents for the idea phase, or upload your existing plan' : translated;
+                return isMissing ? "Start by finding or connecting a funding program. We'll recommend a plan and provide program-specific requirements and document templates." : translated;
               })()}</span>
+              <div className="absolute left-0 top-full mt-2 w-64 rounded-lg border border-white/40 bg-slate-950 px-3 py-2.5 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
+                {(() => {
+                  const key = 'editor.desktop.preview.emptyState.optionBHover';
+                  const translated = t(key as any) as string;
+                  const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                  return isMissing ? 'Begin by connecting a funding program (AWS, FFG, EU, etc.). We\'ll automatically recommend the appropriate plan type and load program-specific sections, requirements, and document templates tailored to your selected program.' : translated;
+                })()}
+              </div>
             </div>
           </div>
         </div>
@@ -369,38 +383,52 @@ function PreviewPanel({
           </p>
           
           {/* Options */}
-          <div className="mt-4 flex flex-col gap-3 text-left text-xs text-white/60">
-            <div className="flex items-start gap-2">
-              <span className="text-blue-400 font-semibold">
-                {(() => {
-                  const key = 'editor.desktop.preview.emptyState.optionALabel';
-                  const translated = t(key as any) as string;
-                  const isMissing = !translated || translated === key || translated === String(key);
-                  return isMissing ? 'Option A:' : translated;
-                })()}
+          <div className="mt-4 flex flex-col gap-6 text-left text-xs text-white/60">
+            <div className="group relative flex items-center gap-3">
+              <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
+                📋
               </span>
-                  <span>{(() => {
+              <span className="flex-1 cursor-help">{(() => {
                 const key = 'editor.desktop.preview.emptyState.optionA';
                 const translated = t(key as any) as string;
                 const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Find or connect a funding program to get recommended documents and requirements, or upload your own template' : translated;
+                return isMissing ? 'Start by selecting a plan (Strategy, Review, or Submission). You can add a funding program later to get program-specific requirements and recommendations.' : translated;
               })()}</span>
+              <div className="absolute left-0 top-full mt-2 w-80 rounded-lg border border-white/40 bg-slate-950 px-4 py-3 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
+                <div className="space-y-3">
+                  <div>
+                    <p className="font-semibold text-white mb-1">{t('planTypes.strategy.title' as any)}</p>
+                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.strategy.description' as any)}</p>
+                  </div>
+                  <div className="border-t border-white/20 pt-2">
+                    <p className="font-semibold text-white mb-1">{t('planTypes.custom.title' as any)}</p>
+                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.custom.description' as any)}</p>
+                  </div>
+                  <div className="border-t border-white/20 pt-2">
+                    <p className="font-semibold text-white mb-1">{t('planTypes.review.title' as any)}</p>
+                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.review.description' as any)}</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-start gap-2">
-              <span className="text-blue-400 font-semibold">
-                {(() => {
-                  const key = 'editor.desktop.preview.emptyState.optionBLabel';
-                  const translated = t(key as any) as string;
-                  const isMissing = !translated || translated === key || translated === String(key);
-                  return isMissing ? 'Option B:' : translated;
-                })()}
+            <div className="group relative flex items-center gap-3">
+              <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
+                🔍
               </span>
-                  <span>{(() => {
+              <span className="flex-1 cursor-help">{(() => {
                 const key = 'editor.desktop.preview.emptyState.optionB';
                 const translated = t(key as any) as string;
                 const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Create business plans, strategy documents for the idea phase, or upload your existing plan' : translated;
+                return isMissing ? "Start by finding or connecting a funding program. We'll recommend a plan and provide program-specific requirements and document templates." : translated;
               })()}</span>
+              <div className="absolute left-0 top-full mt-2 w-64 rounded-lg border border-white/40 bg-slate-950 px-3 py-2.5 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
+                {(() => {
+                  const key = 'editor.desktop.preview.emptyState.optionBHover';
+                  const translated = t(key as any) as string;
+                  const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                  return isMissing ? 'Begin by connecting a funding program (AWS, FFG, EU, etc.). We\'ll automatically recommend the appropriate plan type and load program-specific sections, requirements, and document templates tailored to your selected program.' : translated;
+                })()}
+              </div>
             </div>
           </div>
         </div>
@@ -529,38 +557,55 @@ function PreviewPanel({
               </p>
               
               {/* Options */}
-              <div className="mt-4 flex flex-col gap-3 text-left text-xs text-white/60">
-                <div className="flex items-start gap-2">
-                  <span className="text-blue-400 font-semibold">
-                {(() => {
-                  const key = 'editor.desktop.preview.emptyState.optionALabel';
-                  const translated = t(key as any) as string;
-                  const isMissing = !translated || translated === key || translated === String(key);
-                  return isMissing ? 'Option A:' : translated;
-                })()}
-              </span>
-                  <span>{(() => {
-                const key = 'editor.desktop.preview.emptyState.optionA';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Find or connect a funding program to get recommended documents and requirements, or upload your own template' : translated;
-              })()}</span>
+              <div className="mt-4 flex flex-col gap-6 text-left text-xs text-white/60">
+                <div className="group relative flex items-center gap-3">
+                  <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
+                    📋
+                  </span>
+                  <span className="flex-1 cursor-help">{(() => {
+                    const key = 'editor.desktop.preview.emptyState.optionA';
+                    const translated = t(key as any) as string;
+                    const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                    return isMissing ? 'Start by selecting a plan (Strategy, Review, or Submission). You can add a funding program later to get program-specific requirements and recommendations.' : translated;
+                  })()}</span>
+                  <div className="absolute left-0 top-full mt-2 w-80 rounded-lg border border-white/40 bg-slate-950 px-4 py-3 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
+                    <div className="space-y-3">
+                      <div>
+                        <p className="font-semibold text-white mb-1">{t('pricing.details.strategy.title' as any)}</p>
+                        <p className="text-white/80 text-[9px] leading-relaxed">{t('pricing.details.strategy.whoForDesc' as any)}</p>
+                        <p className="text-white/70 text-[9px] mt-1">{t('pricing.details.strategy.exportDesc' as any)}</p>
+                      </div>
+                      <div className="border-t border-white/20 pt-2">
+                        <p className="font-semibold text-white mb-1">{t('pricing.details.custom.title' as any)}</p>
+                        <p className="text-white/80 text-[9px] leading-relaxed">{t('pricing.details.custom.whoForDesc' as any)}</p>
+                        <p className="text-white/70 text-[9px] mt-1">{t('pricing.details.custom.exportDesc' as any)}</p>
+                      </div>
+                      <div className="border-t border-white/20 pt-2">
+                        <p className="font-semibold text-white mb-1">{t('pricing.details.review.title' as any)}</p>
+                        <p className="text-white/80 text-[9px] leading-relaxed">{t('pricing.details.review.whoForDesc' as any)}</p>
+                        <p className="text-white/70 text-[9px] mt-1">{t('pricing.details.review.exportDesc' as any)}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-blue-400 font-semibold">
-                {(() => {
-                  const key = 'editor.desktop.preview.emptyState.optionBLabel';
-                  const translated = t(key as any) as string;
-                  const isMissing = !translated || translated === key || translated === String(key);
-                  return isMissing ? 'Option B:' : translated;
-                })()}
-              </span>
-                  <span>{(() => {
-                const key = 'editor.desktop.preview.emptyState.optionB';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Create business plans, strategy documents for the idea phase, or upload your existing plan' : translated;
-              })()}</span>
+                <div className="group relative flex items-center gap-3">
+                  <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
+                    🔍
+                  </span>
+                  <span className="flex-1 cursor-help">{(() => {
+                    const key = 'editor.desktop.preview.emptyState.optionB';
+                    const translated = t(key as any) as string;
+                    const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                    return isMissing ? "Start by finding or connecting a funding program. We'll recommend a plan and provide program-specific requirements and document templates." : translated;
+                  })()}</span>
+                  <div className="absolute left-0 top-full mt-2 w-64 rounded-lg border border-white/40 bg-slate-950 px-3 py-2.5 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
+                    {(() => {
+                      const key = 'editor.desktop.preview.emptyState.optionBHover';
+                      const translated = t(key as any) as string;
+                      const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                      return isMissing ? 'Begin by connecting a funding program (AWS, FFG, EU, etc.). We\'ll automatically recommend the appropriate plan type and load program-specific sections, requirements, and document templates tailored to your selected program.' : translated;
+                    })()}
+                  </div>
                 </div>
               </div>
             </div>

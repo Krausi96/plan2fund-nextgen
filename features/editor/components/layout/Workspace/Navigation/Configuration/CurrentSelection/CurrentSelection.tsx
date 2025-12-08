@@ -357,11 +357,14 @@ export default function CurrentSelection({
       // Width: covers CurrentSelection (320px) + DocumentsBar (remaining width) = full grid width
       const width = gridRect.width;
       
-      // Height: CurrentSelection height + portion of Sidebar (extend down to cover more of sidebar)
-      // Use CurrentSelection height + additional height for sidebar portion
-      const currentSelectionHeight = currentSelectionRect.height;
-      const sidebarPortionHeight = Math.min(400, gridRect.height - currentSelectionHeight); // Cover up to 400px of sidebar or remaining height
-      const height = currentSelectionHeight + sidebarPortionHeight;
+      // Height: Use a fixed height range for the overlay (not dependent on container height)
+      // The overlay should be large enough to show configurator content regardless of container state
+      // Use grid height as base, but ensure reasonable bounds for good UX
+      const minOverlayHeight = 600; // Minimum height for overlay content
+      const maxOverlayHeight = 800; // Maximum height for overlay
+      const preferredHeight = gridRect.height * 0.8; // 80% of grid height
+      // Use preferred height, but clamp between min and max
+      const height = Math.max(minOverlayHeight, Math.min(maxOverlayHeight, preferredHeight));
       
       setOverlayPosition({
         top,
@@ -396,9 +399,20 @@ export default function CurrentSelection({
       setOriginalProgram(programSummary?.id || null);
       setPendingProduct(productType ?? undefined);
       setPendingProgram(programSummary?.id || null);
-      // Set initial step to Step 1 - let users manually navigate between steps
-      // No automatic navigation - users should explicitly choose which step to view
-      setActiveStep(1);
+      // Intelligently determine which step to show based on current state:
+      // - No product → Step 1 (Product Selection)
+      // - Product but no program → Step 2 (Program Selection)
+      // - Product and program → Step 3 (Sections & Documents)
+      // This provides better UX when editing existing configuration
+      let initialStep: 1 | 2 | 3 = 1;
+      if (productType) {
+        if (programSummary?.id) {
+          initialStep = 3; // Product and program selected → show sections/documents
+        } else {
+          initialStep = 2; // Product selected but no program → show program selection
+        }
+      }
+      setActiveStep(initialStep);
       wasExpandedRef.current = true;
     } else if (!isExpanded) {
       // Configurator closed - reset the ref
@@ -458,14 +472,10 @@ export default function CurrentSelection({
   const hasConfigurator = productOptions && onChangeProduct;
   
   // Determine if user has made selections
-  // Show "Start" for new users (no program, no sections, no custom documents)
-  // Show "Edit" when user has made actual selections (program connected OR sections enabled OR custom documents)
-  // Note: enabledDocumentsCount includes +1 for core product, so we check if it's > 1 (has additional documents)
-  const hasMadeSelections = productType && (
-    programSummary?.id || 
-    enabledSectionsCount > 0 || 
-    enabledDocumentsCount > 1 // > 1 means has additional documents (beyond core product)
-  );
+  // Show "Start" for new users (no product selected)
+  // Show "Edit" when user has selected a product (even if no program/sections yet)
+  // This allows preview to start immediately after product selection
+  const hasMadeSelections = !!productType;
 
   // DesktopConfigurator handlers (merged)
   // handleSelectProduct moved to ProductSelection component
@@ -497,13 +507,18 @@ export default function CurrentSelection({
 
   // InfoTooltip is now imported from RequirementsDisplay component
 
+  // When overlay is shown, always keep container in collapsed state
+  // The expanded content is shown in the overlay portal, not in the container
+  const hasOverlay = !!overlayContainerRef;
+  const shouldShowCollapsed = !isExpanded || hasOverlay;
+  
   return (
     <div ref={containerRef} className="flex flex-col border-r border-white/10 pr-4 h-full min-h-0" style={{ position: 'relative', zIndex: isExpanded ? 10 : 0, overflow: isExpanded ? 'hidden' : 'visible' }}>
       <div className="flex-shrink-0 mb-2 border-b border-white/50 flex items-center justify-between pb-2 gap-2">
         <h2 className="text-lg font-bold uppercase tracking-wide text-white flex-1">
           {selectionCurrentLabel}
         </h2>
-        {!isExpanded && hasConfigurator && (
+        {shouldShowCollapsed && hasConfigurator && (
           <Button
             onClick={() => setIsExpanded(true)}
             size="sm"
@@ -526,7 +541,7 @@ export default function CurrentSelection({
             )}
           </Button>
         )}
-        {isExpanded && hasConfigurator && (
+        {!shouldShowCollapsed && hasConfigurator && (
           <Button
             onClick={() => setIsExpanded(false)}
             size="sm"
@@ -538,7 +553,7 @@ export default function CurrentSelection({
         )}
       </div>
       
-      {!isExpanded ? (
+      {shouldShowCollapsed ? (
         /* Collapsed State - Compact but Readable, Matches DocumentsBar Height */
         <div className="flex flex-col rounded-lg border border-white/30 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 px-3 py-3 text-white shadow-[0_10px_25px_rgba(6,10,24,0.6)] backdrop-blur w-full" style={{ minHeight: 'fit-content' }}>
           {/* Current Selection Summary - Compact but Readable */}
@@ -549,7 +564,7 @@ export default function CurrentSelection({
                 <span className="text-base leading-none flex-shrink-0 mt-0.5">{productIcon}</span>
               )}
               <div className="flex-1 min-w-0">
-                <span className="text-white/70 text-[9px] font-semibold uppercase tracking-wide block leading-tight mb-1">Product</span>
+                <span className="text-white/70 text-[9px] font-semibold uppercase tracking-wide block leading-tight mb-1">Plan</span>
                 <span className="text-white font-semibold text-xs block leading-snug break-words line-clamp-2" title={productLabel}>
                   {productLabel}
                 </span>

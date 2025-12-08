@@ -108,7 +108,7 @@ export default function Sidebar({
         )}
 
         {/* Header info and Add Section Button */}
-        {!isCollapsed && (
+        {!isCollapsed && !isNewUser && (
           <>
             <div className="text-[10px] text-white/50 mb-2 flex-shrink-0 flex items-center justify-between w-full">
               <span className="flex items-center gap-1 flex-1">
@@ -141,6 +141,16 @@ export default function Sidebar({
               </div>
             )}
           </>
+        )}
+
+        {/* New User Message - No Sections Yet */}
+        {!isCollapsed && isNewUser && (
+          <div className="mb-2 flex-shrink-0">
+            <div className="relative w-full border rounded-lg p-2.5 flex flex-col items-center justify-center gap-2 text-center text-[11px] font-semibold tracking-tight border-white/20 bg-white/10 text-white/60">
+              <span className="text-2xl leading-none">📋</span>
+              <span>{t('editor.desktop.sections.noSectionsYet' as any) || 'No section yet'}</span>
+            </div>
+          </div>
         )}
 
         {/* Add Section Form - Original style */}

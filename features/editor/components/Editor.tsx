@@ -134,6 +134,30 @@ export default function Editor({ product = null }: EditorProps) {
     handleTemplateUpdate
   } = useProductSelection(product, programSummary, isConfiguratorOpen);
 
+  // Track previous product to detect when product is newly selected (not just manually opening configurator)
+  const previousSelectedProductRef = useRef<ProductType | null>(selectedProduct);
+  
+  // Auto-close configurator when product is NEWLY selected and plan exists (so preview can start)
+  // This should NOT trigger when user manually opens configurator to edit existing selection
+  useEffect(() => {
+    const productJustChanged = previousSelectedProductRef.current !== selectedProduct;
+    previousSelectedProductRef.current = selectedProduct;
+    
+    // Only auto-close if:
+    // 1. Product was just selected (changed from previous value)
+    // 2. Product exists
+    // 3. Plan exists
+    // 4. Configurator is open
+    // This prevents auto-close when user manually clicks "Edit" to open configurator
+    if (productJustChanged && selectedProduct && plan && isConfiguratorOpen) {
+      // Close configurator after a short delay to allow hydration to complete
+      const timer = setTimeout(() => {
+        setIsConfiguratorOpen(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedProduct, plan, isConfiguratorOpen]);
+
   // Use custom hook for template management
   const templateManagement = useTemplateManagement(selectedProduct, programSummary, isConfiguratorOpen);
   const {
@@ -1566,6 +1590,11 @@ export default function Editor({ product = null }: EditorProps) {
                           onSetNewDocumentDescription={templateState.handlers.onSetNewDocumentDescription}
                           onRemoveCustomDocument={templateState.handlers.onRemoveCustomDocument || (() => {})}
                           getOriginBadge={templateState.handlers.getOriginBadge}
+                          isNewUser={(() => {
+                            // New user if: no plan exists OR (plan exists but no active section and no clicked document)
+                            const isNew = !plan || (!activeSectionId && plan && !clickedDocumentId);
+                            return isNew;
+                          })()}
                         />
                       ) : (
                         <div className="w-full border-b border-white/10 pb-3 mb-3">
@@ -1616,8 +1645,9 @@ export default function Editor({ product = null }: EditorProps) {
                         programSummary={programSummary ? { name: programSummary.name, amountRange: programSummary.amountRange ?? undefined } : null}
                         selectedProduct={selectedProduct}
                         isNewUser={(() => {
-                          // New user if: no plan exists OR (plan exists but no active section and no clicked document)
-                          const isNew = !plan || (!activeSectionId && plan && !clickedDocumentId);
+                          // New user only if: no plan exists (no product selected yet)
+                          // Once a product is selected and plan exists, show preview even if no section is active
+                          const isNew = !plan;
                           if (process.env.NODE_ENV === 'development') {
                             console.log('[Editor] Passing isNewUser to Sidebar', { 
                               activeSectionId, 
@@ -1707,8 +1737,9 @@ export default function Editor({ product = null }: EditorProps) {
                               })()
                             : null}
                           isNewUser={(() => {
-                            // New user if: no plan exists OR (plan exists but no active section and no clicked document)
-                            const isNew = !plan || (!activeSectionId && plan && !clickedDocumentId);
+                            // New user only if: no plan exists (no product selected yet)
+                            // Once a product is selected and plan exists, show preview even if no section is active
+                            const isNew = !plan;
                             if (process.env.NODE_ENV === 'development') {
                               console.log('[Editor] isNewUser calculation', {
                                 activeSectionId,
