@@ -121,11 +121,6 @@ export async function loadProgramSections(programId: string): Promise<SectionTem
     
     const saved = loadSelectedProgram();
     if (!saved || saved.id !== programId) {
-      // Program not found in localStorage
-      console.log('[loadProgramSections] Program not found in localStorage', { 
-        requestedId: programId, 
-        savedId: saved?.id 
-      });
       return [];
     }
     
@@ -133,19 +128,8 @@ export async function loadProgramSections(programId: string): Promise<SectionTem
     const categorizedRequirements = (saved as any).categorized_requirements;
     
     if (!categorizedRequirements) {
-      console.log('[loadProgramSections] No categorized_requirements found', { programId });
       return [];
     }
-    
-    console.log('[loadProgramSections] Extracting sections from categorized_requirements', {
-      programId,
-      hasProject: !!categorizedRequirements.project,
-      hasFinancial: !!categorizedRequirements.financial,
-      hasTechnical: !!categorizedRequirements.technical,
-      projectCount: Array.isArray(categorizedRequirements.project) ? categorizedRequirements.project.length : 0,
-      financialCount: Array.isArray(categorizedRequirements.financial) ? categorizedRequirements.financial.length : 0,
-      technicalCount: Array.isArray(categorizedRequirements.technical) ? categorizedRequirements.technical.length : 0
-    });
     
     // Map categorized requirements to sections
     // For now, we'll create sections from key categories that map to business plan sections
@@ -241,18 +225,8 @@ export async function loadProgramSections(programId: string): Promise<SectionTem
       });
     }
     
-    console.log('[loadProgramSections] Extracted sections', {
-      programId,
-      totalSections: sections.length,
-      projectSections: sections.filter(s => s.category === 'project').length,
-      financialSections: sections.filter(s => s.category === 'financial').length,
-      technicalSections: sections.filter(s => s.category === 'technical').length,
-      sectionIds: sections.map(s => s.id)
-    });
-    
     return sections;
   } catch (error) {
-    console.error('[loadProgramSections] Error loading program sections:', error);
     return [];
   }
 }

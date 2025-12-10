@@ -31,7 +31,6 @@ const nextConfig = {
       ...config.resolve.alias,
       '@/features': path.resolve(__dirname, 'features'),
       '@/shared': path.resolve(__dirname, 'shared'),
-      '@/database': path.resolve(__dirname, 'database'),
       '@templates': path.resolve(__dirname, 'features/editor/lib/templates/index.ts'),
     };
 

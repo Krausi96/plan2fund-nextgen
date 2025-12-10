@@ -9,7 +9,7 @@ import { SectionDocumentEditForm } from '@/features/editor/components/layout/Wor
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 
 type SidebarProps = {
-  plan: BusinessPlan;
+  plan: BusinessPlan | null;
   activeSectionId: string | null;
   onSelectSection: (sectionId: string) => void;
   filteredSectionIds?: string[] | null; // When provided, only show these sections (null = show all)
@@ -74,7 +74,7 @@ export default function Sidebar({
 
 
   // Calculate total sections count (all sections, not just filtered)
-  const allSectionsCount = allSections?.length ?? plan.sections.length;
+  const allSectionsCount = allSections?.length ?? plan?.sections.length ?? 0;
 
   // If editing a section, show edit form
   const isEditing = expandedSectionId && editingSection;
@@ -223,7 +223,7 @@ export default function Sidebar({
           <div style={{ paddingBottom: '80px' }}>
             <SectionNavigationTree
               plan={plan}
-              activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+              activeSectionId={activeSectionId ?? plan?.sections[0]?.id ?? null}
               onSelectSection={onSelectSection}
               filteredSectionIds={filteredSectionIds}
               collapsed={isCollapsed}
@@ -265,7 +265,7 @@ function SectionNavigationTree({
   selectedProduct,
   isNewUser = false
 }: {
-  plan: BusinessPlan;
+  plan: BusinessPlan | null;
   activeSectionId: string | null;
   onSelectSection: (sectionId: string) => void;
   filteredSectionIds?: string[] | null;
@@ -284,7 +284,7 @@ function SectionNavigationTree({
 }) {
   const { t } = useI18n();
 
-  const getSectionTitle = (sectionId: string, originalTitle: string): string => {
+  const getSectionTitle = React.useCallback((sectionId: string, originalTitle: string): string => {
     if (sectionId === METADATA_SECTION_ID) {
       return (t('editor.section.metadata' as any) as string) || 'Title Page';
     }
@@ -308,18 +308,18 @@ function SectionNavigationTree({
       return titleTranslated !== originalTitle ? titleTranslated : originalTitle;
     }
     return translated !== translationKey ? translated : originalTitle;
-  };
+  }, [t]);
 
   const planSectionsToShow = React.useMemo(() => {
     // For new users, don't show any sections - they should configure first
-    if (isNewUser) {
+    if (isNewUser || !plan) {
       return [];
     }
     if (filteredSectionIds === null || filteredSectionIds === undefined) {
-      return plan.sections;
+      return plan?.sections ?? [];
     }
-    return plan.sections.filter(section => filteredSectionIds.includes(section.id));
-  }, [plan.sections, filteredSectionIds, isNewUser]);
+    return plan?.sections?.filter(section => filteredSectionIds.includes(section.id)) ?? [];
+  }, [plan, filteredSectionIds, isNewUser]);
 
   // Map plan sections to include template info from filteredSections
   // When showing cards, use allSections templates but map to plan sections for data
@@ -453,6 +453,7 @@ function SectionNavigationTree({
       };
       
       // Map document sections from plan.sections (which is documentPlan.sections for additional documents)
+      if (!plan) return [metadataSection];
       const documentSections = plan.sections.map((section) => {
         const templateInfo = allSections.find(s => s.id === section.id);
         return {
@@ -485,7 +486,27 @@ function SectionNavigationTree({
       required: false
     };
     
+    // Always include REFERENCES and APPENDICES sections last
+    const referencesSection = {
+      id: REFERENCES_SECTION_ID,
+      title: getSectionTitle(REFERENCES_SECTION_ID, (t('editor.section.references' as any) as string) || 'References'),
+      progress: undefined,
+      questions: [],
+      origin: undefined as any,
+      required: false
+    };
+    
+    const appendicesSection = {
+      id: APPENDICES_SECTION_ID,
+      title: getSectionTitle(APPENDICES_SECTION_ID, (t('editor.section.appendices' as any) as string) || 'Appendices'),
+      progress: undefined,
+      questions: [],
+      origin: undefined as any,
+      required: false
+    };
+    
     // Map allSections templates to plan sections to get questions/progress
+    if (!plan) return [metadataSection, ancillarySection, referencesSection, appendicesSection];
     const mappedSections = allSections.map((template) => {
       const planSection = plan.sections.find(s => s.id === template.id);
       if (!planSection) {
@@ -507,27 +528,8 @@ function SectionNavigationTree({
       };
     });
     
-    // Always include REFERENCES and APPENDICES sections last
-    const referencesSection = {
-      id: REFERENCES_SECTION_ID,
-      title: getSectionTitle(REFERENCES_SECTION_ID, (t('editor.section.references' as any) as string) || 'References'),
-      progress: undefined,
-      questions: [],
-      origin: undefined as any,
-      required: false
-    };
-    
-    const appendicesSection = {
-      id: APPENDICES_SECTION_ID,
-      title: getSectionTitle(APPENDICES_SECTION_ID, (t('editor.section.appendices' as any) as string) || 'Appendices'),
-      progress: undefined,
-      questions: [],
-      origin: undefined as any,
-      required: false
-    };
-    
     return [metadataSection, ancillarySection, ...mappedSections, referencesSection, appendicesSection];
-  }, [showAsCards, allSections, sections, plan.sections, getSectionTitle, collapsed, filteredSections, filteredSectionIds, t, selectedProduct, isNewUser]);
+  }, [showAsCards, allSections, sections, plan, getSectionTitle, filteredSectionIds, t, selectedProduct, isNewUser]);
 
   const handleClick = (sectionId: string) => {
     onSelectSection(sectionId);

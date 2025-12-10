@@ -23,7 +23,6 @@
     "paths": {
       "@/features/*": ["./features/*"],
       "@/shared/*": ["./shared/*"],
-      "@/database/*": ["./database/*"],
       "@templates": ["./features/editor/lib/templates/index.ts"]
     },
     "allowJs": true,

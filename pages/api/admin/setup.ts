@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const pool = getPool();
-    const schemaPath = path.join(process.cwd(), 'shared/db/schema.sql');
+    const schemaPath = path.join(process.cwd(), 'shared/user/database/schema.sql');
     const schema = fs.readFileSync(schemaPath, 'utf8');
 
     // Execute schema

@@ -10,7 +10,7 @@ import {
 import ExportRenderer from '@/features/editor/components/layout/Renderer/DocumentRenderer';
 import {
   convertSectionToPlanSection
-} from '@/features/editor/lib/helpers/preview';
+} from '@/features/editor/lib/helpers/renderHelpers';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface PreviewPanelProps {
@@ -36,7 +36,6 @@ interface PreviewPanelProps {
 
 function PreviewPanel({ 
   plan, 
-  focusSectionId,
   onSectionClick,
   editingSectionId,
   disabledSections = new Set(),
@@ -129,20 +128,16 @@ function PreviewPanel({
     return () => observer.disconnect();
   }, [viewMode]);
 
-  // Convert Set to sorted array string for reliable dependency tracking
-  const disabledSectionsKey = useMemo(() => {
-    return Array.from(disabledSections).sort().join(',');
-  }, [disabledSections]);
   
   const planDocument = useMemo<PlanDocument | null>(() => {
-    if (!plan) return null;
-    
-    // For new users (activeSectionId is null), return null to show empty state
+    // Early return if no plan or new user
+    // For new users, return null to show empty state
     // This ensures new users see the empty state instead of title page
-    // Unified logic: if user hasn't started configuring (no activeSectionId), show empty state
-    // CRITICAL: Check isNewUser FIRST before any other processing
-    if (isNewUser) {
-      console.log('[PreviewWorkspace] isNewUser is true, returning null for planDocument');
+    // CRITICAL: Check isNewUser first (more semantic than !plan)
+    if (isNewUser || !plan) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[PreviewWorkspace] isNewUser is true or plan is null, returning null for planDocument', { isNewUser, hasPlan: !!plan });
+      }
       return null;
     }
     
@@ -226,7 +221,7 @@ function PreviewPanel({
       addonPack: false,
       versions: []
     };
-  }, [plan, disabledSectionsKey, isNewUser]);
+  }, [plan, disabledSections, isNewUser, selectedDocumentName, selectedProductMeta?.label]);
 
   const zoomMultiplier =
     zoomPreset === '100'
@@ -245,8 +240,9 @@ function PreviewPanel({
     '--preview-viewport-zoom': viewportZoom.toString()
   } as React.CSSProperties;
 
-  // If no plan exists, show empty state (user hasn't selected a product yet)
-  if (!plan) {
+  // If new user or no plan exists, show empty state (user hasn't selected a product yet)
+  // Use isNewUser for consistency with other components (Sidebar, DocumentsBar)
+  if (isNewUser || !plan) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
         <div className="max-w-md space-y-6">
@@ -339,101 +335,6 @@ function PreviewPanel({
       isNewUser,
       shouldShowEmpty: isNewUser || !planDocument
     });
-  }
-
-  // CRITICAL: If isNewUser is true, always show empty state, even if planDocument exists
-  // This is a safety check to ensure new users never see the title page
-  if (isNewUser) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[PreviewWorkspace] Showing empty state - isNewUser is true', { 
-        isNewUser, 
-        hasPlan: !!plan, 
-        focusSectionId,
-        planDocument: !!planDocument 
-      });
-    }
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
-        <div className="max-w-md space-y-6">
-          <div className="text-6xl mb-2">📝</div>
-          
-          {/* CTA Button */}
-          {onOpenConfigurator && (
-            <button
-              onClick={onOpenConfigurator}
-              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-            >
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.cta';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Start Your Plan' : translated;
-              })()}
-            </button>
-          )}
-          
-          {/* Description */}
-          <p className="text-white/80 text-sm leading-relaxed">
-            {(() => {
-              const key = 'editor.desktop.preview.emptyState.description';
-              const translated = t(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? 'There are many ways, choose yours.' : translated;
-            })()}
-          </p>
-          
-          {/* Options */}
-          <div className="mt-4 flex flex-col gap-6 text-left text-xs text-white/60">
-            <div className="group relative flex items-center gap-3">
-              <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
-                📋
-              </span>
-              <span className="flex-1 cursor-help">{(() => {
-                const key = 'editor.desktop.preview.emptyState.optionA';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Start by selecting a plan (Strategy, Review, or Submission). You can add a funding program later to get program-specific requirements and recommendations.' : translated;
-              })()}</span>
-              <div className="absolute left-0 top-full mt-2 w-80 rounded-lg border border-white/40 bg-slate-950 px-4 py-3 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
-                <div className="space-y-3">
-                  <div>
-                    <p className="font-semibold text-white mb-1">{t('planTypes.strategy.title' as any)}</p>
-                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.strategy.description' as any)}</p>
-                  </div>
-                  <div className="border-t border-white/20 pt-2">
-                    <p className="font-semibold text-white mb-1">{t('planTypes.custom.title' as any)}</p>
-                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.custom.description' as any)}</p>
-                  </div>
-                  <div className="border-t border-white/20 pt-2">
-                    <p className="font-semibold text-white mb-1">{t('planTypes.review.title' as any)}</p>
-                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.review.description' as any)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="group relative flex items-center gap-3">
-              <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
-                🔍
-              </span>
-              <span className="flex-1 cursor-help">{(() => {
-                const key = 'editor.desktop.preview.emptyState.optionB';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? "Start by finding or connecting a funding program. We'll recommend a plan and provide program-specific requirements and document templates." : translated;
-              })()}</span>
-              <div className="absolute left-0 top-full mt-2 w-64 rounded-lg border border-white/40 bg-slate-950 px-3 py-2.5 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
-                {(() => {
-                  const key = 'editor.desktop.preview.emptyState.optionBHover';
-                  const translated = t(key as any) as string;
-                  const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                  return isMissing ? 'Begin by connecting a funding program (AWS, FFG, EU, etc.). We\'ll automatically recommend the appropriate plan type and load program-specific sections, requirements, and document templates tailored to your selected program.' : translated;
-                })()}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (

@@ -11,8 +11,6 @@
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "validate": "npm run typecheck && npm run lint",
         "ci:full": "npm run typecheck && npm run lint && npm run build",
-        "test:llm-first": "tsx scripts/test-llm-first-api.ts",
-        "test:reco-flow": "tsx scripts/test-reco-flow.ts",
         "test:handover:reco": "tsx scripts/test-handover-reco.ts",
         "test:handover:editor": "tsx scripts/test-handover-editor.ts",
         "test:handover:templates": "tsx scripts/test-handover-templates.ts",

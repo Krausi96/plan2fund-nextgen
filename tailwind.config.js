@@ -2,30 +2,12 @@
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "./app/**/*.{js,ts,jsx,tsx}",
     "./shared/**/*.{js,ts,jsx,tsx}",
     "./features/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
     extend: {
       colors: {
-        // Unified design tokens
-        primary: '#3B82F6',
-        primaryHover: '#2563EB',
-        accent: '#F59E0B',
-        background: '#FFFFFF',
-        backgroundAlt: '#F9FAFB',
-        surface: '#FFFFFF',
-        surfaceAlt: '#F3F4F6',
-        textPrimary: '#111827',
-        textSecondary: '#4B5563',
-        textMuted: '#6B7280',
-        border: '#E5E7EB',
-        success: '#059669',
-        warning: '#D97706',
-        error: '#DC2626',
         // Extended palette for compatibility
         primary: {
           50: '#eff6ff',
@@ -51,6 +33,19 @@ module.exports = {
           800: '#78350f',
           900: '#451a03',
         },
+        // Additional design tokens
+        primaryHover: '#2563EB',
+        background: '#FFFFFF',
+        backgroundAlt: '#F9FAFB',
+        surface: '#FFFFFF',
+        surfaceAlt: '#F3F4F6',
+        textPrimary: '#111827',
+        textSecondary: '#4B5563',
+        textMuted: '#6B7280',
+        border: '#E5E7EB',
+        success: '#059669',
+        warning: '#D97706',
+        error: '#DC2626',
         neutral: {
           50: '#f9fafb',
           100: '#f3f4f6',
