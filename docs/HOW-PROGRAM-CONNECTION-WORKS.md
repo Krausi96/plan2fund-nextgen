@@ -447,14 +447,37 @@ Program connection is working when:
 
 ## Next Steps
 
+### Phase 2.0: Code Quality & Refactoring (BEFORE Phase 2.1)
+
+**Priority:** 🔴 CRITICAL - Must do before testing program connection
+
+1. **Refactor large files:**
+   - Split `useEditorStore.ts` (1463 lines → 3 files)
+   - Split `Editor.tsx` (1819 lines → 3-4 files)
+   - Split `api.ts` (638 lines → 3 files)
+   - See `docs/CODE-QUALITY-ANALYSIS.md` for details
+
+2. **Extract duplicate code:**
+   - Create `createSectionFromRequirement()` helper
+   - Create `useTranslation()` hook
+   - Create error handling utilities
+
+3. **Make code more functional:**
+   - Use pure functions where possible
+   - Use immutable patterns
+   - Extract side effects to hooks
+
+### Phase 2.1: Program Connection Fix (AFTER 2.0)
+
 1. **Investigate current state:**
    - Check what ProgramFinder saves to localStorage
    - Verify `categorized_requirements` structure
    - Test program connection flow with logging
 
 2. **Fix hydration trigger:**
-   - Update `useProductSelection` to detect program changes
-   - Re-hydrate when program is connected/disconnected
+   - ✅ DONE: Updated `useProductSelection` to detect program changes
+   - ✅ DONE: Re-hydrates when program is connected/disconnected
+   - **TODO:** Test after refactoring
 
 3. **Fix section extraction:**
    - Verify `loadProgramSections()` works correctly
@@ -472,5 +495,7 @@ Program connection is working when:
 ---
 
 **Last Updated:** 2024  
-**Status:** Documentation - Ready for Phase 2.1 implementation
+**Status:** Documentation - Ready for Phase 2.0 refactoring, then Phase 2.1 implementation
+
+**Note:** Program connection fix has been implemented but needs testing after code refactoring (Phase 2.0).
 

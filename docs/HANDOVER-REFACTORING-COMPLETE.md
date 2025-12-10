@@ -541,6 +541,39 @@ When an additional document is selected, `documentPlan` is computed as:
 **Last Updated:** 2024  
 **Status:** ✅ COMPLETE - All Critical Issues Fixed & Empty State Implemented with Configurator Auto-Close, New User UI Improvements, and Configurator UX Fixes
 
+---
+
+## ⚠️ IMPORTANT: Pre-Phase 2 Requirements
+
+### Code Quality & Refactoring (Phase 2.0)
+
+**Before starting Phase 2.1 (Program Connection Fix), we need to:**
+
+1. **Refactor large files** (target: ~500 lines per file)
+   - `Editor.tsx` (1819 lines) → Split into 3-4 files
+   - `useEditorStore.ts` (1463 lines) → Split into 3 files
+   - `api.ts` (638 lines) → Split into 3 files
+   - `CurrentSelection.tsx` (1048 lines) → Extract hooks
+
+2. **Extract duplicate code**
+   - Section/document mapping patterns
+   - Translation key fallbacks
+   - Error handling patterns
+
+3. **Make code more functional**
+   - Pure functions where possible
+   - Immutable patterns
+   - Better separation of concerns
+
+4. **Test program connection trigger**
+   - After refactoring, test the program connection fix
+   - Verify hydration triggers correctly
+   - Verify sections are loaded
+
+**See:** `docs/CODE-QUALITY-ANALYSIS.md` for detailed analysis and refactoring plan.
+
+**Effort:** 6-8 days before Phase 2.1
+
 ## 💬 Handover Message for Colleague
 
 Hi! 👋 Just finished the configurator auto-close fix, new user UI improvements, and configurator UX fixes. Here's what we accomplished:

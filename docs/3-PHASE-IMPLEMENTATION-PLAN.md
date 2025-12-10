@@ -158,10 +158,45 @@ CurrentSelection/
 
 ---
 
-### 2.1 Fix Program Connection (CRITICAL - DO FIRST)
+### 2.0 Code Quality & Refactoring (BEFORE Phase 2.1)
+**Priority:** 🔴 CRITICAL | **Effort:** 6-8 days
+
+**Problem:** Large files (>500 lines) and duplicate code make testing and debugging difficult.
+
+**Tasks:**
+- [ ] Analyze file sizes and identify refactoring opportunities
+- [ ] Split `useEditorStore.ts` (1463 lines → 3 files ~300-400 lines each)
+- [ ] Split `Editor.tsx` (1819 lines → 3-4 files ~400-500 lines each)
+- [ ] Split `api.ts` (638 lines → 3 files ~200 lines each)
+- [ ] Extract duplicate code patterns
+- [ ] Make code more functional (pure functions, immutable patterns)
+- [ ] Test all functionality after refactoring
+- [ ] **THEN** test program connection trigger
+
+**Files to Refactor:**
+- `features/editor/lib/hooks/useEditorStore.ts` - Split into multiple stores/modules
+- `features/editor/components/Editor.tsx` - Split into sub-components
+- `features/editor/lib/templates/api.ts` - Split into loader/merger/extractor
+- `features/editor/components/layout/Workspace/Navigation/Configuration/CurrentSelection/CurrentSelection.tsx` - Extract hooks
+
+**Deliverables:**
+- ✅ All files under 600 lines (target: 500)
+- ✅ All functions under 100 lines (target: 50)
+- ✅ No duplicate code patterns
+- ✅ More functional code patterns
+- ✅ All tests passing
+- ✅ Program connection trigger tested
+
+**See:** `docs/CODE-QUALITY-ANALYSIS.md` for detailed analysis
+
+---
+
+### 2.1 Fix Program Connection (CRITICAL - AFTER 2.0)
 **Priority:** 🔴 CRITICAL | **Effort:** 3-5 days
 
 **Problem:** Cannot connect a program - this blocks requirements enhancement and other features.
+
+**Note:** This should be done AFTER Phase 2.0 refactoring for easier testing and debugging.
 
 **Tasks:**
 - [ ] Investigate program connection flow
