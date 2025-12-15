@@ -1,96 +1,84 @@
-// ========= PLAN2FUND — PRICING CALCULATIONS =========
-// Pricing calculations for different plan types and add-ons
+// Minimal pricing engine used by the checkout/pricing page.
+// This can be replaced or extended with real pricing logic later.
 
-export interface PricingInfo {
-  basePrice: number;
-  addonPrice: number;
-  totalPrice: number;
+export interface PricingItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
   currency: string;
+  interval?: 'one_time' | 'month' | 'year';
+}
+
+export function getPricingOptions(): PricingItem[] {
+  return [
+    {
+      id: 'starter',
+      name: 'Starter Plan',
+      description: 'For founders exploring funding options with one business plan.',
+      price: 49,
+      currency: 'EUR',
+      interval: 'one_time',
+    },
+    {
+      id: 'pro',
+      name: 'Pro Plan',
+      description: 'Advanced editor features and multiple export-ready plans.',
+      price: 129,
+      currency: 'EUR',
+      interval: 'one_time',
+    },
+  ];
+}
+
+// Simple helper used by the checkout/pricing page. It maps the selected
+// product/route combination to a concrete price, delivery time, and a list
+// of additional bullet points to display.
+export type PlanProduct = 'strategy' | 'review' | 'submission';
+
+export interface PricingResult {
+  basePrice: number;
   deliveryTime: string;
   includes: string[];
 }
 
 export function calculatePricing(
-  product: 'strategy'|'review'|'submission',
-  route: 'grant'|'bank'|'equity'|'visa'|'ams',
-  addonPack: boolean = false
-): PricingInfo {
-  // Base pricing by product type
-  const basePricing = {
-    strategy: 0, // Free for strategy
-    review: 99,
-    submission: 149
-  };
-
-  // Route-specific pricing adjustments
-  const routeMultipliers = {
-    grant: 1.0,
-    bank: 1.2, // More complex for banking
-    equity: 1.3, // Most complex for equity
-    visa: 1.1, // Slightly more complex for visa
-    ams: 1.0
-  };
-
-  // Add-on pack pricing
-  const addonPricing = {
-    price: 39,
-    deliveryTime: '3 business days',
-    includes: [
-      'Rush to first draft',
-      'One extra revision included',
-      'Provider form help'
-    ]
-  };
-
-  const basePrice = Math.round(basePricing[product] * routeMultipliers[route]);
-  const addonPrice = addonPack ? addonPricing.price : 0;
-  const totalPrice = basePrice + addonPrice;
-
-  // Delivery time calculation
-  const baseDeliveryTime = product === 'strategy' ? 'Immediate' : 
-                          product === 'review' ? '5 business days' : 
-                          '7 business days';
-  
-  const deliveryTime = addonPack ? addonPricing.deliveryTime : baseDeliveryTime;
-
-  // What's included
-  const baseIncludes = product === 'strategy' ? [
-    'Basic strategy document',
-    'Program recommendations',
-    'Next steps guidance'
-  ] : product === 'review' ? [
-    'Updated business plan',
-    'Financial projections',
-    'Program-specific formatting',
-    'One revision included'
-  ] : [
-    'Submission-ready business plan',
-    'Financial projections',
-    'Program-specific formatting',
-    'Route extras included',
-    'Two revisions included'
-  ];
-
-  const includes = addonPack ? [...baseIncludes, ...addonPricing.includes] : baseIncludes;
-
-  return {
-    basePrice,
-    addonPrice,
-    totalPrice,
-    currency: 'EUR',
-    deliveryTime,
-    includes
-  };
-}
-
-export function formatPrice(price: number, currency: string = 'EUR'): string {
-  return `${currency} ${price.toFixed(0)}`;
-}
-
-export function getPricingSummary(pricing: PricingInfo): string {
-  if (pricing.basePrice === 0) {
-    return `Free (${pricing.deliveryTime})`;
+  product: PlanProduct,
+  _route: string,
+  _addonPack: boolean
+): PricingResult {
+  switch (product) {
+    case 'strategy':
+      return {
+        basePrice: 0,
+        deliveryTime: 'Initial strategy workshop within 3–5 business days',
+        includes: [
+          'One strategic funding roadmap session (online)',
+          'Written summary with 3–5 concrete next steps',
+          'Email follow-up with additional resources',
+        ],
+      };
+    case 'review':
+      return {
+        basePrice: 49,
+        deliveryTime: 'Detailed review within 5–7 business days',
+        includes: [
+          'Line-by-line review of your existing plan',
+          'Concrete comments and improvement suggestions',
+          'One revision checklist tailored to your program',
+        ],
+      };
+    case 'submission':
+    default:
+      return {
+        basePrice: 129,
+        deliveryTime: 'Submission-ready document within 7–10 business days',
+        includes: [
+          'Full plan structure aligned with funding program',
+          'Editorial polishing for clarity and impact',
+          'Export-ready PDF and Word formats',
+        ],
+      };
   }
-  
-  return `${formatPrice(pricing.totalPrice)} (${pricing.deliveryTime})`;
 }
+

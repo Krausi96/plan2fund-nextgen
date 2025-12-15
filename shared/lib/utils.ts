@@ -1,6 +1,7 @@
-﻿import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+// Shared UI / utility helpers
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+// Tailwind-friendly className combiner (similar to clsx)
+export function cn(...classes: Array<string | false | null | undefined>): string {
+  return classes.filter(Boolean).join(" ");
 }
+

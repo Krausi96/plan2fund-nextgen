@@ -3,21 +3,18 @@ import { createPortal } from 'react-dom';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { Button } from '@/shared/components/ui/button';
 import { normalizeProgramInput } from '@/features/editor/lib/hooks/useEditorStore';
-import { extractTemplateFromFile } from '@/features/editor/lib/templates/api';
-import type { ProgramSummary } from '@/features/editor/lib/types/plan';
+import { extractTemplateFromFile } from '@/features/editor/lib/templates';
+import type { ProgramSummary, ConnectCopy } from '@/features/editor/lib/types';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
-import type { ConnectCopy } from '@/features/editor/lib/types/editor/configurator';
 import { InfoTooltip } from '../RequirementsDisplay/RequirementsDisplay';
 
 type ProgramSelectionProps = {
   programSummary?: ProgramSummary | null;
   programError?: string | null;
   programLoading?: boolean;
-  pendingProgram?: string | null;
   connectCopy?: ConnectCopy;
   onConnectProgram?: (value: string | null) => void;
   onOpenProgramFinder?: () => void;
-  onTemplatesExtracted?: (templates: { sections?: SectionTemplate[]; documents?: DocumentTemplate[] }) => void;
   onShowTemplatePreview?: (show: boolean) => void;
   onSetExtractedTemplates?: (templates: { sections?: SectionTemplate[]; documents?: DocumentTemplate[]; errors?: string[] } | null) => void;
 };
@@ -30,11 +27,9 @@ export default function ProgramSelection({
   programSummary,
   programError,
   programLoading,
-  pendingProgram: _pendingProgram,
   connectCopy,
   onConnectProgram,
   onOpenProgramFinder,
-  onTemplatesExtracted: _onTemplatesExtracted,
   onShowTemplatePreview,
   onSetExtractedTemplates
 }: ProgramSelectionProps) {

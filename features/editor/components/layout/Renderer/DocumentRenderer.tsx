@@ -3,7 +3,7 @@
 // Split from monolithic 2065-line file into focused components
 
 import React, { useState } from 'react';
-import type { PlanDocument, TitlePage } from '@/features/editor/lib/types/plan';
+import type { PlanDocument, TitlePage } from '@/features/editor/lib/types';
 import TitlePageRenderer from './TitlePageRenderer';
 import TableOfContentsRenderer from './TableOfContentsRenderer';
 import SectionRenderer from './SectionRenderer';

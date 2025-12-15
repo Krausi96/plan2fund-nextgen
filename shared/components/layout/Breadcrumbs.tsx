@@ -9,27 +9,27 @@ export default function Breadcrumbs() {
 
   const stepsReco = [
     { href: "/", label: t('breadcrumb.home') },
-    { href: "/reco", label: t('breadcrumb.recommendation') },
+    { href: "/app/user/reco", label: t('breadcrumb.recommendation') },
     // Removed /results - results are now shown inline in ProgramFinder
-    { href: "/editor", label: t('breadcrumb.editor') },
-    { href: "/preview", label: t('breadcrumb.preview') },
+    { href: "/app/user/editor", label: t('breadcrumb.editor') },
+    { href: "/app/user/preview", label: t('breadcrumb.preview') },
     { href: "/confirm", label: t('breadcrumb.confirm') },
     { href: "/checkout", label: t('breadcrumb.checkout') },
-    { href: "/export", label: t('breadcrumb.export') },
-    { href: "/thank-you", label: t('breadcrumb.successHub') },
+    { href: "/app/user/export", label: t('breadcrumb.export') },
+    { href: "/checkout/success/thank-you", label: t('breadcrumb.successHub') },
   ]
 
   const stepsDirect = [
     { href: "/", label: t('breadcrumb.home') },
-    { href: "/editor", label: t('breadcrumb.editor') },
-    { href: "/preview", label: t('breadcrumb.preview') },
+    { href: "/app/user/editor", label: t('breadcrumb.editor') },
+    { href: "/app/user/preview", label: t('breadcrumb.preview') },
     { href: "/confirm", label: t('breadcrumb.confirm') },
     { href: "/checkout", label: t('breadcrumb.checkout') },
-    { href: "/export", label: t('breadcrumb.export') },
-    { href: "/thank-you", label: t('breadcrumb.successHub') },
+    { href: "/app/user/export", label: t('breadcrumb.export') },
+    { href: "/checkout/success/thank-you", label: t('breadcrumb.successHub') },
   ]
 
-  const isRecoFlow = ["/reco"].some((p) =>
+  const isRecoFlow = ["/app/user/reco"].some((p) =>
     path.startsWith(p)
   )
   const steps = isRecoFlow ? stepsReco : stepsDirect

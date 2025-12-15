@@ -201,7 +201,7 @@ class EmailService {
               <li>Creating your business plan with our AI-powered editor</li>
               <li>Exporting and applying for funding</li>
             </ul>
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://plan2fund.com'}/dashboard" class="button">Go to Dashboard</a>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://plan2fund.com'}/app/user/dashboard" class="button">Go to Dashboard</a>
             <p>If you have any questions, feel free to reach out!</p>
             <p>Best regards,<br>The Plan2Fund Team</p>
           </div>

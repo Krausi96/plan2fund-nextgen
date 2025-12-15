@@ -2,9 +2,8 @@
 // Renders the table of contents page
 
 import React from 'react';
-import { PlanDocument, PlanSection } from '@/features/editor/lib/types/plan';
-import { ANCILLARY_SECTION_ID } from '@/features/editor/lib/helpers/editorHelpers';
-import { getFieldValue } from '@/features/editor/lib/helpers/renderHelpers';
+import { PlanDocument, PlanSection } from '@/features/editor/lib/types';
+import { ANCILLARY_SECTION_ID, getFieldValue } from '@/features/editor/lib/helpers';
 
 interface TableOfContentsRendererProps {
   plan: PlanDocument;
@@ -339,4 +338,6 @@ export default function TableOfContentsRenderer({
     </div>
   );
 }
+
+
 

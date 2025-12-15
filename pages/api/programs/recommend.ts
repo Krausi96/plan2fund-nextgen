@@ -1,12 +1,8 @@
-import fs from 'fs';
-import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
-import {
-  matchesAnswers,
-  scoreProgramsEnhanced,
-  type Program,
-  type EnhancedProgramResult,
-} from '../../../features/reco/engine/scoring';
+
+// ============================================================================
+// TYPES
+// ============================================================================
 
 type UserAnswers = Record<string, any>;
 
@@ -72,7 +68,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let llmRawResponse: string | null = null;
   let fallbackUsed = false;
   let llmStats: LLMStats | null = null;
-  let deterministicFallbackUsed = false;
 
   try {
     const generation = await generateProgramsWithLLM(answers, maxResults * 2);
@@ -91,24 +86,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('generateProgramsWithLLM failed:', llmError);
   }
 
-  let matching = generated.filter((program) => matchesAnswers(program, answers));
-  if (matching.length === 0 && generated.length > 0) {
-    // Surface something instead of empty response
-    matching = generated;
-    fallbackUsed = true;
-  }
-  if (matching.length === 0) {
-    const deterministicFallback = await buildDeterministicFallbackPrograms(answers, maxResults);
-    if (deterministicFallback.length > 0) {
-      matching = deterministicFallback;
-      fallbackUsed = true;
-      deterministicFallbackUsed = true;
-    }
-  }
-  if (matching.length === 0) {
-    matching = buildFallbackPrograms();
-    fallbackUsed = true;
-  }
+  // LLM already matches programs - no fallback needed (simplified)
+  const matching = generated;
 
   return res.status(200).json({
     success: true,
@@ -121,7 +100,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       llmError,
       llmRaw: llmRawResponse,
       fallbackUsed,
-      deterministicFallbackUsed,
       llmProvider: llmStats?.provider,
       llmPromptTokens: llmStats?.promptTokens,
       llmCompletionTokens: llmStats?.completionTokens,
@@ -135,23 +113,92 @@ async function generateProgramsWithLLM(
   answers: UserAnswers,
   maxPrograms: number
 ): Promise<{ programs: GeneratedProgram[]; raw: string | null; stats?: LLMStats | null }> {
-  const profile = summarizeProfile(answers);
-  const fundingPreference = inferFundingPreference(answers);
+  // Simplified profile (just key fields)
+  const profile = [
+    answers.location && `Location: ${answers.location}`,
+    answers.company_type && `Company type: ${answers.company_type}`,
+    answers.company_stage && `Company stage: ${answers.company_stage}`,
+    answers.funding_amount && `Funding need: €${answers.funding_amount}`,
+    answers.industry_focus && `Industry: ${Array.isArray(answers.industry_focus) ? answers.industry_focus.join(', ') : answers.industry_focus}`,
+    answers.co_financing && `Co-financing: ${answers.co_financing === 'co_no' ? 'ONLY grants/subsidies' : 'can accept loans/equity'}`,
+  ].filter(Boolean).join('\n');
+  
+  const fundingPreference = {
+    allowMix: answers.co_financing !== 'co_no',
+  };
 
-  // Import simplified prompt builder
-  const { buildRecommendPrompt } = await import('../../../features/reco/prompts/programRecommendation');
-
-  // Build instructions with retry variations (simplified)
-  // OLD PROMPT REMOVED - Now using simplified version from recommendPrompt.ts
-  // This reduces token usage from ~2000 to ~800 tokens
-  // Special cases (research, large amounts, export, visa) are handled generically
+  // Build LLM prompt inline (simplified - no separate file needed)
   const buildInstructions = (attempt: number = 1): string => {
-    return buildRecommendPrompt({
-      profile,
-      maxPrograms,
-      fundingPreference,
-      attempt,
-    });
+    const baseInstructions = `You are an expert on European funding programs. Return up to ${maxPrograms} programs matching this profile:
+
+${profile}
+
+CRITICAL MATCHING RULES:
+1. Location: Must be available in user's location or EU-wide
+2. Organisation stage: Must accept user's stage (allow adjacent stages)
+3. Funding amount: Accept programs with range €X/3 to €X*3 (±200% tolerance)
+4. Co-financing: If user cannot provide co-financing, ONLY grants/subsidies/support
+5. Revenue status: Pre-revenue → grants/angel/crowdfunding; Early revenue → all except large VC; Established → all types
+
+FUNDING TYPES (use most specific subtype):
+- Equity: angel_investment, venture_capital, crowdfunding, equity
+- Loans: bank_loan, leasing, micro_credit, repayable_advance, loan
+- Grants: grant
+- Other: guarantee, visa_application, subsidy, convertible
+
+PROGRAM REQUIREMENTS:
+- Use REAL program names (e.g., "AWS Seedfinancing", "FFG Basisprogramm", "Horizon Europe", "EIC Accelerator")
+- NO generic names like "General Category" or "General Program"
+- Description: 2-3 sentences (what it offers, why it matches, key requirements)
+- Extract ALL fields at root level (not nested in metadata)
+
+JSON STRUCTURE:
+{
+  "programs": [{
+    "id": "string",
+    "name": "string",
+    "website": "https://example.com",
+    "description": "2-3 sentences",
+    "funding_types": ["grant","loan"],
+    "funding_amount_min": 5000,
+    "funding_amount_max": 20000,
+    "currency": "EUR",
+    "location": "Austria",
+    "region": "Austria",
+    "company_type": "startup",
+    "company_stage": "inc_lt_6m",
+    "program_focus": ["digital","innovation"],
+    "co_financing_required": false,
+    "co_financing_percentage": null,
+    "deadline": "2024-12-31",
+    "open_deadline": false,
+    "use_of_funds": ["product_development","hiring"],
+    "impact_focus": ["environmental","social"],
+    "organization": "FFG",
+    "typical_timeline": "2-3 months",
+    "competitiveness": "medium",
+    "categorized_requirements": {
+      "documents": [{"value": "Business plan", "description": "...", "format": "pdf", "required": true, "requirements": []}],
+      "project": [{"value": "Project description", "description": "...", "required": true, "requirements": "...", "type": "project_details"}],
+      "financial": [{"value": "Financial projections", "description": "...", "required": true, "requirements": "...", "type": "repayment_terms"}],
+      "technical": [{"value": "Technical specifications", "description": "...", "required": false, "requirements": "...", "type": "trl_level"}]
+    }
+  }]
+}
+
+CATEGORIZED REQUIREMENTS: Extract into 4 categories (documents, project, financial, technical). If separate file → documents. If business plan section → project/financial/technical.`;
+
+      const diversitySection = fundingPreference.allowMix
+      ? `\n\nReturn mix of funding types (grants, loans, equity)`
+      : `\n\nONLY grants/subsidies (user cannot provide co-financing)`;
+
+    const retrySection = attempt > 1
+      ? `\n\nRETRY (Attempt ${attempt}): Be more lenient. Minimum ${Math.min(3, maxPrograms)} programs required.`
+      : '';
+
+    const knowledgeBase = `\n\nKEY PROGRAMS:\n- Austria: AWS Seedfinancing, FFG Basisprogramm, FFG Bridge\n- Germany: KfW programs, ZIM, EXIST-Gründerstipendium\n- EU-wide: Horizon Europe, EIC Accelerator, COSME, LIFE`;
+
+    return baseInstructions + diversitySection + retrySection + knowledgeBase;
   };
 
   const { isCustomLLMEnabled, callCustomLLM } = await import('../../../features/ai/clients/customLLM');
@@ -406,122 +453,7 @@ async function generateProgramsWithLLM(
   return { programs: [], raw: lastRawResponse, stats: lastStats };
 }
 
-function summarizeProfile(answers: UserAnswers): string {
-  const critical: string[] = [];
-  const important: string[] = [];
-  const optional: string[] = [];
-
-  // CRITICAL (must match)
-  if (answers.location) {
-    const region = answers.location_region ? ` (${answers.location_region})` : '';
-    critical.push(`Location: ${answers.location}${region}`);
-  }
-  if (answers.company_type) {
-    critical.push(`Company type: ${answers.company_type}`);
-  }
-  if (typeof answers.company_stage === 'number') {
-    critical.push(`Company stage: ${answers.company_stage} months`);
-  } else if (answers.company_stage) {
-    critical.push(`Company stage: ${answers.company_stage}`);
-  }
-  if (answers.co_financing) {
-    const coFinancingNote = answers.co_financing === 'co_no' 
-      ? ' (ONLY grants/subsidies - no loans/equity/guarantees)' 
-      : ' (can accept loans, equity, guarantees)';
-    critical.push(`Co-financing: ${answers.co_financing}${coFinancingNote}`);
-    if (answers.co_financing_percentage) {
-      critical.push(`Co-financing percentage: ${answers.co_financing_percentage}%`);
-    }
-  }
-
-  // IMPORTANT (should match)
-  if (answers.funding_amount !== undefined && answers.funding_amount !== null) {
-    const amount = typeof answers.funding_amount === 'number'
-      ? `€${answers.funding_amount.toLocaleString()}`
-      : answers.funding_amount;
-    important.push(`Funding need: ${amount} (flexible: programs with ±200% range acceptable)`);
-  }
-  if (answers.industry_focus) {
-    const industries = Array.isArray(answers.industry_focus) ? answers.industry_focus : [answers.industry_focus];
-    important.push(`Industry focus: ${industries.join(', ')}`);
-  }
-
-  // OPTIONAL (nice to have)
-  if (answers.use_of_funds) {
-    const useCases = Array.isArray(answers.use_of_funds) ? answers.use_of_funds : [answers.use_of_funds];
-    optional.push(`Use of funds: ${useCases.join(', ')}`);
-  }
-  if (answers.team_size) {
-    optional.push(`Team size: ${answers.team_size}`);
-  }
-  if (answers.revenue_status) {
-    optional.push(`Revenue status: ${answers.revenue_status}`);
-  }
-  if (answers.impact_focus) {
-    const impacts = Array.isArray(answers.impact_focus) ? answers.impact_focus : [answers.impact_focus];
-    optional.push(`Impact focus: ${impacts.join(', ')}`);
-  }
-  if (answers.deadline_urgency) {
-    optional.push(`Deadline urgency: ${answers.deadline_urgency}`);
-  }
-  if (answers.project_duration) {
-    optional.push(`Project duration: ${answers.project_duration} months`);
-  }
-  if (answers.impact) {
-    const impacts = Array.isArray(answers.impact) ? answers.impact : [answers.impact];
-    optional.push(`Impact: ${impacts.join(', ')}`);
-  }
-
-  // Build structured profile
-  const sections: string[] = [];
-  
-  if (critical.length > 0) {
-    sections.push('CRITICAL REQUIREMENTS (must match):');
-    sections.push(...critical);
-  }
-  
-  if (important.length > 0) {
-    if (sections.length > 0) sections.push('');
-    sections.push('IMPORTANT PREFERENCES (should match):');
-    sections.push(...important);
-  }
-  
-  if (optional.length > 0) {
-    if (sections.length > 0) sections.push('');
-    sections.push('ADDITIONAL CONTEXT (nice to have):');
-    sections.push(...optional);
-  }
-
-  return sections.join('\n');
-}
-
-function inferFundingPreference(answers: UserAnswers) {
-  const instruments = new Set<string>(['grant']);
-  const coFinancing = (answers.co_financing || '').toString().toLowerCase();
-  const stageMonths = typeof answers.company_stage === 'number' ? answers.company_stage : null;
-  const stageCategory = typeof answers.company_stage === 'string' ? answers.company_stage : null;
-
-  if (coFinancing !== 'co_no') {
-    instruments.add('loan');
-    instruments.add('guarantee');
-  }
-
-  const allowEquity =
-    (stageMonths !== null && stageMonths >= 6) ||
-    (stageMonths === null &&
-      stageCategory !== null &&
-      stageCategory !== 'idea' &&
-      stageCategory !== 'pre_company');
-
-  if (allowEquity) {
-    instruments.add('equity');
-  }
-
-  return {
-    values: Array.from(instruments),
-    allowMix: coFinancing !== 'co_no',
-  };
-}
+// Removed summarizeProfile and inferFundingPreference - simplified inline
 
 function parseLLMResponse(responseText: string) {
   try {
@@ -543,170 +475,37 @@ function parseLLMResponse(responseText: string) {
   }
 }
 
+// ============================================================================
+// UTILITIES (consolidated from llmUtils.ts and scoring.ts)
+// ============================================================================
+
+/**
+ * Sanitize LLM JSON response
+ */
 function sanitizeLLMResponse(text: string): string {
-  const trimmed = text.trim();
-  if (trimmed.startsWith('```')) {
-    const withoutFence = trimmed.replace(/```json|```/g, '');
-    return withoutFence.trim();
-  }
-  return trimmed;
-}
-
-// Functions moved to recoEngine.ts - now imported
-
-const SCRAPED_PROGRAMS_PATH = path.join(
-  process.cwd(),
-  'scraper-lite',
-  'data',
-  'legacy',
-  'scraped-programs-latest.json'
-);
-const MIGRATED_PROGRAMS_PATH = path.join(process.cwd(), 'data', 'migrated-programs.json');
-let cachedCatalogPrograms: Program[] | null = null;
-
-async function buildDeterministicFallbackPrograms(
-  answers: UserAnswers,
-  maxPrograms: number
-): Promise<GeneratedProgram[]> {
-  try {
-    const catalog = await loadCatalogPrograms();
-    if (!catalog.length) {
-      return [];
-    }
-    const scored = await scoreProgramsEnhanced(answers as any, catalog);
-    return scored.slice(0, maxPrograms).map(mapDeterministicProgramToGenerated);
-  } catch (error) {
-    console.error('[reco][recommend] Deterministic fallback failed:', error);
-    return [];
-  }
-}
-
-async function loadCatalogPrograms(): Promise<Program[]> {
-  if (cachedCatalogPrograms) {
-    return cachedCatalogPrograms;
-  }
-
-  const sources = [SCRAPED_PROGRAMS_PATH, MIGRATED_PROGRAMS_PATH];
-
-  for (const source of sources) {
-    if (!source) continue;
-    if (fs.existsSync(source)) {
-      try {
-        const fileContents = fs.readFileSync(source, 'utf-8');
-        const parsed = JSON.parse(fileContents);
-        const rawPrograms = Array.isArray(parsed?.programs) ? parsed.programs : parsed;
-        const mappedPrograms = rawPrograms.map(mapRawCatalogProgram);
-        cachedCatalogPrograms = mappedPrograms;
-        console.log(
-          `[reco][recommend] Loaded ${mappedPrograms.length} catalog programs from ${path.relative(
-            process.cwd(),
-            source
-          )}`
-        );
-        return mappedPrograms;
-      } catch (error) {
-        console.warn(`[reco][recommend] Failed to load catalog programs from ${source}:`, error);
-      }
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/```json/gi, '```');
+  cleaned = cleaned.replace(/```/g, '');
+  cleaned = cleaned.replace(/^Here is the JSON requested:\s*/i, '');
+  cleaned = cleaned.replace(/^Here is .*?JSON:\s*/i, '');
+  cleaned = cleaned.replace(/^Response:\s*/i, '');
+  const firstCurly = cleaned.indexOf('{');
+  const firstBracket = cleaned.indexOf('[');
+  const starts: number[] = [];
+  if (firstCurly >= 0) starts.push(firstCurly);
+  if (firstBracket >= 0) starts.push(firstBracket);
+  if (starts.length > 0) {
+    const start = Math.min(...starts);
+    const endCurly = cleaned.lastIndexOf('}');
+    const endBracket = cleaned.lastIndexOf(']');
+    const end = Math.max(endCurly, endBracket);
+    if (end >= start) {
+      cleaned = cleaned.slice(start, end + 1);
     }
   }
-
-  cachedCatalogPrograms = [];
-  return cachedCatalogPrograms;
+  return cleaned.trim();
 }
 
-function mapRawCatalogProgram(raw: any): Program {
-  const fundingTypes = Array.isArray(raw?.funding_types)
-    ? raw.funding_types
-    : raw?.type
-    ? [raw.type]
-    : [];
-  const amountMin =
-    raw?.funding_amount_min ??
-    raw?.amount?.min ??
-    raw?.minAmount ??
-    (typeof raw?.funding_amount === 'number' ? raw.funding_amount : 0);
-  const amountMax =
-    raw?.funding_amount_max ??
-    raw?.amount?.max ??
-    raw?.maxAmount ??
-    (typeof raw?.funding_amount === 'number' ? raw.funding_amount : 0);
-  const currency = raw?.currency || raw?.amount?.currency || 'EUR';
-
-  let categorizedRequirements = raw?.categorized_requirements || raw?.requirements || {};
-  if (typeof categorizedRequirements === 'string') {
-    try {
-      categorizedRequirements = JSON.parse(categorizedRequirements);
-    } catch {
-      categorizedRequirements = {};
-    }
-  }
-
-  return {
-    id: String(raw?.id || raw?.program_id || raw?.page_id || `catalog_${Math.random().toString(36).slice(2)}`),
-    name: raw?.name || raw?.program_name || 'Funding Program',
-    type: raw?.program_type || raw?.type || fundingTypes[0] || 'grant',
-    program_type: raw?.program_type || raw?.type || fundingTypes[0] || 'grant',
-    description: raw?.description || raw?.metadata?.description || '',
-    url: raw?.url || raw?.source_url || null,
-    region: raw?.region || raw?.metadata?.region || null,
-    funding_types: fundingTypes,
-    funding_amount_min: amountMin,
-    funding_amount_max: amountMax,
-    currency,
-    amount: {
-      min: amountMin || 0,
-      max: amountMax || 0,
-      currency,
-    },
-    categorized_requirements: categorizedRequirements,
-    metadata: {
-      ...raw?.metadata,
-      description: raw?.description || raw?.metadata?.description,
-      region: raw?.region || raw?.metadata?.region,
-      source: raw?.source_url || raw?.url || raw?.source,
-    },
-  };
-}
-
-function mapDeterministicProgramToGenerated(program: EnhancedProgramResult): GeneratedProgram {
-  const amount = program.amount || {
-    min: program.funding_amount_min ?? null,
-    max: program.funding_amount_max ?? null,
-    currency: program.currency ?? null,
-  };
-
-  return {
-    id: program.id,
-    name: program.name,
-    url: program.url || program.source_url || null,
-    source: 'deterministic_catalog',
-    location: program.region || program.metadata?.region || null,
-    company_type: program.program_type || program.type || null,
-    funding_types: program.funding_types || (program.type ? [program.type] : []),
-    metadata: {
-      funding_amount_min: amount?.min ?? null,
-      funding_amount_max: amount?.max ?? null,
-      currency: amount?.currency ?? program.currency ?? null,
-      location: program.region || program.metadata?.location || null,
-      description: program.description || program.metadata?.description || null,
-      region: program.region || program.metadata?.region || null,
-      company_stage: program.metadata?.company_stage || null,
-      deterministicScore: program.score,
-      deterministicConfidence: program.confidence,
-      deterministicEligibility: program.eligibility,
-      structuredExplanation: {
-        matchedCriteria: program.matchedCriteria,
-        gaps: program.gaps,
-        reason: program.reason,
-      },
-    },
-    categorized_requirements: program.categorized_requirements,
-  };
-}
-
-function buildFallbackPrograms(): GeneratedProgram[] {
-  // Return empty array - no generic fallback programs
-  // This ensures users get a proper "no results" message instead of unhelpful generic suggestions
-  return [];
-}
+// Removed complex fallback code - LLM is primary, no catalog fallback needed
+// Types are now imported from @/features/reco/types
 

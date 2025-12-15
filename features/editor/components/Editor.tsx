@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 
 import Sidebar from './layout/Workspace/Navigation/Sidebar/Sidebar';
 import PreviewWorkspace from './layout/Workspace/Preview/PreviewWorkspace';
@@ -8,23 +8,17 @@ import CurrentSelection from './layout/Workspace/Navigation/Configuration/Curren
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 import {
   useEditorActions,
-  useEditorStore
+  useEditorStore,
+  METADATA_SECTION_ID
 } from '@/features/editor/lib/hooks/useEditorStore';
-import { createEditorContext } from '@/features/editor/lib/helpers/editorContextHelpers';
+import { getSelectedProductMeta } from '@/features/editor/lib/helpers';
 import {
   ProductType
-} from '@/features/editor/lib/types/plan';
+} from '@/features/editor/lib/types';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import DevClearCacheButton from './DevTools/DevClearCacheButton';
-import { useEditor } from '@/features/editor/lib/hooks/core/useEditor';
-import { useTemplateConfigurationState } from '@/features/editor/lib/hooks/configuration/template-configuration/useTemplateConfigurationState';
-import { useTemplateConfigurationHandlers } from '@/features/editor/lib/hooks/configuration/template-configuration/useTemplateConfigurationHandlers';
-import { useEditorAutoActivation } from '@/features/editor/lib/hooks/editor-behavior/auto-activation/useEditorAutoActivation';
-import { useTemplateConfigurationSync } from '@/features/editor/lib/hooks/configuration/template-configuration/useTemplateConfigurationSync';
-import { useEditorComputedValues } from '@/features/editor/lib/hooks/editor-behavior/computed-values/useEditorComputedValues';
-import { prepareSidebarProps } from '@/features/editor/lib/helpers/componentPropsHelpers';
-import { prepareDocumentsProps } from '@/features/editor/lib/helpers/componentPropsHelpers';
-import { preparePreviewProps } from '@/features/editor/lib/helpers/componentPropsHelpers';
+import { useEditor, useTemplateConfigurationState, useTemplateConfigurationHandlers, useEditorAutoActivation } from '@/features/editor/lib/hooks';
+import { prepareSidebarProps, prepareDocumentsProps, preparePreviewProps } from '@/features/editor/lib/helpers';
 
 type EditorProps = {
   product?: ProductType | null;
@@ -148,15 +142,32 @@ export default function Editor({ product = null }: EditorProps) {
   // Notify parent of changes when templates change
   const lastUpdateKeyRef = useRef<string>('');
   
-  useTemplateConfigurationSync(
-    disabledSections,
-    disabledDocuments,
-    customSections,
-    customDocuments,
-    isConfiguratorOpen,
-    suppressNavigationRef,
-    handleTemplateUpdate
-  );
+  useEffect(() => {
+    // Don't trigger hydration if configurator is open or we're suppressing navigation
+    if (isConfiguratorOpen || suppressNavigationRef.current) {
+      return;
+    }
+    
+    const updateKey = JSON.stringify({
+      disabled: Array.from(disabledSections).sort(),
+      docs: Array.from(disabledDocuments).sort(),
+      customSections: customSections.map(s => s.id).sort(),
+      customDocuments: customDocuments.map(d => d.id).sort()
+    });
+    
+    if (lastUpdateKeyRef.current === updateKey) {
+      return;
+    }
+    
+    lastUpdateKeyRef.current = updateKey;
+    
+    handleTemplateUpdate({
+      disabledSectionIds: Array.from(disabledSections).sort(),
+      disabledDocumentIds: Array.from(disabledDocuments).sort(),
+      customSections: customSections.length > 0 ? customSections : undefined,
+      customDocuments: customDocuments.length > 0 ? customDocuments : undefined
+    });
+  }, [disabledSections, disabledDocuments, customSections, customDocuments, isConfiguratorOpen, suppressNavigationRef, handleTemplateUpdate]);
 
   // Template management handlers using hook
   const {
@@ -202,35 +213,38 @@ export default function Editor({ product = null }: EditorProps) {
 
   // Filtered sections and documents are now provided by useEditor hook
 
-  // Use editor memos hook for computed values
-  const {
-    effectiveEditingSectionId,
-    visibleSections,
-    visibleDocuments
-  } = useEditorComputedValues(
-    plan,
-    editingSectionId,
-    activeSectionId,
-    activeQuestionId,
-    allSections,
-    allDocuments,
-    disabledSections,
-    disabledDocuments,
-    filteredSections,
-    documentPlan
+  // Inline computed values
+  const effectiveEditingSectionId = useMemo(() => {
+    if (!plan) return null;
+    if (editingSectionId) return editingSectionId;
+    if (activeSectionId) return activeSectionId;
+    if (plan.sections && plan.sections.length > 0) {
+      return plan.sections[0].id;
+    }
+    return METADATA_SECTION_ID;
+  }, [editingSectionId, activeSectionId, plan]);
+  
+  const visibleSections = useMemo(() => 
+    allSections.filter(s => !disabledSections.has(s.id)),
+    [allSections, disabledSections]
+  );
+  
+  const visibleDocuments = useMemo(() => 
+    allDocuments.filter(d => !disabledDocuments.has(d.id)),
+    [allDocuments, disabledDocuments]
   );
 
   const enabledDocumentsCount = visibleDocuments.length + 1; // +1 for core product
   const totalDocumentsCount = allDocuments.length + 1; // +1 for core product
 
-  // Create shared editor context (eliminates duplicate getSelectedProductMeta calls)
-  const editorContext = createEditorContext(productOptions, selectedProduct);
+  // Get selected product meta
+  const selectedProductMeta = getSelectedProductMeta(productOptions, selectedProduct);
 
   // Use templateState hook
   const templateState = useTemplateConfigurationState(
     templateLoading,
     selectedProduct,
-    editorContext.selectedProductMeta,
+    selectedProductMeta,
     programSummary,
     plan,
     filteredDocuments,
@@ -398,21 +412,20 @@ export default function Editor({ product = null }: EditorProps) {
                         workspaceGridRef={workspaceGridRef}
                         isConfiguratorOpen={isConfiguratorOpen}
                         setIsConfiguratorOpen={setIsConfiguratorOpen}
-                        setCustomSections={setCustomSections}
-                        setCustomDocuments={setCustomDocuments}
+                        setCustomSections={setCustomSectionsWrapper}
+                        setCustomDocuments={setCustomDocumentsWrapper}
                       />
                     </div>
 
                     {/* Row 1, Col 2: Documents Bar - Matches Config height */}
                     <div 
-                      className="flex-shrink-0 relative min-h-0 flex flex-col" 
+                      className="flex-shrink-0 relative flex flex-col" 
                       style={{ 
-                        zIndex: templateState?.showAddDocument ? 50 : 0, 
-                        overflowY: templateState?.showAddDocument ? 'visible' : 'visible', 
+                        zIndex: templateState?.showAddDocument ? 100 : 10, 
+                        overflowY: 'visible', 
                         overflowX: 'visible', 
-                        contain: templateState?.showAddDocument ? 'none' : 'layout', 
-                        height: 'fit-content',
-                        maxHeight: 'fit-content'
+                        contain: templateState?.showAddDocument ? 'none' : 'layout',
+                        position: 'relative'
                       }}
                     >
                       {documentsProps ? (

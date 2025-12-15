@@ -18,13 +18,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Track deletion request
-    await analytics.trackEvent({
-      event: 'gdpr_deletion_request',
-      properties: {
-        userId: userId || 'email_provided',
-        reason: reason || 'not_provided',
-        timestamp: new Date().toISOString()
-      }
+    await analytics.trackUserAction('gdpr_deletion_request', {
+      userId: userId || 'email_provided',
+      reason: reason || 'not_provided',
+      timestamp: new Date().toISOString()
     });
 
     let targetUserId = userId;
@@ -47,12 +44,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Track successful deletion
-    await analytics.trackEvent({
-      event: 'gdpr_deletion_complete',
-      properties: {
-        userId: targetUserId,
-        timestamp: new Date().toISOString()
-      }
+    await analytics.trackUserAction('gdpr_deletion_complete', {
+      userId: targetUserId,
+      timestamp: new Date().toISOString()
     });
 
     return res.status(200).json({
@@ -72,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Error deleting user data:', error);
     
     // Track deletion error
-    await analytics.trackError(error as Error, 'gdpr_deletion');
+    await analytics.trackError('gdpr_deletion', error);
     
     return res.status(500).json({ 
       error: 'Failed to delete user data. Please contact support.' 

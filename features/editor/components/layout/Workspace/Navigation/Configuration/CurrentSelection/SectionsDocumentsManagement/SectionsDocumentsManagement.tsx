@@ -1,6 +1,6 @@
 import React from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import type { ProductType, ProgramSummary } from '@/features/editor/lib/types/plan';
+import type { ProductType, ProgramSummary } from '@/features/editor/lib/types';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 import { METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/lib/hooks/useEditorStore';
 import { InfoTooltip } from '../RequirementsDisplay/RequirementsDisplay';
@@ -28,18 +28,10 @@ type SectionsDocumentsManagementProps = {
   // Add custom items
   showAddDocument?: boolean;
   showAddSection?: boolean;
-  newDocumentName?: string;
-  newDocumentDescription?: string;
-  newSectionTitle?: string;
-  newSectionDescription?: string;
   onToggleAddDocument?: () => void;
   onToggleAddSection?: () => void;
   onAddCustomDocument?: () => void;
   onAddCustomSection?: () => void;
-  onSetNewDocumentName?: (name: string) => void;
-  onSetNewDocumentDescription?: (desc: string) => void;
-  onSetNewSectionTitle?: (title: string) => void;
-  onSetNewSectionDescription?: (desc: string) => void;
   // Product info for core product display
   productType?: ProductType;
   selectedProductMeta?: ProductOption | null;
@@ -64,18 +56,10 @@ export default function SectionsDocumentsManagement({
   onToggleDocument,
   showAddDocument = false,
   showAddSection = false,
-  newDocumentName = '',
-  newDocumentDescription = '',
-  newSectionTitle = '',
-  newSectionDescription = '',
   onToggleAddDocument,
   onToggleAddSection,
   onAddCustomDocument,
   onAddCustomSection,
-  onSetNewDocumentName,
-  onSetNewDocumentDescription,
-  onSetNewSectionTitle,
-  onSetNewSectionDescription,
   productType,
   selectedProductMeta,
   programSummary
@@ -142,54 +126,10 @@ export default function SectionsDocumentsManagement({
             </div>
           </div>
           
-          {/* Add Document Form */}
+          {/* Add Document Form - TODO: Replace with shared AddItemForm component */}
           {showAddDocument && onSetNewDocumentName && onSetNewDocumentDescription && onAddCustomDocument && (
-            <div className="mb-3 p-3 border border-blue-400/30 bg-blue-600/10 rounded-lg space-y-2">
-              <p className="text-xs text-white/90 font-semibold mb-2">
-                {t('editor.desktop.documents.custom.title' as any) || 'Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen'}
-              </p>
-              <div className="space-y-2">
-                <div>
-                  <label className="text-[10px] text-white/70 block mb-1">
-                    {t('editor.desktop.documents.custom.name' as any) || 'Name *'}
-                  </label>
-                  <input
-                    type="text"
-                    value={newDocumentName}
-                    onChange={(e) => onSetNewDocumentName(e.target.value)}
-                    placeholder={t('editor.desktop.documents.custom.namePlaceholder' as any) || 'z.B. Finanzplan'}
-                    className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-white/70 block mb-1">
-                    {t('editor.desktop.documents.custom.description' as any) || 'Beschreibung'}
-                  </label>
-                  <textarea
-                    value={newDocumentDescription}
-                    onChange={(e) => onSetNewDocumentDescription(e.target.value)}
-                    placeholder={t('editor.desktop.documents.custom.descriptionPlaceholder' as any) || 'Optionale Beschreibung des Dokuments'}
-                    rows={2}
-                    className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  onClick={onAddCustomDocument}
-                  disabled={!newDocumentName.trim()}
-                  className="px-3 py-1.5 text-xs rounded bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {t('editor.desktop.documents.custom.add' as any) || 'Hinzufügen'}
-                </button>
-                <button
-                  onClick={onToggleAddDocument}
-                  className="px-3 py-1.5 text-xs rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
-                >
-                  {t('editor.desktop.documents.custom.cancel' as any) || 'Abbrechen'}
-                </button>
-              </div>
+            <div className="mb-3 p-3 border border-dashed border-white/20 rounded-lg text-white/60 text-xs">
+              [Add Document Form - To be recreated as shared component]
             </div>
           )}
           
@@ -275,54 +215,10 @@ export default function SectionsDocumentsManagement({
             </div>
           </div>
           
-          {/* Add Section Form */}
+          {/* Add Section Form - TODO: Replace with shared AddItemForm component */}
           {showAddSection && onSetNewSectionTitle && onSetNewSectionDescription && onAddCustomSection && (
-            <div className="mb-3 p-3 border border-blue-400/30 bg-blue-600/10 rounded-lg space-y-2">
-              <p className="text-xs text-white/90 font-semibold mb-2">
-                {t('editor.desktop.sections.custom.title' as any) || 'Ein benutzerdefinierter Abschnitt zu Ihrem Plan hinzufügen'}
-              </p>
-              <div className="space-y-2">
-                <div>
-                  <label className="text-[10px] text-white/70 block mb-1">
-                    {t('editor.desktop.sections.custom.name' as any) || 'Titel *'}
-                  </label>
-                  <input
-                    type="text"
-                    value={newSectionTitle}
-                    onChange={(e) => onSetNewSectionTitle(e.target.value)}
-                    placeholder={t('editor.desktop.sections.custom.namePlaceholder' as any) || 'z.B. Zusammenfassung'}
-                    className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-white/70 block mb-1">
-                    {t('editor.desktop.sections.custom.description' as any) || 'Beschreibung'}
-                  </label>
-                  <textarea
-                    value={newSectionDescription}
-                    onChange={(e) => onSetNewSectionDescription(e.target.value)}
-                    placeholder={t('editor.desktop.sections.custom.descriptionPlaceholder' as any) || 'Optionale Beschreibung des Abschnitts'}
-                    rows={2}
-                    className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  onClick={onAddCustomSection}
-                  disabled={!newSectionTitle.trim()}
-                  className="px-3 py-1.5 text-xs rounded bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {t('editor.desktop.sections.custom.add' as any) || 'Hinzufügen'}
-                </button>
-                <button
-                  onClick={onToggleAddSection}
-                  className="px-3 py-1.5 text-xs rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
-                >
-                  {t('editor.desktop.sections.custom.cancel' as any) || 'Abbrechen'}
-                </button>
-              </div>
+            <div className="mb-3 p-3 border border-dashed border-white/20 rounded-lg text-white/60 text-xs">
+              [Add Section Form - To be recreated as shared component]
             </div>
           )}
           
@@ -445,5 +341,7 @@ export default function SectionsDocumentsManagement({
     </div>
   );
 }
+
+
 
 

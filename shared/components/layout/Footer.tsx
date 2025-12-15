@@ -53,10 +53,10 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-neutral-900 mb-6 text-lg uppercase tracking-wide">{t('footer.legal')}</h4>
             <ul className="space-y-4 text-sm">
-              <li><Link href="/privacy" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.privacy')}</Link></li>
-              <li><Link href="/terms" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.terms')}</Link></li>
+              <li><Link href="/legal/privacy" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.privacy')}</Link></li>
+              <li><Link href="/legal/terms" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.terms')}</Link></li>
               <li><Link href="/about" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.legalNotice')}</Link></li>
-              <li><Link href="/privacy#security" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.security')}</Link></li>
+              <li><Link href="/legal/privacy#security" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.security')}</Link></li>
             </ul>
           </div>
         </div>

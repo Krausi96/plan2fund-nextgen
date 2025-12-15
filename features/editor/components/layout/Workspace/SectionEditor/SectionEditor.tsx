@@ -89,10 +89,7 @@ export default function InlineSectionEditor({
     markQuestionComplete,
     updateTitlePage,
     addReference,
-    addAppendix,
-    addDataset,
-    addKpi,
-    addMedia
+    addAppendix
   } = actions;
   
   const { activeQuestionId } = useEditorStore((state) => ({
@@ -125,9 +122,6 @@ export default function InlineSectionEditor({
     isAppendicesSection,
     actions: {
       updateAnswer,
-      addDataset,
-      addKpi,
-      addMedia,
       addReference
     },
     t
@@ -183,12 +177,11 @@ export default function InlineSectionEditor({
         plan,
         {
           updateTitlePage,
-          addMedia,
           addAppendix
         }
       );
     }
-  }, [dragOverTarget, isMetadataSection, section, plan, updateTitlePage, addMedia, addAppendix, setIsDragging, setDragOverTarget]);
+  }, [dragOverTarget, isMetadataSection, section, plan, updateTitlePage, addAppendix, setIsDragging, setDragOverTarget]);
   
   // Wrapper for handleDragOver to pass isMetadataSection
   const handleDragOverWrapper = useCallback((e: React.DragEvent) => {

@@ -2,9 +2,8 @@
 // Renders the title page (metadata section) of the business plan
 
 import React from 'react';
-import { PlanDocument, TitlePage } from '@/features/editor/lib/types/plan';
-import { METADATA_SECTION_ID } from '@/features/editor/lib/helpers/editorHelpers';
-import { renderEditableField, handleTitlePageFieldUpdate, getFieldValue } from '@/features/editor/lib/helpers/renderHelpers';
+import { PlanDocument, TitlePage } from '@/features/editor/lib/types';
+import { METADATA_SECTION_ID, renderEditableField, handleTitlePageFieldUpdate, getFieldValue } from '@/features/editor/lib/helpers';
 
 interface TitlePageRendererProps {
   plan: PlanDocument;

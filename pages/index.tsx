@@ -1,38 +1,30 @@
-import { Hero } from '@/shared/components/common/Hero'
-import CTAStrip from '@/shared/components/common/CTAStrip'
-import SEOHead from '@/shared/components/common/SEOHead'
-import { useI18n } from "@/shared/contexts/I18nContext"
-import { useEffect, useState } from "react"
-import { useRouter } from "next/router"
-import analytics from "@/shared/user/analytics"
-import { detectTargetGroup, storeTargetGroupSelection } from '@/shared/user/segmentation'
-import { CheckCircle } from "lucide-react"
-import { Badge } from "@/shared/components/ui/badge"
+import { Hero } from '@/shared/components/common/Hero';
+import CTAStrip from '@/shared/components/common/CTAStrip';
+import SEOHead from '@/shared/components/common/SEOHead';
+import { useI18n } from "@/shared/contexts/I18nContext";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import analytics from "@/shared/user/analytics";
+import { CheckCircle } from "lucide-react";
+import { Badge } from "@/shared/components/ui/badge";
 
 export default function Home() {
   const { t } = useI18n();
   const router = useRouter();
   const [selectedTargetGroup, setSelectedTargetGroup] = useState<string | null>(null);
 
-  // Initialize selectedTargetGroup from localStorage on mount
+  // Initialize selectedTargetGroup from detection/localStorage on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('selectedTargetGroup');
-      if (stored) {
-        setSelectedTargetGroup(stored);
-      }
-    }
+    if (typeof window === 'undefined') return;
   }, []);
 
-  // Get target group using enhanced detection (URL, UTM, referrer, etc.)
-  // If user selected from banner, use that; otherwise use detection
-  const targetGroup = selectedTargetGroup || (typeof window !== 'undefined' ? detectTargetGroup().targetGroup : 'default');
-
-  // Handle target group selection from banner
+  // Handle target group selection from banner (propagated from Hero)
   const handleTargetGroupSelect = (targetGroup: string) => {
     setSelectedTargetGroup(targetGroup);
-    storeTargetGroupSelection(targetGroup as any);
   };
+
+  // Current target group used for highlighting sections
+  const targetGroup = selectedTargetGroup || 'default';
 
   useEffect(() => {
     analytics.trackPageView('/', 'Home');
@@ -40,29 +32,22 @@ export default function Home() {
   }, []);
 
   const handleStepClick = (stepId: number) => {
-    // Map step IDs to different actions
+    // Map step IDs to different actions in the new app structure
     switch (stepId) {
       case 1: // Idea - Define Business Concept
-        router.push('/reco?product=strategy');
-        break;
       case 2: // Business Model - Prepare Market Entry
-        router.push('/reco?product=strategy');
-        break;
       case 3: // Funding - Find Funding Options
-        router.push('/reco');
+        router.push('/app/user/reco');
         break;
       case 4: // Business Plan - Build your Business Plan
-        router.push('/reco?product=submission');
-        break;
       case 5: // Application - Apply for funding
-        router.push('/reco');
+        router.push('/app/user/editor?product=submission&route=grant');
         break;
       default:
-        router.push('/reco');
+        router.push('/app/user/reco');
     }
   };
 
-  // Stats Section with animated counters
   return (
     <>
       <SEOHead 
@@ -296,54 +281,16 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* Security & Data Handling */}
-        <section 
-          className="py-20 md:py-24 bg-neutral-50"
-          aria-labelledby="security-heading"
-        >
-          <div className="container max-w-5xl">
-            <div className="security-card rounded-3xl border border-neutral-200 bg-white shadow-xl px-8 py-12 md:px-12 md:py-14">
-              <div className="relative z-10 space-y-8">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-teal-700 mb-4">
-                    Security &amp; Data Handling
-                  </p>
-                  <div>
-                    <h2 id="security-heading" className="text-3xl md:text-4xl font-bold text-neutral-900 mb-3">
-                      Your Idea, Your Data
-                    </h2>
-                    <span className="security-underline w-20"></span>
-                  </div>
-                </div>
-                <div className="space-y-4 text-lg text-neutral-700 leading-relaxed">
-                  <p>We don&rsquo;t store your planning documents—files stay on your device.</p>
-                  <p>Sessions are encrypted end-to-end; we don&rsquo;t hand off data to vendors.</p>
-                  <p>Exports download locally, and you decide when and with whom to share.</p>
-                </div>
-                <div>
-                  <a
-                    href="/privacy"
-                    className="inline-flex items-center text-base font-semibold text-blue-600 hover:text-blue-700 focus-visible:ring-blue-500/30"
-                  >
-                    Read the security note &rarr;
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <CTAStrip
           title={t('cta.readyToFind')}
           subtitle={t('cta.joinFounders')}
           primaryAction={{
             label: t('nav.startPlan'),
-            href: "/editor"
+            href: "/app/user/editor?product=submission&route=grant"
           }}
           secondaryAction={{
             label: t('cta.findYourFunding'),
-            href: "/reco"
+            href: "/app/user/reco"
           }}
         />
       </main>

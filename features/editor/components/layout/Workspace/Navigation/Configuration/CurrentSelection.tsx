@@ -5,15 +5,11 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import { Button } from '@/shared/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
 import { type ProgressSummary } from '@/features/editor/lib/hooks/useEditorStore';
-import type { ProductType, ProgramSummary } from '@/features/editor/lib/types/plan';
+import type { ProductType, ProgramSummary, ConnectCopy } from '@/features/editor/lib/types';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
-import type { ConnectCopy } from '@/features/editor/lib/types/editor/configurator';
-import type { TemplateState } from '@/features/editor/lib/hooks/configuration/template-configuration/useTemplateConfigurationState';
-import { useConfiguratorOverlayPosition } from '@/features/editor/lib/hooks/configuration/configurator-ui/useConfiguratorOverlayPosition';
-import { useConfiguratorChangeTracking } from '@/features/editor/lib/hooks/configuration/configurator-ui/useConfiguratorChangeTracking';
-import { calculateRequirementsStats } from '@/features/editor/lib/helpers/editorHelpers';
-import { createEditorContext } from '@/features/editor/lib/helpers/editorContextHelpers';
-import { useConfiguratorStepNavigation } from '@/features/editor/lib/hooks/configuration/configurator-ui/useConfiguratorStepNavigation';
+import type { TemplateState } from '@/features/editor/lib/hooks';
+import { useConfiguratorOverlayPosition, useConfiguratorChangeTracking, useConfiguratorStepNavigation } from '@/features/editor/lib/hooks';
+import { calculateRequirementsStats, getSelectedProductMeta } from '@/features/editor/lib/helpers';
 import RequirementsDisplay from './CurrentSelection/RequirementsDisplay/RequirementsDisplay';
 import ProductSelection from './CurrentSelection/ProductSelection/ProductSelection';
 import ProgramSelection from './CurrentSelection/ProgramSelection/ProgramSelection';
@@ -52,8 +48,8 @@ export default function CurrentSelection(props: CurrentSelectionProps) {
   const configProps = useMemo(() => {
     if (!props.templateState) return null;
     
-    // Use shared context helpers to avoid duplicate calls
-    const editorContext = createEditorContext(props.productOptions, props.selectedProduct);
+    // Inline context helper
+    const selectedProductMeta = getSelectedProductMeta(props.productOptions, props.selectedProduct);
     
     return {
       productLabel: props.templateState.selectionSummary.productLabel,
@@ -68,14 +64,14 @@ export default function CurrentSelection(props: CurrentSelectionProps) {
       documentTitles: props.templateState.selectionSummary.documentTitles,
       productType: props.selectedProduct,
       productOptions: props.productOptions,
-      selectedProductMeta: editorContext.selectedProductMeta,
+      selectedProductMeta,
       connectCopy: props.connectCopy,
       programSummary: props.programSummary,
       programError: props.programError,
       programLoading: props.programLoading,
       onChangeProduct: props.handleProductChange,
       onConnectProgram: props.handleConnectProgram,
-      onOpenProgramFinder: () => router.push('/reco'),
+      onOpenProgramFinder: () => router.push('/app/user/reco'),
       onTemplatesExtracted: (templates: { sections?: SectionTemplate[]; documents?: DocumentTemplate[] }) => {
         if (templates.sections?.length) {
           props.setCustomSections(prev => [...prev, ...templates.sections!]);
@@ -128,7 +124,7 @@ export default function CurrentSelection(props: CurrentSelectionProps) {
     } else {
       setInternalIsExpanded(value);
     }
-  }, [externalIsOpen, configProps?.onOverlayOpenChange]);
+  }, [externalIsOpen, configProps]);
   const productType = configProps?.productType ?? null;
   const programSummary = configProps?.programSummary ?? null;
   const progressSummary = configProps?.progressSummary ?? [];

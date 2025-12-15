@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import type { ProductType } from '@/features/editor/lib/types/plan';
+import type { ProductType } from '@/features/editor/lib/types';
 import { InfoTooltip } from '../RequirementsDisplay/RequirementsDisplay';
 
 type ProductOption = {

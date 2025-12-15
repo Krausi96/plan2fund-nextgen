@@ -302,9 +302,317 @@ PreviewWorkspace/
 
 ---
 
-## 🔍 Phase 3.5: Further Simplification & Duplicate Detection (IN PROGRESS)
+## 🚨 Phase 3.5: State Duplication Analysis (CRITICAL - BLOCKING)
 
-**Status:** 🔄 **IN PROGRESS** - Hook cleanup complete, duplicate detection needed
+**Status:** ✅ **ANALYSIS COMPLETE** - Ready for implementation
+
+### ⚠️ **CRITICAL FINDING: 6 State Duplication Cases**
+
+State is fragmented across `useEditor` hook (useState) and Zustand store (`plan`), causing sync issues and no single source of truth.
+
+### 📋 **Detailed Analysis of Each Case**
+
+#### **1. Template State (plan.metadata) - ✅ CONFIRMED DUPLICATE**
+
+**Current State:**
+- **`useEditor` hook:** `useState` for `disabledSections` (Set<string>), `disabledDocuments` (Set<string>), `customSections`, `customDocuments` (lines 300, 315, 292-293)
+- **`plan.metadata` in store:** `disabledSectionIds` (string[]), `disabledDocumentIds` (string[]), `customSections`, `customDocuments` (lines 146-149)
+
+**Sync Mechanism:**
+- Fragile `useEffect` in useEditor (lines 369-407) that reads from plan.metadata
+- Uses `restoringFromMetadata` ref to prevent infinite loops
+- Only syncs FROM store TO hook, not the reverse
+- Data format mismatch: useEditor uses `Set<string>`, store uses `string[]`
+
+**Problem:**
+- Race conditions: Changes in useEditor don't immediately update plan.metadata
+- One-way sync: Only syncs from store to hook, not hook to store
+- Fragile logic: Complex useEffect with ref guards
+
+**Verdict:** ✅ **ACTUAL DUPLICATE** - Same data, different formats
+
+**Solution:**
+- Remove `useState` for these 4 values from useEditor
+- Derive from `plan.metadata` using selectors
+- Add store actions: `setDisabledSections`, `setDisabledDocuments`, `setCustomSections`, `setCustomDocuments`
+- Convert Set operations to Array operations in store
+
+---
+
+#### **2. Product Selection - ✅ CONFIRMED DUPLICATE**
+
+**Current State:**
+- **`useEditor` hook:** `useState` for `selectedProduct` (ProductType | null, line 175), `pendingProductChange` (line 176)
+- **`plan.productType` in store:** Updated via `setProductType` action (line 465)
+
+**Sync Mechanism:**
+- `handleProductChange` calls `setProductType` action (lines 250, 255)
+- But useEditor maintains separate `selectedProduct` state
+- `pendingProductChange` is used when configurator is open (lines 235-242)
+
+**Problem:**
+- Two sources of truth: `selectedProduct` in hook vs `plan.productType` in store
+- Sync delay: Changes to `selectedProduct` don't immediately update store
+- Pending state: `pendingProductChange` is only in hook, not in store
+
+**Verdict:** ✅ **ACTUAL DUPLICATE** - `selectedProduct` duplicates `plan.productType`. `pendingProductChange` is UI state that should be in store.
+
+**Solution:**
+- Remove `selectedProduct` useState, derive from `plan.productType`
+- Move `pendingProductChange` to store as UI state
+- Update `handleProductChange` to only use store actions
+
+---
+
+#### **3. Program Connection - ✅ CONFIRMED DUPLICATE**
+
+**Current State:**
+- **`useEditor` hook:** `useState` for `programId`, `programSummary`, `programLoading`, `programError` (lines 81-84)
+- **`plan.metadata` in store:** `programId`, `programName` (lines 143-144)
+- **`plan.programSummary`** (line 140)
+
+**Sync Mechanism:**
+- Passed to `hydrate()` which updates plan (lines 191-200)
+- But useEditor maintains separate state
+- Only syncs during hydration, not on every change
+
+**Problem:**
+- Three places for program data: useEditor state, plan.metadata, plan.programSummary
+- Sync only during hydration: Changes don't immediately update plan
+- Loading/error state: Not in store, only in hook
+
+**Verdict:** ✅ **ACTUAL DUPLICATE** - `programId` and `programSummary` are duplicated. `programLoading` and `programError` are UI state that should be in store.
+
+**Solution:**
+- Remove `programId` and `programSummary` useState, derive from `plan.metadata` and `plan.programSummary`
+- Move `programLoading` and `programError` to store as UI state
+- Add store actions: `setProgramId`, `setProgramSummary`, `setProgramLoading`, `setProgramError`
+- Update `handleConnectProgram` to use store actions
+
+---
+
+#### **4. Document Selection - ⚠️ MISSING FROM PLAN**
+
+**Current State:**
+- **`useEditor` hook:** `useState` for `productDocumentSelections` (Record<ProductType, string | null>, line 445) + sessionStorage
+- **`clickedDocumentId`** derived from productDocumentSelections (line 467)
+- **`plan.metadata`:** ❌ **NOT PRESENT** - Document selection is not stored in plan
+
+**Sync Mechanism:**
+- Only in sessionStorage, not in plan
+- Persists across page refreshes but not in plan state
+- Lost when plan is saved/loaded
+
+**Problem:**
+- Not persisted in plan: Document selection lost when plan is saved/loaded
+- Only in sessionStorage: Not part of the plan data model
+- Not synced: No connection to plan state
+
+**Verdict:** ⚠️ **MISSING FROM PLAN** - This is not a duplicate - it's missing from the plan entirely.
+
+**Solution:**
+- Add `productDocumentSelections` to `plan.metadata`
+- Remove sessionStorage, use plan as source of truth
+- Add store action: `setProductDocumentSelection`
+- Update `handleSelectDocument` to use store action
+
+---
+
+#### **5. Templates List - ✅ NOT DUPLICATES (DIFFERENT PURPOSES)**
+
+**Current State:**
+- **`useEditor` hook:** `useState` for `sections` (SectionTemplate[]), `documents` (DocumentTemplate[]) (lines 290-291)
+- **`plan.templates` in store:** SectionTemplate[] (line 38, set during `hydrate()` line 168)
+
+**Investigation Results:**
+- `plan.templates` (store): Contains **enabled/filtered** SectionTemplate[] used to build the plan (set during `hydrate()`, line 168)
+- `sections` (useEditor): Contains **ALL** SectionTemplate[] loaded from API for configurator UI (line 348-354)
+- `documents` (useEditor): Contains **ALL** DocumentTemplate[] loaded from API for configurator UI (line 348-354)
+
+**Key Differences:**
+- `plan.templates` = filtered templates (disabled sections removed) + custom sections, used to build plan sections
+- `sections`/`documents` = all available templates, used for configurator UI to show all options
+
+**Verdict:** ✅ **NOT DUPLICATES** - These serve different purposes:
+- `plan.templates` = "what's in the plan" (filtered)
+- `sections`/`documents` = "what's available" (all templates)
+
+**Solution:**
+- **Keep separate** - they serve different purposes
+- **Optional optimization:** Could add `allTemplates` to store, derive both `plan.templates` and `sections`/`documents` from it
+
+---
+
+#### **6. UI State - ⚠️ PARTIALLY IN STORE**
+
+**Current State:**
+- **`useEditorStore` (store):** `isConfiguratorOpen`, `editingSectionId` (lines 45-46) ✅
+- **`useEditor` hook:** `pendingProductChange`, `programLoading`, `programError`, `templateLoading`, `templateError` (lines 176, 83-84, 294, 297) ❌
+
+**Problem:**
+- Inconsistent: Some UI state in store, some in hook
+- No single source: UI state scattered between store and hook
+
+**Verdict:** ⚠️ **PARTIAL DUPLICATE** - Some UI state is in store, some is not. Should consolidate all UI state in store.
+
+**Solution:**
+- Move all UI state to store:
+  - `pendingProductChange` → store
+  - `programLoading` → store
+  - `programError` → store
+  - `templateLoading` → store
+  - `templateError` → store
+- Add corresponding store actions
+- Remove useState for these values
+
+---
+
+### 📊 **Summary Table**
+
+| Case | State | In useEditor | In Store | Verdict | Action |
+|------|-------|--------------|-----------|---------|--------|
+| 1 | Template metadata | useState (Set) | plan.metadata (Array) | ✅ Duplicate | Derive from store |
+| 2 | Product selection | useState | plan.productType | ✅ Duplicate | Derive from store |
+| 3 | Program connection | useState | plan.metadata + plan.programSummary | ✅ Duplicate | Derive from store |
+| 4 | Document selection | useState + sessionStorage | ❌ Missing | ⚠️ Missing | Add to store |
+| 5 | Templates list | useState | plan.templates | ✅ Not duplicates | Keep separate (different purposes) |
+| 6 | UI state | Partial useState | Partial in store | ⚠️ Partial | Consolidate in store |
+
+---
+
+### 📊 **Root Cause Analysis**
+
+**The Problem:**
+- `useEditor` hook maintains separate `useState` for everything instead of deriving from `plan` in store
+- State changes require manual sync between hook state and store state
+- No single source of truth - components read from different places
+- Fragile sync logic with race conditions and timing issues
+
+**The Solution Needed:**
+1. **Make `plan` in Zustand store the SINGLE SOURCE OF TRUTH**
+2. **Remove all `useState` from `useEditor` that duplicates store state**
+3. **Derive all values from `plan` using selectors**
+4. **Add store actions for all state mutations**
+5. **Update components to read directly from store (or via selectors)**
+
+### 🎯 **Required Actions**
+
+**Status:** ✅ **Analysis Complete** - Ready for implementation
+
+**Next Steps:**
+1. ✅ **Clarify state duplications** - All 6 cases analyzed and verified (see detailed analysis above)
+2. ⏳ **Discuss lib/ structure** - Review with user what belongs in lib/ vs component folders (see discussion below)
+3. ⏳ **Fix Zustand store** - Consolidate all state into store, remove duplicate useState from useEditor
+4. ⏳ **Establish source of truth** - Each component should have ONE clear source of truth
+
+**Files to Review:**
+- `features/editor/lib/hooks/core/useEditor.ts` (677 lines) - Contains all duplicate useState
+- `features/editor/lib/hooks/core/store/index.ts` (569 lines) - Store that should be source of truth
+- `features/editor/lib/STATE_DUPLICATION_ANALYSIS.md` - Summary analysis
+- `features/editor/lib/STATE_DUPLICATION_DETAILED_ANALYSIS.md` - Full detailed analysis
+
+---
+
+## 📁 Phase 3.5.1: lib/ Structure Discussion (REQUIRED BEFORE REFACTORING)
+
+**Status:** ⏳ **AWAITING USER INPUT** - Need to clarify structure before proceeding
+
+**User Feedback:** *"I have no idea what we need. It is scattered."*
+
+### Current lib/ Structure
+
+```
+features/editor/lib/
+├── constants/          # Product configuration
+├── helpers/            # Helper functions (5 files)
+├── hooks/              # Shared hooks (organized by domain)
+│   ├── core/          # Core hooks (useEditor, store)
+│   ├── configuration/ # Configuration hooks
+│   └── editor-behavior/ # Editor behavior hooks
+├── templates/          # Template loading/management
+└── types/              # Type definitions
+```
+
+### Component-Specific Hooks (Outside lib/)
+
+```
+features/editor/components/layout/Workspace/SectionEditor/hooks/
+├── useSectionEditorState.ts
+├── useSectionEditorAI.ts
+├── useSectionEditorPosition.ts
+├── useSectionEditorHandlers.ts
+├── useQuestionHighlight.ts
+└── useSectionEditorDrag.ts
+```
+
+### Questions to Answer
+
+**1. lib/hooks/ vs Component hooks/ - What's the rule?**
+- **Current:** `lib/hooks/` = shared hooks, component `hooks/` = component-specific hooks
+- **Question:** Should ALL hooks be in `lib/hooks/`? Or keep component-specific ones in component folders?
+- **Recommendation:** Keep component-specific hooks in component folders. Criteria: If used by 2+ components → `lib/hooks/`, if used by 1 component → component folder
+
+**2. lib/helpers/ Organization - Flat vs Domain-based?**
+- **Current:** Flat structure with descriptive names (5 files: editorHelpers, componentPropsHelpers, etc.)
+- **Question:** Should helpers be grouped by domain (e.g., `helpers/plan/`, `helpers/templates/`)?
+- **Recommendation:** Keep flat structure if files are <500 lines each. Group by domain if files grow too large.
+
+**3. lib/templates/ vs Template Configuration Logic**
+- **Current:** `lib/templates/` = template data/API, `lib/hooks/configuration/template-configuration/` = template configuration logic
+- **Question:** Is this separation correct?
+- **Recommendation:** Yes - `lib/templates/` = what templates exist, `lib/hooks/configuration/` = how to configure templates
+
+**4. Types Organization**
+- **Current:** `lib/types/plan.ts`, `lib/types/editor/configurator.ts`, `lib/types/templates/`
+- **Question:** Should types be grouped by domain or keep flat?
+- **Recommendation:** Current structure seems reasonable. Group by domain if it grows.
+
+### Proposed Structure (Option C: Hybrid - Recommended)
+
+```
+lib/
+├── hooks/          # All shared hooks (keep current structure)
+├── helpers/        # All helpers (keep flat, maybe group if >500 lines)
+├── templates/      # Template data/API (keep as is)
+├── types/          # All types (keep current structure)
+└── constants/      # Constants
+
+Plus:
+- Component-specific hooks stay in component folders
+- Clear separation: shared = lib/, component-specific = component folder
+```
+
+**Pros:**
+- Minimal refactoring
+- Clear criteria for what goes where
+- Addresses "scattered" feeling with clear rules
+
+**Cons:**
+- Still some questions about specific files
+
+### Decision Points Needed
+
+1. **Hooks location:** lib/hooks/ vs component hooks/ - What's the rule? (Recommendation: 2+ components = lib/)
+2. **Helpers organization:** Flat vs domain-based - What's preferred? (Recommendation: Flat if <500 lines)
+3. **Duplicate detection:** Should we run this before or after state consolidation? (Recommendation: After state consolidation)
+4. **Template logic:** Is current separation correct? (Recommendation: Yes)
+5. **Types organization:** Keep current or reorganize? (Recommendation: Keep current)
+
+### Your Input Needed
+
+**Please answer:**
+1. What feels "scattered" to you? Specific examples?
+2. What structure would make it easier to find code?
+3. Should we fix state duplication first, then reorganize lib/? (Recommendation: Fix state first)
+4. Or reorganize lib/ first, then fix state duplication?
+
+**See also:** `features/editor/lib/LIB_STRUCTURE_DISCUSSION.md` for full discussion document
+
+---
+
+## 🔍 Phase 3.6: Further Simplification & Duplicate Detection (IN PROGRESS)
+
+**Status:** 🔄 **IN PROGRESS** - Hook cleanup complete, state duplication identified
 
 ### ✅ Completed (Latest Session)
 
@@ -409,5 +717,5 @@ grep -r "^export const.*=" features/editor/lib --include="*.ts" --include="*.tsx
 ---
 
 **Last Updated:** Latest  
-**Status:** ✅ Phase 1-3 Complete | 🔄 Phase 3.5 In Progress - Duplicate Detection & State Walkthrough Needed
+**Status:** ✅ Phase 1-3 Complete | 🚨 Phase 3.5 CRITICAL - State Duplication Identified | 🔄 Phase 3.6 In Progress - Duplicate Detection & State Walkthrough Needed
 

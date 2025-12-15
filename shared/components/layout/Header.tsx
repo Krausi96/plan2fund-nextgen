@@ -75,7 +75,7 @@ export default function Header() {
           {isMounted && userProfile ? (
             <div className="flex items-center gap-4">
               <Link 
-                href="/dashboard" 
+                href="/app/user/dashboard" 
                 className="flex items-center gap-2 text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm"
               >
                 <User className="w-4 h-4" />

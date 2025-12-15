@@ -5,7 +5,6 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
-import type { ConversationMessage } from '@/features/editor/lib/types/plan';
 import { isCustomLLMEnabled, callCustomLLM } from '@/features/ai/clients/customLLM';
 
 // Initialize OpenAI client (only if API key is set)
@@ -14,6 +13,11 @@ const openai = process.env.OPENAI_API_KEY
       apiKey: process.env.OPENAI_API_KEY,
     })
   : null;
+
+interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 interface AIRequest {
   message: string;

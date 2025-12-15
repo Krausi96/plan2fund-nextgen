@@ -23,6 +23,16 @@ const nextConfig = {
     defaultLocale: 'en',
     localeDetection: false,
   },
+  // Redirects for reorganized user pages
+  async redirects() {
+    return [
+      { source: '/dashboard', destination: '/app/user/dashboard', permanent: true },
+      { source: '/editor', destination: '/app/user/editor', permanent: true },
+      { source: '/export', destination: '/app/user/export', permanent: true },
+      { source: '/preview', destination: '/app/user/preview', permanent: true },
+      { source: '/reco', destination: '/app/user/reco', permanent: true },
+    ];
+  },
   // Bundle analyzer (uncomment for analysis)
   webpack: (config, { isServer }) => {
     // Add path aliases for webpack (must match tsconfig.json paths)
@@ -31,7 +41,7 @@ const nextConfig = {
       ...config.resolve.alias,
       '@/features': path.resolve(__dirname, 'features'),
       '@/shared': path.resolve(__dirname, 'shared'),
-      '@templates': path.resolve(__dirname, 'features/editor/lib/templates/index.ts'),
+      '@templates': path.resolve(__dirname, 'features/editor/lib/templates.ts'),
     };
 
     if (!isServer) {

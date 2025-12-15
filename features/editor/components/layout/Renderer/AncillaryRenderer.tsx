@@ -2,9 +2,8 @@
 // Renders List of Tables, List of Figures, References, and Appendices
 
 import React from 'react';
-import { PlanDocument, PlanSection } from '@/features/editor/lib/types/plan';
-import { ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/lib/helpers/editorHelpers';
-import { formatTableLabel, getFieldValue } from '@/features/editor/lib/helpers/renderHelpers';
+import { PlanDocument, PlanSection } from '@/features/editor/lib/types';
+import { ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID, formatTableLabel, getFieldValue } from '@/features/editor/lib/helpers';
 
 interface AncillaryRendererProps {
   plan: PlanDocument;
@@ -997,4 +996,6 @@ export default function AncillaryRenderer({
     </>
   );
 }
+
+
 

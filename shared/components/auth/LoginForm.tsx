@@ -3,7 +3,8 @@ import { useRouter } from 'next/router';
 import { useUser } from '@/shared/user/context/UserContext';
 import { Mail, Lock, User, Github, Chrome, Briefcase, Users, Building2 } from 'lucide-react';
 import emailService from '@/shared/lib/services/emailService';
-import { Persona, getPersonaFromTargetGroup } from '@/shared/user/segmentation/personaMapping';
+import type { Persona } from '@/shared/user/segmentation/personaMapping';
+import { getPersonaFromTargetGroup } from '@/shared/user/segmentation/personaMapping';
 
 interface LoginFormProps {
   redirect?: string;
@@ -110,7 +111,7 @@ export default function LoginForm({ redirect, onSuccess }: LoginFormProps) {
         if (redirect) {
           router.push(redirect);
         } else {
-          router.push('/dashboard');
+          router.push('/app/user/dashboard');
         }
       }
     } catch (err: any) {

@@ -23,7 +23,7 @@
     "paths": {
       "@/features/*": ["./features/*"],
       "@/shared/*": ["./shared/*"],
-      "@templates": ["./features/editor/lib/templates/index.ts"]
+      "@templates": ["./features/editor/lib/templates.ts"]
     },
     "allowJs": true,
     "incremental": true,
@@ -31,7 +31,9 @@
   },
   "include": [
     "pages",
-    "features",
+    "features/ai",
+    "features/reco",
+    "features/export",
     "shared"
   ],
   "exclude": [

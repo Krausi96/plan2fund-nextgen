@@ -2,8 +2,8 @@
 // Renders individual plan sections
 
 import React from 'react';
-import { PlanDocument, PlanSection } from '@/features/editor/lib/types/plan';
-import { formatTableLabel, renderTable } from '@/features/editor/lib/helpers/renderHelpers';
+import { PlanDocument, PlanSection } from '@/features/editor/lib/types';
+import { formatTableLabel, renderTable } from '@/features/editor/lib/helpers';
 
 interface SectionRendererProps {
   section: PlanSection;
@@ -193,4 +193,6 @@ export default function SectionRenderer({
     </div>
   );
 }
+
+
 

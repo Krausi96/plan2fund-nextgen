@@ -6,12 +6,11 @@ import {
   BusinessPlan,
   PlanDocument,
   Route
-} from '@/features/editor/lib/types/plan';
+} from '@/features/editor/lib/types';
 import ExportRenderer from '@/features/editor/components/layout/Renderer/DocumentRenderer';
 import {
   convertSectionToPlanSection
-} from '@/features/editor/lib/helpers/renderHelpers';
-import { useI18n } from '@/shared/contexts/I18nContext';
+} from '@/features/editor/lib/helpers';
 
 interface PreviewPanelProps {
   plan: BusinessPlan | null;
@@ -30,7 +29,6 @@ interface PreviewPanelProps {
   selectedProductMeta?: { value: string; label: string; description: string; icon?: string } | null;
   selectedDocumentName?: string | null; // Name of additional document if viewing one
   isNewUser?: boolean; // True if this is a new user (no plan content yet)
-  onOpenConfigurator?: () => void; // Callback to open the configurator
 }
 
 
@@ -49,10 +47,8 @@ function PreviewPanel({
   onAppendixDelete,
   selectedProductMeta,
   selectedDocumentName,
-  isNewUser = false,
-  onOpenConfigurator
+  isNewUser = false
 }: PreviewPanelProps) {
-  const { t } = useI18n();
   const [viewMode, setViewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark, setShowWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<'100' | '120' | '140'>('100');
@@ -242,86 +238,12 @@ function PreviewPanel({
 
   // If new user or no plan exists, show empty state (user hasn't selected a product yet)
   // Use isNewUser for consistency with other components (Sidebar, DocumentsBar)
+  // TODO: Replace with shared EmptyState component
   if (isNewUser || !plan) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
-        <div className="max-w-md space-y-6">
-          <div className="text-6xl mb-2">📝</div>
-          
-          {/* CTA Button */}
-          {onOpenConfigurator && (
-            <button
-              onClick={onOpenConfigurator}
-              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-            >
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.cta';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Start Your Plan' : translated;
-              })()}
-            </button>
-          )}
-          
-          {/* Description */}
-          <p className="text-white/80 text-sm leading-relaxed">
-            {(() => {
-              const key = 'editor.desktop.preview.emptyState.description';
-              const translated = t(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? 'There are many ways, choose yours.' : translated;
-            })()}
-          </p>
-          
-          {/* Options */}
-          <div className="mt-4 flex flex-col gap-6 text-left text-xs text-white/60">
-            <div className="group relative flex items-center gap-3">
-              <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
-                📋
-              </span>
-              <span className="flex-1 cursor-help">{(() => {
-                const key = 'editor.desktop.preview.emptyState.optionA';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Start by selecting a plan (Strategy, Review, or Submission). You can add a funding program later to get program-specific requirements and recommendations.' : translated;
-              })()}</span>
-              <div className="absolute left-0 top-full mt-2 w-80 rounded-lg border border-white/40 bg-slate-950 px-4 py-3 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
-                <div className="space-y-3">
-                  <div>
-                    <p className="font-semibold text-white mb-1">{t('planTypes.strategy.title' as any)}</p>
-                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.strategy.description' as any)}</p>
-                  </div>
-                  <div className="border-t border-white/20 pt-2">
-                    <p className="font-semibold text-white mb-1">{t('planTypes.custom.title' as any)}</p>
-                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.custom.description' as any)}</p>
-                  </div>
-                  <div className="border-t border-white/20 pt-2">
-                    <p className="font-semibold text-white mb-1">{t('planTypes.review.title' as any)}</p>
-                    <p className="text-white/80 text-[9px] leading-relaxed">{t('planTypes.review.description' as any)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="group relative flex items-center gap-3">
-              <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
-                🔍
-              </span>
-              <span className="flex-1 cursor-help">{(() => {
-                const key = 'editor.desktop.preview.emptyState.optionB';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? "Start by finding or connecting a funding program. We'll recommend a plan and provide program-specific requirements and document templates." : translated;
-              })()}</span>
-              <div className="absolute left-0 top-full mt-2 w-64 rounded-lg border border-white/40 bg-slate-950 px-3 py-2.5 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
-                {(() => {
-                  const key = 'editor.desktop.preview.emptyState.optionBHover';
-                  const translated = t(key as any) as string;
-                  const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                  return isMissing ? 'Begin by connecting a funding program (AWS, FFG, EU, etc.). We\'ll automatically recommend the appropriate plan type and load program-specific sections, requirements, and document templates tailored to your selected program.' : translated;
-                })()}
-              </div>
-            </div>
-          </div>
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg border border-dashed border-white/20">
+        <div className="text-white/60 text-sm">
+          [Empty State - To be recreated as shared component]
         </div>
       </div>
     );
@@ -428,87 +350,10 @@ function PreviewPanel({
             </div>
           </div>
         ) : isNewUser ? (
-          <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
-            <div className="max-w-md space-y-6">
-              <div className="text-6xl mb-2">📝</div>
-              
-              {/* CTA Button */}
-              {onOpenConfigurator && (
-                <button
-                  onClick={onOpenConfigurator}
-                  className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                >
-                  {(() => {
-                    const key = 'editor.desktop.preview.emptyState.cta';
-                    const translated = t(key as any) as string;
-                    const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                    return isMissing ? 'Start Your Plan' : translated;
-                  })()}
-                </button>
-              )}
-              
-              {/* Description */}
-              <p className="text-white/80 text-sm leading-relaxed">
-                {(() => {
-                  const key = 'editor.desktop.preview.emptyState.description';
-                  const translated = t(key as any) as string;
-                  const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                  return isMissing ? 'There are many ways, choose yours.' : translated;
-                })()}
-              </p>
-              
-              {/* Options */}
-              <div className="mt-4 flex flex-col gap-6 text-left text-xs text-white/60">
-                <div className="group relative flex items-center gap-3">
-                  <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
-                    📋
-                  </span>
-                  <span className="flex-1 cursor-help">{(() => {
-                    const key = 'editor.desktop.preview.emptyState.optionA';
-                    const translated = t(key as any) as string;
-                    const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                    return isMissing ? 'Start by selecting a plan (Strategy, Review, or Submission). You can add a funding program later to get program-specific requirements and recommendations.' : translated;
-                  })()}</span>
-                  <div className="absolute left-0 top-full mt-2 w-80 rounded-lg border border-white/40 bg-slate-950 px-4 py-3 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
-                    <div className="space-y-3">
-                      <div>
-                        <p className="font-semibold text-white mb-1">{t('pricing.details.strategy.title' as any)}</p>
-                        <p className="text-white/80 text-[9px] leading-relaxed">{t('pricing.details.strategy.whoForDesc' as any)}</p>
-                        <p className="text-white/70 text-[9px] mt-1">{t('pricing.details.strategy.exportDesc' as any)}</p>
-                      </div>
-                      <div className="border-t border-white/20 pt-2">
-                        <p className="font-semibold text-white mb-1">{t('pricing.details.custom.title' as any)}</p>
-                        <p className="text-white/80 text-[9px] leading-relaxed">{t('pricing.details.custom.whoForDesc' as any)}</p>
-                        <p className="text-white/70 text-[9px] mt-1">{t('pricing.details.custom.exportDesc' as any)}</p>
-                      </div>
-                      <div className="border-t border-white/20 pt-2">
-                        <p className="font-semibold text-white mb-1">{t('pricing.details.review.title' as any)}</p>
-                        <p className="text-white/80 text-[9px] leading-relaxed">{t('pricing.details.review.whoForDesc' as any)}</p>
-                        <p className="text-white/70 text-[9px] mt-1">{t('pricing.details.review.exportDesc' as any)}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="group relative flex items-center gap-3">
-                  <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
-                    🔍
-                  </span>
-                  <span className="flex-1 cursor-help">{(() => {
-                    const key = 'editor.desktop.preview.emptyState.optionB';
-                    const translated = t(key as any) as string;
-                    const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                    return isMissing ? "Start by finding or connecting a funding program. We'll recommend a plan and provide program-specific requirements and document templates." : translated;
-                  })()}</span>
-                  <div className="absolute left-0 top-full mt-2 w-64 rounded-lg border border-white/40 bg-slate-950 px-3 py-2.5 text-[10px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-[9999] shadow-2xl backdrop-blur-md">
-                    {(() => {
-                      const key = 'editor.desktop.preview.emptyState.optionBHover';
-                      const translated = t(key as any) as string;
-                      const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                      return isMissing ? 'Begin by connecting a funding program (AWS, FFG, EU, etc.). We\'ll automatically recommend the appropriate plan type and load program-specific sections, requirements, and document templates tailored to your selected program.' : translated;
-                    })()}
-                  </div>
-                </div>
-              </div>
+          // TODO: Replace with shared EmptyState component (duplicate removed)
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg border border-dashed border-white/20">
+            <div className="text-white/60 text-sm">
+              [Empty State - To be recreated as shared component]
             </div>
           </div>
         ) : (

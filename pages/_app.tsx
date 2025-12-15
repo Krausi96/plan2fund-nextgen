@@ -1,29 +1,10 @@
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import AppShell from "@/shared/components/layout/AppShell";
-import { UserProvider } from "@/shared/user/context/UserContext";
 import { I18nProvider } from "@/shared/contexts/I18nContext";
+import { UserProvider } from "@/shared/user/context/UserContext";
 import { useEffect } from "react";
 import Script from "next/script";
-import { useRouter } from "next/router";
-import analytics from "@/shared/user/analytics";
-
-function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-
-  useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      analytics.trackPageView(url);
-    };
-
-    router.events.on("routeChangeComplete", handleRouteChange);
-    return () => {
-      router.events.off("routeChangeComplete", handleRouteChange);
-    };
-  }, [router.events]);
-
-  return <>{children}</>;
-}
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -66,11 +47,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
       <I18nProvider>
         <UserProvider>
-          <AnalyticsWrapper>
-            <AppShell>
-              <Component {...pageProps} />
-            </AppShell>
-          </AnalyticsWrapper>
+          <AppShell>
+            <Component {...pageProps} />
+          </AppShell>
         </UserProvider>
       </I18nProvider>
     </>

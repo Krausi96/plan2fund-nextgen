@@ -9,11 +9,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   // Define flow routes where Breadcrumbs should be shown (aligned to product workflow)
   const flowRoutes = [
-    "/preview",
+    "/app/user/preview",
     "/confirm",
     "/checkout",
-    "/export",
-    "/thank-you",
+    "/app/user/export",
+    "/checkout/success/thank-you",
   ];
 
   const showBreadcrumbs = flowRoutes.some((route) =>
@@ -24,7 +24,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isLandingPage = router.pathname === "/";
   
   // Hide breadcrumbs on /reco and /editor since they're starting points
-  const hideBreadcrumbs = router.pathname === "/reco" || router.pathname === "/editor";
+  const hideBreadcrumbs = router.pathname === "/app/user/reco" || router.pathname === "/app/user/editor";
 
   return (
     <div className="flex flex-col min-h-screen">

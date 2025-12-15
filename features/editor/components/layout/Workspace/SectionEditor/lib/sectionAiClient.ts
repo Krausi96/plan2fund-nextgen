@@ -1,4 +1,4 @@
-import type { ConversationMessage, QuestionStatus, Section, Dataset, KPI, MediaAsset } from '@/features/editor/lib/types/plan';
+import type { ConversationMessage, QuestionStatus, Section } from '@/features/editor/lib/types';
 
 type SectionAiProgram = {
   id?: string | null;
@@ -60,9 +60,6 @@ export type AIAction = {
 
 // Callbacks for action creation
 export type AIActionCallbacks = {
-  onDatasetCreate?: (dataset: Dataset) => void;
-  onKpiCreate?: (kpi: KPI) => void;
-  onMediaCreate?: (asset: MediaAsset) => void;
   onReferenceAdd?: (reference: any) => void;
 };
 
@@ -131,7 +128,7 @@ export function parseAIActions(
   
   if (!section) return actions;
   
-  const { onDatasetCreate, onKpiCreate, onMediaCreate, onReferenceAdd } = callbacks;
+  const { onReferenceAdd } = callbacks;
   const { isMetadataSection = false, isReferencesSection = false } = options || {};
   
   // Extract response object and content string
@@ -154,82 +151,6 @@ export function parseAIActions(
       const { type } = recommendedAction;
       
       switch (type) {
-        case 'create_table':
-          actions.push({
-            label: 'Create Table',
-            action: 'create_table',
-            icon: '📊',
-            onClick: () => {
-              if (onDatasetCreate && section) {
-                const newDataset: Dataset = {
-                  id: `dataset_${Date.now()}`,
-                  name: 'New Dataset',
-                  columns: [],
-                  rows: [],
-                  sectionId: section.id
-                };
-                onDatasetCreate(newDataset);
-              }
-            }
-          });
-          break;
-          
-        case 'create_kpi':
-          actions.push({
-            label: 'Create KPI',
-            action: 'create_kpi',
-            icon: '📈',
-            onClick: () => {
-              if (onKpiCreate && section) {
-                const newKpi: KPI = {
-                  id: `kpi_${Date.now()}`,
-                  name: 'New KPI',
-                  value: 0,
-                  unit: '',
-                  sectionId: section.id
-                };
-                onKpiCreate(newKpi);
-              }
-            }
-          });
-          break;
-          
-        case 'add_image':
-          actions.push({
-            label: 'Add Image',
-            action: 'add_image',
-            icon: '🖼️',
-            onClick: () => {
-              if (onMediaCreate && section) {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = (e) => {
-                  const file = (e.target as HTMLInputElement).files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                      if (typeof reader.result === 'string') {
-                        const mediaAsset: MediaAsset = {
-                          id: `media_${Date.now()}`,
-                          type: 'image',
-                          title: file.name,
-                          uri: reader.result,
-                          description: `Uploaded: ${file.name}`,
-                          sectionId: section.id
-                        };
-                        onMediaCreate(mediaAsset);
-                      }
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                };
-                input.click();
-              }
-            }
-          });
-          break;
-          
         case 'add_reference':
           actions.push({
             label: isReferencesSection ? 'Add Citation' : 'Add Reference',
@@ -272,85 +193,6 @@ export function parseAIActions(
   
   // Priority 2: Fallback to keyword matching (for backward compatibility)
   const lowerContent = contentString.toLowerCase();
-  
-  // Check for table/dataset suggestions
-  if (lowerContent.includes('table') || lowerContent.includes('dataset') || lowerContent.includes('data table') || lowerContent.includes('spreadsheet')) {
-    actions.push({
-      label: 'Create Table',
-      action: 'create_table',
-      icon: '📊',
-      onClick: () => {
-        if (onDatasetCreate && section) {
-          const newDataset: Dataset = {
-            id: `dataset_${Date.now()}`,
-            name: 'New Dataset',
-            columns: [],
-            rows: [],
-            sectionId: section.id
-          };
-          onDatasetCreate(newDataset);
-        }
-      }
-    });
-  }
-  
-  // Check for KPI suggestions
-  if (lowerContent.includes('kpi') || lowerContent.includes('metric') || lowerContent.includes('indicator') || lowerContent.includes('measure')) {
-    actions.push({
-      label: 'Create KPI',
-      action: 'create_kpi',
-      icon: '📈',
-      onClick: () => {
-        if (onKpiCreate && section) {
-          const newKpi: KPI = {
-            id: `kpi_${Date.now()}`,
-            name: 'New KPI',
-            value: 0,
-            unit: '',
-            sectionId: section.id
-          };
-          onKpiCreate(newKpi);
-        }
-      }
-    });
-  }
-  
-  // Check for image/media suggestions
-  if (lowerContent.includes('image') || lowerContent.includes('picture') || lowerContent.includes('chart') || lowerContent.includes('graph') || lowerContent.includes('visual') || lowerContent.includes('logo')) {
-    actions.push({
-      label: 'Add Image',
-      action: 'add_image',
-      icon: '🖼️',
-      onClick: () => {
-        if (onMediaCreate && section) {
-          const input = document.createElement('input');
-          input.type = 'file';
-          input.accept = 'image/*';
-          input.onchange = (e) => {
-            const file = (e.target as HTMLInputElement).files?.[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = () => {
-                if (typeof reader.result === 'string') {
-                  const mediaAsset: MediaAsset = {
-                    id: `media_${Date.now()}`,
-                    type: 'image',
-                    title: file.name,
-                    uri: reader.result,
-                    description: `Uploaded: ${file.name}`,
-                    sectionId: section.id
-                  };
-                  onMediaCreate(mediaAsset);
-                }
-              };
-              reader.readAsDataURL(file);
-            }
-          };
-          input.click();
-        }
-      }
-    });
-  }
   
   // For metadata sections, add design-related actions
   if (isMetadataSection) {
