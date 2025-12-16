@@ -19,8 +19,6 @@ export interface SectionCardProps {
   section: SectionWithMetadata;
   isActive: boolean;
   isDisabled: boolean;
-  // sectionTemplate removed - section prop already has origin/required from store (SectionWithMetadata)
-  // selectedProductMeta and programSummary now accessed from store directly
   onSelect: (sectionId: string) => void;
   onToggle?: (id: string) => void;
   onEdit?: (section: SectionTemplate, e: React.MouseEvent) => void;
@@ -37,7 +35,6 @@ function SectionOriginTooltip({
   sectionOrigin: string;
 }) {
   const { t } = useI18n();
-  // Optimized: Use specific selectors instead of entire useEditorState
   const selectedProductMeta = useSelectedProductMeta();
   const programSummary = useEditorStore((state) => state.programSummary);
 
@@ -93,7 +90,6 @@ export function SectionCard({
   getOriginBadge,
 }: SectionCardProps) {
   const completion = calculateCompletion(section);
-  // section already has origin and required from store hook (SectionWithMetadata)
   const sectionOrigin = (section.origin as 'template' | 'custom' | undefined);
   const isRequired = section.required ?? false;
   const isCustom = sectionOrigin === 'custom';
@@ -124,7 +120,6 @@ export function SectionCard({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // Create SectionTemplate from section metadata for edit handler
                 const sectionTemplate: SectionTemplate = {
                   id: section.id,
                   title: section.title,
@@ -213,4 +208,3 @@ export function SectionCard({
     </div>
   );
 }
-

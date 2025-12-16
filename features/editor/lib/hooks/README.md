@@ -17,25 +17,14 @@ This directory contains React hooks for editor UI interactions.
   - `useEditorActions()` - Access store actions via selector
   - `useEscapeKeyHandler()` - Handle Escape key press
 
-### UI Interaction Hooks
-- **`useEditHandlers.ts`** - Handlers for editing items (sections/documents)
+### Internal Helper Functions
+- **`useToggleHandlers()`** - Internal helper for creating toggle handlers (used by consolidated hooks)
+  - Provides `toggle`, `isDisabled`, and counts
+  
+- **`useEditHandlers()`** - Internal helper for creating edit handlers (used by consolidated hooks)
   - Provides `onEdit`, `onSave`, `onCancel` handlers
 
-- **`useToggleHandlers.ts`** - Handlers for toggling items enabled/disabled
-  - Provides `toggle`, `isDisabled`, and counts
-
-### Positioning Hooks
-- **`useDropdownPosition.ts`** - Calculates dropdown menu position
-  - Used by ProductSelection, ProgramSelection
-
-- **`useConfiguratorHooks.ts`** - Configurator overlay positioning and navigation
-  - `useConfiguratorOverlayPosition()` - Calculate overlay position
-  - `useConfiguratorChangeTracking()` - Track pending changes
-  - `useConfiguratorStepNavigation()` - Step navigation (1, 2, 3)
-
-### Feature-Specific Hooks
-- **`usePreviewControls.ts`** - Preview view mode and zoom controls
-  - Manages viewMode, zoomPreset, showWatermark
+Note: These helpers are internal to `useEditorState.ts` and not exported. Components should use the consolidated hooks like `useSidebarState()` and `useDocumentsBarState()` instead.
 
 ## Usage Pattern
 
@@ -50,20 +39,20 @@ function Sidebar() {
 }
 ```
 
-For specific functionality, use individual hooks:
+The toggle and edit handlers are internal helpers used by the consolidated hooks. If you need this functionality, use the consolidated hooks that expose them:
 
 ```tsx
-// ✅ For specific needs
-import { useEditHandlers, useToggleHandlers } from '@/features/editor/lib';
+// ✅ Use consolidated hooks that include handlers
+import { useSidebarState, useDocumentsBarState } from '@/features/editor/lib';
 
 function Component() {
-  const editHandlers = useEditHandlers(...);
-  const toggleHandlers = useToggleHandlers(...);
+  const { actions } = useSidebarState();
+  // actions includes: toggleSection, editSection, cancelEdit, etc.
 }
 ```
 
 ## When to Add a New Hook
 
 - **Add to `useEditorState.ts`**: If it consolidates multiple store calls for a UI area
-- **Add new file**: If it's a standalone utility hook (like `useDropdownPosition`)
-- **Keep in component**: If it's only used by one component
+- **Add new file**: If it's a standalone utility hook that's used by multiple components
+- **Keep in component**: If it's only used by one component (preferred for simple hooks)

@@ -26,13 +26,9 @@
  *   ├── store/
  *   │   └── editorStore.ts          # Zustand store + selectors + helpers
  *   ├── hooks/
- *   │   ├── useEditorState.ts       # Consolidated state hooks
+ *   │   ├── useEditorState.ts       # Consolidated state hooks (includes toggle/edit handlers)
  *   │   ├── useEditorStore.ts       # Store action hooks
- *   │   ├── useEditHandlers.ts      # Edit handlers
- *   │   ├── useToggleHandlers.ts    # Toggle handlers
- *   │   ├── useConfiguratorHooks.ts # Configurator UI hooks
- *   │   ├── useDropdownPosition.ts  # Dropdown positioning
- *   │   └── usePreviewControls.ts   # Preview controls
+ *   │   └── selectors.ts            # Store selectors
  *   └── index.ts                    # This file - unified exports
  * ============================================================================
  */
@@ -123,28 +119,6 @@ export {
   useSectionsDocumentsManagementState,
   useSectionEditorState,
 } from './hooks/useEditorState';
-
-export {
-  useConfiguratorOverlayPosition,
-  useConfiguratorChangeTracking,
-  useConfiguratorStepNavigation,
-} from './hooks/useConfiguratorHooks';
-
-export {
-  useDropdownPosition,
-} from './hooks/useDropdownPosition';
-
-export {
-  usePreviewControls,
-} from './hooks/usePreviewControls';
-
-export {
-  useToggleHandlers,
-} from './hooks/useToggleHandlers';
-
-export {
-  useEditHandlers,
-} from './hooks/useEditHandlers';
 
 // ============================================================================
 // HELPERS - Utility functions and constants
