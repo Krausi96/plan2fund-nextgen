@@ -4,6 +4,7 @@
 import { useRouter } from 'next/router';
 import React, { useMemo } from 'react';
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
+import Editor from '@/features/editor/components/Editor';
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -73,21 +74,7 @@ function EditorPage() {
         translationKey="editor"
         duration={0}
       />
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="max-w-xl text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Plan editor is being simplified
-          </h1>
-          <p className="text-gray-600 mb-6">
-            The full editor experience is currently disabled while we roll out the new
-            recommendation and checkout flows. You can still explore funding options and
-            manage your account from the dashboard.
-          </p>
-          <p className="text-sm text-gray-500">
-            Selected product: {selectedProduct ?? 'submission'}
-          </p>
-        </div>
-      </div>
+      <Editor product={selectedProduct} />
     </ErrorBoundary>
   );
 }

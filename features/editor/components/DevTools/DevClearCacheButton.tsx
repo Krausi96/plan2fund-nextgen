@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/shared/components/ui/button';
 import { useUser } from '@/shared/user/context/UserContext';
-import { useEditorStore } from '@/features/editor/lib/hooks/useEditorStore';
+import { useEditorStore } from '@/features/editor/lib';
 import { clearSelectedProgram } from '@/shared/user/storage/planStore';
 
 /**
@@ -29,12 +29,17 @@ export default function DevClearCacheButton() {
       // Reset editor store state first
       useEditorStore.setState({
         plan: null,
-        templates: [],
         isLoading: false,
         error: null,
         activeSectionId: null,
         activeQuestionId: null,
-        progressSummary: []
+        progressSummary: undefined,
+        selectedProduct: null,
+        programSummary: null,
+        allSections: [],
+        allDocuments: [],
+        disabledSectionIds: [],
+        disabledDocumentIds: [],
       });
 
       // Clear user profile
