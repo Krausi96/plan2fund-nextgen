@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/lib/helpers';
 import { BusinessPlan } from '@/features/editor/lib/types';
 import { Progress } from '@/shared/components/ui/progress';
 import { useI18n } from '@/shared/contexts/I18nContext';
@@ -10,6 +9,8 @@ import {
   buildSectionsForSidebar,
   getSectionTitle,
   isSpecialSectionId,
+  calculateCompletion,
+  getProgressIntent,
 } from '@/features/editor/lib/helpers';
 
 // ============================================================================
@@ -64,29 +65,7 @@ type SectionNavigationTreeProps = {
   isNewUser?: boolean;
 };
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Calculates completion percentage for a section
- */
-function calculateCompletion(section: { questions?: any[]; progress?: number }): number {
-  const totalQuestions = section.questions?.length ?? 0;
-  if (totalQuestions === 0) return 0;
-  
-  const answeredQuestions = section.questions?.filter((q: any) => q.status === 'complete').length ?? 0;
-  return section.progress ?? Math.round((answeredQuestions / totalQuestions) * 100);
-}
-
-/**
- * Gets progress intent based on completion percentage
- */
-function getProgressIntent(completion: number): 'success' | 'warning' | 'neutral' {
-  if (completion === 100) return 'success';
-  if (completion > 0) return 'warning';
-  return 'neutral';
-}
+// Utility functions moved to lib/helpers/sectionHelpers.ts
 
 // ============================================================================
 // SUB-COMPONENTS
@@ -385,10 +364,7 @@ function SectionNavigationTree({
     <div className="flex flex-col gap-1" style={{ paddingBottom: '20px' }}>
       {sections.map((section, sectionIndex) => {
         const completion = calculateCompletion(section);
-        const isSpecialSection = section.id === METADATA_SECTION_ID || 
-          section.id === ANCILLARY_SECTION_ID || 
-          section.id === REFERENCES_SECTION_ID || 
-          section.id === APPENDICES_SECTION_ID;
+        const isSpecialSection = isSpecialSectionId(section.id);
         const isActive = section.id === activeSectionId;
         const isDisabled = disabledSections.has(section.id);
         const sectionTemplate = filteredSections?.find(s => s.id === section.id);
