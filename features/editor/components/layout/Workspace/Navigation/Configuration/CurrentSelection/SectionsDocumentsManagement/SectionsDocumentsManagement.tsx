@@ -1,16 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import type { ProductType, ProgramSummary } from '@/features/editor/lib/types';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
-import { METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/lib/hooks/useEditorStore';
 import { InfoTooltip } from '../RequirementsDisplay/RequirementsDisplay';
-
-type ProductOption = {
-  value: ProductType;
-  label: string;
-  description: string;
-  icon?: string;
-};
+import { 
+  isSpecialSectionId,
+  buildSectionsForConfig,
+  buildDocumentsForConfig,
+  getDocumentCounts,
+  getSectionTitle,
+} from '@/features/editor/lib/helpers';
+import type { ProductOption } from '../shared';
 
 type SectionsDocumentsManagementProps = {
   // Sections & Documents data
@@ -65,6 +65,30 @@ export default function SectionsDocumentsManagement({
   programSummary
 }: SectionsDocumentsManagementProps) {
   const { t } = useI18n();
+
+  // Use centralized section building logic
+  const sectionsToShow = useMemo(() => {
+    const getTitle = (sectionId: string, originalTitle: string) =>
+      getSectionTitle(sectionId, originalTitle, t);
+
+    return buildSectionsForConfig({
+      allSections,
+      disabledSectionIds: Array.from(disabledSections),
+      includeAncillary: true,
+      includeReferences: true,
+      includeAppendices: true,
+      getTitle,
+    });
+  }, [allSections, disabledSections, t]);
+
+  // Use centralized document building logic
+  const documentsToShow = useMemo(() => {
+    return buildDocumentsForConfig({
+      allDocuments,
+      disabledDocumentIds: Array.from(disabledDocuments),
+      selectedProductMeta: null,
+    });
+  }, [allDocuments, disabledDocuments]);
 
   return (
     <div className="mb-4 pb-2">
@@ -149,9 +173,8 @@ export default function SectionsDocumentsManagement({
             )}
             
             {/* Additional Documents */}
-            {allDocuments.length > 0 ? (
-              allDocuments.map((document) => {
-                const isDisabled = disabledDocuments.has(document.id);
+            {documentsToShow.length > 0 ? (
+              documentsToShow.map((document) => {
                 const isCustom = document.origin === 'custom';
                 return (
                   <div
@@ -160,10 +183,10 @@ export default function SectionsDocumentsManagement({
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <span className="text-xs">
-                        {isDisabled ? '❌' : '✅'}
+                        {document.isDisabled ? '❌' : '✅'}
                         {isCustom && ' ➕'}
                       </span>
-                      <span className={`text-sm truncate ${isDisabled ? 'text-white/50' : 'text-white'}`}>
+                      <span className={`text-sm truncate ${document.isDisabled ? 'text-white/50' : 'text-white'}`}>
                         {document.name}
                       </span>
                     </div>
@@ -171,12 +194,12 @@ export default function SectionsDocumentsManagement({
                       <button
                         onClick={() => onToggleDocument(document.id)}
                         className={`ml-2 px-2 py-1 text-xs rounded transition-colors ${
-                          isDisabled
+                          document.isDisabled
                             ? 'bg-blue-600 hover:bg-blue-500 text-white'
                             : 'bg-white/10 hover:bg-white/20 text-white'
                         }`}
                       >
-                        {isDisabled 
+                        {document.isDisabled 
                           ? (t('editor.desktop.sections.activate' as any) || 'Activate')
                           : (t('editor.desktop.sections.deactivate' as any) || 'Deactivate')
                         }
@@ -223,118 +246,50 @@ export default function SectionsDocumentsManagement({
           )}
           
           <div className="space-y-2 max-h-60 overflow-y-auto">
-            {(() => {
-              // Create special sections: METADATA, ANCILLARY (TOC), REFERENCES, APPENDICES
-              const metadataSection: SectionTemplate = {
-                id: METADATA_SECTION_ID,
-                title: t('editor.section.metadata' as any) || 'Title Page',
-                description: '',
-                required: true,
-                wordCountMin: 0,
-                wordCountMax: 0,
-                order: 0,
-                category: 'metadata',
-                prompts: [],
-                questions: [],
-                validationRules: { requiredFields: [], formatRequirements: [] },
-                origin: 'master'
-              };
-              
-              const ancillarySection: SectionTemplate = {
-                id: ANCILLARY_SECTION_ID,
-                title: t('editor.section.ancillary' as any) || 'Table of Contents',
-                description: 'Includes List of Tables and List of Figures',
-                required: false,
-                wordCountMin: 0,
-                wordCountMax: 0,
-                order: 1,
-                category: 'ancillary',
-                prompts: [],
-                questions: [],
-                validationRules: { requiredFields: [], formatRequirements: [] },
-                origin: 'master'
-              };
-              
-              const referencesSection: SectionTemplate = {
-                id: REFERENCES_SECTION_ID,
-                title: t('editor.section.references' as any) || 'References',
-                description: '',
-                required: false,
-                wordCountMin: 0,
-                wordCountMax: 0,
-                order: 9998,
-                category: 'references',
-                prompts: [],
-                questions: [],
-                validationRules: { requiredFields: [], formatRequirements: [] },
-                origin: 'master'
-              };
-              
-              const appendicesSection: SectionTemplate = {
-                id: APPENDICES_SECTION_ID,
-                title: t('editor.section.appendices' as any) || 'Appendices',
-                description: '',
-                required: false,
-                wordCountMin: 0,
-                wordCountMax: 0,
-                order: 9999,
-                category: 'appendices',
-                prompts: [],
-                questions: [],
-                validationRules: { requiredFields: [], formatRequirements: [] },
-                origin: 'master'
-              };
-              
-              // Combine: METADATA, ANCILLARY first, then regular sections, then REFERENCES, APPENDICES last
-              const sectionsToShow = [metadataSection, ancillarySection, ...allSections, referencesSection, appendicesSection];
-              
-              return sectionsToShow.length > 0 ? (
-                sectionsToShow.map((section) => {
-                  const isDisabled = disabledSections.has(section.id);
-                  const isCustom = section.origin === 'custom';
-                  const isSpecialSection = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID || section.id === REFERENCES_SECTION_ID || section.id === APPENDICES_SECTION_ID;
-                  
-                  return (
-                    <div
-                      key={section.id}
-                      className={`flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors ${
-                        isSpecialSection ? 'bg-blue-600/10 border border-blue-400/20' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-xs">
-                          {isDisabled ? '❌' : '✅'}
-                          {isCustom && ' ➕'}
-                          {isSpecialSection && ' 📋'}
-                        </span>
-                        <span className={`text-sm truncate ${isDisabled ? 'text-white/50' : 'text-white'}`}>
-                          {section.title}
-                        </span>
-                      </div>
-                      {onToggleSection && (
-                        <button
-                          onClick={() => onToggleSection(section.id)}
-                          className={`ml-2 px-2 py-1 text-xs rounded transition-colors ${
-                            isDisabled
-                              ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                              : 'bg-white/10 hover:bg-white/20 text-white'
-                          }`}
-                        >
-                          {isDisabled 
-                            ? (t('editor.desktop.sections.activate' as any) || 'Activate')
-                            : (t('editor.desktop.sections.deactivate' as any) || 'Deactivate')
-                          }
-                        </button>
-                      )}
+            {sectionsToShow.length > 0 ? (
+              sectionsToShow.map((section) => {
+                const isCustom = section.origin === 'custom';
+                
+                return (
+                  <div
+                    key={section.id}
+                    className={`flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors ${
+                      section.isSpecial ? 'bg-blue-600/10 border border-blue-400/20' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-xs">
+                        {section.isDisabled ? '❌' : '✅'}
+                        {isCustom && ' ➕'}
+                        {section.isSpecial && ' 📋'}
+                      </span>
+                      <span className={`text-sm truncate ${section.isDisabled ? 'text-white/50' : 'text-white'}`}>
+                        {section.title}
+                      </span>
                     </div>
-                  );
-                })
-              ) : (
-                <p className="text-sm text-white/60 text-center py-4">
-                  {t('editor.desktop.sections.emptyHint' as any) || 'Keine Abschnitte verfügbar'}
-                </p>
-              );
-            })()}
+                    {onToggleSection && (
+                      <button
+                        onClick={() => onToggleSection(section.id)}
+                        className={`ml-2 px-2 py-1 text-xs rounded transition-colors ${
+                          section.isDisabled
+                            ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                            : 'bg-white/10 hover:bg-white/20 text-white'
+                        }`}
+                      >
+                        {section.isDisabled 
+                          ? (t('editor.desktop.sections.activate' as any) || 'Activate')
+                          : (t('editor.desktop.sections.deactivate' as any) || 'Deactivate')
+                        }
+                      </button>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-sm text-white/60 text-center py-4">
+                {t('editor.desktop.sections.emptyHint' as any) || 'Keine Abschnitte verfügbar'}
+              </p>
+            )}
           </div>
         </div>
       </div>

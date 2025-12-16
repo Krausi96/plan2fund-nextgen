@@ -17,6 +17,7 @@ import {
 } from '@/features/editor/lib/types';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import DevClearCacheButton from './DevTools/DevClearCacheButton';
+import { useEditorStore as useEditorUIStore } from '@/features/editor/lib/store/editorStore';
 import { useEditor, useTemplateConfigurationState, useTemplateConfigurationHandlers, useEditorAutoActivation } from '@/features/editor/lib/hooks';
 import { prepareSidebarProps, prepareDocumentsProps, preparePreviewProps } from '@/features/editor/lib/helpers';
 
@@ -126,18 +127,28 @@ export default function Editor({ product = null }: EditorProps) {
   // Track filtered section IDs for sidebar filtering
   const [filteredSectionIds] = useState<string[] | null>(null);
   
-  // UI state for template management
-  const [showAddSection, setShowAddSection] = useState(false);
-  const [showAddDocument, setShowAddDocument] = useState(false);
-  const [newSectionTitle, setNewSectionTitle] = useState('');
-  const [newSectionDescription, setNewSectionDescription] = useState('');
-  const [newDocumentName, setNewDocumentName] = useState('');
-  const [newDocumentDescription, setNewDocumentDescription] = useState('');
+  // UI state for template management - now comes from global editor UI store
+  const showAddSection = useEditorUIStore(state => state.showAddSection);
+  const setShowAddSection = useEditorUIStore(state => state.setShowAddSection);
+  const showAddDocument = useEditorUIStore(state => state.showAddDocument);
+  const setShowAddDocument = useEditorUIStore(state => state.setShowAddDocument);
+  const newSectionTitle = useEditorUIStore(state => state.newSectionTitle);
+  const setNewSectionTitle = useEditorUIStore(state => state.setNewSectionTitle);
+  const newSectionDescription = useEditorUIStore(state => state.newSectionDescription);
+  const setNewSectionDescription = useEditorUIStore(state => state.setNewSectionDescription);
+  const newDocumentName = useEditorUIStore(state => state.newDocumentName);
+  const setNewDocumentName = useEditorUIStore(state => state.setNewDocumentName);
+  const newDocumentDescription = useEditorUIStore(state => state.newDocumentDescription);
+  const setNewDocumentDescription = useEditorUIStore(state => state.setNewDocumentDescription);
   
-  const [expandedSectionId, setExpandedSectionId] = useState<string | null>(null);
-  const [expandedDocumentId, setExpandedDocumentId] = useState<string | null>(null);
-  const [editingSection, setEditingSection] = useState<SectionTemplate | null>(null);
-  const [editingDocument, setEditingDocument] = useState<DocumentTemplate | null>(null);
+  const expandedSectionId = useEditorUIStore(state => state.expandedSectionId);
+  const setExpandedSectionId = useEditorUIStore(state => state.setExpandedSectionId);
+  const expandedDocumentId = useEditorUIStore(state => state.expandedDocumentId);
+  const setExpandedDocumentId = useEditorUIStore(state => state.setExpandedDocumentId);
+  const editingSection = useEditorUIStore(state => state.editingSection);
+  const setEditingSection = useEditorUIStore(state => state.setEditingSection);
+  const editingDocument = useEditorUIStore(state => state.editingDocument);
+  const setEditingDocument = useEditorUIStore(state => state.setEditingDocument);
 
   // Notify parent of changes when templates change
   const lastUpdateKeyRef = useRef<string>('');

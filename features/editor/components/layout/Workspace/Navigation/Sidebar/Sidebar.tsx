@@ -1,11 +1,16 @@
 import React from 'react';
 
-import { ANCILLARY_SECTION_ID, METADATA_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/lib/helpers';
+import { METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/lib/helpers';
 import { BusinessPlan } from '@/features/editor/lib/types';
 import { Progress } from '@/shared/components/ui/progress';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { SectionDocumentEditForm } from '@/features/editor/components/layout/Workspace/shared/SectionDocumentEditForm';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
+import {
+  buildSectionsForSidebar,
+  getSectionTitle,
+  isSpecialSectionId,
+} from '@/features/editor/lib/helpers';
 
 // ============================================================================
 // TYPES
@@ -64,41 +69,6 @@ type SectionNavigationTreeProps = {
 // ============================================================================
 
 /**
- * Gets the translated title for a section
- */
-function getSectionTitle(sectionId: string, originalTitle: string, t: (key: any) => string): string {
-  // Special section translations
-  if (sectionId === METADATA_SECTION_ID) {
-    return (t('editor.section.metadata' as any) as string) || 'Title Page';
-  }
-  if (sectionId === ANCILLARY_SECTION_ID) {
-    return (t('editor.section.ancillary' as any) as string) || 'Table of Contents';
-  }
-  if (sectionId === REFERENCES_SECTION_ID) {
-    return (t('editor.section.references' as any) as string) || 'References';
-  }
-  if (sectionId === APPENDICES_SECTION_ID) {
-    return (t('editor.section.appendices' as any) as string) || 'Appendices';
-  }
-  
-  // Try translation key pattern
-  if (originalTitle.startsWith('editor.section.')) {
-    const translated = t(originalTitle as any) as string;
-    return translated || originalTitle;
-  }
-  
-  // Try section ID translation
-  const translationKey = `editor.section.${sectionId}` as any;
-  const translated = t(translationKey) as string;
-  if (translated === translationKey && originalTitle.startsWith('editor.')) {
-    const titleTranslated = t(originalTitle as any) as string;
-    return titleTranslated !== originalTitle ? titleTranslated : originalTitle;
-  }
-  
-  return translated !== translationKey ? translated : originalTitle;
-}
-
-/**
  * Calculates completion percentage for a section
  */
 function calculateCompletion(section: { questions?: any[]; progress?: number }): number {
@@ -142,176 +112,49 @@ function SectionNavigationTree({
 }: SectionNavigationTreeProps) {
   const { t } = useI18n();
 
-  // Memoized section title getter
-  const getSectionTitleMemo = React.useCallback(
-    (sectionId: string, originalTitle: string) => getSectionTitle(sectionId, originalTitle, t),
-    [t]
-  );
-
-  // Filter plan sections to show
-  const planSectionsToShow = React.useMemo(() => {
-    if (isNewUser || !plan) return [];
-    if (filteredSectionIds === null || filteredSectionIds === undefined) {
-      return plan?.sections ?? [];
-    }
-    return plan?.sections?.filter(section => filteredSectionIds.includes(section.id)) ?? [];
-  }, [plan, filteredSectionIds, isNewUser]);
-
-  // Map sections with template info
+  // Use centralized section building logic
   const sectionsWithTemplate = React.useMemo(() => {
-    if (isNewUser) return [];
-    
-    const hasNoProduct = !selectedProduct;
-    const isAdditionalDocument = filteredSectionIds && 
-      filteredSectionIds.includes(METADATA_SECTION_ID) &&
-      filteredSectionIds.length >= 1;
-    
-    // Create metadata section
-    const metadataSection = {
-      id: METADATA_SECTION_ID,
-      title: getSectionTitleMemo(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Title Page'),
-      progress: undefined,
-      questions: [],
-      origin: undefined as any,
-      required: false
-    };
-    
-    // Map document sections
-    const documentSections = planSectionsToShow.map((section) => {
-      const templateInfo = filteredSections?.find(s => s.id === section.id);
-      return {
-        ...section,
-        title: getSectionTitleMemo(section.id, section.title),
-        origin: templateInfo?.origin,
-        required: templateInfo?.required ?? false
-      };
+    const getTitle = (sectionId: string, originalTitle: string) =>
+      getSectionTitle(sectionId, originalTitle, t);
+
+    return buildSectionsForSidebar({
+      planSections: plan?.sections,
+      allSections: allSections || filteredSections || [],
+      disabledSectionIds: Array.from(disabledSections),
+      filteredSectionIds,
+      selectedProduct,
+      isNewUser,
+      getTitle,
     });
-    
-    // For additional documents or no product, return metadata + document sections only
-    if (isAdditionalDocument || hasNoProduct) {
-      return [metadataSection, ...documentSections];
-    }
-    
-    // For core product, include all special sections
-    return [
-      metadataSection,
-      {
-        id: ANCILLARY_SECTION_ID,
-        title: getSectionTitleMemo(ANCILLARY_SECTION_ID, (t('editor.section.ancillary' as any) as string) || 'Table of Contents'),
-        progress: undefined,
-        questions: [],
-        origin: undefined as any,
-        required: false
-      },
-      ...documentSections,
-      {
-        id: REFERENCES_SECTION_ID,
-        title: getSectionTitleMemo(REFERENCES_SECTION_ID, (t('editor.section.references' as any) as string) || 'References'),
-        progress: undefined,
-        questions: [],
-        origin: undefined as any,
-        required: false
-      },
-      {
-        id: APPENDICES_SECTION_ID,
-        title: getSectionTitleMemo(APPENDICES_SECTION_ID, (t('editor.section.appendices' as any) as string) || 'Appendices'),
-        progress: undefined,
-        questions: [],
-        origin: undefined as any,
-        required: false
-      }
-    ];
-  }, [planSectionsToShow, filteredSections, filteredSectionIds, getSectionTitleMemo, selectedProduct, isNewUser, t]);
+  }, [plan, allSections, filteredSections, disabledSections, filteredSectionIds, selectedProduct, isNewUser, t]);
 
   // Determine display mode
   const hasTemplateManagement = allSections !== undefined || onToggleSection !== undefined || onEditSection !== undefined;
   const showAsCards = !collapsed && (hasTemplateManagement || (filteredSections !== undefined && filteredSections.length > 0));
 
   // Sections for card view (uses allSections templates)
+  // For card view, we want to show all available sections from templates, not just plan sections
   const sectionsForCards = React.useMemo(() => {
     if (isNewUser) return [];
     if (!showAsCards || !allSections) return sectionsWithTemplate;
     
-    const hasNoProduct = !selectedProduct;
-    const isAdditionalDocument = filteredSectionIds && 
-      filteredSectionIds.includes(METADATA_SECTION_ID) &&
-      filteredSectionIds.length >= 1;
-    
-    const metadataSection = {
-      id: METADATA_SECTION_ID,
-      title: getSectionTitleMemo(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Title Page'),
-      progress: undefined,
-      questions: [],
-      origin: undefined as any,
-      required: false
-    };
-    
-    if (isAdditionalDocument || hasNoProduct) {
-      if (!plan) return [metadataSection];
-      const documentSections = plan.sections.map((section) => {
-        const templateInfo = allSections.find(s => s.id === section.id);
-        return {
-          ...section,
-          title: getSectionTitleMemo(section.id, section.title),
-          origin: templateInfo?.origin,
-          required: templateInfo?.required ?? false
-        };
-      });
-      return [metadataSection, ...documentSections];
-    }
-    
-    // Core product sections
-    const ancillarySection = {
-      id: ANCILLARY_SECTION_ID,
-      title: getSectionTitleMemo(ANCILLARY_SECTION_ID, (t('editor.section.ancillary' as any) as string) || 'Table of Contents'),
-      progress: undefined,
-      questions: [],
-      origin: undefined as any,
-      required: false
-    };
-    
-    const referencesSection = {
-      id: REFERENCES_SECTION_ID,
-      title: getSectionTitleMemo(REFERENCES_SECTION_ID, (t('editor.section.references' as any) as string) || 'References'),
-      progress: undefined,
-      questions: [],
-      origin: undefined as any,
-      required: false
-    };
-    
-    const appendicesSection = {
-      id: APPENDICES_SECTION_ID,
-      title: getSectionTitleMemo(APPENDICES_SECTION_ID, (t('editor.section.appendices' as any) as string) || 'Appendices'),
-      progress: undefined,
-      questions: [],
-      origin: undefined as any,
-      required: false
-    };
-    
-    if (!plan) return [metadataSection, ancillarySection, referencesSection, appendicesSection];
-    
-    const mappedSections = allSections.map((template) => {
-      const planSection = plan.sections.find(s => s.id === template.id);
-      if (!planSection) {
-        return {
-          id: template.id,
-          title: getSectionTitleMemo(template.id, template.title),
-          questions: [],
-          progress: undefined,
-          origin: template.origin,
-          required: template.required ?? false
-        };
-      }
-      return {
-        ...planSection,
-        title: getSectionTitleMemo(planSection.id, planSection.title),
-        origin: template.origin,
-        required: template.required ?? false
-      };
+    // For card view, use the same logic but with allSections as the source
+    // This ensures we show all template sections, even if they're not in the plan yet
+    const getTitle = (sectionId: string, originalTitle: string) =>
+      getSectionTitle(sectionId, originalTitle, t);
+
+    // Build sections using allSections as the template source
+    // This will include all available sections from templates
+    return buildSectionsForSidebar({
+      planSections: plan?.sections,
+      allSections,
+      disabledSectionIds: Array.from(disabledSections),
+      filteredSectionIds,
+      selectedProduct,
+      isNewUser,
+      getTitle,
     });
-    
-    return [metadataSection, ancillarySection, ...mappedSections, referencesSection, appendicesSection];
-  }, [showAsCards, allSections, sectionsWithTemplate, plan, getSectionTitleMemo, filteredSectionIds, selectedProduct, isNewUser, t]);
+  }, [showAsCards, allSections, sectionsWithTemplate, plan, disabledSections, filteredSectionIds, selectedProduct, isNewUser, t]);
 
   const handleClick = (sectionId: string) => {
     onSelectSection(sectionId);

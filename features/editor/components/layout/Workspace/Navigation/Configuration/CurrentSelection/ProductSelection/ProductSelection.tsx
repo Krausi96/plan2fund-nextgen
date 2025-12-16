@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import type { ProductType } from '@/features/editor/lib/types';
 import { InfoTooltip } from '../RequirementsDisplay/RequirementsDisplay';
-
-type ProductOption = {
-  value: ProductType;
-  label: string;
-  description: string;
-  icon?: string;
-};
 
 type ProductSelectionProps = {
   productType?: ProductType | null;

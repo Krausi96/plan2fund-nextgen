@@ -1,21 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useEditorStore, useEditorActions } from '@/features/editor/lib/hooks/useEditorStore';
-import InlineSectionEditorAIChat from './components/AIChat';
-import InlineSectionEditorSpecialSections from './components/SpecialSections';
-import { QuestionEditor } from './components/QuestionEditor';
-import { WelcomeState } from './components/WelcomeState';
-import { SectionEditorHeader } from './components/SectionEditorHeader';
-import { SkipDialog } from './components/SkipDialog';
-import { ActionsFooter } from './components/ActionsFooter';
-import { useSectionEditorPosition } from './hooks/useSectionEditorPosition';
-import { useSectionEditorDrag } from './hooks/useSectionEditorDrag';
-import { useSectionEditorState } from './hooks/useSectionEditorState';
-import { useSectionEditorAI } from './hooks/useSectionEditorAI';
-import { useSectionEditorHandlers } from './hooks/useSectionEditorHandlers';
-import { useQuestionHighlight } from './hooks/useQuestionHighlight';
-import { handleFileDrop } from './lib/fileDropHandler';
+
 
 type InlineSectionEditorProps = {
   sectionId: string | null;
@@ -35,13 +21,6 @@ export default function InlineSectionEditor({
   const [skipReason, setSkipReason] = useState<'not_applicable' | 'later' | 'unclear' | 'other' | null>(null);
   const [skipNote, setSkipNote] = useState('');
   
-  // Use extracted hooks
-  const {
-    position,
-    setPosition,
-    panelDimensions,
-    savePosition
-  } = useSectionEditorPosition(sectionId);
   
   const {
     isDragging,
@@ -52,8 +31,8 @@ export default function InlineSectionEditor({
     handleDragOver,
     handleDragLeave,
     setIsDragging,
-    setDragOverTarget
-  } = useSectionEditorDrag(editorRef as React.RefObject<HTMLDivElement>, position, setPosition, savePosition);
+    setDragOverTarget,
+  };;
   
   const {
     plan,
@@ -81,7 +60,6 @@ export default function InlineSectionEditor({
     appendicesCount
   } = useSectionEditorState(sectionId);
   
-  const actions = useEditorActions((actions) => actions);
   const {
     setActiveQuestion,
     updateAnswer,
