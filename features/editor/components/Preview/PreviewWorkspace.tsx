@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useI18n } from '@/shared/contexts/I18nContext';
 import { 
   type PlanDocument, 
   type PlanSection,
@@ -7,12 +8,12 @@ import {
   calculatePageNumber,
   getTranslation,
   formatTableLabel,
-  renderTable,
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
   REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
   useDisabledSectionsSet,
+  useEditorActions,
 } from '@/features/editor/lib';
 
 type ZoomPreset = '50' | '75' | '100' | '125' | '150' | '200';
@@ -68,15 +69,23 @@ const getFieldValue = (plan: PlanDocument, fieldKey: string): string | undefined
 };
 
 function PreviewPanel() {
+  const { t: i18nT } = useI18n();
   const previewState = usePreviewState();
   const { plan, isNewUser, hasPlan } = previewState;
   const disabledSections = useDisabledSectionsSet();
+  const actions = useEditorActions((a) => ({
+    setIsConfiguratorOpen: a.setIsConfiguratorOpen,
+  }));
   const [viewMode, setViewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark, setShowWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<ZoomPreset>('100');
   const [fitScale, setFitScale] = useState(1);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [previewPadding, setPreviewPadding] = useState(() => getInitialPreviewPadding());
+  
+  const onOpenConfigurator = () => {
+    actions.setIsConfiguratorOpen(true);
+  };
   
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -112,8 +121,70 @@ function PreviewPanel() {
 
   if (isNewUser || !hasPlan) {
     return (
-      <div className="flex items-center justify-center h-full w-full">
-        <div className="text-white/60 text-sm">Select a product to start creating your business plan</div>
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
+        <div className="max-w-md space-y-6">
+          {/* Large icon with pencil */}
+          <div className="flex justify-center relative">
+            <div className="text-6xl mb-2 relative">
+              <span className="relative z-10">📝</span>
+            </div>
+          </div>
+          
+          {/* CTA Button */}
+          {onOpenConfigurator && (
+            <button
+              onClick={onOpenConfigurator}
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            >
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.cta';
+                const translated = i18nT(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? (isGerman ? 'Plan starten' : 'Start Your Plan') : translated;
+              })()}
+            </button>
+          )}
+          
+          {/* Description */}
+          <p className="text-white/80 text-sm leading-relaxed">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.description';
+              const translated = i18nT(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? (isGerman ? 'Es gibt viele Wege, such dir deinen aus.' : 'There are many ways, choose yours.') : translated;
+            })()}
+          </p>
+          
+          {/* Options */}
+          <div className="mt-4 flex flex-col gap-6 text-left text-xs text-white/60">
+            <div className="group relative flex items-center gap-3">
+              <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
+                📋
+              </span>
+              <span className="flex-1 cursor-help">{(() => {
+                const key = 'editor.desktop.preview.emptyState.optionA';
+                const translated = i18nT(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? (isGerman 
+                  ? 'Wähle einen Plan (Strategiedokument, Individueller Business-Plan oder Upgrade) aus. Du kannst später ein Förderprogramm hinzufügen, um programmspezifische Anforderungen und Empfehlungen zu erhalten.'
+                  : 'Start by selecting a plan (Strategy, Review, or Submission). You can add a funding program later to get program-specific requirements and recommendations.') : translated;
+              })()}</span>
+            </div>
+            <div className="group relative flex items-center gap-3">
+              <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
+                🔍
+              </span>
+              <span className="flex-1 cursor-help">{(() => {
+                const key = 'editor.desktop.preview.emptyState.optionB';
+                const translated = i18nT(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? (isGerman
+                  ? 'Suche oder verbinde ein Förderprogramm. Wir empfehlen die notwendigen Dokumente und stellen programmspezifische Anforderungen und Dokumentenvorlagen bereit.'
+                  : "Start by finding or connecting a funding program. We'll recommend a plan and provide program-specific requirements and document templates.") : translated;
+              })()}</span>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -261,9 +332,28 @@ function PreviewPanel() {
                 {Object.entries(section.tables).map(([tableKey, table]: [string, any]) => {
                   if (!table || !table.rows || table.rows.length === 0) return null;
                   return (
-                    <div key={tableKey}>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">{formatTableLabel(tableKey)}</h4>
-                      {renderTable(table)}
+                    <div key={tableKey} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2 p-3 bg-gray-50 border-b border-gray-200">{formatTableLabel(tableKey)}</h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="bg-gray-50">
+                              {table.headers && table.headers.map((header: string, idx: number) => (
+                                <th key={idx} className="px-4 py-2 text-left text-xs font-semibold text-gray-700 border-b border-gray-200">{header}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {table.rows && table.rows.map((row: any[], rowIdx: number) => (
+                              <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                {row.map((cell: any, cellIdx: number) => (
+                                  <td key={cellIdx} className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">{String(cell || '')}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   );
                 })}

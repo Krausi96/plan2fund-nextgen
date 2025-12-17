@@ -20,16 +20,19 @@ import { useEditorStore } from '../store/editorStore';
 import {
   DEFAULT_PRODUCT_OPTIONS,
   getSelectedProductMeta,
+  getSectionTitle,
+} from '../constants/editorConstants';
+import {
   buildSectionsForConfig,
   buildSectionsForSidebar,
+  getSectionCounts,
+} from '../store/sectionBuilders';
+import {
   buildDocumentsForConfig,
-  buildDocumentsForBar,
   getDocumentCounts,
-  getSectionTitle,
-  type SectionWithMetadata,
-  type DocumentWithMetadata,
-} from '../store/editorStore';
-import type { ProductOption } from '../types';
+} from '../store/documentBuilders';
+import type { SectionWithMetadata, DocumentWithMetadata } from '../store/editorStore';
+import type { ProductOption } from '../types/types';
 
 // ============================================================================
 // BOOLEAN SELECTORS - Simple true/false checks
@@ -127,38 +130,16 @@ export const useEffectiveEditingSectionId = (): string | null => {
 };
 
 /**
- * Get visible (enabled) sections
- * Used by: DocumentsBar (indirectly)
- */
-export const useVisibleSections = (): SectionWithMetadata[] => {
-  return useEditorStore((state) => 
-    state.allSections
-      .filter(s => !state.disabledSectionIds.includes(s.id))
-      .map(s => ({
-        id: s.id,
-        title: s.title,
-        isDisabled: false,
-        origin: s.origin,
-        isSpecial: false,
-        required: s.required,
-      }))
-  );
-};
-
-/**
  * Get visible (enabled) documents
  * Used by: DocumentsBar, useDocumentsBarState
  */
 export const useVisibleDocuments = (): DocumentWithMetadata[] => {
-  return useEditorStore((state) => 
-    state.allDocuments
-      .filter(d => !state.disabledDocumentIds.includes(d.id))
-      .map(d => ({
-        id: d.id,
-        name: d.name,
-        isDisabled: false,
-        origin: d.origin,
-      }))
+  return useEditorStore((state) =>
+    buildDocumentsForConfig({
+      allDocuments: state.allDocuments,
+      disabledDocumentIds: state.disabledDocumentIds,
+      selectedProductMeta: null,
+    }).filter(d => !d.isDisabled)
   );
 };
 
@@ -226,20 +207,6 @@ export const useDocumentsForConfig = (): DocumentWithMetadata[] => {
 };
 
 /**
- * Hook to get documents for documents bar view
- * Used by: DocumentsBar (indirectly)
- */
-export const useDocumentsForBar = (): DocumentWithMetadata[] => {
-  return useEditorStore((state) =>
-    buildDocumentsForBar({
-      allDocuments: state.allDocuments,
-      disabledDocumentIds: state.disabledDocumentIds,
-      selectedProductMeta: null,
-    })
-  );
-};
-
-/**
  * Hook to get document counts (enabled and total)
  * Used by: DocumentsBar, useDocumentsBarState, useSectionsDocumentsManagementState
  */
@@ -254,22 +221,20 @@ export const useDocumentCounts = (): {
 
 /**
  * Get sections and documents counts (single source of truth)
+ * Uses builder functions to avoid duplication.
  * Used by: ProductSelection, SectionsDocumentsManagement, useConfiguratorState
  */
 export const useSectionsAndDocumentsCounts = () => {
   return useEditorStore((state) => {
-    const enabledSections = state.allSections.filter(
-      (s) => !state.disabledSectionIds.includes(s.id)
-    ).length;
-    const enabledDocuments = state.allDocuments.filter(
-      (d) => !state.disabledDocumentIds.includes(d.id)
-    ).length;
+    // Use builder functions instead of inline calculation
+    const sectionCounts = getSectionCounts(state.allSections, state.disabledSectionIds);
+    const documentCounts = getDocumentCounts(state.allDocuments, state.disabledDocumentIds);
 
     return {
-      enabledSectionsCount: enabledSections,
-      totalSectionsCount: state.allSections.length,
-      enabledDocumentsCount: enabledDocuments,
-      totalDocumentsCount: state.allDocuments.length,
+      enabledSectionsCount: sectionCounts.enabledCount,
+      totalSectionsCount: sectionCounts.totalCount,
+      enabledDocumentsCount: documentCounts.enabledCount,
+      totalDocumentsCount: documentCounts.totalCount,
     };
   });
 };

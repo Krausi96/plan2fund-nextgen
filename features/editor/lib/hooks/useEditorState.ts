@@ -37,10 +37,16 @@
  * ============================================================================
  */
 
-import { useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useEditorStore, DEFAULT_PRODUCT_OPTIONS, getSelectedProductMeta } from '../store/editorStore';
+import { useEditorStore } from '../store/editorStore';
+import { DEFAULT_PRODUCT_OPTIONS } from '../constants/editorConstants';
 import {
+  // Boolean selectors
+  useIsNewUser,
+  useHasPlan,
+  useIsEditingSection,
+  useIsEditingDocument,
   // Set selectors
   useDisabledSectionsSet,
   useDisabledDocumentsSet,
@@ -51,112 +57,11 @@ import {
   useVisibleDocuments,
   useDocumentCounts,
   useSectionsAndDocumentsCounts,
-} from './selectors';
-import { useEditorActions } from './useEditorStore';
-import type { SectionTemplate, DocumentTemplate, ToggleHandlers, EditHandlers } from '../types';
-
-// ============================================================================
-// INTERNAL HELPER HOOKS - Used only within this file
-// ============================================================================
-
-/**
- * Hook to create toggle handlers for sections or documents
- * Internal helper - only used by consolidated hooks in this file
- */
-function useToggleHandlers<T extends { id: string }>(
-  items: T[],
-  disabledIds: string[],
-  setDisabledIds: (ids: string[]) => void
-): ToggleHandlers {
-  // Memoize disabled set for O(1) lookup
-  const disabledSet = useMemo(
-    () => new Set(disabledIds),
-    [disabledIds]
-  );
-
-  // Memoize counts
-  const counts = useMemo(() => {
-    const enabledCount = items.filter(item => !disabledSet.has(item.id)).length;
-    const totalCount = items.length;
-    return { enabledCount, totalCount };
-  }, [items, disabledSet]);
-
-  // Toggle function - add/remove ID from disabled list
-  const toggle = useCallback(
-    (id: string) => {
-      const newDisabledIds = disabledSet.has(id)
-        ? disabledIds.filter(disabledId => disabledId !== id) // Enable: remove from disabled
-        : [...disabledIds, id]; // Disable: add to disabled
-      
-      setDisabledIds(newDisabledIds);
-    },
-    [disabledIds, disabledSet, setDisabledIds]
-  );
-
-  // Check if item is disabled
-  const isDisabled = useCallback(
-    (id: string) => disabledSet.has(id),
-    [disabledSet]
-  );
-
-  return {
-    toggle,
-    isDisabled,
-    enabledCount: counts.enabledCount,
-    totalCount: counts.totalCount,
-  };
-}
-
-/**
- * Hook to create edit handlers for sections or documents
- * Internal helper - only used by consolidated hooks in this file
- */
-function useEditHandlers<T extends { id: string }>(
-  items: T[],
-  setItems: (items: T[]) => void,
-  setEditingItem: (item: T | null) => void,
-  setExpandedId: (id: string | null) => void
-): EditHandlers<T> {
-  // Start editing an item
-  const onEdit = useCallback(
-    (item: T) => {
-      setEditingItem(item);
-      setExpandedId(item.id);
-    },
-    [setEditingItem, setExpandedId]
-  );
-
-  // Save changes (currently just closes edit mode - actual save logic would go here)
-  const onSave = useCallback(
-    (updatedItem: T) => {
-      // Update the item in the list
-      const updatedItems = items.map(item =>
-        item.id === updatedItem.id ? updatedItem : item
-      );
-      setItems(updatedItems);
-      
-      // Clear editing state
-      setEditingItem(null);
-      setExpandedId(null);
-    },
-    [items, setItems, setEditingItem, setExpandedId]
-  );
-
-  // Cancel editing (discard changes)
-  const onCancel = useCallback(
-    () => {
-      setEditingItem(null);
-      setExpandedId(null);
-    },
-    [setEditingItem, setExpandedId]
-  );
-
-  return {
-    onEdit,
-    onSave,
-    onCancel,
-  };
-}
+  useSelectedProductMeta,
+} from './useEditorSelectors';
+import { useEditorActions } from './useEditorActions';
+import { useToggleHandlers, useEditHandlers } from './useEditorHandlers';
+import type { SectionTemplate, DocumentTemplate } from '../types/types';
 
 // ============================================================================
 // PUBLIC CONSOLIDATED STATE HOOKS
@@ -202,21 +107,19 @@ export function useEditorState() {
 /**
  * Unified Configurator State Hook (like useIsNewUser pattern)
  * Consolidates all configurator (CurrentSelection) data and actions
- * Optimized: Single store selector + compute selectedProductMeta inline
+ * Optimized: Single store selector + use selector hook for selectedProductMeta
  */
 export function useConfiguratorState() {
-  // Optimized: Single selector + compute selectedProductMeta inline instead of separate hook call
-  const { selectedProduct, programSummary, programError, programLoading, selectedProductMeta } = useEditorStore((state) => {
-    const selectedProduct = state.selectedProduct;
-    const programSummary = state.programSummary;
-    const programError = state.programError;
-    const programLoading = state.programLoading;
-    // Compute selectedProductMeta inline instead of separate hook call
-    const selectedProductMeta = selectedProduct 
-      ? getSelectedProductMeta(DEFAULT_PRODUCT_OPTIONS, selectedProduct)
-      : null;
-    return { selectedProduct, programSummary, programError, programLoading, selectedProductMeta };
-  });
+  // Optimized: Single selector
+  const { selectedProduct, programSummary, programError, programLoading } = useEditorStore((state) => ({
+    selectedProduct: state.selectedProduct,
+    programSummary: state.programSummary,
+    programError: state.programError,
+    programLoading: state.programLoading,
+  }));
+  
+  // Use selector hook for consistency
+  const selectedProductMeta = useSelectedProductMeta();
   
   // Optimized: Select only needed actions instead of all actions
   const actions = useEditorActions((a) => ({
@@ -242,22 +145,20 @@ export function useConfiguratorState() {
  */
 export function useSectionsDocumentsManagementState() {
   const { t } = useI18n();
-  // Optimized: Single selector + compute selectedProductMeta inline
-  const { allSections, allDocuments, disabledSectionIds, disabledDocumentIds, selectedProduct, programSummary, showAddSection, showAddDocument, selectedProductMeta } = useEditorStore((state) => {
-    const allSections = state.allSections;
-    const allDocuments = state.allDocuments;
-    const disabledSectionIds = state.disabledSectionIds;
-    const disabledDocumentIds = state.disabledDocumentIds;
-    const selectedProduct = state.selectedProduct;
-    const programSummary = state.programSummary;
-    const showAddSection = state.showAddSection;
-    const showAddDocument = state.showAddDocument;
-    // Compute selectedProductMeta inline instead of separate hook call
-    const selectedProductMeta = selectedProduct 
-      ? getSelectedProductMeta(DEFAULT_PRODUCT_OPTIONS, selectedProduct)
-      : null;
-    return { allSections, allDocuments, disabledSectionIds, disabledDocumentIds, selectedProduct, programSummary, showAddSection, showAddDocument, selectedProductMeta };
-  });
+  // Optimized: Single selector
+  const { allSections, allDocuments, disabledSectionIds, disabledDocumentIds, selectedProduct, programSummary, showAddSection, showAddDocument } = useEditorStore((state) => ({
+    allSections: state.allSections,
+    allDocuments: state.allDocuments,
+    disabledSectionIds: state.disabledSectionIds,
+    disabledDocumentIds: state.disabledDocumentIds,
+    selectedProduct: state.selectedProduct,
+    programSummary: state.programSummary,
+    showAddSection: state.showAddSection,
+    showAddDocument: state.showAddDocument,
+  }));
+  
+  // Use selector hook for consistency
+  const selectedProductMeta = useSelectedProductMeta();
   
   // Optimized: Select only needed actions instead of all actions
   const actions = useEditorActions((a) => ({
@@ -305,12 +206,9 @@ export function useSectionsDocumentsManagementState() {
  * Optimized: Single store call + compute boolean inline
  */
 export function useSectionEditorState(sectionId: string | null) {
-  // Optimized: Batch state read + compute boolean inline
-  const { plan, hasPlan } = useEditorStore((state) => {
-    const plan = state.plan;
-    const hasPlan = !!plan;
-    return { plan, hasPlan };
-  });
+  // Use selector hook for consistency
+  const plan = useEditorStore((state) => state.plan);
+  const hasPlan = useHasPlan();
   
   const section = useMemo(() => {
     if (!plan || !sectionId) return null;
@@ -363,22 +261,19 @@ export function usePreviewState() {
 export function useSidebarState() {
   const { t } = useI18n();
   
-  // Optimized: Batch state reads + compute booleans inline
-  const { allSections, disabledSectionIds, editingSection, showAddSection, activeSectionId, isNewUser, selectedProductMeta, isEditing } = useEditorStore((state) => {
-    const allSections = state.allSections;
-    const disabledSectionIds = state.disabledSectionIds;
-    const editingSection = state.editingSection;
-    const showAddSection = state.showAddSection;
-    const activeSectionId = state.activeSectionId;
-    // Compute booleans inline instead of separate hook calls
-    const isNewUser = !state.plan && !state.selectedProduct;
-    const isEditing = !!state.expandedSectionId && !!state.editingSection;
-    // Compute selectedProductMeta inline
-    const selectedProductMeta = state.selectedProduct 
-      ? getSelectedProductMeta(DEFAULT_PRODUCT_OPTIONS, state.selectedProduct)
-      : null;
-    return { allSections, disabledSectionIds, editingSection, showAddSection, activeSectionId, isNewUser, selectedProductMeta, isEditing };
-  });
+  // Optimized: Batch state reads
+  const { allSections, disabledSectionIds, editingSection, showAddSection, activeSectionId } = useEditorStore((state) => ({
+    allSections: state.allSections,
+    disabledSectionIds: state.disabledSectionIds,
+    editingSection: state.editingSection,
+    showAddSection: state.showAddSection,
+    activeSectionId: state.activeSectionId,
+  }));
+  
+  // Use selector hooks for consistency
+  const isNewUser = useIsNewUser();
+  const isEditing = useIsEditingSection();
+  const selectedProductMeta = useSelectedProductMeta();
   
   const sections = useSectionsForSidebar(t, null, isNewUser);
   const disabledSections = useDisabledSectionsSet();
@@ -393,7 +288,7 @@ export function useSidebarState() {
     setShowAddSection: a.setShowAddSection,
   }));
   
-  // Section toggle handlers
+  // Section toggle handlers (already includes counts)
   const sectionToggleHandlers = useToggleHandlers(allSections, disabledSectionIds, actions.setDisabledSectionIds);
   const sectionEditHandlers = useEditHandlers(allSections, actions.setAllSections, actions.setEditingSection, actions.setExpandedSectionId);
   
@@ -406,11 +301,11 @@ export function useSidebarState() {
     toggleAddSection: () => actions.setShowAddSection(!showAddSection),
   }), [actions, sectionToggleHandlers, sectionEditHandlers, showAddSection]);
   
-  // Section counts
+  // Use counts from toggle handlers (no duplicate calculation)
   const sectionCounts = useMemo(() => ({
-    enabledCount: sections.filter(s => !disabledSections.has(s.id)).length,
-    totalCount: sections.length,
-  }), [sections, disabledSections]);
+    enabledCount: sectionToggleHandlers.enabledCount,
+    totalCount: sectionToggleHandlers.totalCount,
+  }), [sectionToggleHandlers.enabledCount, sectionToggleHandlers.totalCount]);
   
   return {
     isNewUser,
@@ -432,23 +327,20 @@ export function useSidebarState() {
  * Optimized: Only subscribes to needed actions
  */
 export function useDocumentsBarState() {
-  // Optimized: Batch state reads + compute booleans inline
-  const { allDocuments, disabledDocumentIds, editingDocument, showAddDocument, expandedDocumentId, clickedDocumentId, isNewUser, selectedProductMeta, isEditing } = useEditorStore((state) => {
-    const allDocuments = state.allDocuments;
-    const disabledDocumentIds = state.disabledDocumentIds;
-    const editingDocument = state.editingDocument;
-    const showAddDocument = state.showAddDocument;
-    const expandedDocumentId = state.expandedDocumentId;
-    const clickedDocumentId = state.clickedDocumentId;
-    // Compute booleans inline instead of separate hook calls
-    const isNewUser = !state.plan && !state.selectedProduct;
-    const isEditing = !!state.expandedDocumentId && !!state.editingDocument;
-    // Compute selectedProductMeta inline
-    const selectedProductMeta = state.selectedProduct 
-      ? getSelectedProductMeta(DEFAULT_PRODUCT_OPTIONS, state.selectedProduct)
-      : null;
-    return { allDocuments, disabledDocumentIds, editingDocument, showAddDocument, expandedDocumentId, clickedDocumentId, isNewUser, selectedProductMeta, isEditing };
-  });
+  // Optimized: Batch state reads
+  const { allDocuments, disabledDocumentIds, editingDocument, showAddDocument, expandedDocumentId, clickedDocumentId } = useEditorStore((state) => ({
+    allDocuments: state.allDocuments,
+    disabledDocumentIds: state.disabledDocumentIds,
+    editingDocument: state.editingDocument,
+    showAddDocument: state.showAddDocument,
+    expandedDocumentId: state.expandedDocumentId,
+    clickedDocumentId: state.clickedDocumentId,
+  }));
+  
+  // Use selector hooks for consistency
+  const isNewUser = useIsNewUser();
+  const isEditing = useIsEditingDocument();
+  const selectedProductMeta = useSelectedProductMeta();
   
   const documents = useVisibleDocuments();
   const disabledDocuments = useDisabledDocumentsSet();

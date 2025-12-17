@@ -18,7 +18,7 @@ export default function DocumentsBar() {
           <div className="text-white/60 text-xs text-center p-4">
             <p>Edit form placeholder - SectionDocumentEditForm needs to be implemented</p>
             <button onClick={actions.cancelEdit} className="mt-2 px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-white text-xs">
-              Cancel
+              {t('editor.ui.cancel' as any) || 'Abbrechen'}
             </button>
           </div>
         </div>
@@ -27,9 +27,9 @@ export default function DocumentsBar() {
   }
 
   return (
-    <div className="relative w-full border-b border-white/10 pb-3 mb-3" style={DOCUMENTS_BAR_STYLES.container(showAddDocument)}>
-      <div className={DOCUMENTS_BAR_STYLES.header}>
-        <h2 className={DOCUMENTS_BAR_STYLES.headerTitle}>
+    <div className="relative w-full flex flex-col" style={DOCUMENTS_BAR_STYLES.container(showAddDocument)}>
+      <div className="flex-shrink-0 mb-2">
+        <h2 className="text-lg font-bold uppercase tracking-wide text-white" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
           {t('editor.desktop.documents.title' as any) || 'Deine Dokumente'} ({documentCounts.enabledCount})
         </h2>
       </div>
@@ -49,7 +49,14 @@ export default function DocumentsBar() {
 
       <div className={DOCUMENTS_BAR_STYLES.scrollContainer.className} style={DOCUMENTS_BAR_STYLES.scrollContainer.style}>
         {isNewUser && (
-          <div className={DOCUMENTS_BAR_STYLES.newUserCard}>Select a product to start</div>
+          <div className={DOCUMENTS_BAR_STYLES.emptyStateCard}>
+            <div className={DOCUMENTS_BAR_STYLES.emptyStateIcon}>
+              <span className="text-4xl">📄</span>
+            </div>
+            <div className={DOCUMENTS_BAR_STYLES.emptyStateText}>
+              {t('editor.desktop.documents.noDocumentsYet' as any) || 'Noch keine Dokumente'}
+            </div>
+          </div>
         )}
 
         {!expandedDocumentId && !isNewUser && (
@@ -75,6 +82,17 @@ export default function DocumentsBar() {
             clickedDocumentId={clickedDocumentId}
             onSelectDocument={actions.setClickedDocumentId}
           />
+        )}
+
+        {documents.length === 0 && !isNewUser && selectedProductMeta && !expandedDocumentId && (
+          <div className={DOCUMENTS_BAR_STYLES.emptyStateCard}>
+            <div className={DOCUMENTS_BAR_STYLES.emptyStateIcon}>
+              <span className="text-4xl">📄</span>
+            </div>
+            <div className={DOCUMENTS_BAR_STYLES.emptyStateText}>
+              {t('editor.desktop.documents.empty' as any) || 'Noch keine Dokumente'}
+            </div>
+          </div>
         )}
 
         {documents.map((doc: DocumentTemplate) => (

@@ -1,4 +1,4 @@
-import type { ConversationMessage, QuestionStatus, Section } from '@/features/editor/lib/types';
+import type { ConversationMessage, QuestionStatus, Section } from '@/features/editor/lib';
 
 type SectionAiProgram = {
   id?: string | null;

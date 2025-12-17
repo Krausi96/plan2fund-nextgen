@@ -56,3 +56,4 @@ function Component() {
 - **Add to `useEditorState.ts`**: If it consolidates multiple store calls for a UI area
 - **Add new file**: If it's a standalone utility hook that's used by multiple components
 - **Keep in component**: If it's only used by one component (preferred for simple hooks)
+

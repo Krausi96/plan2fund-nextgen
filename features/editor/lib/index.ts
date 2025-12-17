@@ -1,37 +1,52 @@
 /**
-
- * STRUCTURE:
- *   - TYPES: Type definitions (ProductType, PlanSection, etc.)
- *   - STORE: Zustand store + hooks (useEditorStore, useSectionsForSidebar, etc.)
- *   - HOOKS: React hooks for UI interactions (useEditorState, useEditHandlers, etc.)
- *   - HELPERS: Utility functions and constants (styles, calculations, etc.)
- *   - AI CLIENT: Section AI functionality (detectAIContext, generateSectionContent)
+ * ============================================================================
+ * EDITOR LIBRARY - UNIFIED EXPORTS (Public API)
+ * ============================================================================
  * 
- * USAGE EXAMPLES:
- *   // Import types
- *   import type { ProductType, PlanSection } from '@/features/editor/lib';
+ * 📚 QUICK START:
  * 
- *   // Import hooks
- *   import { useEditorState, useSidebarState } from '@/features/editor/lib';
+ *   // ✅ RECOMMENDED: Use combined state hooks (easiest)
+ *   import { useSidebarState, useDocumentsBarState } from '@/features/editor/lib';
  * 
- *   // Import store selectors
- *   import { useHasPlan, useIsNewUser } from '@/features/editor/lib';
+ *   // ✅ For specific needs: Use selectors
+ *   import { useIsNewUser, useHasPlan, useSectionsForSidebar } from '@/features/editor/lib';
  * 
- *   // Import helpers
- *   import { SECTION_STYLES, calculateCompletion } from '@/features/editor/lib';
+ *   // ✅ For styling: Use style constants
+ *   import { SECTION_STYLES, SIDEBAR_STYLES } from '@/features/editor/lib';
  * 
- * FILE ORGANIZATION:
+ *   // ✅ For utilities: Use utility functions
+ *   import { shouldIgnoreClick, normalizeProgramInput } from '@/features/editor/lib';
+ * 
+ *   // ✅ For types: Import types
+ *   import type { SectionTemplate, ProductType } from '@/features/editor/lib';
+ * 
+ * 📁 FOLDER STRUCTURE:
+ * 
  *   lib/
- *   ├── types.ts                    # Type definitions
- *   ├── store/
- *   │   └── editorStore.ts          # Zustand store + selectors + helpers
- *   ├── hooks/
- *   │   ├── useEditorState.ts       # Consolidated state hooks (includes toggle/edit handlers)
- *   │   ├── useEditorStore.ts       # Store action hooks
- *   │   └── selectors.ts            # Store selectors
+ *   ├── types.ts                    # TypeScript type definitions
+ *   ├── store/                      # State management & data builders
+ *   │   ├── editorStore.ts          # Zustand store (state + actions)
+ *   │   ├── sectionBuilders.ts      # Build section lists for views
+ *   │   └── documentBuilders.ts     # Build document lists for views
+ *   ├── constants/                  # Constants & IDs
+ *   │   └── editorConstants.ts      # Product options, section IDs, helpers
+ *   ├── renderers/                  # Preview/rendering utilities
+ *   │   └── rendererUtils.ts        # Page numbers, translations, formatting
+ *   ├── styles/                     # UI styling constants
+ *   │   └── editorStyles.ts         # Tailwind classes & inline styles
+ *   ├── utils/                      # General utility functions
+ *   │   └── editorUtils.ts          # Click handling, input normalization
+ *   ├── hooks/                      # React hooks
+ *   │   ├── useEditorSelectors.ts   # Read state (selectors)
+ *   │   ├── useEditorActions.ts     # Write state (actions)
+ *   │   ├── useEditorState.ts       # Combined state hooks (RECOMMENDED)
+ *   │   └── useEditorHandlers.ts    # Handler creation hooks
  *   └── index.ts                    # This file - unified exports
+ * 
+ * 📖 For detailed documentation, see: lib/README.md
  * ============================================================================
  */
+
 // ============================================================================
 // TYPES - Type definitions only
 // ============================================================================
@@ -48,28 +63,48 @@ export type {
   ConversationMessage,
   QuestionStatus,
   Section,
-} from './types';
+} from './types/types';
 
 export type {
   SectionTemplate,
   DocumentTemplate,
-} from './types';
+} from './types/types';
 
 // ============================================================================
-// STORE - Zustand store + hooks
+// STORE - Zustand store + types
 // ============================================================================
 
-// Store exports (store definition only)
 export {
   useEditorStore,
+} from './store/editorStore';
+
+export type {
+  EditorStore,
+  EditorActions,
+  EditorState,
+  SectionWithMetadata,
+  DocumentWithMetadata,
+} from './store/editorStore';
+
+// ============================================================================
+// CONSTANTS - Constants and IDs
+// ============================================================================
+
+export {
+  DEFAULT_PRODUCT_OPTIONS,
+  getSelectedProductMeta,
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
   REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
   isSpecialSectionId,
-} from './store/editorStore';
+  getSectionTitle,
+} from './constants/editorConstants';
 
-// Selector exports (organized selectors)
+// ============================================================================
+// SELECTORS - Store selectors (read state)
+// ============================================================================
+
 export {
   // Boolean selectors
   useIsNewUser,
@@ -83,23 +118,13 @@ export {
   // Data selectors
   useSelectedProductMeta,
   useEffectiveEditingSectionId,
-  useVisibleSections,
   useVisibleDocuments,
   useSectionsForConfig,
   useSectionsForSidebar,
   useDocumentsForConfig,
-  useDocumentsForBar,
   useDocumentCounts,
   useSectionsAndDocumentsCounts,
-} from './hooks/selectors';
-
-export type {
-  EditorStore,
-  EditorActions,
-  EditorState,
-  SectionWithMetadata,
-  DocumentWithMetadata,
-} from './store/editorStore';
+} from './hooks/useEditorSelectors';
 
 // ============================================================================
 // HOOKS - React hooks for UI interactions
@@ -108,7 +133,7 @@ export type {
 export {
   useEditorActions,
   useEscapeKeyHandler,
-} from './hooks/useEditorStore';
+} from './hooks/useEditorActions';
 
 export {
   useEditorState,
@@ -120,28 +145,42 @@ export {
   useSectionEditorState,
 } from './hooks/useEditorState';
 
+export {
+  useToggleHandlers,
+  useEditHandlers,
+} from './hooks/useEditorHandlers';
+
 // ============================================================================
-// HELPERS - Utility functions and constants
+// STYLES - UI style constants
 // ============================================================================
 
 export {
-  DEFAULT_PRODUCT_OPTIONS,
-  getSelectedProductMeta,
   SECTION_STYLES,
   INLINE_STYLES,
   SIDEBAR_STYLES,
   DOCUMENTS_BAR_STYLES,
-  calculateCompletion,
-  getProgressIntent,
-  shouldIgnoreClick,
-  PAGE_STYLE,
   EDITOR_STYLES,
+} from './styles/editorStyles';
+
+// ============================================================================
+// RENDERERS - Rendering utilities
+// ============================================================================
+
+export {
+  PAGE_STYLE,
   getTranslation,
   calculatePageNumber,
   formatTableLabel,
-  renderTable,
+} from './renderers/rendererUtils';
+
+// ============================================================================
+// UTILS - General utility functions
+// ============================================================================
+
+export {
+  shouldIgnoreClick,
   normalizeProgramInput,
-} from './store/editorStore';
+} from './utils/editorUtils';
 
 // ============================================================================
 // AI CLIENT - Section AI functionality
@@ -160,4 +199,3 @@ export type {
   AIAction,
   AIActionCallbacks,
 } from '../components/Editor/sectionAiClient';
-

@@ -78,33 +78,76 @@ export default function Editor({}: EditorProps = {}) {
             {/* Workspace Container - Document-Centric Layout */}
             <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm w-full flex-1 min-h-0" style={{ overflow: 'visible', display: 'flex', flexDirection: 'column' }}>
               {/* Grid Layout: 2 rows, 2 columns */}
-              <div ref={workspaceGridRef} className="grid grid-cols-[320px_1fr] grid-rows-[auto_1fr] gap-4 flex-1 min-h-0" style={{ overflow: 'visible', position: 'relative', contain: 'layout style' }}>
-                {/* Row 1, Col 1: Config - Matches DocumentsBar height */}
-                <div className="flex-shrink-0 relative min-h-0 flex flex-col" style={{ zIndex: 0, overflow: 'visible', contain: 'none', height: 'fit-content', maxHeight: 'fit-content' }}>
-                  <CurrentSelection />
+              <div 
+                ref={workspaceGridRef} 
+                style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: '320px 1fr',
+                  gridTemplateRows: 'auto 1fr',
+                  gap: '1rem',
+                  width: '100%',
+                  flex: '1 1 0',
+                  minHeight: 0,
+                  overflow: 'visible',
+                  position: 'relative'
+                }}
+              >
+                {/* Row 1, Col 1: CurrentSelection (Top Left) */}
+                <div 
+                  style={{ 
+                    gridColumn: '1 / 2',
+                    gridRow: '1 / 2',
+                    zIndex: 0,
+                    overflow: 'visible',
+                    height: 'fit-content',
+                    maxHeight: 'fit-content'
+                  }}
+                >
+                  <CurrentSelection overlayContainerRef={workspaceGridRef} />
                 </div>
 
-                {/* Row 1, Col 2: Documents Bar - Matches Config height */}
+                {/* Row 1, Col 2: DocumentsBar (Top Right) */}
                 <div 
-                  className="flex-shrink-0 relative flex flex-col" 
                   style={{ 
-                    zIndex: 10, 
-                    overflowY: 'visible', 
-                    overflowX: 'visible', 
-                    contain: 'layout',
+                    gridColumn: '2 / 3',
+                    gridRow: '1 / 2',
+                    zIndex: 10,
+                    overflowY: 'visible',
+                    overflowX: 'visible',
                     position: 'relative'
                   }}
                 >
-                  {hasPlan ? <DocumentsBar /> : null}
+                  <DocumentsBar />
                 </div>
 
-                {/* Row 2, Col 1: Sidebar - Next to Preview */}
-                <div className="border-r border-white/10 pr-4 min-h-0 flex flex-col relative" style={{ maxWidth: '320px', width: '320px', minWidth: '320px', boxSizing: 'border-box', zIndex: 1, overflow: 'hidden' }}>
+                {/* Row 2, Col 1: Sidebar (Bottom Left) */}
+                <div 
+                  className="border-r border-white/10 pr-4 min-h-0 flex flex-col relative" 
+                  style={{ 
+                    gridColumn: '1 / 2',
+                    gridRow: '2 / 3',
+                    maxWidth: '320px',
+                    width: '320px',
+                    minWidth: '320px',
+                    boxSizing: 'border-box',
+                    zIndex: 1,
+                    overflow: 'hidden'
+                  }}
+                >
                   <Sidebar />
                 </div>
                 
-                {/* Row 2, Col 2: Preview - Full Width */}
-                <div className="min-w-0 min-h-0 relative flex flex-col" id="preview-container" style={{ zIndex: 1, overflow: 'hidden' }}>
+                {/* Row 2, Col 2: Preview (Bottom Right) */}
+                <div 
+                  className="min-w-0 min-h-0 relative flex flex-col" 
+                  id="preview-container" 
+                  style={{ 
+                    gridColumn: '2 / 3',
+                    gridRow: '2 / 3',
+                    zIndex: 1,
+                    overflow: 'hidden'
+                  }}
+                >
                   {/* Preview Header - Matches Sidebar header height exactly */}
                   <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)' }}>
                     {t('editor.desktop.preview.title' as any) || 'Preview'}
@@ -112,14 +155,7 @@ export default function Editor({}: EditorProps = {}) {
                   {/* Preview - Always visible */}
                   <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative" id="preview-scroll-container">
                     {/* PreviewWorkspace handles its own state via store - no props needed */}
-                    {hasPlan ? <PreviewWorkspace /> : (
-                      <div className="flex-1 flex items-center justify-center text-white/60">
-                        <div className="text-center">
-                          <p className="text-lg mb-2">Select a product to start</p>
-                          <p className="text-sm">Click "Start" to configure your plan</p>
-                        </div>
-                      </div>
-                    )}
+                    <PreviewWorkspace />
                   </div>
                   
                   {/* Inline Editor - RENDERED OUTSIDE SCROLL CONTAINER TO AVOID OVERFLOW CLIPPING */}

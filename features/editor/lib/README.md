@@ -1,339 +1,341 @@
-# Editor Library (`features/editor/lib`)
+# Editor Library (`lib/`) - Complete Guide
 
-This directory contains the core editor functionality: state management, hooks, types, and utilities. It serves as the single source of truth for editor state and provides reusable hooks and utilities for editor components.
-
-## 📁 Directory Structure
+## 📁 Folder Structure Overview
 
 ```
 lib/
 ├── types.ts                    # TypeScript type definitions
-├── store/
-│   └── editorStore.ts          # Zustand store (state + actions + selectors + helpers)
-├── hooks/                      # React hooks for UI interactions
-│   ├── useEditorState.ts       # Consolidated state hooks (useSidebarState, etc.)
-│   ├── useEditorStore.ts       # Store action hooks (useEditorActions)
-│   ├── useEditHandlers.ts      # Edit handlers for sections/documents
-│   ├── useToggleHandlers.ts    # Toggle handlers for enable/disable
-│   ├── useConfiguratorHooks.ts # Configurator overlay positioning & navigation
-│   ├── useDropdownPosition.ts  # Dropdown menu positioning
-│   └── usePreviewControls.ts  # Preview view mode & zoom controls
-├── index.ts                    # Unified exports (single entry point)
-└── README.md                   # This file
+├── store/                      # State management & data builders
+│   ├── editorStore.ts          # Zustand store (state + actions)
+│   ├── sectionBuilders.ts       # Build section lists for different views
+│   └── documentBuilders.ts     # Build document lists for different views
+├── constants/                  # Constants & IDs
+│   └── editorConstants.ts      # Product options, section IDs, helper functions
+├── renderers/                  # Preview/rendering utilities
+│   └── rendererUtils.ts        # Page numbers, translations, table formatting
+├── styles/                     # UI styling constants
+│   └── editorStyles.ts         # Tailwind classes & inline styles
+├── utils/                      # General utility functions
+│   └── editorUtils.ts          # Click handling, input normalization
+├── hooks/                      # React hooks
+│   ├── useEditorSelectors.ts   # Read state (selectors)
+│   ├── useEditorActions.ts     # Write state (actions)
+│   ├── useEditorState.ts       # Combined state hooks for UI areas
+│   └── useEditorHandlers.ts    # Handler creation hooks
+└── index.ts                    # Unified exports (public API)
 ```
 
-## 🎯 Purpose
+---
 
-The `lib/` directory provides:
+## 📚 What Each Folder Does
 
-1. **State Management**: Centralized Zustand store for all editor state
-2. **Reusable Hooks**: React hooks that combine state + actions for specific UI areas
-3. **Type Definitions**: TypeScript types used throughout the editor
-4. **Utilities**: Helper functions and constants (styles, calculations, etc.)
+### `types.ts` - Type Definitions
+**Purpose:** All TypeScript interfaces and types used throughout the editor.
 
-## 📚 File Descriptions
+**Contains:**
+- `BusinessPlan`, `PlanSection`, `PlanDocument` - Core data structures
+- `ProductType`, `ProductOption` - Product selection types
+- `SectionTemplate`, `DocumentTemplate` - Template types
+- All other editor-related types
 
-### `types.ts`
-**Purpose**: TypeScript type definitions for the editor
-
-**Contains**:
-- Product types (`ProductType`, `ProductOption`)
-- Plan data types (`PlanSection`, `PlanDocument`, `BusinessPlan`)
-- Program types (`ProgramSummary`)
-- AI types (`ConversationMessage`, `QuestionStatus`)
-- Template types (`SectionTemplate`, `DocumentTemplate`)
-- UI types (`DropdownPosition`, `PreviewControls`, `EditHandlers`, `ToggleHandlers`)
-
-**Used by**: All editor components, store, hooks, renderers
+**When to use:** Import types when defining props, state, or function parameters.
 
 ---
 
-### `store/editorStore.ts`
-**Purpose**: Zustand store - single source of truth for all editor state
+### `store/` - State Management & Data Builders
 
-**Contains**:
-- **State**: Plan data, UI state, templates, form state, etc.
-- **Actions**: Functions to update state (setPlan, setSelectedProduct, etc.)
-- **Selectors**: Computed hooks (useSectionsForSidebar, useHasPlan, etc.)
-- **Helpers**: Utility functions (styles, calculations, formatting)
+#### `editorStore.ts` - Core Zustand Store
+**Purpose:** Single source of truth for all editor state.
 
-**Key Concepts**:
-- `EditorState`: All state properties
-- `EditorActions`: All state update functions
-- Selectors: Hooks that compute derived state (e.g., `useSectionsForSidebar`)
+**Contains:**
+- `EditorState` interface - All state properties
+- `EditorActions` interface - All state update functions
+- `useEditorStore` hook - Zustand store instance
+- Helper types: `SectionWithMetadata`, `DocumentWithMetadata`
 
-**Used by**: All editor components via hooks
+**When to use:** 
+- Directly: Rarely (use hooks instead)
+- Via hooks: Always (use `useEditorSelectors`, `useEditorActions`, `useEditorState`)
 
-**State Categories**:
-1. Plan Data: Business plan content
-2. Navigation: Active section/question IDs
-3. Product & Program: Selected product type and program info
-4. UI State: Configurator open/closed, editing states
-5. Template Management: Sections/documents templates and disabled lists
-6. Form State: Add/edit form visibility and values
-7. Expansion State: Which items are expanded in UI
-8. Editing State: Which items are currently being edited
+#### `sectionBuilders.ts` - Section List Builders
+**Purpose:** Transform raw sections into formatted lists for different UI views.
+
+**Functions:**
+- `buildSectionsForSidebar()` - Builds sections for sidebar navigation
+- `buildSectionsForConfig()` - Builds sections for configuration view
+
+**When to use:** Used internally by selectors. You typically use hooks like `useSectionsForSidebar()` instead.
+
+#### `documentBuilders.ts` - Document List Builders
+**Purpose:** Transform raw documents into formatted lists for different UI views.
+
+**Functions:**
+- `buildDocumentsForConfig()` - Builds documents for configuration view
+- `getDocumentCounts()` - Counts enabled/total documents
+
+**When to use:** Used internally by selectors. You typically use hooks like `useDocumentsForConfig()` instead.
 
 ---
 
-### `hooks/useEditorState.ts`
-**Purpose**: Consolidated state hooks that combine multiple store calls
+### `constants/` - Constants & Helper Functions
 
-**Hooks Provided**:
-- `useEditorState()` - Basic editor state (plan, loading, errors)
-- `useSidebarState()` - Complete sidebar state + actions + handlers
-- `useDocumentsBarState()` - Complete documents bar state + actions + handlers
+#### `editorConstants.ts` - Constants & IDs
+**Purpose:** All constants, IDs, and simple helper functions.
+
+**Contains:**
+- `DEFAULT_PRODUCT_OPTIONS` - Available product types (Submission, Review, Strategy)
+- `METADATA_SECTION_ID`, `ANCILLARY_SECTION_ID`, etc. - Special section IDs
+- `getSelectedProductMeta()` - Get product metadata by type
+- `isSpecialSectionId()` - Check if section is special (metadata, references, etc.)
+- `getSectionTitle()` - Get translated title for special sections
+
+**When to use:** Import constants and helper functions when you need IDs or product metadata.
+
+---
+
+### `renderers/` - Preview/Rendering Utilities
+
+#### `rendererUtils.ts` - Preview Rendering Helpers
+**Purpose:** Utilities for rendering document preview (PDF-like view).
+
+**Functions:**
+- `PAGE_STYLE` - A4 page dimensions and styling
+- `getTranslation()` - Get German/English translations for preview labels
+- `calculatePageNumber()` - Calculate page number based on section index
+- `formatTableLabel()` - Convert camelCase/snake_case to Title Case
+
+**When to use:** When building preview/export functionality (PreviewWorkspace component).
+
+---
+
+### `styles/` - UI Styling Constants
+
+#### `editorStyles.ts` - Tailwind Classes & Inline Styles
+**Purpose:** Centralized styling constants for UI components.
+
+**Contains:**
+- `SECTION_STYLES` - Styles for section cards/lists
+- `SIDEBAR_STYLES` - Styles for sidebar component
+- `DOCUMENTS_BAR_STYLES` - Styles for documents bar
+- `EDITOR_STYLES` - Styles for editor modal
+- `INLINE_STYLES` - Common inline style objects
+
+**When to use:** Import style constants when styling components to maintain consistency.
+
+---
+
+### `utils/` - General Utility Functions
+
+#### `editorUtils.ts` - Utility Functions
+**Purpose:** Reusable helper functions for common operations.
+
+**Functions:**
+- `shouldIgnoreClick()` - Prevent card clicks when clicking buttons/inputs
+- `normalizeProgramInput()` - Extract program ID from URL or validate simple ID
+
+**When to use:** When you need to handle click events or normalize user input.
+
+---
+
+### `hooks/` - React Hooks
+
+#### `useEditorSelectors.ts` - Read State (Selectors)
+**Purpose:** Hooks that read/select state from the store.
+
+**Categories:**
+- **Boolean selectors:** `useIsNewUser()`, `useHasPlan()`, `useIsEditingSection()`
+- **Set selectors:** `useDisabledSectionsSet()`, `useDisabledDocumentsSet()`
+- **Data selectors:** `useSectionsForSidebar()`, `useDocumentsForConfig()`, `useSelectedProductMeta()`
+
+**When to use:** When you need to read state in components.
+
+#### `useEditorActions.ts` - Write State (Actions)
+**Purpose:** Hooks that update state in the store.
+
+**Functions:**
+- `useEditorActions()` - Get store actions via selector pattern
+- `useEscapeKeyHandler()` - Handle Escape key press
+
+**When to use:** When you need to update state (usually via `useEditorState` hooks instead).
+
+#### `useEditorState.ts` - Combined State Hooks
+**Purpose:** Unified hooks that combine state + actions for specific UI areas.
+
+**Hooks:**
+- `useSidebarState()` - Complete sidebar state + actions
+- `useDocumentsBarState()` - Complete documents bar state + actions
 - `useConfiguratorState()` - Product/program selection state + actions
-- `useProductSelectionState()` - Product selection specific state
-- `useSectionsDocumentsManagementState()` - Sections/documents management
-- `useSectionEditorState()` - Section editor specific state
 - `usePreviewState()` - Preview workspace state
+- `useSectionsDocumentsManagementState()` - Sections/documents management state
 
-**Pattern**: Each hook follows: `state + actions + computed values = complete UI state`
+**When to use:** **RECOMMENDED** - Use these instead of individual selectors/actions. They provide everything you need for a UI area.
 
-**Used by**: Editor.tsx, Sidebar.tsx, DocumentsBar.tsx, CurrentSelection.tsx, etc.
+#### `useEditorHandlers.ts` - Handler Creation Hooks
+**Purpose:** Hooks that create reusable handlers for common interactions.
 
----
+**Functions:**
+- `useToggleHandlers()` - Create toggle handlers for enabling/disabling items
+- `useEditHandlers()` - Create edit handlers for editing items
 
-### `hooks/useEditorStore.ts`
-**Purpose**: Hooks for accessing store actions
-
-**Hooks Provided**:
-- `useEditorActions<T>(selector)` - Get store actions via selector pattern
-- `useEscapeKeyHandler(isActive, handler)` - Handle Escape key press
-
-**Used by**: All components that need to update store state
-
-**Actions Available**:
-- Plan: `setPlan`, `setIsLoading`, `setError`, `setProgressSummary`
-- Navigation: `setActiveSectionId`, `setActiveQuestionId`
-- Product/Program: `setSelectedProduct`, `setProgramSummary`
-- UI: `setIsConfiguratorOpen`, `setEditingSectionId`
-- Templates: `setDisabledSectionIds`, `setAllSections`
-- Forms: `setShowAddSection`, `setNewSectionTitle`
-- Expansion: `setExpandedSectionId`, `setExpandedDocumentId`
-- Editing: `setEditingSection`, `setEditingDocument`
-- Helpers: `resetFormState`, `syncTemplateStateFromPlan`
+**When to use:** Used internally by `useEditorState` hooks. Rarely used directly.
 
 ---
 
-### `hooks/useEditHandlers.ts`
-**Purpose**: Handlers for editing items (sections/documents)
+## 🎯 Quick Reference: What to Import Where
 
-**What it does**:
-- Creates `onEdit` handler to start editing
-- Creates `onSave` handler to save changes
-- Creates `onCancel` handler to discard changes
+### In Components (Most Common)
 
-**Used by**: Sidebar.tsx, DocumentsBar.tsx, useSidebarState(), useDocumentsBarState()
+```typescript
+// ✅ RECOMMENDED: Use combined state hooks
+import { useSidebarState, useDocumentsBarState } from '@/features/editor/lib';
 
----
+// ✅ For specific needs: Use selectors
+import { useIsNewUser, useHasPlan } from '@/features/editor/lib';
 
-### `hooks/useToggleHandlers.ts`
-**Purpose**: Handlers for toggling items between enabled/disabled states
+// ✅ For styling: Use style constants
+import { SECTION_STYLES, SIDEBAR_STYLES } from '@/features/editor/lib';
 
-**What it does**:
-- Creates `toggle` function to enable/disable items
-- Provides `isDisabled` check function
-- Calculates enabled/total counts
+// ✅ For utilities: Use utility functions
+import { shouldIgnoreClick } from '@/features/editor/lib';
 
-**Used by**: Sidebar.tsx, DocumentsBar.tsx, SectionsDocumentsManagement.tsx
+// ✅ For types: Import types
+import type { SectionTemplate, ProductType } from '@/features/editor/lib';
+```
 
----
+### In Hooks/Store Files
 
-### `hooks/useConfiguratorHooks.ts`
-**Purpose**: Hooks for configurator overlay UI
+```typescript
+// ✅ Use builders directly
+import { buildSectionsForSidebar } from '../store/sectionBuilders';
 
-**Hooks Provided**:
-- `useConfiguratorOverlayPosition` - Calculates overlay position
-- `useConfiguratorChangeTracking` - Tracks pending changes
-- `useConfiguratorStepNavigation` - Manages step navigation (1, 2, 3)
+// ✅ Use constants
+import { DEFAULT_PRODUCT_OPTIONS, METADATA_SECTION_ID } from '../constants/editorConstants';
 
-**Used by**: CurrentSelection.tsx, ProductSelection.tsx, ProgramSelection.tsx
-
----
-
-### `hooks/useDropdownPosition.ts`
-**Purpose**: Calculates position for portal-based dropdown menus
-
-**What it does**:
-- Calculates top, left, width for dropdown positioning
-- Updates on window resize and scroll
-- Returns null when dropdown is closed
-
-**Used by**: ProductSelection.tsx, ProgramSelection.tsx
+// ✅ Use store directly
+import { useEditorStore } from '../store/editorStore';
+```
 
 ---
 
-### `hooks/usePreviewControls.ts`
-**Purpose**: Manages preview view mode and zoom controls
+## 📖 Common Patterns
 
-**State**:
-- `viewMode`: 'page' | 'fluid'
-- `zoomPreset`: '50' | '75' | '100' | '125' | '150' | '200'
-- `showWatermark`: boolean
-
-**Used by**: PreviewWorkspace.tsx
-
----
-
-### `index.ts`
-**Purpose**: Unified export point - single entry point for all editor functionality
-
-**Usage**: Always import from here: `import { ... } from '@/features/editor/lib'`
-
-**Exports**:
-- Types (from `types.ts`)
-- Store hooks (from `store/editorStore.ts`)
-- UI hooks (from `hooks/`)
-- Helpers (from `store/editorStore.ts`)
-- AI client (from `../components/Editor/sectionAiClient`)
-
-## 🔄 Usage Patterns
-
-### Pattern 1: Using Consolidated State Hooks (Recommended)
-
-```tsx
-// ✅ Good: Single hook call
-import { useSidebarState } from '@/features/editor/lib';
-
+### Pattern 1: Using Combined State Hook (Recommended)
+```typescript
 function Sidebar() {
-  const sidebarState = useSidebarState();
-  // sidebarState contains: sections, actions, isNewUser, etc.
+  // ✅ One hook gives you everything
+  const { sections, actions, isNewUser } = useSidebarState();
+  
+  return (
+    <div>
+      {sections.map(section => (
+        <button onClick={() => actions.setActiveSectionId(section.id)}>
+          {section.title}
+        </button>
+      ))}
+    </div>
+  );
 }
 ```
 
-### Pattern 2: Using Store Selectors Directly
-
-```tsx
-// ✅ Good: For simple state checks
-import { useHasPlan, useIsNewUser } from '@/features/editor/lib';
-
-function Component() {
-  const hasPlan = useHasPlan();
+### Pattern 2: Using Individual Selectors
+```typescript
+function MyComponent() {
+  // ✅ Use specific selectors when you only need one thing
   const isNewUser = useIsNewUser();
+  const sections = useSectionsForSidebar(t);
+  
+  // ...
 }
 ```
 
-### Pattern 3: Using Store Actions
+### Pattern 3: Using Style Constants
+```typescript
+import { SECTION_STYLES } from '@/features/editor/lib';
 
-```tsx
-// ✅ Good: Via consolidated hook
-import { useEditorActions } from '@/features/editor/lib';
-
-function Component() {
-  const actions = useEditorActions(a => ({
-    setPlan: a.setPlan,
-    setError: a.setError,
-  }));
+function SectionCard({ isActive, isDisabled }) {
+  const cardClass = isDisabled
+    ? SECTION_STYLES.card.item.disabled
+    : isActive
+    ? SECTION_STYLES.card.item.active
+    : SECTION_STYLES.card.item.default;
+  
+  return <div className={cardClass}>...</div>;
 }
 ```
 
-### Pattern 4: Using Individual Hooks
+### Pattern 4: Using Utility Functions
+```typescript
+import { shouldIgnoreClick } from '@/features/editor/lib';
 
-```tsx
-// ✅ Good: For specific functionality
-import { useEditHandlers, useToggleHandlers } from '@/features/editor/lib';
-
-function Component() {
-  const editHandlers = useEditHandlers(items, setItems, setEditing, setExpanded);
-  const toggleHandlers = useToggleHandlers(items, disabledIds, setDisabledIds);
+function Card({ onSelect }) {
+  return (
+    <div onClick={(e) => {
+      // ✅ Prevent selection when clicking buttons
+      if (shouldIgnoreClick(e.target as HTMLElement)) return;
+      onSelect();
+    }}>
+      <button>Edit</button>
+    </div>
+  );
 }
 ```
 
-## 🎨 Component Usage Map
-
-| Component | Primary Hooks Used |
-|-----------|-------------------|
-| `Editor.tsx` | `useEditorState`, `useEditorActions` (optimized: selects only `setEditingSectionId`), `useHasPlan`, `useIsWaitingForPlan` |
-| `Sidebar.tsx` | `useSidebarState` (which uses `useEditHandlers`, `useToggleHandlers`) - optimized: passes specific props instead of entire state |
-| `DocumentsBar.tsx` | `useDocumentsBarState` (which uses `useEditHandlers`, `useToggleHandlers`) - optimized: uses actions directly without wrapper callbacks |
-| `CurrentSelection.tsx` | `useConfiguratorState`, `useConfiguratorHooks` |
-| `SectionEditor.tsx` | `useSectionEditorState`, `useEditorActions` |
-| `PreviewWorkspace.tsx` | `usePreviewState`, `usePreviewControls` |
-| `ProductSelection.tsx` | `useConfiguratorState`, `useSectionsAndDocumentsCounts` (optimized: consolidated from 2 hooks to 2 optimized hooks) |
-| `ProgramSelection.tsx` | `useConfiguratorState` (optimized: now includes `programError` and `programLoading`, removed `useEditorState` call) |
-
-## 📝 Best Practices
-
-1. **Always import from `index.ts`**: `import { ... } from '@/features/editor/lib'`
-2. **Use consolidated hooks when possible**: Prefer `useSidebarState()` over multiple individual hooks
-3. **Don't import directly from store**: Use `index.ts` exports instead
-4. **Use selectors for derived state**: Prefer `useSectionsForSidebar()` over manual filtering
-5. **Keep state in store**: Don't duplicate state in component state if it belongs in the store
+---
 
 ## 🔍 Finding What You Need
 
-- **Need types?** → `types.ts` or import from `index.ts`
-- **Need state?** → Use hooks from `useEditorState.ts` or store selectors
-- **Need actions?** → Use `useEditorActions()` hook
-- **Need UI handlers?** → Use `useEditHandlers`, `useToggleHandlers`
-- **Need positioning?** → Use `useDropdownPosition`, `useConfiguratorHooks`
-- **Need styles/helpers?** → Import from `index.ts` (exported from `editorStore.ts`)
+### "I need to read state"
+→ Use hooks from `useEditorSelectors.ts` or `useEditorState.ts`
 
-## 🚀 Adding New Functionality
+### "I need to update state"
+→ Use `useEditorActions()` or combined hooks from `useEditorState.ts`
 
-1. **New state?** → Add to `EditorState` in `editorStore.ts`
-2. **New action?** → Add to `EditorActions` in `editorStore.ts`
-3. **New selector?** → Add hook in `editorStore.ts` (e.g., `useMyNewSelector`)
-4. **New UI hook?** → Add to `hooks/` directory
-5. **New type?** → Add to `types.ts`
-6. **Export it?** → Add to `index.ts`
+### "I need styling"
+→ Use constants from `editorStyles.ts`
 
-## 📊 Architecture Overview
+### "I need to transform data"
+→ Use builders from `sectionBuilders.ts` or `documentBuilders.ts` (usually via hooks)
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Editor Components                     │
-│  (Editor, Sidebar, DocumentsBar, SectionEditor, etc.)   │
-└────────────────────┬────────────────────────────────────┘
-                     │ imports from
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│                      index.ts                           │
-│              (Unified Export Point)                     │
-└──────┬──────────────┬──────────────┬───────────────────┘
-       │              │              │
-       ▼              ▼              ▼
-┌──────────┐   ┌──────────┐   ┌──────────┐
-│  types   │   │  store/  │   │  hooks/  │
-│   .ts    │   │editorStore│   │   *.ts   │
-└──────────┘   └──────────┘   └──────────┘
+### "I need constants/IDs"
+→ Use from `editorConstants.ts`
+
+### "I need types"
+→ Import from `types.ts`
+
+---
+
+## 🚫 What NOT to Do
+
+❌ **Don't import from internal files directly**
+```typescript
+// ❌ BAD
+import { buildSectionsForSidebar } from '@/features/editor/lib/store/sectionBuilders';
+
+// ✅ GOOD - Use the hook instead
+import { useSectionsForSidebar } from '@/features/editor/lib';
 ```
 
-## 🐛 Troubleshooting
+❌ **Don't use store directly in components**
+```typescript
+// ❌ BAD
+const plan = useEditorStore(state => state.plan);
 
-**Q: Where should I put a new hook?**
-- If used by 2+ components → `lib/hooks/`
-- If used by 1 component → Component's local `hooks/` directory
+// ✅ GOOD - Use selector hook
+const plan = useEditorStore(state => state.plan); // Actually this is OK, but prefer:
+const { plan } = useEditorState(); // Better - uses combined hook
+```
 
-**Q: Should I use `useEditorStore` directly?**
-- No, use the exported hooks from `index.ts` instead
-- Exception: Internal hooks can use `useEditorStore` directly
+---
 
-**Q: How do I know which hook to use?**
-- Check this README's "Component Usage Map" section
-- Look at similar components for patterns
-- Use consolidated hooks (`useSidebarState`, etc.) when available
+## 📝 Summary
 
-## ⚡ Performance Optimization
+- **`types.ts`** = Type definitions
+- **`store/`** = State management & data transformation
+- **`constants/`** = Constants & simple helpers
+- **`renderers/`** = Preview rendering utilities
+- **`styles/`** = UI styling constants
+- **`utils/`** = General utility functions
+- **`hooks/`** = React hooks (selectors, actions, combined state)
+- **`index.ts`** = Public API (import from here)
 
-**Optimization Status**: ✅ Phase 1 optimizations completed!
-
-**Completed Optimizations**:
-- ✅ **Action Selectors**: All hooks now use selectors to subscribe only to needed actions (reduces re-renders by 20-30%)
-- ✅ **Hook Consolidation**: `ProductSelection` and `ProgramSelection` consolidated hook calls
-- ✅ **Prop Drilling**: `Sidebar` now passes specific props instead of entire state object
-- ✅ **Callback Optimization**: `DocumentsBar` uses actions directly without unnecessary wrappers (removed 6 useCallback wrappers)
-- ✅ **Granular Selectors**: `SectionCard` uses specific store selectors instead of entire state
-- ✅ **Code Reduction**: 
-  - Removed unused `useProductSelectionState` hook (~15 lines)
-  - Consolidated multiple `useEditorStore` calls into single selectors in `useConfiguratorState`, `useSidebarState`, `useDocumentsBarState`, `useSectionsDocumentsManagementState` (~40 lines reduced)
-  - Removed redundant `useEditorState()` calls where only specific state was needed
-
-**Optimization Opportunities**: See `OPTIMIZATION_OPPORTUNITIES.md` for detailed analysis and remaining opportunities.
-
-**Key Improvements**:
-- Components only subscribe to actions they actually use
-- Reduced prop drilling through component trees
-- Fewer hook calls per component (30-40% reduction)
-- Better component isolation and re-render prevention
+**Most common:** Use `useEditorState.ts` hooks in components, import everything from `index.ts`.
