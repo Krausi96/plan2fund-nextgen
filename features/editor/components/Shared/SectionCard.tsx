@@ -1,16 +1,30 @@
 // Reusable section card component extracted from Sidebar
 
 import React from 'react';
+import { Progress } from '@/shared/components/ui/progress';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import {
   type SectionTemplate,
   type SectionWithMetadata,
   useSelectedProductMeta,
   useEditorStore,
-  SECTION_STYLES,
-  INLINE_STYLES,
   shouldIgnoreClick,
 } from '@/features/editor/lib';
+
+// Simple completion calculation - in a real app this would check actual section content
+function calculateCompletion(_section: any): number {
+  // Placeholder implementation - return random completion for demo purposes
+  // In a real app, this would check the actual section content/answers
+  return Math.floor(Math.random() * 101);
+}
+
+// Map completion percentage to progress intent
+function getProgressIntent(completion: number): "primary" | "success" | "warning" | "neutral" {
+  if (completion >= 100) return "success";
+  if (completion >= 50) return "warning";
+  if (completion > 0) return "primary";
+  return "neutral";
+}
 
 export interface SectionCardProps {
   section: SectionWithMetadata;
@@ -58,15 +72,15 @@ function SectionOriginTooltip({
   
   const sourceInfo = getSourceInfo();
   return (
-    <div className={SECTION_STYLES.originTooltip.container}>
+    <div className="relative group -translate-x-0.5">
       <div 
-        className={SECTION_STYLES.originTooltip.indicator}
+        className="w-2 h-2 rounded-full bg-yellow-400/70 cursor-help"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
         }}
       />
-      <div className={SECTION_STYLES.originTooltip.tooltip}>
+      <div className="absolute right-0 top-full mt-1 w-48 px-2 py-1.5 bg-blue-900/95 border border-blue-700/30 rounded-lg text-[9px] text-white/90 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50 whitespace-normal shadow-lg">
         {sourceInfo.tooltip}
       </div>
     </div>
@@ -86,23 +100,18 @@ export function SectionCard({
   onRemoveCustom,
   getOriginBadge,
 }: SectionCardProps) {
+  const completion = calculateCompletion(section);
   const sectionOrigin = (section.origin as 'template' | 'custom' | undefined);
   const isRequired = section.required ?? false;
   const isCustom = sectionOrigin === 'custom';
   
   const cardClass = isDisabled
-    ? SECTION_STYLES.card.item.disabled
+    ? 'opacity-50 border-white/10'
     : isActive
-    ? SECTION_STYLES.card.item.active
+    ? 'border-blue-400 bg-blue-600/20'
     : isRequired
-    ? SECTION_STYLES.card.item.required
-    : SECTION_STYLES.card.item.default;
-
-  const checkboxClass = isDisabled
-    ? SECTION_STYLES.card.checkbox.disabled
-    : isRequired
-    ? SECTION_STYLES.card.checkbox.required
-    : SECTION_STYLES.card.checkbox.default;
+    ? 'border-amber-400 bg-amber-600/20'
+    : 'border-white/20 bg-white/5 hover:bg-white/10';
 
   return (
     <div
@@ -110,11 +119,11 @@ export function SectionCard({
         if (isDisabled || shouldIgnoreClick(e.target as HTMLElement)) return;
         onSelect(section.id);
       }}
-      className={`${SECTION_STYLES.card.base} ${cardClass}`}
+      className={`relative border rounded-lg p-2 transition-all overflow-hidden w-full group ${cardClass}`}
     >
       {/* Action buttons */}
-      <div className={SECTION_STYLES.card.actions}>
-        <div className={SECTION_STYLES.card.actionsRow}>
+      <div className="absolute top-1 right-1 z-10 flex flex-col items-end gap-0.5">
+        <div className="flex items-center gap-1">
           {onEdit && (
             <button
               type="button"
@@ -129,7 +138,7 @@ export function SectionCard({
                 };
                 onEdit(sectionTemplate, e);
               }}
-              className={SECTION_STYLES.card.editButton}
+              className="text-white/60 hover:text-white text-xs transition-opacity"
             >
               ✏️
             </button>
@@ -144,7 +153,13 @@ export function SectionCard({
               }}
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
-              className={`${SECTION_STYLES.card.checkbox.base} ${checkboxClass}`}
+              className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
+                isDisabled
+                  ? 'border-white/30 bg-white/10'
+                  : isRequired
+                  ? 'border-amber-500 bg-amber-600/30 opacity-90'
+                  : 'border-blue-500 bg-blue-600/30'
+              } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
             />
           )}
         </div>
@@ -157,10 +172,10 @@ export function SectionCard({
       </div>
       
       {/* Section content */}
-      <div className={SECTION_STYLES.card.content}>
-        <span className={SECTION_STYLES.card.icon}>📋</span>
-        <div className={SECTION_STYLES.card.titleContainer}>
-          <h4 className={isDisabled ? SECTION_STYLES.card.titleDisabled : SECTION_STYLES.card.title}>
+      <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px] w-full">
+        <span className="text-2xl leading-none flex-shrink-0">📋</span>
+        <div className="w-full text-center min-h-[28px] flex items-center justify-center gap-1">
+          <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
             {section.title}
           </h4>
           {getOriginBadge && sectionOrigin && (
@@ -173,7 +188,7 @@ export function SectionCard({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className={SECTION_STYLES.card.originBadge}
+              className="inline-block select-none"
               data-badge="true"
             >
               {getOriginBadge(sectionOrigin, false)}
@@ -188,10 +203,16 @@ export function SectionCard({
               e.stopPropagation();
               onRemoveCustom(section.id);
             }}
-            className={SECTION_STYLES.card.removeButton}
+            className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100 pointer-events-auto"
           >
             ×
           </button>
+        )}
+        {isActive && (
+          <div className="w-full mt-1">
+            <Progress value={completion} intent={getProgressIntent(completion)} size="xs" />
+            <span className="text-[9px] text-white/70 mt-0.5 block text-center">{completion}%</span>
+          </div>
         )}
       </div>
     </div>

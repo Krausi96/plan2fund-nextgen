@@ -75,10 +75,10 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
       // Width: covers CurrentSelection (320px) + DocumentsBar (remaining width) = full grid width
       const width = gridRect.width;
       
-      // Height: Use a fixed height range for the overlay
+      // Height: Use a more flexible height range for the overlay to accommodate all content
       const minOverlayHeight = 600;
-      const maxOverlayHeight = 800;
-      const preferredHeight = gridRect.height * 0.8;
+      const maxOverlayHeight = Math.min(800, window.innerHeight * 0.8);
+      const preferredHeight = gridRect.height * 0.9;
       const height = Math.max(minOverlayHeight, Math.min(maxOverlayHeight, preferredHeight));
       
       setOverlayPosition({
@@ -104,23 +104,23 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
 
   // Summary view (collapsed)
   const SummaryView = () => {
-    const selectionCurrentLabel = t('editor.desktop.selection.current' as any) || 'AKTUELLE AUSWAHL';
-    const planLabelCopy = 'PLAN';
-    const programLabelCopy = t('editor.desktop.selection.programLabel' as any) || 'PROGRAMM/VORLAGE';
-    const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'Kein Programm';
-    const noSelectionCopy = t('editor.desktop.selection.empty' as any) || 'Nicht ausgewählt';
-    const sectionsLabel = t('editor.desktop.selection.sectionsLabel' as any) || 'ABSCHNITTE';
-    const documentsLabel = t('editor.desktop.selection.documentsLabel' as any) || 'DOKUMENTE';
-    const startButtonLabel = t('editor.desktop.selection.start' as any) || 'Starten';
-    const editButtonLabel = t('editor.desktop.selection.edit' as any) || 'Bearbeiten';
+    const selectionCurrentLabel = t('editor.desktop.selection.current' as any) || 'Current selection';
+    const planLabelCopy = t('editor.desktop.selection.productLabel' as any) || 'Plan';
+    const programLabelCopy = t('editor.desktop.selection.programLabel' as any) || 'Program / Template';
+    const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'No program';
+    const noSelectionCopy = t('editor.desktop.selection.empty' as any) || 'No selection';
+    const sectionsLabel = t('editor.desktop.selection.sectionsLabel' as any) || 'Sections';
+    const documentsLabel = t('editor.desktop.selection.documentsLabel' as any) || 'Documents';
+    const startButtonLabel = t('editor.desktop.selection.start' as any) || 'Start';
+    const editButtonLabel = t('editor.desktop.selection.edit' as any) || 'Edit';
     
     const hasMadeSelections = !!selectedProductMeta;
     
     return (
-      <div className="rounded-lg border border-white/20 bg-white/5">
+      <div className="flex flex-col rounded-lg border border-white/30 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 px-3 py-3 text-white shadow-[0_10px_25px_rgba(6,10,24,0.6)] backdrop-blur w-full" style={{ minHeight: 'fit-content' }}>
         {/* Header with title and action button */}
-        <div className="flex items-center justify-between p-3 border-b border-white/10">
-          <h3 className="text-xs font-bold text-white uppercase">
+        <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-2">
+          <h3 className="text-lg font-bold uppercase tracking-wide text-white flex-1">
             {selectionCurrentLabel}
           </h3>
           <button
@@ -128,15 +128,20 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
               e.stopPropagation();
               handleToggle();
             }}
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded flex items-center gap-1.5 transition-colors"
+            className={`px-3 py-1.5 text-xs font-bold rounded flex items-center gap-1.5 transition-all ${
+              hasMadeSelections
+                ? 'bg-white/10 hover:bg-white/20 text-white'
+                : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-md hover:shadow-lg'
+            }`}
           >
             {hasMadeSelections ? (
               <>
+                <span>✎</span>
                 <span>{editButtonLabel}</span>
               </>
             ) : (
               <>
-                <span className="text-white">→</span>
+                <span>→</span>
                 <span>{startButtonLabel}</span>
               </>
             )}
@@ -146,39 +151,52 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
         {/* Summary card */}
         <div 
           onClick={handleToggle}
-          className="cursor-pointer p-3"
+          className="cursor-pointer"
         >
-          <div className="mb-2">
-            <div className="text-[10px] font-normal text-white/60 uppercase mb-1">
-              {planLabelCopy}
-            </div>
-            <div className="text-sm text-white font-normal">
-              {selectedProductMeta?.label || noSelectionCopy}
-            </div>
-          </div>
-          <div className="mb-3">
-            <div className="text-[10px] font-normal text-white/60 uppercase mb-1">
-              {programLabelCopy}
-            </div>
-            <div className="text-sm text-white font-normal">
-              {programSummary?.name || noProgramCopy}
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div>
-              <div className="text-[10px] font-normal text-white/60 uppercase">
-                {sectionsLabel}
-              </div>
-              <div className="text-base font-bold text-white">
-                {enabledSectionsCount}/{totalSectionsCount}
+          <div className="flex flex-col gap-2 text-[10px] mb-3">
+            {/* Product & Program - Allow wrapping for full names */}
+            <div className="flex items-center gap-1.5 min-w-0">
+              {selectedProductMeta?.icon && (
+                <span className="text-sm leading-none flex-shrink-0">{selectedProductMeta.icon}</span>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-white/70 text-[9px] font-semibold uppercase tracking-wide block leading-tight mb-1">
+                  {planLabelCopy}
+                </div>
+                <div className="text-white font-semibold text-xs block leading-snug break-words line-clamp-2" title={selectedProductMeta?.label || noSelectionCopy}>
+                  {selectedProductMeta?.label || noSelectionCopy}
+                </div>
               </div>
             </div>
-            <div>
-              <div className="text-[10px] font-normal text-white/60 uppercase">
-                {documentsLabel}
+
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex-1 min-w-0">
+                <div className="text-white/70 text-[9px] font-semibold uppercase tracking-wide block leading-tight mb-1">
+                  {programLabelCopy}
+                </div>
+                <div className="text-white/90 font-medium text-xs block leading-snug break-words line-clamp-2" title={programSummary?.name || noProgramCopy}>
+                  {programSummary?.name || noProgramCopy}
+                </div>
               </div>
-              <div className="text-base font-bold text-white">
-                {enabledDocumentsCount}/{totalDocumentsCount}
+            </div>
+
+            {/* Sections & Documents - Compact Grid */}
+            <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-white/50">
+              <div className="flex flex-col">
+                <div className="text-white/60 text-[8px] font-semibold uppercase tracking-wide leading-tight mb-0.5">
+                  {sectionsLabel}
+                </div>
+                <div className="font-bold text-white text-xs">
+                  {enabledSectionsCount}/{totalSectionsCount}
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <div className="text-white/60 text-[8px] font-semibold uppercase tracking-wide leading-tight mb-0.5">
+                  {documentsLabel}
+                </div>
+                <div className="font-bold text-white text-xs">
+                  {enabledDocumentsCount}/{totalDocumentsCount}
+                </div>
               </div>
             </div>
           </div>
@@ -189,9 +207,9 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
 
   // Full overlay view (expanded)
   const OverlayView = () => {
-    const selectionCurrentLabel = t('editor.desktop.selection.current' as any) || 'AKTUELLE AUSWAHL';
-    const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'Kein Programm';
-    const noSelectionCopy = t('editor.desktop.selection.empty' as any) || 'Nicht ausgewählt';
+    const selectionCurrentLabel = t('editor.desktop.selection.current' as any) || 'Current selection';
+    const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'No program';
+    const noSelectionCopy = t('editor.desktop.selection.empty' as any) || 'No selection';
     
     return (
       typeof window !== 'undefined' && createPortal(
@@ -249,19 +267,20 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                 <button
                   onClick={handleToggle}
                   className="text-white/60 hover:text-white text-2xl leading-none flex-shrink-0 ml-2"
+                  aria-label={t('editor.desktop.config.close' as any) || 'Close'}
                 >
                   ×
                 </button>
               </div>
               
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6" style={{ minHeight: 0 }}>
+              <div className="flex-1 overflow-y-auto p-5" style={{ minHeight: 0, maxHeight: 'calc(100vh - 140px)' }}>
                 {/* 3-Step Guide Section - Clickable Navigation */}
                 <div className="mb-6 pb-6 border-b border-white/10">
                   <h3 className="text-sm font-bold text-white/90 uppercase mb-4">
-                    {t('editor.desktop.config.howItWorks.title' as any) || 'SO FUNKTIONIERT DIE KONFIGURATION'}
+                    {t('editor.desktop.config.howItWorks.title' as any) || 'HOW CONFIGURATION WORKS'}
                   </h3>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-3">
                     {/* Step 1 - Clickable */}
                     <button
                       onClick={() => setActiveStep(1)}
@@ -278,10 +297,10 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                         <span className={`text-xs font-semibold uppercase ${
                           activeStep === 1 ? 'text-white/90' : 'text-white/70'
                         }`}>
-                          {t('editor.desktop.config.step1.title' as any) || 'PRODUKT AUSWÄHLEN'}
+                          {t('editor.desktop.config.step1.title' as any) || 'SELECT PRODUCT'}
                         </span>
                         <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded">
-                          {t('editor.desktop.config.step1.badge' as any) || 'ERFORDERLICH'}
+                          {t('editor.desktop.config.step1.badge' as any) || 'REQUIRED'}
                         </span>
                         {activeStep === 1 && (
                           <span className="ml-auto text-xs text-blue-300">●</span>
@@ -293,7 +312,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                       <p className={`text-xs leading-relaxed ${
                         activeStep === 1 ? 'text-white/70' : 'text-white/60'
                       }`}>
-                        {t('editor.desktop.config.step1.description' as any) || 'Wählen Sie den Typ Ihres Business Plans (Submission, Review oder Strategy). Jeder Typ hat spezifische Vorlagen und optimierte Abschnitte.'}
+                        {t('editor.desktop.config.step1.description' as any) || 'Select your business plan type (Submission, Review, or Strategy). Each type has specific templates and optimized sections.'}
                       </p>
                     </button>
                     
@@ -313,7 +332,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                         <span className={`text-xs font-semibold uppercase ${
                           activeStep === 2 ? 'text-white/90' : 'text-white/70'
                         }`}>
-                          {t('editor.desktop.config.step2.title' as any) || 'PROGRAMM AUSWÄHLEN'}
+                          {t('editor.desktop.config.step2.title' as any) || 'SELECT PROGRAM'}
                         </span>
                         <span className="px-2 py-0.5 bg-yellow-600 text-white text-[10px] font-bold rounded">
                           {t('editor.desktop.config.step2.badge' as any) || 'OPTIONAL'}
@@ -328,7 +347,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                       <p className={`text-xs leading-relaxed ${
                         activeStep === 2 ? 'text-white/70' : 'text-white/60'
                       }`}>
-                        {t('editor.desktop.config.step2.description' as any) || 'Verbinden Sie ein Förderprogramm, um automatisch Anforderungen, Abschnitte und Dokumente zu laden. Optional, aber empfohlen.'}
+                        {t('editor.desktop.config.step2.description' as any) || 'Connect a funding program to automatically load requirements, sections, and documents. Optional but recommended.'}
                       </p>
                     </button>
                     
@@ -348,7 +367,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                         <span className={`text-xs font-semibold uppercase ${
                           activeStep === 3 ? 'text-white/90' : 'text-white/70'
                         }`}>
-                          {t('editor.desktop.config.step3.title' as any) || 'ABSCHNITTE & DOKUMENTE'}
+                          {t('editor.desktop.config.step3.title' as any) || 'SECTIONS & DOCUMENTS'}
                         </span>
                         {activeStep === 3 && (
                           <span className="ml-auto text-xs text-blue-300">●</span>
@@ -360,14 +379,14 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                       <p className={`text-xs leading-relaxed ${
                         activeStep === 3 ? 'text-white/70' : 'text-white/60'
                       }`}>
-                        {t('editor.desktop.config.step3.description' as any) || 'Abschnitte und Dokumente werden automatisch basierend auf Ihrem Plan-Typ und verbundenem Programm generiert. Sie können sie anpassen.'}
+                        {t('editor.desktop.config.step3.description' as any) || 'Sections and documents are automatically generated based on your plan type and connected program. You can customize them.'}
                       </p>
                     </button>
                   </div>
                 </div>
                 
                 {/* Configurator Content - Show based on active step */}
-                <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-visible">
+                <div className="bg-white/10 border border-white/20 rounded-lg p-4 overflow-visible min-h-[300px]">
                   {/* Step 1: Product Selection */}
                   {activeStep === 1 && (
                     <ProductSelection />
@@ -397,7 +416,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                     onClick={handleToggle}
                     className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-colors"
                   >
-                    {t('editor.desktop.config.cancel' as any) || 'Abbrechen'}
+                    {t('editor.desktop.config.cancel' as any) || 'Cancel'}
                   </button>
                   <button
                     onClick={() => {
@@ -406,7 +425,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                     }}
                     className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-colors"
                   >
-                    {t('editor.desktop.config.confirmSelection' as any) || 'Auswahl bestätigen'}
+                    {t('editor.desktop.config.confirmSelection' as any) || 'Confirm selection'}
                   </button>
                 </div>
               </div>

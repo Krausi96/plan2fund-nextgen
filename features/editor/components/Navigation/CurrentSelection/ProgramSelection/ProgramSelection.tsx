@@ -96,17 +96,17 @@ export default function ProgramSelection({
   }, [showManualInput]);
 
   return (
-    <div className="mb-4 pb-2">
+    <div className="mb-3 pb-3">
       <div className="flex items-center gap-1.5 mb-3">
         <span className="text-sm font-bold text-white/90 uppercase">
-          {t('editor.desktop.config.connectProgram.title' as any) || 'Programm verbinden'}
+          {t('editor.desktop.config.connectProgram.title' as any) || 'Connect Program'}
         </span>
         <span className="text-[10px] px-1.5 py-0.5 bg-yellow-600/30 text-yellow-300 rounded uppercase font-semibold">
           {t('editor.desktop.config.step2.optional' as any) || 'Optional'}
         </span>
         <InfoTooltip
-          title={t('editor.desktop.config.connectProgram.title' as any) || 'Programm verbinden'}
-          content={t('editor.desktop.config.connectProgram.info' as any) || 'Durch das Verbinden eines Förderprogramms werden automatisch die spezifischen Anforderungen, Abschnitte und Dokumente für dieses Programm geladen. Der ProgramFinder hilft Ihnen, passende Programme basierend auf Ihren Antworten zu finden. Alternativ können Sie einen direkten Programm-Link (z.B. von AWS, FFG oder EU-Ausschreibungen) einfügen.'}
+          title={t('editor.desktop.config.connectProgram.title' as any) || 'Connect Program'}
+          content={t('editor.desktop.config.connectProgram.info' as any) || 'Connecting a funding program automatically loads the specific requirements, sections, and documents for that program. ProgramFinder helps you find matching programs based on your answers. Alternatively, you can paste a direct program link (e.g., from AWS, FFG, or EU calls).'}
         />
       </div>
       
@@ -155,7 +155,7 @@ export default function ProgramSelection({
             aria-expanded={showManualInput}
             aria-controls="manual-program-connect"
             onClick={() => setShowManualInput((prev) => !prev)}
-            className="inline-flex items-center justify-center px-4 py-2.5 h-auto border border-white/20 hover:border-white/40 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-sm flex-1 min-w-0"
+            className="inline-flex items-center justify-center px-4 py-2.5 h-auto border border-white/30 hover:border-white/50 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-sm flex-1 min-w-0"
           >
             {connectCopy?.pasteLink}
           </button>

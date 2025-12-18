@@ -87,11 +87,11 @@ export default function ProductSelection({}: ProductSelectionProps = {}) {
     <div className="relative">
       <div className="flex items-center gap-1.5 mb-3">
         <span className="text-sm font-bold text-white/90 uppercase">
-          {t('editor.desktop.config.productSelection.title' as any) || 'Produktauswahl'}
+          {t('editor.desktop.config.productSelection.title' as any) || 'Product selection'}
         </span>
         <InfoTooltip
-          title={t('editor.desktop.config.productSelection.title' as any) || 'Produktauswahl'}
-          content={t('editor.desktop.config.productSelection.info' as any) || 'Die Produktauswahl bestimmt, welche Abschnitte und Dokumente für Ihren Plan verfügbar sind. Submission-Pläne sind für Förderanträge optimiert und enthalten alle erforderlichen Abschnitte für formelle Anträge. Review-Pläne fokussieren sich auf Überarbeitungen bestehender Dokumente. Strategy-Pläne sind für strategische Planung und Geschäftsentwicklung konzipiert.'}
+          title={t('editor.desktop.config.productSelection.title' as any) || 'Product selection'}
+          content={t('editor.desktop.config.productSelection.info' as any) || 'Product selection determines which sections and documents are available for your plan. Submission plans are optimized for grant applications, Review plans focus on revising existing documents, and Strategy plans are designed for strategic planning and business development.'}
         />
       </div>
       <button
@@ -175,7 +175,7 @@ export default function ProductSelection({}: ProductSelectionProps = {}) {
             <div className="bg-white/5 border border-white/10 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs text-white/70 font-semibold uppercase">
-                  {t('editor.desktop.selection.sectionsLabel' as any) || 'ABSCHNITTE'}
+                  {t('editor.desktop.selection.sectionsLabel' as any) || 'SECTIONS'}
                 </span>
               </div>
               <div className="text-sm font-bold text-white/90">
@@ -187,7 +187,7 @@ export default function ProductSelection({}: ProductSelectionProps = {}) {
             <div className="bg-white/5 border border-white/10 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs text-white/70 font-semibold uppercase">
-                  {t('editor.desktop.selection.documentsLabel' as any) || 'DOKUMENTE'}
+                  {t('editor.desktop.selection.documentsLabel' as any) || 'DOCUMENTS'}
                 </span>
               </div>
               <div className="text-sm font-bold text-white/90">

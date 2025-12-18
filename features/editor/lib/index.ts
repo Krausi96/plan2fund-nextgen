@@ -11,8 +11,8 @@
  *   // ✅ For specific needs: Use selectors
  *   import { useIsNewUser, useHasPlan, useSectionsForSidebar } from '@/features/editor/lib';
  * 
- *   // ✅ For styling: Use style constants
- *   import { SECTION_STYLES, SIDEBAR_STYLES } from '@/features/editor/lib';
+ *   // ❌ DEPRECATED: Style constants are no longer exported
+ *   // All components now use inline Tailwind classes directly
  * 
  *   // ✅ For utilities: Use utility functions
  *   import { shouldIgnoreClick, normalizeProgramInput } from '@/features/editor/lib';
@@ -32,8 +32,6 @@
  *   │   └── editorConstants.ts      # Product options, section IDs, helpers
  *   ├── renderers/                  # Preview/rendering utilities
  *   │   └── rendererUtils.ts        # Page numbers, translations, formatting
- *   ├── styles/                     # UI styling constants
- *   │   └── editorStyles.ts         # Tailwind classes & inline styles
  *   ├── utils/                      # General utility functions
  *   │   └── editorUtils.ts          # Click handling, input normalization
  *   ├── hooks/                      # React hooks
@@ -149,18 +147,6 @@ export {
   useToggleHandlers,
   useEditHandlers,
 } from './hooks/useEditorHandlers';
-
-// ============================================================================
-// STYLES - UI style constants
-// ============================================================================
-
-export {
-  SECTION_STYLES,
-  INLINE_STYLES,
-  SIDEBAR_STYLES,
-  DOCUMENTS_BAR_STYLES,
-  EDITOR_STYLES,
-} from './styles/editorStyles';
 
 // ============================================================================
 // RENDERERS - Rendering utilities

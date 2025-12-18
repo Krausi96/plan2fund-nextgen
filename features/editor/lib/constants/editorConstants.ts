@@ -31,21 +31,21 @@ import type { ProductOption, ProductType } from '../types/types';
 export const DEFAULT_PRODUCT_OPTIONS: ProductOption[] = [
   {
     value: 'submission',
-    label: 'Submission',
-    description: 'Optimized for grant applications with all required sections for formal submissions',
+    label: 'Custom Business Plan',
+    description: 'Application-ready plan for grants, banks, or equity investors',
     icon: '📋',
   },
   {
     value: 'review',
-    label: 'Review',
-    description: 'Focused on revisions of existing documents',
-    icon: '🔍',
+    label: 'Upgrade & Review',
+    description: 'Submit your draft — we restructure, complete missing parts & align to requirements',
+    icon: '✏️',
   },
   {
     value: 'strategy',
-    label: 'Strategy',
-    description: 'Designed for strategic planning and business development',
-    icon: '📊',
+    label: 'Strategy Plan',
+    description: 'Turn ideas into a clear business model & Go-to-market',
+    icon: '💡',
   },
 ];
 

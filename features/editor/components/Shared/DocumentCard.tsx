@@ -2,7 +2,6 @@ import React from 'react';
 import {
   type DocumentTemplate,
   type ProductOption,
-  DOCUMENTS_BAR_STYLES,
   shouldIgnoreClick,
 } from '@/features/editor/lib';
 
@@ -43,20 +42,14 @@ export function DocumentCard({
   const isCustom = doc.origin === 'custom';
   
   const cardClass = isDisabled
-    ? DOCUMENTS_BAR_STYLES.documentCard.disabled
+    ? 'opacity-50 border-white/10'
     : isSelected
-    ? DOCUMENTS_BAR_STYLES.documentCard.selected
+    ? 'border-blue-400 bg-blue-600/20'
     : isUnselected
-    ? DOCUMENTS_BAR_STYLES.documentCard.unselected
+    ? 'opacity-50 border-white/10'
     : isRequired
-    ? DOCUMENTS_BAR_STYLES.documentCard.required
-    : DOCUMENTS_BAR_STYLES.documentCard.default;
-
-  const checkboxClass = isDisabled
-    ? DOCUMENTS_BAR_STYLES.documentCard.checkbox.disabled
-    : isRequired
-    ? DOCUMENTS_BAR_STYLES.documentCard.checkbox.required
-    : DOCUMENTS_BAR_STYLES.documentCard.checkbox.default;
+    ? 'border-amber-400 bg-amber-600/20'
+    : 'border-white/20 bg-white/5 hover:bg-white/10';
 
   return (
     <div
@@ -64,10 +57,10 @@ export function DocumentCard({
         if (isDisabled || shouldIgnoreClick(e.target as HTMLElement)) return;
         onSelectDocument(doc.id);
       }}
-      className={`${DOCUMENTS_BAR_STYLES.documentCard.base} ${cardClass}`}
+      className={`relative border rounded-lg p-3 transition-all ${cardClass} group`}
     >
       {/* Action buttons */}
-      <div className={DOCUMENTS_BAR_STYLES.documentCard.actions}>
+      <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
         {onEditDocument && (
           <button
             type="button"
@@ -76,7 +69,7 @@ export function DocumentCard({
               e.stopPropagation();
               onEditDocument(doc, e);
             }}
-            className={DOCUMENTS_BAR_STYLES.documentCard.editButton}
+            className="text-white/60 hover:text-white text-xs transition-opacity"
           >
             ✏️
           </button>
@@ -91,20 +84,26 @@ export function DocumentCard({
             }}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
-            className={`${DOCUMENTS_BAR_STYLES.documentCard.checkbox.base} ${checkboxClass}`}
+            className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
+              isDisabled
+                ? 'border-white/30 bg-white/10'
+                : isRequired
+                ? 'border-amber-500 bg-amber-600/30 opacity-90'
+                : 'border-blue-500 bg-blue-600/30'
+            } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
           />
         )}
       </div>
 
       {/* Document content */}
-      <div className={DOCUMENTS_BAR_STYLES.documentCard.content}>
-        <span className={DOCUMENTS_BAR_STYLES.documentCard.icon}>📄</span>
+      <div className="flex flex-col items-center gap-2 pt-4 min-h-[60px]">
+        <span className="text-2xl leading-none flex-shrink-0">📄</span>
         <div className="w-full text-center">
-          <h4 className={isDisabled ? DOCUMENTS_BAR_STYLES.documentCard.titleDisabled : DOCUMENTS_BAR_STYLES.documentCard.title}>
+          <h4 className={`text-xs font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
             {doc.name}
           </h4>
           {doc.description && (
-            <p className={DOCUMENTS_BAR_STYLES.documentCard.description}>{doc.description}</p>
+            <p className="text-[10px] text-white/60 mt-1 line-clamp-2">{doc.description}</p>
           )}
         </div>
         {isCustom && onRemoveCustomDocument && (
@@ -115,7 +114,7 @@ export function DocumentCard({
               e.stopPropagation();
               onRemoveCustomDocument(doc.id);
             }}
-            className={DOCUMENTS_BAR_STYLES.documentCard.removeButton}
+            className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
           >
             ×
           </button>
@@ -139,24 +138,24 @@ export function CoreProductCard({
   const isSelected = clickedDocumentId === 'core-product';
   
   const cardClass = isSelected
-    ? DOCUMENTS_BAR_STYLES.coreProductCard.selected
+    ? 'border-blue-400 bg-blue-600/20'
     : clickedDocumentId
-    ? DOCUMENTS_BAR_STYLES.coreProductCard.unselected
-    : DOCUMENTS_BAR_STYLES.coreProductCard.default;
+    ? 'opacity-50 border-white/10'
+    : 'border-white/20 bg-white/5 hover:bg-white/10';
 
   return (
     <div
       onClick={() => onSelectDocument('core-product')}
-      className={`${DOCUMENTS_BAR_STYLES.coreProductCard.base} ${cardClass}`}
+      className={`relative border rounded-lg p-3 transition-all ${cardClass} cursor-pointer`}
     >
-      <div className={DOCUMENTS_BAR_STYLES.documentCard.content}>
-        <span className={DOCUMENTS_BAR_STYLES.documentCard.iconLarge}>{selectedProductMeta.icon || '📄'}</span>
-        <div className={DOCUMENTS_BAR_STYLES.documentCard.contentInner}>
-          <h4 className={DOCUMENTS_BAR_STYLES.documentCard.title}>
+      <div className="flex flex-col items-center gap-2 pt-4 min-h-[60px]">
+        <span className="text-3xl leading-none flex-shrink-0">{selectedProductMeta.icon || '📄'}</span>
+        <div className="w-full text-center">
+          <h4 className="text-xs font-semibold leading-snug text-white break-words line-clamp-2">
             {selectedProductMeta.label}
           </h4>
           {selectedProductMeta.description && (
-            <p className={DOCUMENTS_BAR_STYLES.documentCard.description}>{selectedProductMeta.description}</p>
+            <p className="text-[10px] text-white/60 mt-1 line-clamp-2">{selectedProductMeta.description}</p>
           )}
         </div>
       </div>

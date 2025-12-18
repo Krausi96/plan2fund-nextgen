@@ -1204,6 +1204,7 @@
   "editor.desktop.config.step2.skipMessage": "Sie können jetzt zu Schritt 3 gehen, um Abschnitte/Dokumente zu bearbeiten, oder ein Programm verbinden, um programmspezifische Inhalte hinzuzufügen.",
   "editor.desktop.config.step3.editingWithoutProgram": "Bearbeitung von Abschnitten/Dokumenten. Verbinden Sie ein Programm in Schritt 2, um programmspezifische Inhalte hinzuzufügen.",
   "editor.desktop.config.step3.editingWithProgram": "Bearbeitung von Abschnitten/Dokumenten mit programmspezifischen Inhalten.",
+  "editor.desktop.config.howItWorks.title": "SO FUNKTIONIERT DIE KONFIGURATION",
   "editor.desktop.sections.addButton": "Hinzufügen",
   "editor.desktop.sections.custom.title": "Ein benutzerdefinierter Abschnitt zu Ihrem Plan hinzufügen",
   "editor.desktop.sections.custom.titlePlaceholder": "z.B. Finanzplan",
@@ -1295,6 +1296,11 @@
   "advancedSearch.recommendations.shortenTimeline": "Verkürzen Sie den Zeitplan, um die Wettbewerbsfähigkeit zu verbessern",
   "advancedSearch.recommendations.focusRevenue": "Konzentrieren Sie sich auf Umsatzgenerierungsstrategien",
   "advancedSearch.recommendations.expandMarket": "Erweitern Sie die Marktgröße oder zielen Sie auf zusätzliche Segmente ab",
+  "editor.desktop.config.step1.badge": "ERFORDERLICH",
+  "editor.desktop.config.step2.badge": "OPTIONAL",
+  "editor.desktop.config.productSelection.title": "Produktauswahl",
+  "editor.desktop.config.productSelection.description": "Wählen Sie den Typ Ihres Business Plans. Jeder Typ hat spezifische Anforderungen und Vorlagen für Abschnitte und Dokumente.",
+  "editor.desktop.config.productSelection.info": "Die Produktauswahl bestimmt, welche Abschnitte und Dokumente für Ihren Plan verfügbar sind. Submission-Pläne sind für Förderanträge optimiert, Review-Pläne konzentrieren sich auf die Überarbeitung bestehender Dokumente und Strategy-Pläne sind für strategische Planung und Geschäftsentwicklung konzipiert.",
   "evidence.title": "Beweise, keine Versprechungen",
   "evidence.subtitle": "Echte Daten von unserer Plattform zeigen die Wirkung, die wir für österreichische Unternehmer erzielen",
   "evidence.programs.title": "214+ Programme",
@@ -1897,7 +1903,13 @@
   "pageEntry.export.text": "PDF oder Word wählen, Seitenformat und Wasserzeichen setzen sowie Zusatzdokumente hinzufügen. Entwürfe gratis mit Wasserzeichen, Premium ohne.",
   "pageEntry.button.continue": "Weiter",
   "pageEntry.button.gotIt": "Verstanden",
-  "pageEntry.button.dismiss": "Schließen"
+  "pageEntry.button.dismiss": "Schließen",
+  "editor.desktop.config.step1.badge": "ERFORDERLICH",
+  "editor.desktop.config.step2.badge": "OPTIONAL",
+  "editor.desktop.config.productSelection.title": "Produktauswahl",
+  "editor.desktop.config.productSelection.description": "Wählen Sie Ihren Geschäftsplantyp. Jeder Typ hat spezifische Anforderungen und Vorlagen für Abschnitte und Dokumente.",
+  "editor.desktop.config.productSelection.info": "Die Produktauswahl bestimmt, welche Abschnitte und Dokumente für Ihren Plan verfügbar sind. Einreichungspläne sind für Förderanträge optimiert, Revisionspläne konzentrieren sich auf die Überarbeitung bestehender Dokumente und Strategiepläne sind für strategische Planung und Geschäftsentwicklung konzipiert.",
+  "editor.desktop.config.close": "Schließen"
 }
 
 

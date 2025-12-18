@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useSectionEditorState, useEscapeKeyHandler, EDITOR_STYLES } from '@/features/editor/lib';
+import { useSectionEditorState, useEscapeKeyHandler } from '@/features/editor/lib';
 
 type SectionEditorProps = {
   sectionId: string | null;
@@ -23,29 +23,29 @@ export default function SectionEditor({ sectionId, onClose }: SectionEditorProps
 
   if (!sectionId || !section) {
     return (
-      <div ref={editorRef} className={EDITOR_STYLES.welcome}>
-        <div className={EDITOR_STYLES.welcomeContent}>
-          <div className={EDITOR_STYLES.welcomeIcon}>📝</div>
-          <h3 className={EDITOR_STYLES.welcomeTitle}>Select a section to edit</h3>
-          <p className={EDITOR_STYLES.welcomeText}>Choose a section from the sidebar to start editing</p>
+      <div ref={editorRef} className="flex items-center justify-center h-full w-full">
+        <div className="text-center">
+          <div className="text-6xl mb-4">📝</div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Select a section to edit</h3>
+          <p className="text-gray-600">Choose a section from the sidebar to start editing</p>
         </div>
       </div>
     );
   }
 
   const editorContent = (
-    <div ref={editorRef} className={EDITOR_STYLES.container}>
-      <div className={EDITOR_STYLES.editorInner}>
-        <div className={EDITOR_STYLES.header}>
-          <h2 className={EDITOR_STYLES.sectionTitle}>{section.title}</h2>
-          <button onClick={onClose} className={EDITOR_STYLES.closeButton}>
+    <div ref={editorRef} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-xl font-semibold text-gray-900">{section.title}</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl leading-none">
             ✕
           </button>
         </div>
-        <div className={EDITOR_STYLES.content}>
-          <div className={EDITOR_STYLES.sectionContent}>
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="prose max-w-none">
             <p>Section editor content</p>
-            <p className={EDITOR_STYLES.sectionId}>Section ID: {section.id}</p>
+            <p className="text-sm text-gray-500 mt-4">Section ID: {section.id}</p>
           </div>
         </div>
       </div>

@@ -4,7 +4,6 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import {
   type DocumentTemplate,
   useDocumentsBarState,
-  DOCUMENTS_BAR_STYLES,
 } from '@/features/editor/lib';
 
 export default function DocumentsBar() {
@@ -13,12 +12,12 @@ export default function DocumentsBar() {
 
   if (isEditing) {
     return (
-      <div className={DOCUMENTS_BAR_STYLES.editFormContainer}>
-        <div className={DOCUMENTS_BAR_STYLES.editFormInner}>
+      <div className="border border-white/20 bg-white/10 rounded-lg p-4 mb-3">
+        <div className="space-y-2">
           <div className="text-white/60 text-xs text-center p-4">
             <p>Edit form placeholder - SectionDocumentEditForm needs to be implemented</p>
             <button onClick={actions.cancelEdit} className="mt-2 px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-white text-xs">
-              {t('editor.ui.cancel' as any) || 'Abbrechen'}
+              Cancel
             </button>
           </div>
         </div>
@@ -27,7 +26,7 @@ export default function DocumentsBar() {
   }
 
   return (
-    <div className="relative w-full flex flex-col" style={DOCUMENTS_BAR_STYLES.container(showAddDocument)}>
+    <div className="relative w-full border-b border-white/10 pb-3 mb-3">
       <div className="flex-shrink-0 mb-2">
         <h2 className="text-lg font-bold uppercase tracking-wide text-white" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
           {t('editor.desktop.documents.title' as any) || 'Deine Dokumente'} ({documentCounts.enabledCount})
@@ -47,13 +46,13 @@ export default function DocumentsBar() {
         </div>
       )}
 
-      <div className={DOCUMENTS_BAR_STYLES.scrollContainer.className} style={DOCUMENTS_BAR_STYLES.scrollContainer.style}>
+      <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
         {isNewUser && (
-          <div className={DOCUMENTS_BAR_STYLES.emptyStateCard}>
-            <div className={DOCUMENTS_BAR_STYLES.emptyStateIcon}>
+          <div className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-center max-w-[150px] flex-shrink-0">
+            <div className="text-4xl mb-2 flex justify-center">
               <span className="text-4xl">📄</span>
             </div>
-            <div className={DOCUMENTS_BAR_STYLES.emptyStateText}>
+            <div className="text-white/60 text-sm">
               {t('editor.desktop.documents.noDocumentsYet' as any) || 'Noch keine Dokumente'}
             </div>
           </div>
@@ -63,7 +62,7 @@ export default function DocumentsBar() {
           <button
             type="button"
             onClick={actions.toggleAddDocument}
-            className={showAddDocument ? DOCUMENTS_BAR_STYLES.addButton.active : DOCUMENTS_BAR_STYLES.addButton.inactive}
+            className={showAddDocument ? 'px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center gap-2 min-w-[120px]' : 'px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center justify-center gap-2 min-w-[120px]'}
           >
             <span className="text-2xl leading-none">＋</span>
             <span>{t('editor.desktop.documents.addButton' as any) || 'Hinzufügen'}</span>
@@ -82,17 +81,6 @@ export default function DocumentsBar() {
             clickedDocumentId={clickedDocumentId}
             onSelectDocument={actions.setClickedDocumentId}
           />
-        )}
-
-        {documents.length === 0 && !isNewUser && selectedProductMeta && !expandedDocumentId && (
-          <div className={DOCUMENTS_BAR_STYLES.emptyStateCard}>
-            <div className={DOCUMENTS_BAR_STYLES.emptyStateIcon}>
-              <span className="text-4xl">📄</span>
-            </div>
-            <div className={DOCUMENTS_BAR_STYLES.emptyStateText}>
-              {t('editor.desktop.documents.empty' as any) || 'Noch keine Dokumente'}
-            </div>
-          </div>
         )}
 
         {documents.map((doc: DocumentTemplate) => (

@@ -1,14 +1,27 @@
 import React from 'react';
+import { Progress } from '@/shared/components/ui/progress';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { SectionCard } from '../Shared/SectionCard';
 import {
   type SectionTemplate,
   useSidebarState,
   isSpecialSectionId,
-  SECTION_STYLES,
-  INLINE_STYLES,
-  SIDEBAR_STYLES,
 } from '@/features/editor/lib';
+
+// Simple completion calculation - in a real app this would check actual section content
+function calculateCompletion(_section: any): number {
+  // Placeholder implementation - return random completion for demo purposes
+  // In a real app, this would check the actual section content/answers
+  return Math.floor(Math.random() * 101);
+}
+
+// Map completion percentage to progress intent
+function getProgressIntent(completion: number): "primary" | "success" | "warning" | "neutral" {
+  if (completion >= 100) return "success";
+  if (completion >= 50) return "warning";
+  if (completion > 0) return "primary";
+  return "neutral";
+}
 
 type SidebarProps = {
   collapsed?: boolean;
@@ -35,37 +48,24 @@ function SectionNavigationTree({
   disabledSections,
   actions,
 }: SectionNavigationTreeProps) {
-  const { t } = useI18n();
 
   // Determine display mode
   const showAsCards = !collapsed && (actions.toggleSection !== undefined || actions.editSection !== undefined);
 
   const displaySections = isNewUser ? [] : sections;
 
-  // Show empty state if no sections (for collapsed view)
   if (collapsed) {
-    if (displaySections.length === 0 && !isNewUser) {
-      return (
-        <div className={SECTION_STYLES.collapsed.container} style={INLINE_STYLES.paddingBottom}>
-          <div className={SECTION_STYLES.emptyStateCardCollapsed}>
-            <div className="text-2xl mb-1">📋</div>
-            <div className="text-white/60 text-xs">
-              {t('editor.desktop.sections.empty' as any) || 'Keine Abschnitte'}
-            </div>
-          </div>
-        </div>
-      );
-    }
     return (
-      <div className={SECTION_STYLES.collapsed.container} style={INLINE_STYLES.paddingBottom}>
+      <div className="space-y-1" style={{ paddingBottom: '1rem' }}>
         {displaySections.map((section) => {
+          const completion = calculateCompletion(section);
           const isActive = section.id === activeSectionId;
           const isDisabled = disabledSections.has(section.id);
           const buttonClass = isDisabled 
-            ? SECTION_STYLES.collapsed.button.disabled
+            ? 'opacity-50 cursor-not-allowed'
             : isActive 
-            ? SECTION_STYLES.collapsed.button.active
-            : SECTION_STYLES.collapsed.button.default;
+            ? 'bg-blue-600/40 border-blue-400'
+            : 'bg-white/5 border-white/10 hover:bg-white/10';
           
           return (
             <button
@@ -76,7 +76,12 @@ function SectionNavigationTree({
               title={isDisabled ? `${section.title} (Disabled)` : section.title}
             >
               <div className="flex flex-col items-center gap-1">
-                <span className="text-lg">📋</span>
+                <span className="text-lg">
+                  {completion === 100 ? '✅' : completion > 0 ? '⚠️' : '❌'}
+                </span>
+                {completion < 100 && (
+                  <span className="text-[8px] text-white/70">{completion}%</span>
+                )}
               </div>
             </button>
           );
@@ -86,20 +91,8 @@ function SectionNavigationTree({
   }
 
   if (showAsCards) {
-    if (displaySections.length === 0 && !isNewUser) {
-      return (
-        <div className={SECTION_STYLES.cardContainer} style={{ ...INLINE_STYLES.paddingBottom, paddingLeft: '1rem', paddingRight: '1rem' }}>
-          <div className={SECTION_STYLES.emptyStateCard}>
-            <div className="text-4xl mb-2">📋</div>
-            <div className="text-white/60 text-sm">
-              {t('editor.desktop.sections.empty' as any) || 'Keine Abschnitte'}
-            </div>
-          </div>
-        </div>
-      );
-    }
     return (
-      <div className={SECTION_STYLES.cardContainer} style={{ ...INLINE_STYLES.paddingBottom, paddingLeft: '1rem', paddingRight: '1rem' }}>
+      <div className="space-y-2 flex flex-col items-center" style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '1rem' }}>
         {displaySections.map((section) => {
           const isActive = section.id === activeSectionId;
           const isDisabled = disabledSections.has(section.id);
@@ -132,23 +125,10 @@ function SectionNavigationTree({
     );
   }
 
-  // Show empty state if no sections
-  if (displaySections.length === 0 && !isNewUser) {
-    return (
-      <div className={SECTION_STYLES.list.container} style={INLINE_STYLES.paddingBottom}>
-        <div className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-center max-w-[150px]">
-          <div className="text-4xl mb-2">📋</div>
-          <div className="text-white/60 text-sm">
-            {t('editor.desktop.sections.empty' as any) || 'Noch keine Abschnitte'}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className={SECTION_STYLES.list.container} style={INLINE_STYLES.paddingBottom}>
+    <div className="space-y-2" style={{ paddingBottom: '1rem' }}>
       {displaySections.map((section, sectionIndex: number) => {
+        const completion = calculateCompletion(section);
         const isSpecialSection = isSpecialSectionId(section.id);
         const isActive = section.id === activeSectionId;
         const isDisabled = disabledSections.has(section.id);
@@ -157,17 +137,17 @@ function SectionNavigationTree({
         const isCustom = sectionOrigin === 'custom';
         
         const listClass = isDisabled
-          ? SECTION_STYLES.list.item.disabled
+          ? 'opacity-50 border-white/10'
           : isActive
-          ? SECTION_STYLES.list.item.active
+          ? 'border-blue-400 bg-blue-600/20'
           : isRequired
-          ? SECTION_STYLES.list.item.required
-          : SECTION_STYLES.list.item.default;
+          ? 'border-amber-400 bg-amber-600/20'
+          : 'border-white/20 bg-white/5 hover:bg-white/10';
 
         return (
           <div
             key={section.id}
-            className={`${SECTION_STYLES.list.item.base} ${listClass}`}
+            className={`w-full rounded-lg border-2 px-3 py-2 transition-all ${listClass}`}
           >
             <button
               onClick={() => !isDisabled && actions.setActiveSectionId(section.id)}
@@ -186,6 +166,7 @@ function SectionNavigationTree({
                       {section.title}
                     </span>
                   </div>
+                  <Progress value={completion} intent={getProgressIntent(completion)} size="xs" />
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                   {actions.toggleSection && (
@@ -240,6 +221,7 @@ function SectionNavigationTree({
                       ×
                     </button>
                   )}
+                  <span className="text-[10px] font-bold text-white">{completion}%</span>
                   {isActive && <span className="text-blue-400">●</span>}
                 </div>
               </div>
@@ -260,8 +242,12 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
   const { isNewUser, sections, disabledSections, actions, sectionCounts, isEditing, showAddSection, activeSectionId, editingSection } = useSidebarState();
 
   return (
-    <div className={SIDEBAR_STYLES.container(collapsed)} style={SIDEBAR_STYLES.sidebarStyle(collapsed)}>
-      <div className="relative w-full flex-1 flex flex-col min-h-0" style={SIDEBAR_STYLES.contentStyle()}>
+    <div className={collapsed ? 'w-16' : 'w-80'} style={{
+      width: collapsed ? '150px' : '320px',
+      minWidth: collapsed ? '150px' : '320px',
+      maxWidth: collapsed ? '150px' : '320px',
+    }}>
+      <div className="relative w-full flex-1 flex flex-col min-h-0">
         {!collapsed && (
           <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
             {(t('editor.desktop.sections.title' as any) as string) || 'Deine Abschnitte'} ({sectionCounts.totalCount})
@@ -270,7 +256,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
 
         {!collapsed && !isNewUser && (
           <>
-            <div className={SIDEBAR_STYLES.legend}>
+            <div className="text-xs text-white/50 mb-2 flex items-center gap-2">
               <span className="flex items-center gap-1 flex-1">
                 <span>✏️</span>
                 <span>{t('editor.desktop.sections.legend.edit' as any) || 'Bearbeiten'}</span>
@@ -289,7 +275,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                 <button
                   type="button"
                   onClick={actions.toggleAddSection}
-                  className={showAddSection ? SIDEBAR_STYLES.addButton.active : SIDEBAR_STYLES.addButton.inactive}
+                  className={showAddSection ? 'w-full px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center gap-2' : 'w-full px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center justify-center gap-2'}
                 >
                   <span className="text-2xl leading-none">＋</span>
                   <span>{t('editor.desktop.sections.addButton' as any) || 'Abschnitt hinzufügen'}</span>
@@ -300,13 +286,8 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
         )}
 
         {!collapsed && isNewUser && (
-          <div className={SECTION_STYLES.emptyStateCard}>
-            <div className="mb-2 flex justify-center">
-              <span className="text-4xl">📋</span>
-            </div>
-            <div className="text-white/60 text-sm">
-              {t('editor.desktop.sections.noSectionsYet' as any) || 'Noch keine Abschnitte'}
-            </div>
+          <div className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-center max-w-[150px]">
+            Select a product to start creating your business plan
           </div>
         )}
 
@@ -320,13 +301,13 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
           <div className="mb-2 flex-shrink-0 border border-white/20 bg-white/10 rounded-lg p-3 text-white/60 text-xs text-center">
             <p>Edit form placeholder - SectionDocumentEditForm needs to be implemented</p>
             <button onClick={actions.cancelEdit} className="mt-2 px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-white text-xs">
-              {t('editor.ui.cancel' as any) || 'Abbrechen'}
+              Cancel
             </button>
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto min-h-0" style={INLINE_STYLES.overflowHidden}>
-          <div style={INLINE_STYLES.paddingBottomLarge}>
+        <div className="flex-1 overflow-y-auto min-h-0" style={{ overflow: 'hidden' }}>
+          <div style={{ paddingBottom: '1.5rem' }}>
             <SectionNavigationTree
               activeSectionId={activeSectionId ?? null}
               collapsed={collapsed}

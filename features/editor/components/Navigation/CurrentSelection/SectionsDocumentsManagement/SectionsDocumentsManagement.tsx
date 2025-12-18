@@ -29,14 +29,14 @@ export default function SectionsDocumentsManagement({}: SectionsDocumentsManagem
   } = useSectionsDocumentsManagementState();
 
   return (
-    <div className="mb-4 pb-2">
+    <div className="mb-3 pb-3">
       <div className="flex items-center gap-1.5 mb-3">
         <span className="text-sm font-bold text-white/90 uppercase">
-          {t('editor.desktop.config.step3.title' as any) || 'ABSCHNITTE & DOKUMENTE'}
+          {t('editor.desktop.config.step3.title' as any) || 'SECTIONS & DOCUMENTS'}
         </span>
         <InfoTooltip
-          title={t('editor.desktop.config.step3.title' as any) || 'Abschnitte & Dokumente'}
-          content={t('editor.desktop.config.step3.description' as any) || 'Abschnitte und Dokumente werden automatisch basierend auf Ihrem Plan-Typ und verbundenem Programm generiert. Sie können sie anpassen.'}
+          title={t('editor.desktop.config.step3.title' as any) || 'Sections & Documents'}
+          content={t('editor.desktop.config.step3.description' as any) || 'Sections and documents are automatically generated based on your plan type and connected program. You can customize them.'}
         />
       </div>
       
@@ -63,14 +63,14 @@ export default function SectionsDocumentsManagement({}: SectionsDocumentsManagem
       
       <div className="space-y-4">
         <p className="text-sm text-white/80">
-          {t('editor.desktop.config.step3.description' as any) || 'Abschnitte und Dokumente werden automatisch basierend auf Ihrem Plan-Typ und verbundenem Programm generiert. Sie können sie anpassen.'}
+          {t('editor.desktop.config.step3.description' as any) || 'Sections and documents are automatically generated based on your plan type and connected program. You can customize them.'}
         </p>
         
         {/* Documents List - Moved above Sections */}
         <div className="bg-white/5 rounded-lg p-3 border border-white/10">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-white/90 uppercase">
-              {t('editor.desktop.selection.documentsLabel' as any) || 'DOKUMENTE'}
+              {t('editor.desktop.selection.documentsLabel' as any) || 'DOCUMENTS'}
             </span>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white">
@@ -92,7 +92,7 @@ export default function SectionsDocumentsManagement({}: SectionsDocumentsManagem
             </div>
           )}
           
-          <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
             {/* Core Product Document - Always shown first */}
             {selectedProduct && selectedProductMeta && (
               <div className="flex items-center justify-between p-2 rounded-lg bg-blue-600/10 border border-blue-400/20">
@@ -134,8 +134,8 @@ export default function SectionsDocumentsManagement({}: SectionsDocumentsManagem
                       }`}
                     >
                       {document.isDisabled 
-                        ? (t('editor.desktop.sections.activate' as any) || 'Activate')
-                        : (t('editor.desktop.sections.deactivate' as any) || 'Deactivate')
+                        ? (t('editor.desktop.documents.activate' as any) || 'Activate')
+                        : (t('editor.desktop.documents.deactivate' as any) || 'Deactivate')
                       }
                     </button>
                   </div>
@@ -143,7 +143,7 @@ export default function SectionsDocumentsManagement({}: SectionsDocumentsManagem
               })
             ) : !selectedProduct ? (
               <p className="text-sm text-white/60 text-center py-4">
-                {t('editor.desktop.documents.emptyHint' as any) || 'Keine Dokumente verfügbar'}
+                {t('editor.desktop.documents.emptyHint' as any) || 'No documents available'}
               </p>
             ) : null}
           </div>
@@ -153,7 +153,7 @@ export default function SectionsDocumentsManagement({}: SectionsDocumentsManagem
         <div className="bg-white/5 rounded-lg p-3 border border-white/10">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-white/90 uppercase">
-              {t('editor.desktop.selection.sectionsLabel' as any) || 'ABSCHNITTE'}
+              {t('editor.desktop.selection.sectionsLabel' as any) || 'SECTIONS'}
             </span>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white">
@@ -175,7 +175,7 @@ export default function SectionsDocumentsManagement({}: SectionsDocumentsManagem
             </div>
           )}
           
-          <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
             {sectionsToShow.length > 0 ? (
               sectionsToShow.map((section) => {
                 const isCustom = section.origin === 'custom';
@@ -215,7 +215,7 @@ export default function SectionsDocumentsManagement({}: SectionsDocumentsManagem
               })
             ) : (
               <p className="text-sm text-white/60 text-center py-4">
-                {t('editor.desktop.sections.emptyHint' as any) || 'Keine Abschnitte verfügbar'}
+                {t('editor.desktop.sections.emptyHint' as any) || 'No sections available'}
               </p>
             )}
           </div>

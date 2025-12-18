@@ -13,8 +13,8 @@ lib/
 │   └── editorConstants.ts      # Product options, section IDs, helper functions
 ├── renderers/                  # Preview/rendering utilities
 │   └── rendererUtils.ts        # Page numbers, translations, table formatting
-├── styles/                     # UI styling constants
-│   └── editorStyles.ts         # Tailwind classes & inline styles
+├── styles/                     # UI styling constants (DEPRECATED)
+│   └── editorStyles.ts         # DEPRECATED - Tailwind classes & inline styles
 ├── utils/                      # General utility functions
 │   └── editorUtils.ts          # Click handling, input normalization
 ├── hooks/                      # React hooks
@@ -108,22 +108,6 @@ lib/
 
 ---
 
-### `styles/` - UI Styling Constants
-
-#### `editorStyles.ts` - Tailwind Classes & Inline Styles
-**Purpose:** Centralized styling constants for UI components.
-
-**Contains:**
-- `SECTION_STYLES` - Styles for section cards/lists
-- `SIDEBAR_STYLES` - Styles for sidebar component
-- `DOCUMENTS_BAR_STYLES` - Styles for documents bar
-- `EDITOR_STYLES` - Styles for editor modal
-- `INLINE_STYLES` - Common inline style objects
-
-**When to use:** Import style constants when styling components to maintain consistency.
-
----
-
 ### `utils/` - General Utility Functions
 
 #### `editorUtils.ts` - Utility Functions
@@ -192,9 +176,6 @@ import { useSidebarState, useDocumentsBarState } from '@/features/editor/lib';
 // ✅ For specific needs: Use selectors
 import { useIsNewUser, useHasPlan } from '@/features/editor/lib';
 
-// ✅ For styling: Use style constants
-import { SECTION_STYLES, SIDEBAR_STYLES } from '@/features/editor/lib';
-
 // ✅ For utilities: Use utility functions
 import { shouldIgnoreClick } from '@/features/editor/lib';
 
@@ -248,22 +229,7 @@ function MyComponent() {
 }
 ```
 
-### Pattern 3: Using Style Constants
-```typescript
-import { SECTION_STYLES } from '@/features/editor/lib';
-
-function SectionCard({ isActive, isDisabled }) {
-  const cardClass = isDisabled
-    ? SECTION_STYLES.card.item.disabled
-    : isActive
-    ? SECTION_STYLES.card.item.active
-    : SECTION_STYLES.card.item.default;
-  
-  return <div className={cardClass}>...</div>;
-}
-```
-
-### Pattern 4: Using Utility Functions
+### Pattern 2: Using Utility Functions
 ```typescript
 import { shouldIgnoreClick } from '@/features/editor/lib';
 
@@ -291,7 +257,7 @@ function Card({ onSelect }) {
 → Use `useEditorActions()` or combined hooks from `useEditorState.ts`
 
 ### "I need styling"
-→ Use constants from `editorStyles.ts`
+→ Use Tailwind classes directly in components
 
 ### "I need to transform data"
 → Use builders from `sectionBuilders.ts` or `documentBuilders.ts` (usually via hooks)
@@ -333,9 +299,11 @@ const { plan } = useEditorState(); // Better - uses combined hook
 - **`store/`** = State management & data transformation
 - **`constants/`** = Constants & simple helpers
 - **`renderers/`** = Preview rendering utilities
-- **`styles/`** = UI styling constants
+- **`styles/`** = UI styling constants (DEPRECATED - use inline Tailwind classes)
 - **`utils/`** = General utility functions
 - **`hooks/`** = React hooks (selectors, actions, combined state)
 - **`index.ts`** = Public API (import from here)
+
+**Styling note:** All UI components now use inline Tailwind classes directly rather than importing style constants. This makes it easier to customize dimensions and appearance by editing the components directly.
 
 **Most common:** Use `useEditorState.ts` hooks in components, import everything from `index.ts`.
