@@ -62,10 +62,25 @@ export default function ProgramSelection({
     const updatePosition = () => {
       if (manualTriggerRef.current) {
         const rect = manualTriggerRef.current.getBoundingClientRect();
+        // Ensure the dropdown doesn't go below the viewport
+        const maxTop = window.innerHeight - 350; // Leave more space for the dropdown
+        const top = Math.min(rect.bottom + 8, maxTop);
+        
+        // Ensure the dropdown doesn't go beyond the right edge of the viewport
+        const maxWidth = Math.min(rect.width, 420);
+        const maxLeft = window.innerWidth - maxWidth - 20;
+        const left = Math.min(Math.max(rect.left, 20), maxLeft); // Also ensure minimum left spacing
+        
+        // Ensure the dropdown doesn't go beyond the bottom of the viewport
+        const finalTop = Math.min(Math.max(top, 20), window.innerHeight - 350);
+        
+        // Ensure the dropdown doesn't go beyond the right edge of the viewport
+        const finalLeft = Math.min(Math.max(left, 20), window.innerWidth - maxWidth - 20);
+        
         setManualInputPosition({
-          top: rect.bottom + 8,
-          left: rect.left,
-          width: Math.min(rect.width, 420)
+          top: finalTop,
+          left: finalLeft,
+          width: maxWidth
         });
       }
     };
@@ -83,7 +98,8 @@ export default function ProgramSelection({
       }
     };
     const handleResize = () => {
-      updatePosition();
+      // Small delay to ensure DOM is updated after resize
+      setTimeout(updatePosition, 100);
     };
     document.addEventListener('mousedown', handleClickAway);
     window.addEventListener('resize', handleResize);
@@ -143,7 +159,7 @@ export default function ProgramSelection({
           </div>
         </div>
       ) : (
-        <div className="w-full flex flex-row gap-2 relative flex-wrap">
+        <div className="w-full flex flex-col sm:flex-row gap-2 relative">
           <button
             onClick={onOpenProgramFinder}
             className="inline-flex items-center justify-center px-4 py-2.5 h-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm flex-1 min-w-0"

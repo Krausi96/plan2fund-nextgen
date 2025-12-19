@@ -51,6 +51,20 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
     }
   }, [isConfiguratorOpen, selectedProductMeta, programSummary]);
 
+  // Prevent body scrolling when overlay is open
+  useEffect(() => {
+    if (isConfiguratorOpen) {
+      // Store original overflow value to restore later
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        // Restore original overflow when overlay closes
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isConfiguratorOpen]);
+
   // Calculate overlay position - rectangle covering CurrentSelection, DocumentsBar, and top of Sidebar
   useEffect(() => {
     if (!isConfiguratorOpen || !containerRef.current || !overlayContainerRef?.current) {
@@ -69,23 +83,46 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
       // - Top portion of Sidebar (Row 2, Col 1) - same width as CurrentSelection, extends down
       
       // Start from top-left of grid (where CurrentSelection starts)
-      const top = gridRect.top;
-      const left = gridRect.left;
+      const top = Math.max(gridRect.top, 20); // Ensure minimum top spacing
+      const left = Math.max(gridRect.left, 20); // Ensure minimum left spacing
       
       // Width: covers CurrentSelection (320px) + DocumentsBar (remaining width) = full grid width
-      const width = gridRect.width;
+      const width = Math.min(gridRect.width, window.innerWidth - 40); // Ensure it doesn't exceed viewport
       
-      // Height: Use a more flexible height range for the overlay to accommodate all content
-      const minOverlayHeight = 600;
-      const maxOverlayHeight = Math.min(800, window.innerHeight * 0.8);
-      const preferredHeight = gridRect.height * 0.9;
-      const height = Math.max(minOverlayHeight, Math.min(maxOverlayHeight, preferredHeight));
+      // Height: Use a more flexible height that adapts to content
+      const minOverlayHeight = 700;
+      const maxOverlayHeight = Math.min(window.innerHeight * 0.9, 900);
+      // Cap the grid height to prevent overly tall overlays
+      const cappedGridHeight = Math.min(gridRect.height, window.innerHeight * 0.8);
+      const preferredHeight = Math.min(cappedGridHeight * 1.2, maxOverlayHeight);
+      const height = Math.max(minOverlayHeight, preferredHeight);
+      
+      // Ensure the overlay doesn't extend beyond the viewport
+      const clampedHeight = Math.min(height, window.innerHeight - top - 20);
+      
+      // Ensure the overlay stays within viewport bounds
+      const finalTop = Math.max(20, Math.min(top, window.innerHeight - clampedHeight - 20));
+      const finalLeft = Math.max(20, Math.min(left, window.innerWidth - width - 20));
+      
+      // Add extra padding when near viewport edges for better UX
+      const paddedTop = finalTop >= 30 ? finalTop : 30;
+      const paddedLeft = finalLeft >= 30 ? finalLeft : 30;
+      
+      // Handle case where grid container itself extends beyond viewport
+      const boundedWidth = Math.min(width, window.innerWidth - finalLeft - 20);
+      const boundedHeight = Math.min(clampedHeight, window.innerHeight - finalTop - 20);
+      
+      // Final check to ensure overlay is never taller than viewport
+      const finalHeight = Math.min(boundedHeight, window.innerHeight - 40);
+      
+      // Ensure minimum height for usability but respect viewport constraints
+      const usableHeight = Math.min(Math.max(finalHeight, 400), window.innerHeight - 40);
       
       setOverlayPosition({
-        top,
-        left,
-        width,
-        height
+        top: paddedTop,
+        left: paddedLeft,
+        width: boundedWidth,
+        height: usableHeight
       });
     };
 
@@ -120,7 +157,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
       <div className="flex flex-col rounded-lg border border-white/30 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 px-3 py-3 text-white shadow-[0_10px_25px_rgba(6,10,24,0.6)] backdrop-blur w-full" style={{ minHeight: 'fit-content' }}>
         {/* Header with title and action button */}
         <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-2">
-          <h3 className="text-lg font-bold uppercase tracking-wide text-white flex-1">
+          <h3 className="text-base font-bold uppercase tracking-wide text-white flex-1">
             {selectionCurrentLabel}
           </h3>
           <button
@@ -136,12 +173,12 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
           >
             {hasMadeSelections ? (
               <>
-                <span>✎</span>
+                <span>⚙️</span>
                 <span>{editButtonLabel}</span>
               </>
             ) : (
               <>
-                <span>→</span>
+                <span>✏️</span>
                 <span>{startButtonLabel}</span>
               </>
             )}
@@ -164,7 +201,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                   {planLabelCopy}
                 </div>
                 <div className="text-white font-semibold text-xs block leading-snug break-words line-clamp-2" title={selectedProductMeta?.label || noSelectionCopy}>
-                  {selectedProductMeta?.label || noSelectionCopy}
+                  {selectedProductMeta ? t(selectedProductMeta.label as any) || selectedProductMeta.label || noSelectionCopy : noSelectionCopy}
                 </div>
               </div>
             </div>
@@ -226,7 +263,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
           
           {/* Overlay Rectangle - positioned over grid */}
           <div 
-            className="fixed rounded-2xl border-2 border-blue-400 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 shadow-[0_20px_50px_rgba(6,10,24,0.8)] z-[10001] overflow-hidden transition-all duration-300 ease-in-out"
+            className="fixed rounded-2xl border-2 border-blue-400 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 shadow-[0_20px_50px_rgba(6,10,24,0.8)] z-[10001] transition-all duration-300 ease-in-out"
             style={{
               top: overlayPosition ? `${overlayPosition.top}px` : '0px',
               left: overlayPosition ? `${overlayPosition.left}px` : '0px',
@@ -234,11 +271,14 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
               height: overlayPosition ? `${overlayPosition.height}px` : '0px',
               pointerEvents: overlayPosition ? 'auto' : 'none',
               transform: overlayPosition ? 'scale(1)' : 'scale(0.95)',
-              opacity: overlayPosition ? 1 : 0
+              opacity: overlayPosition ? 1 : 0,
+              maxHeight: 'calc(100vh + 140px)',
+              overflowY: 'auto',
+              boxSizing: 'border-box'
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="h-full flex flex-col bg-slate-950/95">
+            <div className="h-full flex flex-col bg-slate-950/95" style={{ boxSizing: 'border-box' }}>
               {/* Sticky Header with "Deine Konfiguration" and "Aktuelle Auswahl" */}
               <div className="sticky top-0 z-[10002] flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-white/30 bg-slate-950/95 backdrop-blur-sm">
                 <h3 className="text-lg font-bold uppercase tracking-wide text-white flex-shrink-0">
@@ -248,11 +288,11 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                   <span className="text-xs text-white/70 uppercase whitespace-nowrap">
                     {selectionCurrentLabel}:
                   </span>
-                  <span className="text-xs text-white/90">
-                    {selectedProductMeta?.label || noSelectionCopy}
+                  <span className="text-xs text-white/90 truncate max-w-[160px]" title={selectedProductMeta?.label || noSelectionCopy}>
+                    {selectedProductMeta ? t(selectedProductMeta.label as any) || selectedProductMeta.label || noSelectionCopy : noSelectionCopy}
                   </span>
                   <span className="text-xs text-white/60">|</span>
-                  <span className="text-xs text-white/90">
+                  <span className="text-xs text-white/90 truncate max-w-[160px]" title={programSummary?.name || noProgramCopy}>
                     {programSummary?.name || noProgramCopy}
                   </span>
                   <span className="text-xs text-white/60">|</span>
@@ -274,7 +314,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
               </div>
               
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-5" style={{ minHeight: 0, maxHeight: 'calc(100vh - 140px)' }}>
+              <div className="flex-1 px-4 py-4 bg-slate-950/95 flex flex-col" style={{ paddingBottom: '80px', height: '100%' }}>
                 {/* 3-Step Guide Section - Clickable Navigation */}
                 <div className="mb-6 pb-6 border-b border-white/10">
                   <h3 className="text-sm font-bold text-white/90 uppercase mb-4">
@@ -315,7 +355,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                         {t('editor.desktop.config.step1.description' as any) || 'Select your business plan type (Submission, Review, or Strategy). Each type has specific templates and optimized sections.'}
                       </p>
                     </button>
-                    
+                                  
                     {/* Step 2 - Clickable */}
                     <button
                       onClick={() => setActiveStep(2)}
@@ -350,7 +390,7 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                         {t('editor.desktop.config.step2.description' as any) || 'Connect a funding program to automatically load requirements, sections, and documents. Optional but recommended.'}
                       </p>
                     </button>
-                    
+                                  
                     {/* Step 3 - Clickable */}
                     <button
                       onClick={() => setActiveStep(3)}
@@ -384,33 +424,30 @@ function CurrentSelection({ overlayContainerRef }: CurrentSelectionProps) {
                     </button>
                   </div>
                 </div>
-                
+                              
                 {/* Configurator Content - Show based on active step */}
-                <div className="bg-white/10 border border-white/20 rounded-lg p-4 overflow-visible min-h-[300px]">
-                  {/* Step 1: Product Selection */}
-                  {activeStep === 1 && (
-                    <ProductSelection />
-                  )}
-
-                  {/* Step 2: Program Selection */}
-                  {activeStep === 2 && (
-                    <ProgramSelection
-                      onOpenProgramFinder={() => {
-                        // Program finder logic would go here
-                        console.log('Open program finder');
-                      }}
-                    />
-                  )}
-
-                  {/* Step 3: Sections & Documents Management */}
-                  {activeStep === 3 && (
-                    <SectionsDocumentsManagement />
-                  )}
+                <div className="bg-white/10 border border-white/20 rounded-lg p-4 flex-grow flex flex-col" style={{ boxSizing: 'border-box' }}>
+                  <div className="pr-2 flex-grow" style={{ paddingRight: '1rem', boxSizing: 'border-box', overflowY: 'auto', height: '400px' }}>
+                    {/* Step 1: Product Selection */}
+                    {activeStep === 1 && (
+                      <ProductSelection />
+                    )}
+              
+                    {/* Step 2: Program Selection */}
+                    {activeStep === 2 && (
+                      <ProgramSelection/>
+                    )}
+              
+                    {/* Step 3: Sections & Documents Management */}
+                    {activeStep === 3 && (
+                      <SectionsDocumentsManagement />
+                    )}
+                  </div>
                 </div>
               </div>
               
               {/* Sticky Footer with Action Buttons */}
-              <div className="flex-shrink-0 border-t border-white/10 p-4 bg-slate-800/50">
+              <div className="flex-shrink-0 border-t border-white/10 p-4 bg-slate-800/50 sticky bottom-0">
                 <div className="flex items-center justify-end gap-3">
                   <button
                     onClick={handleToggle}
