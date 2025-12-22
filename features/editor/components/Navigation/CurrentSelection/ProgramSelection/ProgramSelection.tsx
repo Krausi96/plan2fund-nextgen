@@ -138,24 +138,47 @@ export default function ProgramSelection({
         </div>
       )}
       {programSummary ? (
-        <div className="w-full rounded-lg border border-blue-300 bg-blue-100/60 px-2.5 py-2">
-          <div className="flex items-start justify-between gap-2 w-full">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-blue-900 leading-tight">{programSummary.name}</p>
-              {programSummary.amountRange && (
-                <p className="text-xs text-blue-800 mt-0.5">{programSummary.amountRange}</p>
-              )}
+        <div className="space-y-2">
+          {/* Connected Program Display */}
+          <div className="w-full rounded-lg border border-blue-300 bg-blue-100/60 px-2.5 py-2">
+            <div className="flex items-start justify-between gap-2 w-full">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-blue-900 leading-tight">{programSummary.name}</p>
+                {programSummary.amountRange && (
+                  <p className="text-xs text-blue-800 mt-0.5">{programSummary.amountRange}</p>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-blue-800 hover:text-blue-900 text-xs h-5 px-1 flex-shrink-0"
+                onClick={() => {
+                  handleConnectProgram(null);
+                }}
+              >
+                ×
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-blue-800 hover:text-blue-900 text-xs h-5 px-1 flex-shrink-0"
-              onClick={() => {
-                handleConnectProgram(null);
-              }}
-            >
-              ×
-            </Button>
+          </div>
+          
+          {/* Confirmation Banner */}
+          <div className="bg-green-600/20 border border-green-400/30 rounded-lg p-2">
+            <div className="flex items-center gap-2">
+              <span className="text-green-300 text-sm flex-shrink-0">✓</span>
+              <p className="text-xs text-white/90 leading-relaxed font-medium">
+                {t('editor.desktop.config.step2.complete' as any) || 'Program connected successfully'}
+              </p>
+            </div>
+          </div>
+          
+          {/* Next Step Message */}
+          <div className="bg-blue-600/20 border border-blue-400/30 rounded-lg p-2">
+            <div className="flex items-start gap-2">
+              <span className="text-blue-300 text-xs flex-shrink-0">→</span>
+              <p className="text-[10px] text-white/90 leading-relaxed">
+                {t('editor.desktop.config.step3.hint' as any) || 'Proceed to Step 3 to manage sections and documents for your plan.'}
+              </p>
+            </div>
           </div>
         </div>
       ) : (

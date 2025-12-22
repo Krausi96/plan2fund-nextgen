@@ -25,8 +25,8 @@ const ZOOM_PRESETS: Record<ZoomPreset, number> = {
   '50': 0.5, '75': 0.75, '100': 1, '125': 1.25, '150': 1.5, '200': 2
 };
 
-const getPreviewPadding = (width: number) => Math.min(40, width * 0.05);
-const getInitialPreviewPadding = () => typeof window !== 'undefined' ? getPreviewPadding(window.innerWidth) : 40;
+const getPreviewPadding = () => 0;
+const getInitialPreviewPadding = () => 0;
 const calculateViewportZoom = (viewMode: 'page' | 'fluid', zoomPreset: ZoomPreset, fitScale: number) => {
   if (viewMode === 'fluid') return 1;
   return ZOOM_PRESETS[zoomPreset] * fitScale;
@@ -40,14 +40,6 @@ const calculateFitScale = (width: number, height: number) => {
 };
 const createViewportStyle = (padding: number) => ({ padding: `${padding}px` });
 const createZoomStyle = (zoom: number) => ({ transform: `scale(${zoom})`, transformOrigin: 'top left' });
-const getViewModeButtonClass = (current: 'page' | 'fluid', mode: 'page' | 'fluid') => 
-  `px-3 py-1 rounded text-sm font-medium transition-colors ${
-    current === mode ? 'bg-blue-600 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
-  }`;
-const getZoomButtonClass = (current: ZoomPreset, id: ZoomPreset) =>
-  `px-2 py-1 rounded text-xs font-medium transition-colors ${
-    current === id ? 'bg-blue-600 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
-  }`;
 
 function PreviewPanel() {
   const { t: i18nT } = useI18n();
@@ -58,8 +50,8 @@ function PreviewPanel() {
     setIsConfiguratorOpen: a.setIsConfiguratorOpen,
   }));
   const setActiveSectionId = useEditorStore(state => state.setActiveSectionId);
-  const [viewMode, setViewMode] = useState<'page' | 'fluid'>('page');
-  const [showWatermark, setShowWatermark] = useState(true);
+  const [viewMode] = useState<'page' | 'fluid'>('page');
+  const [showWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<ZoomPreset>('100');
   const [fitScale, setFitScale] = useState(1);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -67,7 +59,7 @@ function PreviewPanel() {
   
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const updatePadding = () => setPreviewPadding(getPreviewPadding(window.innerWidth));
+    const updatePadding = () => setPreviewPadding(getPreviewPadding());
     updatePadding();
     window.addEventListener('resize', updatePadding);
     return () => window.removeEventListener('resize', updatePadding);
@@ -220,37 +212,26 @@ function PreviewPanel() {
 
   return (
     <div className="relative w-full h-full flex flex-col">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/10 bg-slate-900/60">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-wide text-white/50">View</span>
-          <button className={getViewModeButtonClass(viewMode, 'page')} onClick={() => setViewMode('page')}>Page</button>
-          <button className={getViewModeButtonClass(viewMode, 'fluid')} onClick={() => setViewMode('fluid')}>Fluid</button>
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-1.5 text-xs text-white/70">
-            <input 
-              type="checkbox" 
-              checked={showWatermark} 
-              onChange={(e) => setShowWatermark(e.target.checked)} 
-              className="w-3 h-3 rounded border-white/20 bg-transparent text-blue-400 focus:ring-1 focus:ring-blue-400" 
-            />
-            Watermark
-          </label>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase tracking-wide text-white/50">Zoom</span>
-            {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
-              <button key={id} className={getZoomButtonClass(zoomPreset, id)} onClick={() => setZoomPreset(id)}>
-                {id}%
-              </button>
-            ))}
+      {/* Preview content with sticky vertical zoom */}
+      <div className="flex-1 overflow-auto bg-slate-800/30 relative" id="preview-scroll-container" style={{ minHeight: 0 }}>
+        <div ref={viewportRef} className="w-full min-h-full relative" style={viewportStyle}>
+          {/* Sticky Vertical Zoom Controls - Sticky Right */}
+          <div className="sticky right-4 top-4 float-right z-[100]">
+            <div className="flex flex-col gap-1 bg-slate-900 backdrop-blur-sm rounded-lg p-1.5 border-2 border-blue-500/50 shadow-xl">
+              {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
+                <button 
+                  key={id} 
+                  className={`px-2 py-1 rounded text-xs font-bold transition-all ${
+                    zoomPreset === id ? 'bg-blue-600 text-white shadow-md' : 'bg-white/10 text-white/90 hover:bg-white/20'
+                  }`}
+                  onClick={() => setZoomPreset(id)}
+                >
+                  {id}%
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </div>
-      
-      {/* Preview content */}
-      <div className="flex-1 overflow-auto bg-slate-800/30" id="preview-scroll-container">
-        <div ref={viewportRef} className="w-full min-h-full" style={viewportStyle}>
+
           <div className={`export-preview ${previewMode}`} style={zoomStyle}>
             {showWatermark && (
               <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">

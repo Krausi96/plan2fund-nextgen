@@ -148,19 +148,6 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
         </h2>
       </div>
 
-      {!showEmptyState && (
-        <div className="text-xs text-white/50 mb-2 flex-shrink-0 flex items-center gap-3">
-          <span className="flex items-center gap-1">
-            <span>✏️</span>
-            <span>{t('editor.desktop.sections.legend.edit' as any) || 'Edit'}</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <input type="checkbox" className="w-2.5 h-2.5" disabled />
-            <span>{t('editor.desktop.sections.legend.toggle' as any) || 'Add/Deselect'}</span>
-          </span>
-        </div>
-      )}
-
       <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
         <div className="space-y-2">
         {showEmptyState && (
@@ -178,14 +165,14 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
           <button
             type="button"
             onClick={actions.toggleAddSection}
-            className={`w-full px-4 py-3 rounded-lg transition-colors flex flex-col items-center justify-center gap-2 min-h-[100px] ${
+            className={`w-full px-3 py-2 rounded-lg transition-colors flex flex-col items-center justify-center gap-1.5 min-h-[80px] ${
               showAddSection 
                 ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
                 : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
             }`}
           >
-            <span className="text-3xl leading-none">＋</span>
-            <span className="text-sm font-semibold">{t('editor.desktop.sections.addButton' as any) || 'Add Section'}</span>
+            <span className="text-2xl leading-none">＋</span>
+            <span className="text-xs font-semibold">{t('editor.desktop.sections.addButton' as any) || 'Add Section'}</span>
           </button>
         )}
 
@@ -259,11 +246,11 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                   sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
-              className={`relative border rounded-lg p-3 transition-all w-full flex flex-col items-center justify-center gap-2 cursor-pointer ${cardClass}`}
+              className={`relative border rounded-lg p-2 transition-all w-full flex flex-col items-center justify-center gap-1.5 cursor-pointer ${cardClass}`}
             >
-              <span className="text-2xl leading-none flex-shrink-0">📋</span>
+              <span className="text-xl leading-none flex-shrink-0">📋</span>
               <div className="w-full text-center">
-                <h4 className={`text-xs font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
+                <h4 className={`text-[10px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
                   {section.title}
                 </h4>
               </div>

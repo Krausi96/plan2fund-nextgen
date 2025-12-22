@@ -1,10 +1,9 @@
 import React, { useRef } from 'react';
 
+import CurrentSelection from './Navigation/CurrentSelection';
 import Sidebar from './Navigation/Sidebar';
 import PreviewWorkspace from './Preview/PreviewWorkspace';
 import SectionEditor from './Editor/SectionEditor';
-import DocumentsBar from './Navigation/DocumentsBar';
-import CurrentSelection from './Navigation/CurrentSelection';
 import { 
   useIsWaitingForPlan,
   useEditorState,
@@ -67,108 +66,45 @@ export default function Editor({}: EditorProps = {}) {
               </h1>
             </div>
 
-            {/* Workspace Container - Document-Centric Layout */}
+            {/* Workspace Container - Unified Preview */}
             <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-3 lg:p-4 shadow-lg backdrop-blur-sm w-full flex-1 min-h-0" style={{ overflow: 'visible', display: 'flex', flexDirection: 'column' }}>
-              {/* Grid Layout: 2 rows, dynamic columns (2 or 3 based on chat visibility) */}
+              {/* Top: Current Selection */}
+              <div className="flex-shrink-0 mb-3">
+                <CurrentSelection />
+              </div>
+              
+              {/* 3-Column Layout */}
               <div 
                 ref={workspaceGridRef} 
                 style={{ 
                   display: 'grid',
-                  // Always 3 columns for consistent layout
-                  gridTemplateColumns: '360px minmax(500px, 1fr) 380px',  // Sidebar | Preview | AI Assistant
-                  gridTemplateRows: 'auto 1fr',
+                  gridTemplateColumns: '280px minmax(500px, 1fr) 360px',
+                  gridTemplateRows: '1fr',
                   gap: '1rem',
                   width: '100%',
                   flex: '1 1 0',
                   minHeight: 0,
-                  overflow: 'visible',
-                  position: 'relative'
+                  overflow: 'visible'
                 }}
               >
-                {/* Row 1, Col 1: CurrentSelection (Top Left) */}
-                <div 
-                  style={{ 
-                    gridColumn: '1 / 2',
-                    gridRow: '1 / 2',
-                    zIndex: 0,
-                    overflow: 'visible',
-                    height: 'fit-content',
-                    maxHeight: '200px'  // Increased to allow CurrentSelection to expand
-                  }}
-                >
-                  <CurrentSelection overlayContainerRef={workspaceGridRef} />
-                </div>
-
-                {/* Row 1, Col 2(+3): DocumentsBar (Top Right, spans to AI Assistant) */}
-                <div 
-                  style={{ 
-                    gridColumn: '2 / 4',  // Always span across preview and AI assistant
-                    gridRow: '1 / 2',
-                    zIndex: 10,
-                    overflowY: 'visible',
-                    overflowX: 'visible',
-                    position: 'relative'
-                  }}
-                >
-                  <DocumentsBar />
-                </div>
-
-                {/* Row 2, Col 1: Sidebar (Bottom Left) */}
-                <div 
-                  className="border-r border-white/10 pr-4 min-h-0 flex flex-col relative" 
-                  style={{ 
-                    gridColumn: '1 / 2',
-                    gridRow: '2 / 3',
-                    maxWidth: '360px',
-                    width: '360px',
-                    minWidth: '360px',
-                    boxSizing: 'border-box',
-                    zIndex: 1,
-                    overflow: 'hidden'
-                  }}
-                >
-                  <Sidebar />
-                </div>
-                
-                {/* Row 2, Col 2: Preview (Bottom Center) */}
-                <div 
-                  className="min-w-0 min-h-0 relative flex flex-col" 
-                  id="preview-container" 
-                  style={{ 
-                    gridColumn: '2 / 3',
-                    gridRow: '2 / 3',
-                    zIndex: 1,
-                    overflow: 'hidden',
-                    minWidth: '500px'  // Enforce minimum preview width (reduced from 700px)
-                  }}
-                >
-                  {/* Preview Header - Matches Sidebar header height exactly */}
-                  <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)' }}>
-                    {t('editor.desktop.preview.title' as any) || 'Preview'}
-                  </h2>
-                  {/* Preview - Always visible */}
-                  <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative" id="preview-scroll-container">
-                    {/* PreviewWorkspace handles its own state via store - no props needed */}
-                    <PreviewWorkspace />
+                {/* Left: Sidebar only */}
+                <div className="border-r border-white/10 pr-3 min-h-0 flex flex-col" style={{ overflow: 'hidden' }}>
+                  {/* Sidebar Sections */}
+                  <div className="flex-1 min-h-0">
+                    <Sidebar />
                   </div>
                 </div>
                 
-                {/* Row 2, Col 3: AI Assistant (Bottom Right) - Always visible */}
-                <div
-                  className="min-h-0 relative flex flex-col"
-                  style={{
-                    gridColumn: '3 / 4',
-                    gridRow: '2 / 3',
-                    zIndex: 1,
-                    overflow: 'hidden',
-                    width: '380px',
-                    minWidth: '380px',
-                    maxWidth: '380px'
-                  }}
-                >
+                {/* Preview */}
+                <div className="min-w-0 min-h-0 relative flex flex-col h-full" id="preview-container" style={{ overflow: 'hidden' }}>
+                  <PreviewWorkspace />
+                </div>
+                
+                {/* AI Assistant */}
+                <div className="min-h-0 relative flex flex-col" style={{ overflow: 'hidden' }}>
                   <SectionEditor
                     sectionId={activeSectionId}
-                    onClose={() => {/* No close button - always visible */}}
+                    onClose={() => {}}
                   />
                 </div>
               </div>

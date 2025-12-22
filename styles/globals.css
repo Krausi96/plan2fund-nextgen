@@ -516,7 +516,7 @@
     border-image: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.15)) 1;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     position: relative;
-    padding: 2.5cm 2cm 3cm 2cm;
+    padding: 1.5cm 2cm 2cm 2cm;
     transform-origin: top center;
     transform: scale(var(--preview-viewport-zoom, 1));
     overflow: hidden;

@@ -3,15 +3,16 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import {
   type DocumentTemplate,
   useDocumentsBarState,
-  useSectionsAndDocumentsCounts,
+  useConfiguratorState,
 } from '@/features/editor/lib';
 
 export default function DocumentsBar({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n();
   const { isEditing, showAddDocument, expandedDocumentId, selectedProductMeta, clickedDocumentId, documents, disabledDocuments, documentCounts, actions } = useDocumentsBarState();
-  const { enabledSectionsCount, totalSectionsCount } = useSectionsAndDocumentsCounts();
-  const sectionsLabel = t('editor.desktop.selection.sectionsLabel' as any) || 'Sections';
-  const documentsLabel = t('editor.desktop.selection.documentsLabel' as any) || 'Documents';
+  const { programSummary } = useConfiguratorState();
+  
+  const noSelectionCopy = t('editor.desktop.selection.empty' as any) || 'No selection';
+  const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'No program';
   
   // Show empty state when no documents are available (even if product is selected)
   const showEmptyState = documents.length === 0 && !selectedProductMeta;
@@ -27,7 +28,7 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
         </div>
 
         {/* Compact horizontal scrollable cards */}
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin', height: '70px' }}>
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin', minHeight: '70px' }}>
           {showEmptyState && (
             <div className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-center w-[90px] h-[60px] flex flex-col items-center justify-center flex-shrink-0">
               <span className="text-xl">📄</span>
@@ -103,11 +104,6 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
             );
           })}
         </div>
-
-        {/* Summary line below */}
-        <div className="text-center text-[10px] text-white/60 mt-1">
-          {sectionsLabel}: {enabledSectionsCount}/{totalSectionsCount}  {documentsLabel}: {documentCounts.enabledCount}/{documentCounts.totalCount}
-        </div>
       </div>
     );
   }
@@ -129,27 +125,23 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
   }
 
   return (
-    <div className="relative w-full border-b border-white/10 pb-2 mb-2">
-      <div className="flex-shrink-0 mb-1.5">
-        <h2 className="text-base font-bold uppercase tracking-wide text-white" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.25rem' }}>
-          {t('editor.desktop.documents.title' as any) || 'Deine Dokumente'} ({documentCounts.enabledCount})
-        </h2>
-      </div>
-
-      {!showEmptyState && (
-        <div className="text-[10px] text-white/50 mb-1.5 flex-shrink-0 flex items-center gap-3">
-          <span className="flex items-center gap-1">
-            <span>✏️</span>
-            <span>{t('editor.desktop.documents.legend.edit' as any) || 'Edit'}</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <input type="checkbox" className="w-2 h-2" disabled />
-            <span>{t('editor.desktop.documents.legend.toggle' as any) || 'Add/Deselect'}</span>
-          </span>
+    <div className="relative w-full pb-3">
+      {/* Top row: Plan | Program selection info */}
+      <div className="flex items-center gap-4 mb-2 text-xs text-white/80">
+        <div className="flex items-center gap-1.5">
+          {selectedProductMeta?.icon && <span className="text-sm">{selectedProductMeta.icon}</span>}
+          <span className="font-semibold">{t('editor.desktop.selection.productLabel' as any) || 'Plan'}:</span>
+          <span>{selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : noSelectionCopy}</span>
         </div>
-      )}
-
-      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin', maxHeight: '120px' }}>
+        <span className="text-white/30">|</span>
+        <div className="flex items-center gap-1.5">
+          <span className="font-semibold">{t('editor.desktop.selection.programLabel' as any) || 'Program'}:</span>
+          <span>{programSummary?.name || noProgramCopy}</span>
+        </div>
+      </div>
+      
+      {/* Document cards row */}
+      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin', minHeight: '120px', maxHeight: '180px' }}>
         {showEmptyState && (
           <div className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-center w-[110px] h-[110px] flex flex-col items-center justify-center flex-shrink-0">
             <div className="text-3xl mb-1.5 flex justify-center">

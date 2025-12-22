@@ -176,6 +176,16 @@ export default function ProductSelection({}: ProductSelectionProps = {}) {
       
       {selectedProduct && (
         <div className="mt-3 space-y-2">
+          {/* Confirmation Banner */}
+          <div className="bg-green-600/20 border border-green-400/30 rounded-lg p-2">
+            <div className="flex items-center gap-2">
+              <span className="text-green-300 text-sm flex-shrink-0">✓</span>
+              <p className="text-xs text-white/90 leading-relaxed font-medium">
+                {t('editor.desktop.config.step1.complete' as any) || 'Product selected'}
+              </p>
+            </div>
+          </div>
+          
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-semibold text-white/90 uppercase">
               {t('editor.desktop.config.step1.preview' as any) || 'Preview: Available Sections & Documents'}
@@ -212,12 +222,12 @@ export default function ProductSelection({}: ProductSelectionProps = {}) {
             </div>
           </div>
           
-          {/* Success Message */}
-          <div className="bg-green-600/20 border border-green-400/30 rounded-lg p-2">
+          {/* Next Step Message */}
+          <div className="bg-blue-600/20 border border-blue-400/30 rounded-lg p-2">
             <div className="flex items-start gap-2">
-              <span className="text-green-300 text-xs flex-shrink-0">✓</span>
+              <span className="text-blue-300 text-xs flex-shrink-0">→</span>
               <p className="text-[10px] text-white/90 leading-relaxed">
-                {t('editor.desktop.config.step1.complete' as any) || 'Product selected'} - {t('editor.desktop.config.step2.skipMessage' as any) || 'You can proceed to Step 3 to edit sections/documents now, or connect a program to add program-specific content.'}
+                {t('editor.desktop.config.step2.skipMessage' as any) || 'You can proceed to Step 3 to edit sections/documents now, or connect a program to add program-specific content.'}
               </p>
             </div>
           </div>

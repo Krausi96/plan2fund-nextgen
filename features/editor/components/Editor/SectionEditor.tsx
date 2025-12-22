@@ -152,17 +152,25 @@ export default function SectionEditor({ sectionId, onClose }: SectionEditorProps
   // No portal needed - render directly in grid column
   return (
     <div ref={editorRef} className="h-full flex flex-col bg-slate-800/50 border-l border-white/10">
-      {/* Header */}
-      <div className="flex-shrink-0 px-3 py-2 border-b border-white/10 bg-slate-900/60">
-        <div className="flex items-center justify-between">
+      {/* Expanded Header with Section Info */}
+      <div className="flex-shrink-0 px-4 py-3 border-b border-white/10 bg-slate-900/60">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <h2 className="text-xs font-semibold text-white truncate">
+            <h2 className="text-sm font-bold text-white truncate">
               {section.title}
             </h2>
-            <p className="text-[10px] text-white/50 mt-0.5">
-              AI Assistant
-            </p>
           </div>
+        </div>
+        <div className="flex items-center gap-3 text-[10px] text-white/50">
+          <span className="flex items-center gap-1">
+            <span>🤖</span>
+            <span>AI Assistant</span>
+          </span>
+          {section.description && (
+            <span className="flex-1 truncate" title={section.description}>
+              {section.description}
+            </span>
+          )}
         </div>
       </div>
 
