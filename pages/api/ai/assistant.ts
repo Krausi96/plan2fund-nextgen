@@ -349,9 +349,9 @@ function createSystemPrompt(action: string, context: AIRequest['context']): stri
       break;
   }
   
-  basePrompt += `\n\nWhen the section involves metrics, financial data, or measurable outcomes, you can suggest KPIs in your response.`;
-  basePrompt += `\n\nWhen you identify opportunities for data visualization, tables, images, or references, suggest them as recommended actions.`;
-  basePrompt += `\n\nRespond in JSON format with: {"content": "your response", "suggestions": ["suggestion1", "suggestion2"], "complianceTips": ["tip1", "tip2"], "suggestedKPIs": [{"name": "KPI name", "value": 0, "unit": "€", "description": "KPI description"}], "recommendedActions": [{"type": "create_table" | "create_kpi" | "add_image" | "add_reference" | "configure_formatting", "reason": "why this action is helpful", "priority": "high" | "medium" | "low"}]}`;
+  basePrompt += `\n\nIMPORTANT: Respond with natural, helpful text. DO NOT use JSON format. Write as if you're having a conversation with the user.`;
+  basePrompt += `\n\nWhen suggesting improvements, use clear bullet points or numbered lists.`;
+  basePrompt += `\n\nWhen writing content, provide it in a ready-to-use format that can be directly inserted into the document.`;
   
   return basePrompt;
 }

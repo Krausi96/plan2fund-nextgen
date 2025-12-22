@@ -23,6 +23,7 @@
 
 import { create } from 'zustand';
 import type { BusinessPlan, ProductType, SectionTemplate, DocumentTemplate, ProgramSummary } from '../types/types';
+import { MASTER_SECTIONS } from '../templates';
 
 // ============================================================================
 // HELPER TYPES
@@ -115,6 +116,9 @@ export interface EditorActions {
   setIsLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setProgressSummary: (summary: ProgressSummary[]) => void;
+  updateSection: (sectionId: string, updates: Partial<{content: string; title: string; [key: string]: any}>) => void;
+  addCustomSection: (title: string, description?: string) => void;
+  removeCustomSection: (sectionId: string) => void;
   
   // Navigation actions
   setActiveSectionId: (id: string | null) => void;
@@ -246,17 +250,173 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setError: (error) => set({ error }),
   setProgressSummary: (summary) => set({ progressSummary: summary }),
   
+  updateSection: (sectionId, updates) => {
+    const plan = get().plan;
+    if (!plan || !plan.sections) return;
+    
+    const updatedSections = plan.sections.map(section => {
+      if (section.id === sectionId || section.key === sectionId) {
+        return { ...section, ...updates };
+      }
+      return section;
+    });
+    
+    set({ plan: { ...plan, sections: updatedSections } });
+  },
+  
+  addCustomSection: (title, description = '') => {
+    const plan = get().plan;
+    const customSections = get().customSections;
+    const allSections = get().allSections;
+    
+    // Generate unique ID
+    const newSectionId = `custom_${Date.now()}`;
+    
+    // Create new section template
+    const newSectionTemplate: SectionTemplate = {
+      id: newSectionId,
+      name: title,
+      title: title,
+      description: description,
+      origin: 'custom',
+      required: false,
+      category: 'general',
+    };
+    
+    // Add to customSections
+    const updatedCustomSections = [...customSections, newSectionTemplate];
+    set({ customSections: updatedCustomSections });
+    
+    // Add to allSections
+    const updatedAllSections = [...allSections, newSectionTemplate];
+    set({ allSections: updatedAllSections });
+    
+    // Add to plan if plan exists
+    if (plan) {
+      const newPlanSection = {
+        key: newSectionId,
+        id: newSectionId,
+        title: title,
+        content: '',
+        fields: {
+          displayTitle: title,
+          sectionNumber: null,
+        },
+        status: 'draft',
+      };
+      
+      const updatedSections = [...(plan.sections || []), newPlanSection];
+      const updatedPlan = { ...plan, sections: updatedSections };
+      
+      // Update plan metadata
+      if (updatedPlan.metadata) {
+        updatedPlan.metadata.customSections = updatedCustomSections;
+      }
+      
+      set({ plan: updatedPlan });
+    }
+    
+    // Close the add form
+    set({ showAddSection: false, newSectionTitle: '', newSectionDescription: '' });
+  },
+  
+  removeCustomSection: (sectionId) => {
+    const plan = get().plan;
+    const customSections = get().customSections;
+    const allSections = get().allSections;
+    
+    // Remove from customSections
+    const updatedCustomSections = customSections.filter(s => s.id !== sectionId);
+    set({ customSections: updatedCustomSections });
+    
+    // Remove from allSections
+    const updatedAllSections = allSections.filter(s => s.id !== sectionId);
+    set({ allSections: updatedAllSections });
+    
+    // Remove from plan if plan exists
+    if (plan && plan.sections) {
+      const updatedSections = plan.sections.filter(s => s.id !== sectionId && s.key !== sectionId);
+      const updatedPlan = { ...plan, sections: updatedSections };
+      
+      // Update plan metadata
+      if (updatedPlan.metadata) {
+        updatedPlan.metadata.customSections = updatedCustomSections;
+      }
+      
+      set({ plan: updatedPlan });
+    }
+    
+    // Clear active section if it was the removed one
+    const activeSectionId = get().activeSectionId;
+    if (activeSectionId === sectionId) {
+      set({ activeSectionId: null });
+    }
+  },
+  
   // ========== NAVIGATION ACTIONS ==========
   setActiveSectionId: (id) => set({ activeSectionId: id }),
   setActiveQuestionId: (id) => set({ activeQuestionId: id }),
   
   // ========== PRODUCT & PROGRAM ACTIONS ==========
   setSelectedProduct: (product) => {
-    set({ selectedProduct: product });
-    // Also update plan.productType if plan exists
-    const plan = get().plan;
-    if (plan) {
-      plan.productType = product;
+    const currentPlan = get().plan;
+    let allSections = get().allSections;
+    const disabledSectionIds = get().disabledSectionIds;
+    
+    // If allSections is empty and product is selected, load from templates
+    if (allSections.length === 0 && product) {
+      allSections = MASTER_SECTIONS[product] || [];
+      set({ allSections });
+    }
+    
+    // If no plan exists and product is selected, create a new plan
+    if (!currentPlan && product && allSections.length > 0) {
+      // Build sections from allSections template (excluding disabled ones)
+      const planSections = allSections
+        .filter(section => !disabledSectionIds.includes(section.id))
+        .map(section => ({
+          key: section.id,
+          id: section.id,
+          title: section.title || section.name || '',
+          content: '', // Empty content initially
+          fields: {
+            displayTitle: section.title || section.name,
+            sectionNumber: null,
+          },
+          status: 'draft',
+        }));
+      
+      // Create new plan with basic structure
+      const newPlan: BusinessPlan = {
+        language: 'en',
+        productType: product,
+        settings: {
+          includeTitlePage: true,
+          includePageNumbers: true,
+          titlePage: {
+            title: '',
+            companyName: '',
+            date: new Date().toISOString().split('T')[0],
+          },
+        },
+        sections: planSections,
+        metadata: {
+          disabledSectionIds: [],
+          disabledDocumentIds: [],
+          customSections: [],
+          customDocuments: [],
+        },
+        references: [],
+        appendices: [],
+      };
+      
+      set({ selectedProduct: product, plan: newPlan });
+    } else {
+      // Plan exists or no product selected, just update product type
+      set({ selectedProduct: product });
+      if (currentPlan && product) {
+        currentPlan.productType = product;
+      }
     }
   },
   setProgramSummary: (summary) => set({ programSummary: summary }),

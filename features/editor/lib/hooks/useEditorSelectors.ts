@@ -21,18 +21,13 @@ import {
   DEFAULT_PRODUCT_OPTIONS,
   getSelectedProductMeta,
   getSectionTitle,
-} from '../constants/editorConstants';
-import {
-  buildSectionsForConfig,
-  buildSectionsForSidebar,
-  getSectionCounts,
-} from '../store/sectionBuilders';
-import {
-  buildDocumentsForConfig,
-  getDocumentCounts,
-} from '../store/documentBuilders';
+  isSpecialSectionId,
+  ANCILLARY_SECTION_ID,
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
+} from '../constants';
 import type { SectionWithMetadata, DocumentWithMetadata } from '../store/editorStore';
-import type { ProductOption } from '../types/types';
+import type { ProductOption, DocumentTemplate, SectionTemplate } from '../types/types';
 
 // ============================================================================
 // BOOLEAN SELECTORS - Simple true/false checks
@@ -133,13 +128,9 @@ export const useEffectiveEditingSectionId = (): string | null => {
  * Get visible (enabled) documents
  * Used by: DocumentsBar, useDocumentsBarState
  */
-export const useVisibleDocuments = (): DocumentWithMetadata[] => {
+export const useVisibleDocuments = (): DocumentTemplate[] => {
   return useEditorStore((state) =>
-    buildDocumentsForConfig({
-      allDocuments: state.allDocuments,
-      disabledDocumentIds: state.disabledDocumentIds,
-      selectedProductMeta: null,
-    }).filter(d => !d.isDisabled)
+    state.allDocuments.filter(doc => !state.disabledDocumentIds.includes(doc.id))
   );
 };
 
@@ -155,14 +146,23 @@ export const useSectionsForConfig = (
     const getTitle = (sectionId: string, originalTitle: string) =>
       getSectionTitle(sectionId, originalTitle, t);
 
-    return buildSectionsForConfig({
-      allSections: state.allSections,
-      disabledSectionIds: state.disabledSectionIds,
-      includeAncillary: true,
-      includeReferences: true,
-      includeAppendices: true,
-      getTitle,
-    });
+    // Inline builder logic: filter and transform sections
+    return state.allSections
+      .filter(section => {
+        // Include ancillary, references, and appendices
+        if (section.id === ANCILLARY_SECTION_ID) return true;
+        if (section.id === REFERENCES_SECTION_ID) return true;
+        if (section.id === APPENDICES_SECTION_ID) return true;
+        return true;
+      })
+      .map(section => ({
+        id: section.id,
+        title: getTitle(section.id, section.title),
+        isDisabled: state.disabledSectionIds.includes(section.id),
+        origin: section.origin || 'template',
+        isSpecial: isSpecialSectionId(section.id),
+        required: section.required ?? false,
+      }));
   });
 };
 
@@ -172,22 +172,24 @@ export const useSectionsForConfig = (
  * Used by: Sidebar, useSidebarState
  */
 export const useSectionsForSidebar = (
-  t: (key: any) => string,
+  _t: (key: any) => string,
   filteredSectionIds?: string[] | null,
   isNewUser = false
-): SectionWithMetadata[] => {
+): SectionTemplate[] => {
   return useEditorStore((state) => {
-    const getTitle = (sectionId: string, originalTitle: string) =>
-      getSectionTitle(sectionId, originalTitle, t);
+    // For new users or empty sections, return empty array
+    if (isNewUser || !state.allSections.length) {
+      return [];
+    }
 
-    return buildSectionsForSidebar({
-      planSections: state.plan?.sections,
-      allSections: state.allSections,
-      disabledSectionIds: state.disabledSectionIds,
-      filteredSectionIds,
-      selectedProduct: state.selectedProduct,
-      isNewUser,
-      getTitle,
+    // Filter disabled sections and apply filteredSectionIds if provided
+    return state.allSections.filter(section => {
+      // Apply section ID filter if provided
+      if (filteredSectionIds && !filteredSectionIds.includes(section.id)) {
+        return false;
+      }
+      // Don't filter out disabled sections here - let the component handle display
+      return true;
     });
   });
 };
@@ -198,11 +200,13 @@ export const useSectionsForSidebar = (
  */
 export const useDocumentsForConfig = (): DocumentWithMetadata[] => {
   return useEditorStore((state) =>
-    buildDocumentsForConfig({
-      allDocuments: state.allDocuments,
-      disabledDocumentIds: state.disabledDocumentIds,
-      selectedProductMeta: null,
-    })
+    // Inline builder logic: transform documents with metadata
+    state.allDocuments.map(doc => ({
+      id: doc.id,
+      name: doc.name,
+      isDisabled: state.disabledDocumentIds.includes(doc.id),
+      origin: doc.origin || 'template',
+    }))
   );
 };
 
@@ -214,27 +218,27 @@ export const useDocumentCounts = (): {
   enabledCount: number;
   totalCount: number;
 } => {
-  return useEditorStore((state) =>
-    getDocumentCounts(state.allDocuments, state.disabledDocumentIds)
-  );
+  return useEditorStore((state) => ({
+    enabledCount: state.allDocuments.filter(doc => !state.disabledDocumentIds.includes(doc.id)).length,
+    totalCount: state.allDocuments.length,
+  }));
 };
 
 /**
  * Get sections and documents counts (single source of truth)
- * Uses builder functions to avoid duplication.
  * Used by: ProductSelection, SectionsDocumentsManagement, useConfiguratorState
  */
 export const useSectionsAndDocumentsCounts = () => {
   return useEditorStore((state) => {
-    // Use builder functions instead of inline calculation
-    const sectionCounts = getSectionCounts(state.allSections, state.disabledSectionIds);
-    const documentCounts = getDocumentCounts(state.allDocuments, state.disabledDocumentIds);
+    // Inline count calculations
+    const enabledSectionsCount = state.allSections.filter(s => !state.disabledSectionIds.includes(s.id)).length;
+    const enabledDocumentsCount = state.allDocuments.filter(d => !state.disabledDocumentIds.includes(d.id)).length;
 
     return {
-      enabledSectionsCount: sectionCounts.enabledCount,
-      totalSectionsCount: sectionCounts.totalCount,
-      enabledDocumentsCount: documentCounts.enabledCount,
-      totalDocumentsCount: documentCounts.totalCount,
+      enabledSectionsCount,
+      totalSectionsCount: state.allSections.length,
+      enabledDocumentsCount,
+      totalDocumentsCount: state.allDocuments.length,
     };
   });
 };

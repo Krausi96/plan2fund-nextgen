@@ -40,7 +40,7 @@
 import { useMemo } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore } from '../store/editorStore';
-import { DEFAULT_PRODUCT_OPTIONS } from '../constants/editorConstants';
+import { DEFAULT_PRODUCT_OPTIONS } from '../constants';
 import {
   // Boolean selectors
   useIsNewUser,
@@ -166,6 +166,7 @@ export function useSectionsDocumentsManagementState() {
     setDisabledDocumentIds: a.setDisabledDocumentIds,
     setShowAddSection: a.setShowAddSection,
     setShowAddDocument: a.setShowAddDocument,
+    addCustomSection: a.addCustomSection,
   }));
   
   // Use store hooks (single source of truth) - these need complex logic so keep as separate hooks
@@ -184,6 +185,7 @@ export function useSectionsDocumentsManagementState() {
     toggleDocument: documentToggleHandlers.toggle,
     toggleAddSection: () => actions.setShowAddSection(!showAddSection),
     toggleAddDocument: () => actions.setShowAddDocument(!showAddDocument),
+    addCustomSection: actions.addCustomSection,
   }), [sectionToggleHandlers, documentToggleHandlers, actions, showAddSection, showAddDocument]);
   
   return {
@@ -286,6 +288,8 @@ export function useSidebarState() {
     setEditingSection: a.setEditingSection,
     setExpandedSectionId: a.setExpandedSectionId,
     setShowAddSection: a.setShowAddSection,
+    addCustomSection: a.addCustomSection,
+    removeCustomSection: a.removeCustomSection,
   }));
   
   // Section toggle handlers (already includes counts)
@@ -299,6 +303,8 @@ export function useSidebarState() {
     editSection: (section: SectionTemplate) => sectionEditHandlers.onEdit(section),
     cancelEdit: sectionEditHandlers.onCancel,
     toggleAddSection: () => actions.setShowAddSection(!showAddSection),
+    addCustomSection: actions.addCustomSection,
+    removeCustomSection: actions.removeCustomSection,
   }), [actions, sectionToggleHandlers, sectionEditHandlers, showAddSection]);
   
   // Use counts from toggle handlers (no duplicate calculation)

@@ -82,6 +82,7 @@ export interface PlanSection {
 export interface PlanDocument {
   id?: string;
   language: 'de' | 'en';
+  productType?: ProductType;
   settings: {
     includeTitlePage?: boolean;
     includePageNumbers?: boolean;
@@ -105,6 +106,13 @@ export interface PlanDocument {
     [key: string]: any;
   };
   sections: PlanSection[];
+  metadata?: {
+    disabledSectionIds?: string[];
+    disabledDocumentIds?: string[];
+    customSections?: SectionTemplate[];
+    customDocuments?: DocumentTemplate[];
+    [key: string]: any;
+  };
   ancillary?: {
     listOfTables?: Array<{ id: string; label: string; page?: number; [key: string]: any }>;
     listOfIllustrations?: Array<{ id: string; label: string; page?: number; [key: string]: any }>;
@@ -182,8 +190,24 @@ export interface Section {
 export interface SectionTemplate {
   id: string;
   title: string;
-  description?: string;
-  required?: boolean;
+  description: string;
+  required: boolean;
+  wordCountMin?: number;
+  wordCountMax?: number;
+  order?: number;
+  category: 'general' | 'project' | 'impact' | 'financial' | 'market' | 'team' | 'risk';
+  prompts?: string[];
+  validationRules?: {
+    requiredFields?: string[];
+    formatRequirements?: string[];
+  };
+  source?: {
+    verified: boolean;
+    verifiedDate?: string;
+    officialProgram?: string;
+    sourceUrl?: string;
+    version?: string;
+  };
   origin?: 'template' | 'custom';
   [key: string]: any;
 }
@@ -191,8 +215,16 @@ export interface SectionTemplate {
 export interface DocumentTemplate {
   id: string;
   name: string;
-  description?: string;
-  required?: boolean;
+  description: string;
+  required: boolean;
+  format: 'pdf' | 'docx' | 'xlsx';
+  maxSize: string;
+  template?: string;
+  instructions?: string[];
+  examples?: string[];
+  commonMistakes?: string[];
+  category: 'submission' | 'strategy' | 'review' | 'business' | 'market' | 'financial' | 'general' | 'project' | 'team' | 'risk';
+  fundingTypes?: string[];
   origin?: 'template' | 'custom';
   [key: string]: any;
 }

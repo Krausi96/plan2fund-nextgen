@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { InfoTooltip } from '../../../Shared/InfoTooltip';
 import {
@@ -27,6 +27,9 @@ export default function SectionsDocumentsManagement({}: SectionsDocumentsManagem
     showAddDocument,
     actions,
   } = useSectionsDocumentsManagementState();
+  
+  // Local state for add section form
+  const [newSectionTitle, setNewSectionTitle] = useState('');
 
   return (
     <div className="mb-3 pb-3">
@@ -170,8 +173,43 @@ export default function SectionsDocumentsManagement({}: SectionsDocumentsManagem
           </div>
           
           {showAddSection && (
-            <div className="mb-3 p-3 border border-dashed border-white/20 rounded-lg text-white/60 text-xs text-center">
-              Add section functionality will be available after template rebuild
+            <div className="mb-3 p-3 border border-blue-400 bg-blue-600/10 rounded-lg">
+              <h4 className="text-xs font-bold text-white mb-2">
+                {t('editor.desktop.sections.custom.title' as any) || 'Add a custom section to your plan'}
+              </h4>
+              <input
+                type="text"
+                value={newSectionTitle}
+                onChange={(e) => setNewSectionTitle(e.target.value)}
+                placeholder={t('editor.desktop.sections.custom.titlePlaceholder' as any) || 'e.g. Financial Plan'}
+                className="w-full px-2 py-1.5 mb-2 bg-slate-900/50 border border-white/30 rounded text-white text-xs placeholder:text-white/40 focus:outline-none focus:border-blue-400"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newSectionTitle.trim()) {
+                      actions.addCustomSection(newSectionTitle.trim());
+                      setNewSectionTitle('');
+                    }
+                  }}
+                  disabled={!newSectionTitle.trim()}
+                  className="flex-1 px-2 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-white/40 text-white text-xs font-semibold rounded transition-colors"
+                >
+                  {t('editor.desktop.sections.custom.add' as any) || 'Add'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewSectionTitle('');
+                    actions.toggleAddSection();
+                  }}
+                  className="flex-1 px-2 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded transition-colors"
+                >
+                  {t('editor.desktop.sections.custom.cancel' as any) || 'Cancel'}
+                </button>
+              </div>
             </div>
           )}
           

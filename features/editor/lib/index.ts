@@ -61,11 +61,15 @@ export type {
   ConversationMessage,
   QuestionStatus,
   Section,
-} from './types/types';
-
-export type {
   SectionTemplate,
   DocumentTemplate,
+  DropdownPosition,
+  DropdownPositionOptions,
+  ZoomPreset,
+  ViewMode,
+  PreviewControls,
+  EditHandlers,
+  ToggleHandlers,
 } from './types/types';
 
 // ============================================================================
@@ -97,7 +101,7 @@ export {
   APPENDICES_SECTION_ID,
   isSpecialSectionId,
   getSectionTitle,
-} from './constants/editorConstants';
+} from './constants';
 
 // ============================================================================
 // SELECTORS - Store selectors (read state)
@@ -157,7 +161,7 @@ export {
   getTranslation,
   calculatePageNumber,
   formatTableLabel,
-} from './renderers/rendererUtils';
+} from './renderers';
 
 // ============================================================================
 // UTILS - General utility functions
@@ -166,7 +170,7 @@ export {
 export {
   shouldIgnoreClick,
   normalizeProgramInput,
-} from './utils/editorUtils';
+} from './utils';
 
 // ============================================================================
 // AI CLIENT - Section AI functionality
@@ -185,3 +189,12 @@ export type {
   AIAction,
   AIActionCallbacks,
 } from '../components/Editor/sectionAiClient';
+
+// ============================================================================
+// TEMPLATES - Section and document templates
+// ============================================================================
+
+export {
+  MASTER_DOCUMENTS,
+  MASTER_SECTIONS,
+} from './templates';

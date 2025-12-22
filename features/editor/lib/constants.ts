@@ -12,7 +12,7 @@
  * ============================================================================
  */
 
-import type { ProductOption, ProductType } from '../types/types';
+import type { ProductOption, ProductType } from './types/types';
 
 // ============================================================================
 // PRODUCT OPTIONS
@@ -31,20 +31,20 @@ import type { ProductOption, ProductType } from '../types/types';
 export const DEFAULT_PRODUCT_OPTIONS: ProductOption[] = [
   {
     value: 'submission',
-    label: 'Custom Business Plan',
-    description: 'Application-ready plan for grants, banks, or equity investors',
+    label: 'planTypes.custom.title',
+    description: 'planTypes.custom.description',
     icon: '📋',
   },
   {
     value: 'review',
-    label: 'Upgrade & Review',
-    description: 'Submit your draft — we restructure, complete missing parts & align to requirements',
+    label: 'planTypes.review.title',
+    description: 'planTypes.review.description',
     icon: '✏️',
   },
   {
     value: 'strategy',
-    label: 'Strategy Plan',
-    description: 'Turn ideas into a clear business model & Go-to-market',
+    label: 'planTypes.strategy.title',
+    description: 'planTypes.strategy.description',
     icon: '💡',
   },
 ];

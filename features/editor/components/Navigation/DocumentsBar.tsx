@@ -1,15 +1,118 @@
 import React from 'react';
-import { DocumentCard, CoreProductCard } from '../Shared/DocumentCard';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import {
   type DocumentTemplate,
   useDocumentsBarState,
+  useSectionsAndDocumentsCounts,
 } from '@/features/editor/lib';
 
-export default function DocumentsBar() {
+export default function DocumentsBar({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n();
-  const { isEditing, showAddDocument, isNewUser, expandedDocumentId, selectedProductMeta, clickedDocumentId, documents, disabledDocuments, documentCounts, actions } = useDocumentsBarState();
+  const { isEditing, showAddDocument, expandedDocumentId, selectedProductMeta, clickedDocumentId, documents, disabledDocuments, documentCounts, actions } = useDocumentsBarState();
+  const { enabledSectionsCount, totalSectionsCount } = useSectionsAndDocumentsCounts();
+  const sectionsLabel = t('editor.desktop.selection.sectionsLabel' as any) || 'Sections';
+  const documentsLabel = t('editor.desktop.selection.documentsLabel' as any) || 'Documents';
+  
+  // Show empty state when no documents are available (even if product is selected)
+  const showEmptyState = documents.length === 0 && !selectedProductMeta;
+  // Compact mode - horizontal layout with small cards
+  if (compact) {
+    return (
+      <div className="relative w-full">
+        {/* Header with count */}
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-xs font-bold uppercase tracking-wide text-white/80">
+            {t('editor.desktop.documents.title' as any) || 'Documents'}
+          </h3>
+        </div>
 
+        {/* Compact horizontal scrollable cards */}
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin', height: '70px' }}>
+          {showEmptyState && (
+            <div className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-center w-[90px] h-[60px] flex flex-col items-center justify-center flex-shrink-0">
+              <span className="text-xl">📄</span>
+              <span className="text-white/60 text-[8px] mt-1">{t('editor.desktop.documents.noDocumentsYet' as any) || 'None'}</span>
+            </div>
+          )}
+
+          {!expandedDocumentId && !showEmptyState && (
+            <button
+              type="button"
+              onClick={actions.toggleAddDocument}
+              className={showAddDocument ? 'px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center gap-1 w-[90px] h-[60px] flex-shrink-0' : 'px-2 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center justify-center gap-1 w-[90px] h-[60px] flex-shrink-0'}
+            >
+              <span className="text-lg leading-none">＋</span>
+              <span className="text-[9px]">{t('editor.desktop.documents.addButton' as any) || 'Add'}</span>
+            </button>
+          )}
+
+          {selectedProductMeta && !expandedDocumentId && (
+            <div
+              onClick={() => actions.setClickedDocumentId('core-product')}
+              className={`relative border rounded-lg p-2 transition-all w-[90px] h-[60px] flex flex-col items-center justify-center gap-1 flex-shrink-0 cursor-pointer ${clickedDocumentId === 'core-product' ? 'border-blue-400 bg-blue-600/20' : clickedDocumentId ? 'opacity-50 border-white/10' : 'border-white/20 bg-white/5 hover:bg-white/10'}`}
+            >
+              <span className="text-xl leading-none flex-shrink-0">{selectedProductMeta.icon || '📄'}</span>
+              <h4 className="text-[8px] font-semibold text-white truncate w-full text-center">
+                {selectedProductMeta ? t(selectedProductMeta.label as any) || selectedProductMeta.label || 'No selection' : 'No selection'}
+              </h4>
+            </div>
+          )}
+
+          {documents.map((doc: DocumentTemplate) => {
+            const isDisabled = disabledDocuments.has(doc.id);
+            const isRequired = doc.required ?? false;
+            const isSelected = clickedDocumentId === doc.id;
+            const isUnselected = Boolean(clickedDocumentId && clickedDocumentId !== doc.id);
+            
+            const cardClass = isDisabled
+              ? 'opacity-50 border-white/10'
+              : isSelected
+              ? 'border-blue-400 bg-blue-600/20'
+              : isUnselected
+              ? 'opacity-50 border-white/10'
+              : isRequired
+              ? 'border-amber-400 bg-amber-600/20'
+              : 'border-white/20 bg-white/5 hover:bg-white/10';
+
+            return (
+              <div
+                key={doc.id}
+                onClick={() => !isDisabled && actions.setClickedDocumentId(doc.id)}
+                className={`relative border rounded-lg p-2 transition-all w-[90px] h-[60px] flex flex-col items-center justify-center gap-1 flex-shrink-0 cursor-pointer ${cardClass}`}
+              >
+                <span className="text-xl leading-none flex-shrink-0">📄</span>
+                <h4 className={`text-[8px] font-semibold ${isDisabled ? 'text-white/50 line-through' : 'text-white'} truncate w-full text-center`}>
+                  {doc.name}
+                </h4>
+                <div className="absolute top-0.5 right-0.5 z-10 flex items-center gap-0.5">
+                  {actions.toggleDocument && (
+                    <input
+                      type="checkbox"
+                      checked={!isDisabled}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        actions.toggleDocument(doc.id);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      className={`w-2.5 h-2.5 rounded border cursor-pointer ${isDisabled ? 'border-white/30 bg-white/10' : isRequired ? 'border-amber-500 bg-amber-600/30' : 'border-blue-500 bg-blue-600/30'} text-blue-600`}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Summary line below */}
+        <div className="text-center text-[10px] text-white/60 mt-1">
+          {sectionsLabel}: {enabledSectionsCount}/{totalSectionsCount}  {documentsLabel}: {documentCounts.enabledCount}/{documentCounts.totalCount}
+        </div>
+      </div>
+    );
+  }
+
+  // Default mode - full normal cards view
   if (isEditing) {
     return (
       <div className="border border-white/20 bg-white/10 rounded-lg p-4 mb-3">
@@ -26,46 +129,46 @@ export default function DocumentsBar() {
   }
 
   return (
-    <div className="relative w-full border-b border-white/10 pb-3 mb-3">
-      <div className="flex-shrink-0 mb-2">
-        <h2 className="text-lg font-bold uppercase tracking-wide text-white" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
+    <div className="relative w-full border-b border-white/10 pb-2 mb-2">
+      <div className="flex-shrink-0 mb-1.5">
+        <h2 className="text-base font-bold uppercase tracking-wide text-white" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.25rem' }}>
           {t('editor.desktop.documents.title' as any) || 'Deine Dokumente'} ({documentCounts.enabledCount})
         </h2>
       </div>
 
-      {!isNewUser && (
-        <div className="text-xs text-white/50 mb-2 flex-shrink-0 flex items-center gap-3">
+      {!showEmptyState && (
+        <div className="text-[10px] text-white/50 mb-1.5 flex-shrink-0 flex items-center gap-3">
           <span className="flex items-center gap-1">
             <span>✏️</span>
-            <span>{t('editor.desktop.documents.legend.edit' as any) || 'Bearbeiten'}</span>
+            <span>{t('editor.desktop.documents.legend.edit' as any) || 'Edit'}</span>
           </span>
           <span className="flex items-center gap-1">
-            <input type="checkbox" className="w-2.5 h-2.5" disabled />
-            <span>{t('editor.desktop.documents.legend.toggle' as any) || 'Hinzufügen/Deselektieren'}</span>
+            <input type="checkbox" className="w-2 h-2" disabled />
+            <span>{t('editor.desktop.documents.legend.toggle' as any) || 'Add/Deselect'}</span>
           </span>
         </div>
       )}
 
-      <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
-        {isNewUser && (
-          <div className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-center max-w-[150px] flex-shrink-0">
-            <div className="text-4xl mb-2 flex justify-center">
-              <span className="text-4xl">📄</span>
+      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin', maxHeight: '120px' }}>
+        {showEmptyState && (
+          <div className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-center w-[110px] h-[110px] flex flex-col items-center justify-center flex-shrink-0">
+            <div className="text-3xl mb-1.5 flex justify-center">
+              <span className="text-3xl">📄</span>
             </div>
-            <div className="text-white/60 text-sm">
-              {t('editor.desktop.documents.noDocumentsYet' as any) || 'Noch keine Dokumente'}
+            <div className="text-white/60 text-xs">
+              {t('editor.desktop.documents.noDocumentsYet' as any) || 'No Documents Yet'}
             </div>
           </div>
         )}
 
-        {!expandedDocumentId && !isNewUser && (
+        {!expandedDocumentId && !showEmptyState && (
           <button
             type="button"
             onClick={actions.toggleAddDocument}
-            className={showAddDocument ? 'px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center gap-2 min-w-[120px]' : 'px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center justify-center gap-2 min-w-[120px]'}
+            className={showAddDocument ? 'px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 w-[110px] h-[110px] flex-shrink-0' : 'px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 w-[110px] h-[110px] flex-shrink-0'}
           >
-            <span className="text-2xl leading-none">＋</span>
-            <span>{t('editor.desktop.documents.addButton' as any) || 'Hinzufügen'}</span>
+            <span className="text-xl leading-none">＋</span>
+            <span className="text-xs">{t('editor.desktop.documents.addButton' as any) || 'Add'}</span>
           </button>
         )}
 
@@ -76,28 +179,100 @@ export default function DocumentsBar() {
         )}
 
         {selectedProductMeta && !expandedDocumentId && (
-          <CoreProductCard
-            selectedProductMeta={selectedProductMeta}
-            clickedDocumentId={clickedDocumentId}
-            onSelectDocument={actions.setClickedDocumentId}
-          />
+          <div
+            onClick={() => actions.setClickedDocumentId('core-product')}
+            className={`relative border rounded-lg p-2 transition-all w-[110px] h-[110px] flex flex-col items-center justify-center gap-1.5 flex-shrink-0 cursor-pointer ${clickedDocumentId === 'core-product' ? 'border-blue-400 bg-blue-600/20' : clickedDocumentId ? 'opacity-50 border-white/10' : 'border-white/20 bg-white/5 hover:bg-white/10'}`}
+          >
+            <span className="text-2xl leading-none flex-shrink-0">{selectedProductMeta.icon || '📄'}</span>
+            <div className="w-full text-center">
+              <h4 className="text-[10px] font-semibold leading-snug text-white break-words line-clamp-2">
+                {selectedProductMeta ? t(selectedProductMeta.label as any) || selectedProductMeta.label || 'No selection' : 'No selection'}
+              </h4>
+            </div>
+          </div>
         )}
 
-        {documents.map((doc: DocumentTemplate) => (
-          <DocumentCard
-            key={doc.id}
-            doc={doc}
-            isDisabled={disabledDocuments.has(doc.id)}
-            isRequired={doc.required ?? false}
-            isSelected={clickedDocumentId === doc.id}
-            isUnselected={Boolean(clickedDocumentId && clickedDocumentId !== doc.id)}
-            onSelectDocument={actions.setClickedDocumentId}
-            onToggleDocument={actions.toggleDocument}
-            onEditDocument={actions.editDocument}
-            onRemoveCustomDocument={actions.removeCustomDocument}
-            getOriginBadge={() => null}
-          />
-        ))}
+        {documents.map((doc: DocumentTemplate) => {
+          const isDisabled = disabledDocuments.has(doc.id);
+          const isRequired = doc.required ?? false;
+          const isSelected = clickedDocumentId === doc.id;
+          const isUnselected = Boolean(clickedDocumentId && clickedDocumentId !== doc.id);
+          
+          const cardClass = isDisabled
+            ? 'opacity-50 border-white/10'
+            : isSelected
+            ? 'border-blue-400 bg-blue-600/20'
+            : isUnselected
+            ? 'opacity-50 border-white/10'
+            : isRequired
+            ? 'border-amber-400 bg-amber-600/20'
+            : 'border-white/20 bg-white/5 hover:bg-white/10';
+
+          return (
+            <div
+              key={doc.id}
+              onClick={() => !isDisabled && actions.setClickedDocumentId(doc.id)}
+              className={`relative border rounded-lg p-2 transition-all w-[110px] h-[110px] flex flex-col items-center justify-center gap-1.5 flex-shrink-0 cursor-pointer ${cardClass}`}
+            >
+              <span className="text-xl leading-none flex-shrink-0">📄</span>
+              <div className="w-full text-center">
+                <h4 className={`text-[10px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
+                  {doc.name}
+                </h4>
+                {doc.description && (
+                  <p className="text-[9px] text-white/60 mt-0.5 line-clamp-1">{doc.description}</p>
+                )}
+              </div>
+              <div className="absolute top-0.5 right-0.5 z-10 flex items-center gap-0.5">
+                {actions.editDocument && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      actions.editDocument(doc)
+                    }}
+                    className="text-white/60 hover:text-white text-[10px] transition-opacity"
+                  >
+                    ✏️
+                  </button>
+                )}
+                {actions.toggleDocument && (
+                  <input
+                    type="checkbox"
+                    checked={!isDisabled}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      actions.toggleDocument(doc.id);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className={`w-3 h-3 rounded border-2 cursor-pointer ${
+                      isDisabled
+                        ? 'border-white/30 bg-white/10'
+                        : isRequired
+                        ? 'border-amber-500 bg-amber-600/30 opacity-90'
+                        : 'border-blue-500 bg-blue-600/30'
+                    } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
+                  />
+                )}
+                {doc.origin === 'custom' && actions.removeCustomDocument && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      actions.removeCustomDocument(doc.id);
+                    }}
+                    className="text-red-300 hover:text-red-200 text-xs font-bold px-1 py-0.5 rounded hover:bg-red-500/20 transition-colors"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

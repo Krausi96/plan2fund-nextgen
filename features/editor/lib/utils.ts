@@ -6,8 +6,8 @@
  * General-purpose utility functions used throughout the editor.
  * 
  * USED BY:
- *   - SectionCard.tsx - shouldIgnoreClick()
- *   - DocumentCard.tsx - shouldIgnoreClick()
+ *   - Sidebar.tsx - shouldIgnoreClick()
+ *   - DocumentsBar.tsx - shouldIgnoreClick()
  *   - ProgramSelection.tsx - normalizeProgramInput()
  * ============================================================================
  */

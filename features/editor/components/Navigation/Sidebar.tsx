@@ -1,322 +1,323 @@
-import React from 'react';
-import { Progress } from '@/shared/components/ui/progress';
+import React, { useState } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { SectionCard } from '../Shared/SectionCard';
 import {
-  type SectionTemplate,
   useSidebarState,
-  isSpecialSectionId,
 } from '@/features/editor/lib';
-
-// Simple completion calculation - in a real app this would check actual section content
-function calculateCompletion(_section: any): number {
-  // Placeholder implementation - return random completion for demo purposes
-  // In a real app, this would check the actual section content/answers
-  return Math.floor(Math.random() * 101);
-}
-
-// Map completion percentage to progress intent
-function getProgressIntent(completion: number): "primary" | "success" | "warning" | "neutral" {
-  if (completion >= 100) return "success";
-  if (completion >= 50) return "warning";
-  if (completion > 0) return "primary";
-  return "neutral";
-}
 
 type SidebarProps = {
   collapsed?: boolean;
 };
 
-type SectionNavigationTreeProps = {
-  activeSectionId: string | null;
-  collapsed: boolean;
-  isNewUser: boolean;
-  sections: ReturnType<typeof useSidebarState>['sections'];
-  disabledSections: ReturnType<typeof useSidebarState>['disabledSections'];
-  actions: ReturnType<typeof useSidebarState>['actions'];
-};
-
-// ============================================================================
-// SUB-COMPONENTS
-// ============================================================================
-
-function SectionNavigationTree({
-  activeSectionId,
-  collapsed,
-  isNewUser,
-  sections,
-  disabledSections,
-  actions,
-}: SectionNavigationTreeProps) {
-
-  // Determine display mode
-  const showAsCards = !collapsed && (actions.toggleSection !== undefined || actions.editSection !== undefined);
-
-  const displaySections = isNewUser ? [] : sections;
-
-  if (collapsed) {
-    return (
-      <div className="space-y-1" style={{ paddingBottom: '1rem' }}>
-        {displaySections.map((section) => {
-          const completion = calculateCompletion(section);
-          const isActive = section.id === activeSectionId;
-          const isDisabled = disabledSections.has(section.id);
-          const buttonClass = isDisabled 
-            ? 'opacity-50 cursor-not-allowed'
-            : isActive 
-            ? 'bg-blue-600/40 border-blue-400'
-            : 'bg-white/5 border-white/10 hover:bg-white/10';
-          
-          return (
-            <button
-              key={section.id}
-              onClick={() => !isDisabled && actions.setActiveSectionId(section.id)}
-              disabled={isDisabled}
-              className={`w-full p-2 rounded-lg transition-all ${buttonClass}`}
-              title={isDisabled ? `${section.title} (Disabled)` : section.title}
-            >
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-lg">
-                  {completion === 100 ? '✅' : completion > 0 ? '⚠️' : '❌'}
-                </span>
-                {completion < 100 && (
-                  <span className="text-[8px] text-white/70">{completion}%</span>
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  if (showAsCards) {
-    return (
-      <div className="space-y-2 flex flex-col items-center" style={{ paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '1rem' }}>
-        {displaySections.map((section) => {
-          const isActive = section.id === activeSectionId;
-          const isDisabled = disabledSections.has(section.id);
-
-          return (
-            <SectionCard
-              key={section.id}
-              section={section}
-              isActive={isActive}
-              isDisabled={isDisabled}
-              onSelect={actions.setActiveSectionId}
-              onToggle={actions.toggleSection}
-              onEdit={(s) => {
-                const sectionTemplate: SectionTemplate = {
-                  id: s.id,
-                  title: s.title,
-                  origin: s.origin,
-                  required: s.required,
-                };
-                actions.editSection(sectionTemplate);
-              }}
-              onRemoveCustom={() => {
-                // Remove custom section - handled by store actions
-                actions.setActiveSectionId(null);
-              }}
-            />
-          );
-        })}
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2" style={{ paddingBottom: '1rem' }}>
-      {displaySections.map((section, sectionIndex: number) => {
-        const completion = calculateCompletion(section);
-        const isSpecialSection = isSpecialSectionId(section.id);
-        const isActive = section.id === activeSectionId;
-        const isDisabled = disabledSections.has(section.id);
-        const sectionOrigin = section.origin;
-        const isRequired = section.required ?? false;
-        const isCustom = sectionOrigin === 'custom';
-        
-        const listClass = isDisabled
-          ? 'opacity-50 border-white/10'
-          : isActive
-          ? 'border-blue-400 bg-blue-600/20'
-          : isRequired
-          ? 'border-amber-400 bg-amber-600/20'
-          : 'border-white/20 bg-white/5 hover:bg-white/10';
-
-        return (
-          <div
-            key={section.id}
-            className={`w-full rounded-lg border-2 px-3 py-2 transition-all ${listClass}`}
-          >
-            <button
-              onClick={() => !isDisabled && actions.setActiveSectionId(section.id)}
-              disabled={isDisabled}
-              className="w-full text-left"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    {!isSpecialSection && (
-                      <span className="text-[9px] font-bold tracking-wide text-white/70">
-                        {String(sectionIndex).padStart(2, '0')}
-                      </span>
-                    )}
-                    <span className={`text-xs font-semibold truncate ${isDisabled ? 'line-through text-white/50' : ''}`}>
-                      {section.title}
-                    </span>
-                  </div>
-                  <Progress value={completion} intent={getProgressIntent(completion)} size="xs" />
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                  {actions.toggleSection && (
-                    <input
-                      type="checkbox"
-                      checked={!isDisabled}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        actions.toggleSection(section.id);
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
-                        isDisabled
-                          ? 'border-white/30 bg-white/10'
-                          : isRequired
-                          ? 'border-amber-500 bg-amber-600/30 opacity-90'
-                          : 'border-blue-500 bg-blue-600/30'
-                      }`}
-                    />
-                  )}
-                  {actions.editSection && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const sectionTemplate: SectionTemplate = {
-                          id: section.id,
-                          title: section.title,
-                          origin: section.origin,
-                          required: section.required,
-                        };
-                        actions.editSection(sectionTemplate);
-                      }}
-                      className="text-white/60 hover:text-white text-xs transition-opacity"
-                    >
-                      ✏️
-                    </button>
-                  )}
-                  {isCustom && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        // Remove custom section - would need store action for this
-                        // For now, just log
-                        console.log('Remove custom section:', section.id);
-                      }}
-                      className="text-red-300 hover:text-red-200 text-xs font-bold px-1 rounded hover:bg-red-500/20"
-                    >
-                      ×
-                    </button>
-                  )}
-                  <span className="text-[10px] font-bold text-white">{completion}%</span>
-                  {isActive && <span className="text-blue-400">●</span>}
-                </div>
-              </div>
-            </button>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-
 export default function Sidebar({ collapsed = false }: SidebarProps) {
   const { t } = useI18n();
-  const { isNewUser, sections, disabledSections, actions, sectionCounts, isEditing, showAddSection, activeSectionId, editingSection } = useSidebarState();
+  const { sections, disabledSections, actions, sectionCounts, isEditing, showAddSection, activeSectionId, editingSection } = useSidebarState();
+  
+  // Local state for add section form
+  const [newSectionTitle, setNewSectionTitle] = useState('');
+  
+  // Local state for edit section form
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editRequired, setEditRequired] = useState(false);
+  
+  // Local state for delete confirmation
+  const [deleteConfirm, setDeleteConfirm] = useState<{id: string; title: string} | null>(null);
+  
+  // Initialize edit form when editingSection changes
+  React.useEffect(() => {
+    if (editingSection) {
+      setEditTitle(editingSection.title || editingSection.name || '');
+      setEditDescription(editingSection.description || '');
+      setEditRequired(editingSection.required || false);
+    }
+  }, [editingSection]);
+  
+  // Show empty state when no sections are available (even if product is selected)
+  const showEmptyState = sections.length === 0;
 
-  return (
-    <div className={collapsed ? 'w-16' : 'w-80'} style={{
-      width: collapsed ? '150px' : '320px',
-      minWidth: collapsed ? '150px' : '320px',
-      maxWidth: collapsed ? '150px' : '320px',
-    }}>
-      <div className="relative w-full flex-1 flex flex-col min-h-0">
-        {!collapsed && (
-          <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
-            {(t('editor.desktop.sections.title' as any) as string) || 'Deine Abschnitte'} ({sectionCounts.totalCount})
-          </h2>
-        )}
-
-        {!collapsed && !isNewUser && (
-          <>
-            <div className="text-xs text-white/50 mb-2 flex items-center gap-2">
-              <span className="flex items-center gap-1 flex-1">
-                <span>✏️</span>
-                <span>{t('editor.desktop.sections.legend.edit' as any) || 'Bearbeiten'}</span>
-              </span>
-              <span className="flex items-center gap-1 flex-1 justify-center">
-                <input type="checkbox" className="w-2.5 h-2.5" disabled />
-                <span>{t('editor.desktop.sections.legend.toggle' as any) || 'Hinzufügen'}</span>
-              </span>
-              <span className="flex items-center gap-1 flex-1 justify-end">
-                <span className="w-2 h-2 rounded-full bg-yellow-400/80" />
-                <span>{t('editor.desktop.sections.legend.source' as any) || 'Herkunft anzeigen'}</span>
-              </span>
-            </div>
-            {!isEditing && (
-              <div className="mb-2 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={actions.toggleAddSection}
-                  className={showAddSection ? 'w-full px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center gap-2' : 'w-full px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center justify-center gap-2'}
-                >
-                  <span className="text-2xl leading-none">＋</span>
-                  <span>{t('editor.desktop.sections.addButton' as any) || 'Abschnitt hinzufügen'}</span>
-                </button>
-              </div>
-            )}
-          </>
-        )}
-
-        {!collapsed && isNewUser && (
-          <div className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-center max-w-[150px]">
-            Select a product to start creating your business plan
-          </div>
-        )}
-
-        {!collapsed && showAddSection && !isEditing && (
-          <div className="mb-2 flex-shrink-0 border border-dashed border-white/20 rounded-lg p-3 text-white/60 text-xs text-center">
-            {/* Add section form - TODO: Implement when needed */}
-          </div>
-        )}
-
-        {!collapsed && isEditing && editingSection && (
-          <div className="mb-2 flex-shrink-0 border border-white/20 bg-white/10 rounded-lg p-3 text-white/60 text-xs text-center">
-            <p>Edit form placeholder - SectionDocumentEditForm needs to be implemented</p>
-            <button onClick={actions.cancelEdit} className="mt-2 px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-white text-xs">
-              Cancel
-            </button>
-          </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto min-h-0" style={{ overflow: 'hidden' }}>
-          <div style={{ paddingBottom: '1.5rem' }}>
-            <SectionNavigationTree
-              activeSectionId={activeSectionId ?? null}
-              collapsed={collapsed}
-              isNewUser={isNewUser}
-              sections={sections}
-              disabledSections={disabledSections}
-              actions={actions}
+  if (isEditing && editingSection) {
+    return (
+      <div className="w-full p-4 border border-blue-400 bg-blue-600/10 rounded-lg">
+        <div className="space-y-3">
+          <h4 className="text-sm font-bold text-white">
+            {t('editor.desktop.sections.edit.title' as any) || 'Edit Section Metadata'}
+          </h4>
+          
+          {/* Title Field */}
+          <div>
+            <label className="text-xs text-white/80 mb-1 block">
+              {t('editor.desktop.sections.edit.sectionTitle' as any) || 'Section Title'}
+            </label>
+            <input
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-900/50 border border-white/30 rounded text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-blue-400"
+              placeholder={t('editor.desktop.sections.edit.sectionTitlePlaceholder' as any) || 'e.g. Executive Summary'}
             />
           </div>
+          
+          {/* Description Field */}
+          <div>
+            <label className="text-xs text-white/80 mb-1 block">
+              {t('editor.desktop.sections.edit.description' as any) || 'Description (optional)'}
+            </label>
+            <textarea
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-900/50 border border-white/30 rounded text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-blue-400 resize-none"
+              placeholder={t('editor.desktop.sections.edit.descriptionPlaceholder' as any) || 'Brief description of this section'}
+              rows={2}
+            />
+          </div>
+          
+          {/* Required Checkbox */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="edit-required"
+              checked={editRequired}
+              onChange={(e) => setEditRequired(e.target.checked)}
+              className="w-4 h-4 rounded border-2 border-blue-500 bg-blue-600/30 text-blue-600 focus:ring-1 focus:ring-blue-500/50"
+            />
+            <label htmlFor="edit-required" className="text-xs text-white/80 cursor-pointer">
+              {t('editor.desktop.sections.edit.required' as any) || 'Mark as required'}
+            </label>
+          </div>
+          
+          {/* Buttons */}
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => {
+                // TODO: Implement save logic
+                console.log('Save metadata:', { title: editTitle, description: editDescription, required: editRequired });
+                actions.cancelEdit();
+              }}
+              className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded transition-colors"
+            >
+              {t('editor.desktop.sections.edit.save' as any) || 'Save'}
+            </button>
+            <button 
+              onClick={actions.cancelEdit} 
+              className="flex-1 px-3 py-2 bg-white/10 hover:bg-white/20 rounded text-white text-sm font-semibold transition-colors"
+            >
+              {t('editor.desktop.sections.custom.cancel' as any) || 'Cancel'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirm && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-80 p-4 bg-slate-800 border-2 border-red-400 rounded-lg shadow-xl">
+            <h4 className="text-base font-bold text-white mb-2">
+              {t('editor.desktop.sections.delete.title' as any) || 'Remove Section?'}
+            </h4>
+            <p className="text-sm text-white/80 mb-4">
+              {(t('editor.desktop.sections.delete.message' as any) || 'Are you sure you want to remove "{title}"?').replace('{title}', deleteConfirm.title)}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  actions.removeCustomSection(deleteConfirm.id);
+                  setDeleteConfirm(null);
+                }}
+                className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded transition-colors"
+              >
+                {t('editor.desktop.sections.delete.confirm' as any) || 'Remove'}
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded transition-colors"
+              >
+                {t('editor.desktop.sections.delete.cancel' as any) || 'Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="flex-shrink-0 mb-2">
+        <h2 className="text-lg font-bold uppercase tracking-wide text-white" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
+          {t('editor.desktop.sections.title' as any) || 'Deine Abschnitte'} ({sectionCounts.totalCount})
+        </h2>
+      </div>
+
+      {!showEmptyState && (
+        <div className="text-xs text-white/50 mb-2 flex-shrink-0 flex items-center gap-3">
+          <span className="flex items-center gap-1">
+            <span>✏️</span>
+            <span>{t('editor.desktop.sections.legend.edit' as any) || 'Edit'}</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <input type="checkbox" className="w-2.5 h-2.5" disabled />
+            <span>{t('editor.desktop.sections.legend.toggle' as any) || 'Add/Deselect'}</span>
+          </span>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
+        <div className="space-y-2">
+        {showEmptyState && (
+          <div className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-center flex flex-col items-center justify-center">
+            <div className="text-4xl mb-2 flex justify-center">
+              <span className="text-4xl">📋</span>
+            </div>
+            <div className="text-white/60 text-sm">
+              {t('editor.desktop.sections.noSectionsYet' as any) || 'No Sections Yet'}
+            </div>
+          </div>
+        )}
+
+        {!collapsed && !showEmptyState && (
+          <button
+            type="button"
+            onClick={actions.toggleAddSection}
+            className={`w-full px-4 py-3 rounded-lg transition-colors flex flex-col items-center justify-center gap-2 min-h-[100px] ${
+              showAddSection 
+                ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
+                : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+            }`}
+          >
+            <span className="text-3xl leading-none">＋</span>
+            <span className="text-sm font-semibold">{t('editor.desktop.sections.addButton' as any) || 'Add Section'}</span>
+          </button>
+        )}
+
+        {showAddSection && !collapsed && (
+          <div className="w-full p-4 border border-blue-400 bg-blue-600/10 rounded-lg">
+            <h4 className="text-sm font-bold text-white mb-3">
+              {t('editor.desktop.sections.custom.title' as any) || 'Add a custom section to your plan'}
+            </h4>
+            <input
+              type="text"
+              value={newSectionTitle}
+              onChange={(e) => setNewSectionTitle(e.target.value)}
+              placeholder={t('editor.desktop.sections.custom.titlePlaceholder' as any) || 'e.g. Financial Plan'}
+              className="w-full px-3 py-2 mb-3 bg-slate-900/50 border border-white/30 rounded text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-blue-400"
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (newSectionTitle.trim()) {
+                    actions.addCustomSection(newSectionTitle.trim());
+                    setNewSectionTitle('');
+                  }
+                }}
+                disabled={!newSectionTitle.trim()}
+                className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-white/40 text-white text-sm font-semibold rounded transition-colors"
+              >
+                {t('editor.desktop.sections.custom.add' as any) || 'Add'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNewSectionTitle('');
+                  actions.toggleAddSection();
+                }}
+                className="flex-1 px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded transition-colors"
+              >
+                {t('editor.desktop.sections.custom.cancel' as any) || 'Cancel'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {sections.map((section) => {
+          const isDisabled = disabledSections.has(section.id);
+          const isActive = section.id === activeSectionId;
+          const isRequired = section.required ?? false;
+          const isCustom = section.origin === 'custom';
+          
+          const cardClass = isDisabled
+            ? 'opacity-50 border-white/10'
+            : isActive
+            ? 'border-blue-400 bg-blue-600/20'
+            : isRequired
+            ? 'border-amber-400 bg-amber-600/20'
+            : 'border-white/20 bg-white/5 hover:bg-white/10';
+
+          return (
+            <div
+              key={section.id}
+              onClick={() => {
+                if (isDisabled) return;
+                
+                // Set active section
+                actions.setActiveSectionId(section.id);
+                
+                // Scroll preview to this section
+                const sectionElement = document.getElementById(`section-${section.id}`);
+                if (sectionElement) {
+                  sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className={`relative border rounded-lg p-3 transition-all w-full flex flex-col items-center justify-center gap-2 cursor-pointer ${cardClass}`}
+            >
+              <span className="text-2xl leading-none flex-shrink-0">📋</span>
+              <div className="w-full text-center">
+                <h4 className={`text-xs font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
+                  {section.title}
+                </h4>
+              </div>
+              <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
+                {actions.toggleSection && (
+                  <input
+                    type="checkbox"
+                    checked={!isDisabled}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      actions.toggleSection(section.id);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
+                      isDisabled
+                        ? 'border-white/30 bg-white/10'
+                        : isRequired
+                        ? 'border-amber-500 bg-amber-600/30 opacity-90'
+                        : 'border-blue-500 bg-blue-600/30'
+                    } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
+                  />
+                )}
+                {actions.editSection && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      actions.editSection(section);
+                    }}
+                    className="text-white/60 hover:text-white text-xs transition-opacity"
+                  >
+                    ✏️
+                  </button>
+                )}
+                {isCustom && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDeleteConfirm({ id: section.id, title: section.title });
+                    }}
+                    className="text-red-400 hover:text-red-200 text-base font-bold w-5 h-5 flex items-center justify-center rounded hover:bg-red-500/20 transition-colors"
+                    title="Remove custom section"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
         </div>
       </div>
     </div>
