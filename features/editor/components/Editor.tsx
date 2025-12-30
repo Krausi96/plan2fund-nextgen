@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 
 import CurrentSelection from './Navigation/CurrentSelection';
+import DocumentsBar from './Navigation/DocumentsBar';
 import Sidebar from './Navigation/Sidebar';
 import PreviewWorkspace from './Preview/PreviewWorkspace';
 import SectionEditor from './Editor/SectionEditor';
@@ -8,25 +9,24 @@ import {
   useIsWaitingForPlan,
   useEditorState,
   useEditorStore,
-  type ProductType
 } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import DevClearCacheButton from './DevTools/DevClearCacheButton';
 
-type EditorProps = {
-  product?: ProductType | null;
-};
+type EditorProps = {};
 
 export default function Editor({}: EditorProps = {}) {
   const { t } = useI18n();
-  const workspaceGridRef = useRef<HTMLDivElement | null>(null);
-
-  // Consolidated state access - single hook call instead of 20+ individual calls
+  
+  // Consolidated state access
   const { error } = useEditorState();
   
-  // Computed selectors from lib - single source of truth
+  // Computed selectors
   const isWaitingForPlan = useIsWaitingForPlan();
   const activeSectionId = useEditorStore(state => state.activeSectionId);
+  
+  // AI Assistant collapse state
+  const [isAICollapsed, setIsAICollapsed] = useState(false);
   
   if (isWaitingForPlan) {
     return (
@@ -55,10 +55,10 @@ export default function Editor({}: EditorProps = {}) {
     <div className="bg-neutral-200 text-textPrimary">
       <DevClearCacheButton />
       
-      <div className="pb-6 px-4" style={{ maxWidth: '100vw' }}>
-        <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)]" style={{ maxWidth: '1800px', margin: '0 auto' }}>
+      <div className="pb-6 px-4" style={{ maxWidth: '100vw', height: '100vh', overflow: 'hidden' }}>
+        <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)] h-full" style={{ maxWidth: '1800px', margin: '0 auto' }}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900 rounded-[32px]" />
-          <div className="relative z-10 flex flex-col gap-2 p-4 lg:p-6 min-h-0" style={{ overflowX: 'auto', overflowY: 'visible', height: 'calc(100vh + 200px)', maxHeight: 'calc(100vh + 200px)' }}>
+          <div className="relative z-10 flex flex-col gap-2 p-4 lg:p-6 h-full" style={{ overflow: 'hidden' }}>
             {/* Dein Schreibtisch Header */}
             <div className="flex-shrink-0 mb-1">
               <h1 className="text-lg font-bold uppercase tracking-wide text-white">
@@ -66,45 +66,50 @@ export default function Editor({}: EditorProps = {}) {
               </h1>
             </div>
 
-            {/* Workspace Container - Unified Preview */}
-            <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-3 lg:p-4 shadow-lg backdrop-blur-sm w-full flex-1 min-h-0" style={{ overflow: 'visible', display: 'flex', flexDirection: 'column' }}>
-              {/* Top: Current Selection */}
-              <div className="flex-shrink-0 mb-3">
-                <CurrentSelection />
-              </div>
-              
-              {/* 3-Column Layout */}
+            {/* Workspace Container */}
+            <div className="relative rounded-2xl border border-dashed border-white/60 shadow-lg backdrop-blur-sm w-full flex-1" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                          
+              {/* Flex layout: (CurrentSelection + DocumentsBar + Sidebar) | Preview | AI */}
               <div 
-                ref={workspaceGridRef} 
-                style={{ 
-                  display: 'grid',
-                  gridTemplateColumns: '280px minmax(500px, 1fr) 360px',
-                  gridTemplateRows: '1fr',
-                  gap: '1rem',
-                  width: '100%',
-                  flex: '1 1 0',
-                  minHeight: 0,
-                  overflow: 'visible'
-                }}
+                className="flex-1 px-3 lg:px-4 pb-3 lg:pb-4 flex gap-4"
+                style={{ minHeight: 0, overflow: 'hidden' }}
               >
-                {/* Left: Sidebar only */}
-                <div className="border-r border-white/10 pr-3 min-h-0 flex flex-col" style={{ overflow: 'hidden' }}>
-                  {/* Sidebar Sections */}
-                  <div className="flex-1 min-h-0">
+                {/* Left Column: CurrentSelection + DocumentsBar + Sidebar - Fixed width */}
+                <div className="flex-shrink-0 flex flex-col gap-3" style={{ width: '320px', minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
+                  {/* Current Selection - Top */}
+                  <div className="flex-shrink-0">
+                    <CurrentSelection />
+                  </div>
+                              
+                  {/* DocumentsBar - Middle */}
+                  <div className="flex-shrink-0">
+                    <DocumentsBar compact={false} />
+                  </div>
+                              
+                  {/* Sidebar - Below DocumentsBar */}
+                  <div className="flex-1 border-t border-white/10 pt-3" style={{ minHeight: 0, overflow: 'auto' }}>
                     <Sidebar />
                   </div>
                 </div>
-                
-                {/* Preview */}
-                <div className="min-w-0 min-h-0 relative flex flex-col h-full" id="preview-container" style={{ overflow: 'hidden' }}>
-                  <PreviewWorkspace />
+                            
+                {/* Preview Area - Grows to fill space */}
+                <div className="flex-1" style={{ minWidth: 0, minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
+                  {/* Preview */}
+                  <div className="h-full">
+                    <PreviewWorkspace />
+                  </div>
                 </div>
                 
-                {/* AI Assistant */}
-                <div className="min-h-0 relative flex flex-col" style={{ overflow: 'hidden' }}>
+                {/* AI Assistant - Collapsible */}
+                <div 
+                  className="flex-shrink-0 transition-all duration-300" 
+                  style={{ width: isAICollapsed ? '40px' : '360px', minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}
+                >
                   <SectionEditor
                     sectionId={activeSectionId}
                     onClose={() => {}}
+                    isCollapsed={isAICollapsed}
+                    onToggleCollapse={() => setIsAICollapsed(!isAICollapsed)}
                   />
                 </div>
               </div>

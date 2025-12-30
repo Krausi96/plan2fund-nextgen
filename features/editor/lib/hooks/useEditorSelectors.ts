@@ -232,13 +232,21 @@ export const useSectionsAndDocumentsCounts = () => {
   return useEditorStore((state) => {
     // Inline count calculations
     const enabledSectionsCount = state.allSections.filter(s => !state.disabledSectionIds.includes(s.id)).length;
-    const enabledDocumentsCount = state.allDocuments.filter(d => !state.disabledDocumentIds.includes(d.id)).length;
-
+    
+    // Count both template documents and custom documents
+    const enabledTemplateDocumentsCount = state.allDocuments.filter(d => !state.disabledDocumentIds.includes(d.id)).length;
+    const enabledCustomDocumentsCount = state.customDocuments.filter(d => !state.disabledDocumentIds.includes(d.id)).length;
+    
+    // Include core product document in total count if a product is selected
+    // The core product is always considered "enabled" when a product is selected
+    const hasSelectedProduct = !!state.selectedProduct;
+    const coreProductCount = hasSelectedProduct ? 1 : 0;
+    
     return {
       enabledSectionsCount,
       totalSectionsCount: state.allSections.length,
-      enabledDocumentsCount,
-      totalDocumentsCount: state.allDocuments.length,
+      enabledDocumentsCount: enabledTemplateDocumentsCount + enabledCustomDocumentsCount + coreProductCount, // Core product always enabled when selected
+      totalDocumentsCount: state.allDocuments.length + state.customDocuments.length + coreProductCount,
     };
   });
 };

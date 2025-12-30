@@ -1,8 +1,7 @@
 // ========= PLAN2FUND — EDITOR PAGE =========
 // Main editor page - simplified: always loads, defaults to 'submission' product
 
-import { useRouter } from 'next/router';
-import React, { useMemo } from 'react';
+import React from 'react';
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 import Editor from '@/features/editor/components/Editor';
 
@@ -56,17 +55,7 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-type ProductType = 'submission' | 'review' | 'strategy';
-
 function EditorPage() {
-  const router = useRouter();
-  const { product } = router.query;
-
-  const selectedProduct: ProductType | null = useMemo(() => {
-    const value = typeof product === 'string' ? product : undefined;
-    return value && isProductType(value) ? value : null;
-  }, [product]);
-
   return (
     <ErrorBoundary>
       <PageEntryIndicator 
@@ -74,17 +63,9 @@ function EditorPage() {
         translationKey="editor"
         duration={0}
       />
-      <Editor product={selectedProduct} />
+      <Editor />
     </ErrorBoundary>
   );
 }
 
 export default EditorPage;
-
-function isProductType(value: string): value is ProductType {
-  return (
-    value === 'submission' ||
-    value === 'review' ||
-    value === 'strategy'
-  );
-}

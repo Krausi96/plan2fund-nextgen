@@ -211,53 +211,52 @@ function PreviewPanel() {
   const viewportStyle = createViewportStyle(previewPadding);
 
   return (
-    <div className="relative w-full h-full flex flex-col">
-      {/* Preview content with sticky vertical zoom */}
-      <div className="flex-1 overflow-auto bg-slate-800/30 relative" id="preview-scroll-container" style={{ minHeight: 0 }}>
-        <div ref={viewportRef} className="w-full min-h-full relative" style={viewportStyle}>
-          {/* Sticky Vertical Zoom Controls - Sticky Right */}
-          <div className="sticky right-4 top-4 float-right z-[100]">
-            <div className="flex flex-col gap-1 bg-slate-900 backdrop-blur-sm rounded-lg p-1.5 border-2 border-blue-500/50 shadow-xl">
-              {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
-                <button 
-                  key={id} 
-                  className={`px-2 py-1 rounded text-xs font-bold transition-all ${
-                    zoomPreset === id ? 'bg-blue-600 text-white shadow-md' : 'bg-white/10 text-white/90 hover:bg-white/20'
-                  }`}
-                  onClick={() => setZoomPreset(id)}
-                >
-                  {id}%
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className={`export-preview ${previewMode}`} style={zoomStyle}>
-            {showWatermark && (
-              <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
-                <div className="text-6xl font-bold text-gray-200 opacity-30 transform -rotate-45 select-none">DRAFT</div>
-              </div>
-            )}
-            <div className="relative z-10" style={{ margin: 0, padding: 0 }}>
-              <TitlePageRenderer planDocument={planDocument} disabledSections={disabledSections} t={t} />
-              <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-              {sectionsToRender.map((section, index) => (
-                <SectionRenderer
-                  key={section.key}
-                  section={section}
-                  sectionIndex={index}
-                  planDocument={planDocument}
-                  previewMode={previewMode}
-                  t={t}
-                />
-              ))}
-              <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-              <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-              <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-              <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-            </div>
+    <div className="relative w-full h-full overflow-auto" id="preview-scroll-container">
+      <div className="relative w-full h-full flex justify-center">
+        {/* Sticky Zoom Controls - Positioned within container */}
+        <div className="sticky top-4 right-0 float-right z-[100] ml-auto" style={{ height: 0 }}>
+          <div className="flex flex-col gap-1 bg-slate-900 backdrop-blur-sm rounded-lg p-1.5 border-2 border-blue-500/50 shadow-xl">
+            {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
+              <button 
+                key={id} 
+                className={`px-2 py-1 rounded text-xs font-bold transition-all ${
+                  zoomPreset === id ? 'bg-blue-600 text-white shadow-md' : 'bg-white/10 text-white/90 hover:bg-white/20'
+                }`}
+                onClick={() => setZoomPreset(id)}
+              >
+                {id}%
+              </button>
+            ))}
           </div>
         </div>
+
+        <div ref={viewportRef} className="relative" style={viewportStyle}>
+          <div className={`export-preview ${previewMode}`} style={zoomStyle}>
+          {showWatermark && (
+            <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
+              <div className="text-6xl font-bold text-gray-200 opacity-30 transform -rotate-45 select-none">DRAFT</div>
+            </div>
+          )}
+          <div className="relative z-10" style={{ margin: 0, padding: 0 }}>
+            <TitlePageRenderer planDocument={planDocument} disabledSections={disabledSections} t={t} />
+            <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+            {sectionsToRender.map((section, index) => (
+              <SectionRenderer
+                key={section.key}
+                section={section}
+                sectionIndex={index}
+                planDocument={planDocument}
+                previewMode={previewMode}
+                t={t}
+              />
+            ))}
+            <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+            <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+            <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+            <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+          </div>
+        </div>
+      </div>
       </div>
     </div>
   );

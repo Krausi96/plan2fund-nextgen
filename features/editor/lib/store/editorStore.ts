@@ -23,7 +23,7 @@
 
 import { create } from 'zustand';
 import type { BusinessPlan, ProductType, SectionTemplate, DocumentTemplate, ProgramSummary } from '../types/types';
-import { MASTER_SECTIONS } from '../templates';
+import { MASTER_SECTIONS, MASTER_DOCUMENTS_BY_PRODUCT } from '../templates';
 
 // ============================================================================
 // HELPER TYPES
@@ -360,13 +360,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   // ========== PRODUCT & PROGRAM ACTIONS ==========
   setSelectedProduct: (product) => {
     const currentPlan = get().plan;
-    let allSections = get().allSections;
     const disabledSectionIds = get().disabledSectionIds;
     
-    // If allSections is empty and product is selected, load from templates
-    if (allSections.length === 0 && product) {
+    // Always load sections and documents for the selected product
+    // This ensures correct templates are loaded when product changes
+    let allSections: SectionTemplate[] = [];
+    let allDocuments: DocumentTemplate[] = [];
+    
+    if (product) {
       allSections = MASTER_SECTIONS[product] || [];
-      set({ allSections });
+      allDocuments = MASTER_DOCUMENTS_BY_PRODUCT[product] || [];
+      set({ allSections, allDocuments });
     }
     
     // If no plan exists and product is selected, create a new plan

@@ -13,7 +13,8 @@ const STRATEGY_DOCUMENTS: DocumentTemplate[] = [
     format: 'docx',
     maxSize: '5MB',
     category: 'business',
-    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
+    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa'],
+    origin: 'template'
   },
   {
     id: 'competitive_landscape',
@@ -23,7 +24,8 @@ const STRATEGY_DOCUMENTS: DocumentTemplate[] = [
     format: 'docx',
     maxSize: '5MB',
     category: 'market',
-    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
+    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa'],
+    origin: 'template'
   },
   {
     id: 'preliminary_financial_overview',
@@ -33,7 +35,8 @@ const STRATEGY_DOCUMENTS: DocumentTemplate[] = [
     format: 'xlsx',
     maxSize: '10MB',
     category: 'financial',
-    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
+    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa'],
+    origin: 'template'
   }
 ];
 
@@ -51,6 +54,7 @@ const FULL_SECTIONS: SectionTemplate[] = [
     wordCountMax: 500,
     order: 1,
     category: 'general',
+    origin: 'template',
     prompts: [
       'Summarise your project in two to three sentences.',
       'Which problem or need does your project address?',
@@ -70,7 +74,8 @@ const FULL_SECTIONS: SectionTemplate[] = [
     wordCountMin: 400,
     wordCountMax: 900,
     order: 2,
-    category: 'project'
+    category: 'project',
+    origin: 'template'
   },
   {
     id: 'market_analysis',
@@ -80,7 +85,8 @@ const FULL_SECTIONS: SectionTemplate[] = [
     wordCountMin: 300,
     wordCountMax: 700,
     order: 6,
-    category: 'market'
+    category: 'market',
+    origin: 'template'
   },
   {
     id: 'financial_plan',
@@ -90,7 +96,8 @@ const FULL_SECTIONS: SectionTemplate[] = [
     wordCountMin: 300,
     wordCountMax: 800,
     order: 5,
-    category: 'financial'
+    category: 'financial',
+    origin: 'template'
   },
   {
     id: 'team_qualifications',
@@ -100,7 +107,8 @@ const FULL_SECTIONS: SectionTemplate[] = [
     wordCountMin: 200,
     wordCountMax: 600,
     order: 7,
-    category: 'team'
+    category: 'team',
+    origin: 'template'
   },
   {
     id: 'risk_assessment',
@@ -110,7 +118,8 @@ const FULL_SECTIONS: SectionTemplate[] = [
     wordCountMin: 200,
     wordCountMax: 600,
     order: 8,
-    category: 'risk'
+    category: 'risk',
+    origin: 'template'
   }
 ];
 
@@ -145,4 +154,11 @@ export const MASTER_SECTIONS: Record<string, SectionTemplate[]> = {
   strategy: [], // Strategy uses documents instead
   review: FULL_SECTIONS,
   submission: FULL_SECTIONS
+};
+
+// Simplified document lookup by product type (all funding types share same docs per product)
+export const MASTER_DOCUMENTS_BY_PRODUCT: Record<string, DocumentTemplate[]> = {
+  strategy: STRATEGY_DOCUMENTS,
+  review: [],
+  submission: []
 };

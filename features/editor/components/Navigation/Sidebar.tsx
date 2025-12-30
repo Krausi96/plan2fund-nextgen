@@ -143,9 +143,17 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
       )}
       
       <div className="flex-shrink-0 mb-2">
-        <h2 className="text-lg font-bold uppercase tracking-wide text-white" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
-          {t('editor.desktop.sections.title' as any) || 'Deine Abschnitte'} ({sectionCounts.totalCount})
-        </h2>
+        <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
+          <h2 className="text-lg font-bold uppercase tracking-wide text-white">
+            {t('editor.desktop.sections.title' as any) || 'Deine Abschnitte'} ({sectionCounts.totalCount})
+          </h2>
+          {sectionCounts.requiredCount > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <span className="text-amber-400" title="Required sections">⚠️</span>
+              <span className="text-amber-400 font-bold">{sectionCounts.requiredCount}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
@@ -165,14 +173,14 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
           <button
             type="button"
             onClick={actions.toggleAddSection}
-            className={`w-full px-3 py-2 rounded-lg transition-colors flex flex-col items-center justify-center gap-1.5 min-h-[80px] ${
+            className={`w-full rounded-lg transition-colors flex flex-col items-center justify-center gap-1.5 p-2 ${
               showAddSection 
                 ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
                 : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
             }`}
           >
-            <span className="text-2xl leading-none">＋</span>
-            <span className="text-xs font-semibold">{t('editor.desktop.sections.addButton' as any) || 'Add Section'}</span>
+            <span className="text-xl leading-none">＋</span>
+            <span className="text-[10px] font-semibold">{t('editor.desktop.sections.addButton' as any) || 'Add Section'}</span>
           </button>
         )}
 
@@ -240,10 +248,16 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                 // Set active section
                 actions.setActiveSectionId(section.id);
                 
-                // Scroll preview to this section
+                // Scroll preview to this section (within preview container only)
                 const sectionElement = document.getElementById(`section-${section.id}`);
-                if (sectionElement) {
-                  sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const previewContainer = document.getElementById('preview-scroll-container');
+                if (sectionElement && previewContainer) {
+                  // Scroll within the preview container, not the entire page
+                  const sectionTop = sectionElement.offsetTop;
+                  previewContainer.scrollTo({
+                    top: sectionTop - 20, // 20px offset for better visibility
+                    behavior: 'smooth'
+                  });
                 }
               }}
               className={`relative border rounded-lg p-2 transition-all w-full flex flex-col items-center justify-center gap-1.5 cursor-pointer ${cardClass}`}

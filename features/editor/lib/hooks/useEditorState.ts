@@ -55,7 +55,7 @@ import {
   useSectionsForSidebar,
   useDocumentsForConfig,
   useVisibleDocuments,
-  useDocumentCounts,
+
   useSectionsAndDocumentsCounts,
   useSelectedProductMeta,
 } from './useEditorSelectors';
@@ -172,8 +172,11 @@ export function useSectionsDocumentsManagementState() {
   // Use store hooks (single source of truth) - these need complex logic so keep as separate hooks
   const sectionsToShow = useSectionsForConfig(t);
   const documentsToShow = useDocumentsForConfig();
-  const documentCounts = useDocumentCounts();
   const counts = useSectionsAndDocumentsCounts();
+  const documentCounts = {
+    enabledCount: counts.enabledDocumentsCount,
+    totalCount: counts.totalDocumentsCount,
+  };
   
   // Toggle handlers
   const sectionToggleHandlers = useToggleHandlers(allSections, disabledSectionIds, actions.setDisabledSectionIds);
@@ -308,10 +311,14 @@ export function useSidebarState() {
   }), [actions, sectionToggleHandlers, sectionEditHandlers, showAddSection]);
   
   // Use counts from toggle handlers (no duplicate calculation)
-  const sectionCounts = useMemo(() => ({
-    enabledCount: sectionToggleHandlers.enabledCount,
-    totalCount: sectionToggleHandlers.totalCount,
-  }), [sectionToggleHandlers.enabledCount, sectionToggleHandlers.totalCount]);
+  const sectionCounts = useMemo(() => {
+    const requiredCount = allSections.filter(s => s.required && !disabledSectionIds.includes(s.id)).length;
+    return {
+      enabledCount: sectionToggleHandlers.enabledCount,
+      totalCount: sectionToggleHandlers.totalCount,
+      requiredCount,
+    };
+  }, [sectionToggleHandlers.enabledCount, sectionToggleHandlers.totalCount, allSections, disabledSectionIds]);
   
   return {
     isNewUser,
@@ -350,7 +357,11 @@ export function useDocumentsBarState() {
   
   const documents = useVisibleDocuments();
   const disabledDocuments = useDisabledDocumentsSet();
-  const documentCounts = useDocumentCounts();
+  const counts = useSectionsAndDocumentsCounts();
+  const documentCounts = {
+    enabledCount: counts.enabledDocumentsCount,
+    totalCount: counts.totalDocumentsCount,
+  };
   
   // Optimized: Select only needed actions instead of all actions
   const actions = useEditorActions((a) => ({

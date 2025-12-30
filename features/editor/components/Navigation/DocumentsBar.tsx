@@ -3,16 +3,11 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import {
   type DocumentTemplate,
   useDocumentsBarState,
-  useConfiguratorState,
 } from '@/features/editor/lib';
 
 export default function DocumentsBar({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n();
   const { isEditing, showAddDocument, expandedDocumentId, selectedProductMeta, clickedDocumentId, documents, disabledDocuments, documentCounts, actions } = useDocumentsBarState();
-  const { programSummary } = useConfiguratorState();
-  
-  const noSelectionCopy = t('editor.desktop.selection.empty' as any) || 'No selection';
-  const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'No program';
   
   // Show empty state when no documents are available (even if product is selected)
   const showEmptyState = documents.length === 0 && !selectedProductMeta;
@@ -126,28 +121,19 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
 
   return (
     <div className="relative w-full pb-3">
-      {/* Top row: Plan | Program selection info */}
-      <div className="flex items-center gap-4 mb-2 text-xs text-white/80">
-        <div className="flex items-center gap-1.5">
-          {selectedProductMeta?.icon && <span className="text-sm">{selectedProductMeta.icon}</span>}
-          <span className="font-semibold">{t('editor.desktop.selection.productLabel' as any) || 'Plan'}:</span>
-          <span>{selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : noSelectionCopy}</span>
-        </div>
-        <span className="text-white/30">|</span>
-        <div className="flex items-center gap-1.5">
-          <span className="font-semibold">{t('editor.desktop.selection.programLabel' as any) || 'Program'}:</span>
-          <span>{programSummary?.name || noProgramCopy}</span>
-        </div>
+      {/* Header with separator */}
+      <div className="flex-shrink-0 mb-3">
+        <h2 className="text-lg font-bold uppercase tracking-wide text-white" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
+          {t('editor.desktop.documents.title' as any) || 'Deine Dokumente'} ({documentCounts.totalCount})
+        </h2>
       </div>
       
       {/* Document cards row */}
-      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin', minHeight: '120px', maxHeight: '180px' }}>
+      <div className="flex gap-2 overflow-x-auto pb-1 justify-center" style={{ scrollbarWidth: 'thin', minHeight: '90px', maxHeight: '140px' }}>
         {showEmptyState && (
-          <div className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-center w-[110px] h-[110px] flex flex-col items-center justify-center flex-shrink-0">
-            <div className="text-3xl mb-1.5 flex justify-center">
-              <span className="text-3xl">📄</span>
-            </div>
-            <div className="text-white/60 text-xs">
+          <div className="border rounded-lg bg-white/5 border-white/10 text-center flex flex-col items-center justify-center gap-2" style={{ width: '272px', height: '94px' }}>
+            <span className="text-4xl leading-none">📄</span>
+            <div className="text-white/60 text-sm font-semibold">
               {t('editor.desktop.documents.noDocumentsYet' as any) || 'No Documents Yet'}
             </div>
           </div>
@@ -157,10 +143,14 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
           <button
             type="button"
             onClick={actions.toggleAddDocument}
-            className={showAddDocument ? 'px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 w-[110px] h-[110px] flex-shrink-0' : 'px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 w-[110px] h-[110px] flex-shrink-0'}
+            className={`rounded-lg transition-colors flex flex-col items-center justify-center gap-1.5 p-2 ${
+              showAddDocument 
+                ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
+                : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+            }`}
           >
             <span className="text-xl leading-none">＋</span>
-            <span className="text-xs">{t('editor.desktop.documents.addButton' as any) || 'Add'}</span>
+            <span className="text-[10px] font-semibold">{t('editor.desktop.documents.addButton' as any) || 'Add'}</span>
           </button>
         )}
 
@@ -173,11 +163,11 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
         {selectedProductMeta && !expandedDocumentId && (
           <div
             onClick={() => actions.setClickedDocumentId('core-product')}
-            className={`relative border rounded-lg p-2 transition-all w-[110px] h-[110px] flex flex-col items-center justify-center gap-1.5 flex-shrink-0 cursor-pointer ${clickedDocumentId === 'core-product' ? 'border-blue-400 bg-blue-600/20' : clickedDocumentId ? 'opacity-50 border-white/10' : 'border-white/20 bg-white/5 hover:bg-white/10'}`}
+            className={`relative border rounded-lg p-1.5 transition-all w-[70px] h-[85px] flex flex-col items-center justify-center gap-1 flex-shrink-0 cursor-pointer ${clickedDocumentId === 'core-product' ? 'border-blue-400 bg-blue-600/20' : clickedDocumentId ? 'opacity-50 border-white/10' : 'border-white/20 bg-white/5 hover:bg-white/10'}`}
           >
-            <span className="text-2xl leading-none flex-shrink-0">{selectedProductMeta.icon || '📄'}</span>
+            <span className="text-xl leading-none flex-shrink-0">{selectedProductMeta.icon || '📄'}</span>
             <div className="w-full text-center">
-              <h4 className="text-[10px] font-semibold leading-snug text-white break-words line-clamp-2">
+              <h4 className="text-[9px] font-semibold leading-tight text-white break-words line-clamp-2">
                 {selectedProductMeta ? t(selectedProductMeta.label as any) || selectedProductMeta.label || 'No selection' : 'No selection'}
               </h4>
             </div>
@@ -204,16 +194,13 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
             <div
               key={doc.id}
               onClick={() => !isDisabled && actions.setClickedDocumentId(doc.id)}
-              className={`relative border rounded-lg p-2 transition-all w-[110px] h-[110px] flex flex-col items-center justify-center gap-1.5 flex-shrink-0 cursor-pointer ${cardClass}`}
+              className={`relative border rounded-lg p-1.5 transition-all w-[70px] h-[85px] flex flex-col items-center justify-center gap-1 flex-shrink-0 cursor-pointer ${cardClass}`}
             >
-              <span className="text-xl leading-none flex-shrink-0">📄</span>
+              <span className="text-lg leading-none flex-shrink-0">📄</span>
               <div className="w-full text-center">
-                <h4 className={`text-[10px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
+                <h4 className={`text-[9px] font-semibold leading-tight ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
                   {doc.name}
                 </h4>
-                {doc.description && (
-                  <p className="text-[9px] text-white/60 mt-0.5 line-clamp-1">{doc.description}</p>
-                )}
               </div>
               <div className="absolute top-0.5 right-0.5 z-10 flex items-center gap-0.5">
                 {actions.editDocument && (
