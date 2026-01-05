@@ -59,6 +59,12 @@ import {
   useSectionsAndDocumentsCounts,
   useSelectedProductMeta,
 } from './useEditorSelectors';
+import {
+  METADATA_SECTION_ID,
+  ANCILLARY_SECTION_ID,
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
+} from '../constants';
 import { useEditorActions } from './useEditorActions';
 import { useToggleHandlers, useEditHandlers } from './useEditorHandlers';
 import type { SectionTemplate, DocumentTemplate } from '../types/types';
@@ -217,7 +223,68 @@ export function useSectionEditorState(sectionId: string | null) {
   
   const section = useMemo(() => {
     if (!plan || !sectionId) return null;
-    return plan.sections?.find(s => s.id === sectionId) || null;
+    
+    // Check if this is a special section ID
+    if (sectionId === METADATA_SECTION_ID) {
+      // Return a special section object for the title page
+      return {
+        id: METADATA_SECTION_ID,
+        key: METADATA_SECTION_ID,
+        title: 'Title Page',
+        content: '', // Title page content is handled differently
+        fields: {
+          displayTitle: 'Title Page',
+          sectionNumber: null,
+        },
+        status: 'draft',
+        isSpecial: true,
+      };
+    } else if (sectionId === ANCILLARY_SECTION_ID) {
+      // Return a special section object for the table of contents
+      return {
+        id: ANCILLARY_SECTION_ID,
+        key: ANCILLARY_SECTION_ID,
+        title: 'Table of Contents',
+        content: '', // TOC content is generated dynamically
+        fields: {
+          displayTitle: 'Table of Contents',
+          sectionNumber: null,
+        },
+        status: 'draft',
+        isSpecial: true,
+      };
+    } else if (sectionId === REFERENCES_SECTION_ID) {
+      // Return a special section object for references
+      return {
+        id: REFERENCES_SECTION_ID,
+        key: REFERENCES_SECTION_ID,
+        title: 'References',
+        content: '', // References content comes from plan.references
+        fields: {
+          displayTitle: 'References',
+          sectionNumber: null,
+        },
+        status: 'draft',
+        isSpecial: true,
+      };
+    } else if (sectionId === APPENDICES_SECTION_ID) {
+      // Return a special section object for appendices
+      return {
+        id: APPENDICES_SECTION_ID,
+        key: APPENDICES_SECTION_ID,
+        title: 'Appendices',
+        content: '', // Appendices content comes from plan.appendices
+        fields: {
+          displayTitle: 'Appendices',
+          sectionNumber: null,
+        },
+        status: 'draft',
+        isSpecial: true,
+      };
+    } else {
+      // Regular section lookup
+      return plan.sections?.find(s => s.id === sectionId) || null;
+    }
   }, [plan, sectionId]);
   
   return {

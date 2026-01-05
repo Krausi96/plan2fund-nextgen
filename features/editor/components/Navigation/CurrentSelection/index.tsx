@@ -34,16 +34,17 @@ function CurrentSelection({}: CurrentSelectionProps) {
 
   // Track active navigation tab
   const [activeTab, setActiveTab] = useState<'product' | 'program'>('product');
+  
+
 
   const handleToggle = () => {
     actions.setIsConfiguratorOpen(!isConfiguratorOpen);
   };
 
-  // Compact info row - shows current selections nicely distributed
+  // Compact info row - shows current selections with improved layout
   const CompactInfoRow = () => {
-    const hasSelections = !!selectedProductMeta;
+    const hasSelections = !!selectedProductMeta || !!programSummary;
 
-    // Always show the panel with 4-column layout
     return (
       <div className="flex flex-col rounded-lg border border-white/30 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 px-3 py-2 text-white shadow-lg w-full">
         {/* Header with Start/Edit button - aligned with DocumentsBar and Sidebar separators */}
@@ -73,50 +74,51 @@ function CurrentSelection({}: CurrentSelectionProps) {
           </button>
         </div>
 
-        {/* Cards in vertical layout - stacked instead of horizontal */}
+        {/* Improved layout with better spacing */}
         <div className="flex flex-col gap-2 text-xs pt-2">
-          {/* Card 1: My Project */}
-          <div className="min-w-0 border-b border-white/10 pb-2">
-            <MyProject />
-          </div>
-
-          {/* Card 2: Product */}
-          <div className="min-w-0 border-b border-white/10 pb-2">
-            <div className="text-white/60 text-[11px] font-semibold uppercase tracking-wide leading-tight mb-1">
-              {t('editor.desktop.selection.productLabel' as any) || 'Product'}
+          {/* My Project and Readiness Check side by side */}
+          <div className="flex gap-3">
+            <div className="flex-1 min-w-0 border-b border-white/10 pb-2">
+              <MyProject />
             </div>
-            <div className="flex items-start gap-1.5">
-              {selectedProductMeta?.icon && (
-                <span className="text-sm leading-none flex-shrink-0">{selectedProductMeta.icon}</span>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="text-white font-semibold text-sm leading-snug truncate" title={selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : noSelectionCopy}>
-                  {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : noSelectionCopy}
+            <div className="flex-1 min-w-0 border-b border-white/10 pb-2">
+              <ReadinessCheck />
+            </div>
+          </div>
+          
+          {/* Product and Program side by side */}
+          <div className="flex gap-3">
+            <div className="flex-1 min-w-0 border-b border-white/10 pb-2">
+              <div className="text-white/60 text-[11px] font-semibold uppercase tracking-wide leading-tight mb-1">
+                {t('editor.desktop.selection.productLabel' as any) || 'Product'}
+              </div>
+              <div className="flex items-start gap-1.5">
+                {selectedProductMeta?.icon && (
+                  <span className="text-sm leading-none flex-shrink-0">{selectedProductMeta.icon}</span>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-white font-semibold text-sm leading-snug truncate" title={selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : noSelectionCopy}>
+                    {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : noSelectionCopy}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Card 3: Program */}
-          <div className="min-w-0 border-b border-white/10 pb-2">
-            <div className="text-white/60 text-[11px] font-semibold uppercase tracking-wide leading-tight mb-1">
-              {t('editor.desktop.selection.programLabel' as any) || 'Program'}
+            
+            <div className="flex-1 min-w-0 border-b border-white/10 pb-2">
+              <div className="text-white/60 text-[11px] font-semibold uppercase tracking-wide leading-tight mb-1">
+                {t('editor.desktop.selection.programLabel' as any) || 'Program'}
+              </div>
+              <div className="text-white font-semibold text-sm leading-snug truncate" title={programSummary?.name || noProgramCopy}>
+                {programSummary?.name || noProgramCopy}
+              </div>
             </div>
-            <div className="text-white font-semibold text-sm leading-snug truncate" title={programSummary?.name || noProgramCopy}>
-              {programSummary?.name || noProgramCopy}
-            </div>
-          </div>
-
-          {/* Card 4: Readiness Check */}
-          <div className="min-w-0">
-            <ReadinessCheck />
           </div>
         </div>
       </div>
     );
   };
 
-  // Simple inline expansion - no portal, just expands downward with absolute positioning
+  // Simple inline expansion with horizontal tabs - no portal, just expands downward with absolute positioning
   const InlineExpansion = () => {
     if (!isConfiguratorOpen) return null;
 
@@ -125,54 +127,51 @@ function CurrentSelection({}: CurrentSelectionProps) {
         {/* Expanded panel */}
         <div className="rounded-lg border-2 border-blue-400 bg-slate-900 shadow-2xl">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-white/20 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/20 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975">
             <h3 className="text-sm font-bold uppercase tracking-wide text-white">
               {t('editor.desktop.selection.current' as any) || 'Configure Selection'}
             </h3>
             <button
               onClick={handleToggle}
-              className="text-white/60 hover:text-white text-xl leading-none transition-colors"
+              className="text-white/60 hover:text-white text-xl leading-none transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
             >
               ×
             </button>
           </div>
+          
+          {/* Horizontal Tabs */}
+          <div className="flex border-b border-white/20 bg-slate-800">
+            <button
+              onClick={() => setActiveTab('product')}
+              className={`flex-1 px-4 py-3 text-center text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                activeTab === 'product'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <span>📦</span>
+              {t('editor.desktop.config.step1.title' as any) || 'Product'}
+              {selectedProductMeta && <span className="ml-1 text-xs text-green-400">✓</span>}
+            </button>
+            <button
+              onClick={() => setActiveTab('program')}
+              className={`flex-1 px-4 py-3 text-center text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                activeTab === 'program'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <span>🎯</span>
+              {t('editor.desktop.config.step2.title' as any) || 'Program'}
+              {programSummary && <span className="ml-1 text-xs text-green-400">✓</span>}
+            </button>
+          </div>
 
-          {/* 2-Column Layout: Navigation | Content */}
-          <div className="grid grid-cols-[180px_1fr] gap-0">
-            {/* Left: Navigation Tabs */}
-            <div className="border-r border-white/20 py-3">
-              <button
-                onClick={() => setActiveTab('product')}
-                className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors ${
-                  activeTab === 'product'
-                    ? 'bg-blue-600/30 text-white border-l-2 border-blue-400'
-                    : 'text-white/70 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                <span className="mr-2">📦</span>
-                {t('editor.desktop.config.step1.title' as any) || 'Product'}
-                {selectedProductMeta && <span className="ml-2 text-xs text-green-400">✓</span>}
-              </button>
-              <button
-                onClick={() => setActiveTab('program')}
-                className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors ${
-                  activeTab === 'program'
-                    ? 'bg-blue-600/30 text-white border-l-2 border-blue-400'
-                    : 'text-white/70 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                <span className="mr-2">🎯</span>
-                {t('editor.desktop.config.step2.title' as any) || 'Program'}
-                {programSummary && <span className="ml-2 text-xs text-green-400">✓</span>}
-              </button>
-            </div>
-
-            {/* Right: Active Content */}
-            <div className="px-4 py-3">
-              <div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
-                {activeTab === 'product' && <ProductSelection />}
-                {activeTab === 'program' && <ProgramSelection />}
-              </div>
+          {/* Dynamic height content area - no fixed height limit */}
+          <div className="p-4 bg-slate-800/50 max-h-[60vh]">
+            <div className="overflow-y-auto">
+              {activeTab === 'product' && <ProductSelection />}
+              {activeTab === 'program' && <ProgramSelection />}
             </div>
           </div>
         </div>

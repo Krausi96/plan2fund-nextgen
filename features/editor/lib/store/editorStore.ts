@@ -24,6 +24,7 @@
 import { create } from 'zustand';
 import type { BusinessPlan, ProductType, SectionTemplate, DocumentTemplate, ProgramSummary } from '../types/types';
 import { MASTER_SECTIONS, MASTER_DOCUMENTS_BY_PRODUCT } from '../templates';
+import { METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '../constants';
 
 // ============================================================================
 // HELPER TYPES
@@ -73,6 +74,9 @@ export interface EditorState {
   // ========== UI STATE ==========
   isConfiguratorOpen: boolean;
   editingSectionId: string | null;
+  
+  // ========== EDITING MODE STATE ==========
+  editingMode: 'none' | 'section' | 'ai';
   
   // ========== TEMPLATE MANAGEMENT STATE ==========
   disabledSectionIds: string[];
@@ -133,6 +137,7 @@ export interface EditorActions {
   // UI actions
   setIsConfiguratorOpen: (open: boolean) => void;
   setEditingSectionId: (id: string | null) => void;
+  setEditingMode: (mode: 'none' | 'section' | 'ai') => void;
   
   // Template management actions
   setDisabledSectionIds: (ids: string[]) => void;
@@ -201,6 +206,9 @@ const initialState: EditorState = {
   isConfiguratorOpen: false,
   editingSectionId: null,
   
+  // Editing mode
+  editingMode: 'none',
+  
   // Template management
   disabledSectionIds: [],
   disabledDocumentIds: [],
@@ -252,16 +260,59 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   
   updateSection: (sectionId, updates) => {
     const plan = get().plan;
-    if (!plan || !plan.sections) return;
+    if (!plan) return;
     
-    const updatedSections = plan.sections.map(section => {
-      if (section.id === sectionId || section.key === sectionId) {
-        return { ...section, ...updates };
+    // Check if this is a special section that requires different handling
+    if (sectionId === METADATA_SECTION_ID) {
+      // Handle title page updates
+      if (plan.settings && plan.settings.titlePage) {
+        const updatedTitlePage = { ...plan.settings.titlePage, ...updates };
+        const updatedPlan = {
+          ...plan,
+          settings: {
+            ...plan.settings,
+            titlePage: updatedTitlePage
+          }
+        };
+        set({ plan: updatedPlan });
+        return;
       }
-      return section;
-    });
+    } else if (sectionId === ANCILLARY_SECTION_ID) {
+      // Handle table of contents updates
+      // Ancillary section typically doesn't have direct content updates
+      // but we'll ensure it's properly handled
+      const updatedPlan = { ...plan };
+      set({ plan: updatedPlan });
+      return;
+    } else if (sectionId === REFERENCES_SECTION_ID) {
+      // Handle references updates
+      const updatedPlan = {
+        ...plan,
+        references: updates.references || plan.references || []
+      };
+      set({ plan: updatedPlan });
+      return;
+    } else if (sectionId === APPENDICES_SECTION_ID) {
+      // Handle appendices updates
+      const updatedPlan = {
+        ...plan,
+        appendices: updates.appendices || plan.appendices || []
+      };
+      set({ plan: updatedPlan });
+      return;
+    }
     
-    set({ plan: { ...plan, sections: updatedSections } });
+    // Regular section updates
+    if (plan.sections) {
+      const updatedSections = plan.sections.map(section => {
+        if (section.id === sectionId || section.key === sectionId) {
+          return { ...section, ...updates };
+        }
+        return section;
+      });
+      
+      set({ plan: { ...plan, sections: updatedSections } });
+    }
   },
   
   addCustomSection: (title, description = '') => {
@@ -421,6 +472,72 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       if (currentPlan && product) {
         currentPlan.productType = product;
       }
+      
+      // Ensure special sections exist in the plan sections if they don't already exist
+      if (currentPlan && currentPlan.sections) {
+        const existingSectionIds = new Set(currentPlan.sections.map(s => s.id));
+        
+        // Define the special sections that should always exist
+        const specialSections = [
+          {
+            id: 'metadata',
+            title: 'Title Page',
+            description: 'Document title page with company information',
+            required: true,
+            category: 'general',
+            origin: 'template',
+          },
+          {
+            id: 'ancillary',
+            title: 'Table of Contents',
+            description: 'Automatically generated table of contents',
+            required: true,
+            category: 'general',
+            origin: 'template',
+          },
+          {
+            id: 'references',
+            title: 'References',
+            description: 'List of references and citations',
+            required: false,
+            category: 'general',
+            origin: 'template',
+          },
+          {
+            id: 'appendices',
+            title: 'Appendices',
+            description: 'Additional supporting documents and information',
+            required: false,
+            category: 'general',
+            origin: 'template',
+          }
+        ];
+        
+        // Find missing special sections
+        const missingSpecialSections = specialSections.filter(s => !existingSectionIds.has(s.id));
+        
+        // Add missing special sections to the plan
+        if (missingSpecialSections.length > 0) {
+          const newPlanSections = [...currentPlan.sections];
+          
+          missingSpecialSections.forEach(specialSection => {
+            newPlanSections.push({
+              key: specialSection.id,
+              id: specialSection.id,
+              title: specialSection.title,
+              content: '', // Empty content initially
+              fields: {
+                displayTitle: specialSection.title,
+                sectionNumber: null,
+              },
+              status: 'draft',
+            });
+          });
+          
+          currentPlan.sections = newPlanSections;
+          set({ plan: currentPlan });
+        }
+      }
     }
   },
   setProgramSummary: (summary) => set({ programSummary: summary }),
@@ -430,6 +547,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   // ========== UI ACTIONS ==========
   setIsConfiguratorOpen: (open) => set({ isConfiguratorOpen: open }),
   setEditingSectionId: (id) => set({ editingSectionId: id }),
+  setEditingMode: (mode) => set({ editingMode: mode }),
   
   // ========== TEMPLATE MANAGEMENT ACTIONS ==========
   setDisabledSectionIds: (ids) => {

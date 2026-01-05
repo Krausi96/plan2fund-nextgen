@@ -1069,7 +1069,7 @@
   "editor.desktop.selection.empty": "No Selection",  "editor.desktop.selection.confirmSelection": "Confirm selection",
   "editor.desktop.selection.edit": "Edit",
   "editor.desktop.selection.start": "Start",
-  "editor.desktop.documents.title": "Your documents",
+  "editor.desktop.documents.title": "Documents",
   "editor.desktop.documents.subtitle": "Choose which additional documents should be included in your plan.",
   "editor.desktop.documents.legend.edit": "Edit",
   "editor.desktop.documents.legend.toggle": "Add / deselect",

@@ -7,6 +7,10 @@ import {
   useDisabledSectionsSet,
   useEditorActions,
   useEditorStore,
+  METADATA_SECTION_ID,
+  ANCILLARY_SECTION_ID,
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
 } from '@/features/editor/lib';
 import { TitlePageRenderer } from './renderers/TitlePageRenderer';
 import { TableOfContentsRenderer } from './renderers/TableOfContentsRenderer';
@@ -49,13 +53,19 @@ function PreviewPanel() {
   const actions = useEditorActions((a) => ({
     setIsConfiguratorOpen: a.setIsConfiguratorOpen,
   }));
+  const activeSectionId = useEditorStore(state => state.activeSectionId);
   const setActiveSectionId = useEditorStore(state => state.setActiveSectionId);
+  const editingMode = useEditorStore(state => state.editingMode);
   const [viewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<ZoomPreset>('100');
   const [fitScale, setFitScale] = useState(1);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [previewPadding, setPreviewPadding] = useState(() => getInitialPreviewPadding());
+  
+  // Refs to track if scrolling is being handled programmatically
+  const isScrollingToSection = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -96,43 +106,163 @@ function PreviewPanel() {
     const scrollContainer = document.getElementById('preview-scroll-container');
     if (!scrollContainer) return;
     
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Find the most visible section
-        let mostVisibleRatio = 0;
-        let mostVisibleElement: Element | null = null;
-        
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > mostVisibleRatio) {
-            mostVisibleRatio = entry.intersectionRatio;
-            mostVisibleElement = entry.target;
+    // Track if user is actively scrolling to prevent observer from interfering
+    let isUserScrolling = false;
+    let scrollTimeout: NodeJS.Timeout | null = null;
+    
+    // Set up scroll event listener to track user scrolling
+    const handleScroll = () => {
+      isUserScrolling = true;
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      scrollTimeout = setTimeout(() => {
+        isUserScrolling = false;
+      }, 150); // Reset after user stops scrolling
+    };
+    
+    scrollContainer.addEventListener('scroll', handleScroll);
+    
+    // Use a timeout to delay observer setup to avoid initial scroll conflicts
+    const setupObserver = setTimeout(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          // Find the most visible section
+          let mostVisibleRatio = 0;
+          let mostVisibleElement: Element | null = null;
+          
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && entry.intersectionRatio > mostVisibleRatio) {
+              mostVisibleRatio = entry.intersectionRatio;
+              mostVisibleElement = entry.target;
+            }
+          });
+          
+          // Only update active section if not programmatically scrolling, not user scrolling, and not in active editing mode
+          if (mostVisibleElement && !isScrollingToSection.current && !isUserScrolling && editingMode === 'none') {
+            // First try to get section ID from the element's id attribute (for regular sections)
+            let sectionId = '';
+            if ('id' in mostVisibleElement && (mostVisibleElement as HTMLElement).id.startsWith('section-')) {
+              sectionId = (mostVisibleElement as HTMLElement).id.replace('section-', '');
+            } else {
+              // If no id attribute or doesn't start with 'section-', try to get from data-section-id attribute (for special sections)
+              sectionId = (mostVisibleElement as HTMLElement).getAttribute('data-section-id') || '';
+            }
+            
+            if (sectionId) {
+              // Additional check: Only update if the section is different from current active section
+              if (sectionId !== activeSectionId) {
+                setActiveSectionId(sectionId);
+              }
+            }
           }
-        });
-        
-        if (mostVisibleElement && 'id' in mostVisibleElement) {
-          const sectionId = (mostVisibleElement as HTMLElement).id.replace('section-', '');
-          if (sectionId) {
-            setActiveSectionId(sectionId);
-          }
+        },
+        {
+          root: scrollContainer,
+          threshold: [0.5], // Only trigger when 50% of element is visible to reduce sensitivity
+          rootMargin: '-25% 0px -25% 0px' // Increased margin to be more selective
         }
-      },
-      {
-        root: scrollContainer,
-        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
-        rootMargin: '-20% 0px -20% 0px'
-      }
-    );
+      );
+      
+      // Clean up any existing observations before adding new ones
+      observer.disconnect();
+      
+      // Observe all section elements (regular and special)
+      sectionsToRender.forEach((section) => {
+        const element = document.getElementById(`section-${section.id || section.key}`);
+        if (element) {
+          observer.observe(element);
+        }
+      });
+      
+      // Also observe special sections (title page, TOC, references, appendices)
+      [METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID].forEach((sectionId) => {
+        const element = document.querySelector(`[data-section-id="${sectionId}"]`);
+        if (element) {
+          observer.observe(element);
+        }
+      });
+      
+      // Cleanup function for the observer
+      return () => {
+        observer.disconnect();
+        if (scrollTimeout) {
+          clearTimeout(scrollTimeout);
+        }
+      };
+    }, 300); // Longer delay to avoid initial scroll conflicts
     
-    // Observe all section elements
-    sectionsToRender.forEach((section) => {
-      const element = document.getElementById(`section-${section.id || section.key}`);
-      if (element) {
-        observer.observe(element);
+    // Cleanup for the timeout and scroll listener
+    return () => {
+      clearTimeout(setupObserver);
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
       }
-    });
-    
-    return () => observer.disconnect();
-  }, [planDocument, sectionsToRender, setActiveSectionId]);
+    };
+  }, [planDocument, sectionsToRender, setActiveSectionId, activeSectionId]);
+  
+
+  
+  // Cleanup function to clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  // Scroll to active section when it changes
+  useEffect(() => {
+    if (activeSectionId) {
+      // Use setTimeout to ensure DOM is fully rendered before attempting to scroll
+      const timer = setTimeout(() => {
+        // Try to find the element by ID first (for regular sections) then by data-section-id (for special sections)
+        let element = document.getElementById(`section-${activeSectionId}`);
+        if (!element) {
+          element = document.querySelector(`[data-section-id="${activeSectionId}"]`);
+        }
+        
+        if (element) {
+          // Set flag to indicate we're programmatically scrolling
+          isScrollingToSection.current = true;
+          
+          // Clear any existing timeout to prevent conflicts
+          if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+          }
+          
+          // Get scroll container element
+          const scrollContainer = document.getElementById('preview-scroll-container');
+          
+          if (scrollContainer) {
+            // Calculate the target scroll position
+            const elementTop = element.offsetTop;
+            
+            // Calculate the target position considering the zoom level
+            const targetPosition = elementTop - 20; // Add a small offset to account for headers
+            
+            // Scroll to the calculated position
+            scrollContainer.scrollTo({
+              top: targetPosition,
+              behavior: 'smooth' // Changed from 'instant' to 'smooth' for better UX
+            });
+          }
+          
+          // Clear the flag after scrolling completes (with a small buffer)
+          scrollTimeoutRef.current = setTimeout(() => {
+            isScrollingToSection.current = false;
+          }, 300); // Longer delay to ensure scroll completes
+        }
+      }, 100); // Small delay to ensure DOM is ready
+      
+      // Cleanup function
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [activeSectionId]);
   
   // Empty state: No plan exists
   if (isNewUser || !hasPlan) {
@@ -213,23 +343,6 @@ function PreviewPanel() {
   return (
     <div className="relative w-full h-full overflow-auto" id="preview-scroll-container">
       <div className="relative w-full h-full flex justify-center">
-        {/* Sticky Zoom Controls - Positioned within container */}
-        <div className="sticky top-4 right-0 float-right z-[100] ml-auto" style={{ height: 0 }}>
-          <div className="flex flex-col gap-1 bg-slate-900 backdrop-blur-sm rounded-lg p-1.5 border-2 border-blue-500/50 shadow-xl">
-            {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
-              <button 
-                key={id} 
-                className={`px-2 py-1 rounded text-xs font-bold transition-all ${
-                  zoomPreset === id ? 'bg-blue-600 text-white shadow-md' : 'bg-white/10 text-white/90 hover:bg-white/20'
-                }`}
-                onClick={() => setZoomPreset(id)}
-              >
-                {id}%
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div ref={viewportRef} className="relative" style={viewportStyle}>
           <div className={`export-preview ${previewMode}`} style={zoomStyle}>
           {showWatermark && (
@@ -254,11 +367,34 @@ function PreviewPanel() {
             <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
             <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
             <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+            {/* Zoom Controls - Positioned as overlay to not interfere with scrolling */}
+            <div className="absolute top-4 right-4 z-[100]">
+              <div className="flex flex-col gap-1 bg-slate-900 backdrop-blur-sm rounded-lg p-1.5 border-2 border-blue-500/50 shadow-xl">
+                {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
+                  <button 
+                    key={id} 
+                    className={`px-2 py-1 rounded text-xs font-bold transition-all ${
+                      zoomPreset === id ? 'bg-blue-600 text-white shadow-md' : 'bg-white/10 text-white/90 hover:bg-white/20'
+                    }`}
+                    onClick={() => {
+                      setZoomPreset(id);
+                      // When zoom changes, make sure to reset the scrolling flag to prevent conflicts
+                      isScrollingToSection.current = false;
+                      if (scrollTimeoutRef.current) {
+                        clearTimeout(scrollTimeoutRef.current);
+                      }
+                    }}
+                  >
+                    {id}%
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      </div>
     </div>
+  </div>
   );
 }
 

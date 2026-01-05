@@ -22,6 +22,7 @@ import {
   getSelectedProductMeta,
   getSectionTitle,
   isSpecialSectionId,
+  METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
   REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
@@ -178,12 +179,12 @@ export const useSectionsForSidebar = (
 ): SectionTemplate[] => {
   return useEditorStore((state) => {
     // For new users or empty sections, return empty array
-    if (isNewUser || !state.allSections.length) {
+    if (isNewUser || (!state.allSections.length && !state.plan?.sections?.length)) {
       return [];
     }
 
-    // Filter disabled sections and apply filteredSectionIds if provided
-    return state.allSections.filter(section => {
+    // Get regular sections from allSections
+    let regularSections = state.allSections.filter(section => {
       // Apply section ID filter if provided
       if (filteredSectionIds && !filteredSectionIds.includes(section.id)) {
         return false;
@@ -191,6 +192,76 @@ export const useSectionsForSidebar = (
       // Don't filter out disabled sections here - let the component handle display
       return true;
     });
+    
+    // Always ensure special sections (title page, TOC, references, appendices) are included
+    const specialSectionIds = [
+      METADATA_SECTION_ID,
+      ANCILLARY_SECTION_ID,
+      REFERENCES_SECTION_ID,
+      APPENDICES_SECTION_ID
+    ];
+    
+    // Create special sections if they don't exist in regularSections
+    const specialSections: SectionTemplate[] = [
+      {
+        id: METADATA_SECTION_ID,
+        title: 'Title Page',
+        description: 'Document title page with company information',
+        required: true,
+        category: 'general' as const,
+        origin: 'template',
+      },
+      {
+        id: ANCILLARY_SECTION_ID,
+        title: 'Table of Contents',
+        description: 'Automatically generated table of contents',
+        required: true,
+        category: 'general' as const,
+        origin: 'template',
+      },
+      {
+        id: REFERENCES_SECTION_ID,
+        title: 'References',
+        description: 'List of references and citations',
+        required: false,
+        category: 'general' as const,
+        origin: 'template',
+      },
+      {
+        id: APPENDICES_SECTION_ID,
+        title: 'Appendices',
+        description: 'Additional supporting documents and information',
+        required: false,
+        category: 'general' as const,
+        origin: 'template',
+      }
+    ];
+    
+    // Check which special sections are missing from regularSections
+    const existingSectionIds = new Set(regularSections.map(s => s.id));
+    const missingSpecialSections = specialSections.filter(s => !existingSectionIds.has(s.id));
+    
+    // Separate special sections from regular sections for proper ordering
+    const titlePageSection = [...regularSections.filter(s => s.id === METADATA_SECTION_ID), ...missingSpecialSections.filter(s => s.id === METADATA_SECTION_ID)];
+    const tocSection = [...regularSections.filter(s => s.id === ANCILLARY_SECTION_ID), ...missingSpecialSections.filter(s => s.id === ANCILLARY_SECTION_ID)];
+    const referencesSection = [...regularSections.filter(s => s.id === REFERENCES_SECTION_ID), ...missingSpecialSections.filter(s => s.id === REFERENCES_SECTION_ID)];
+    const appendicesSection = [...regularSections.filter(s => s.id === APPENDICES_SECTION_ID), ...missingSpecialSections.filter(s => s.id === APPENDICES_SECTION_ID)];
+    
+    // Get regular sections that are not special sections
+    const regularNonSpecialSections = regularSections.filter(s => !specialSectionIds.includes(s.id));
+    
+    // Build the ordered result: title page, toc, regular sections, references, appendices
+    let orderedSections = [];
+    
+    if (titlePageSection.length > 0) orderedSections.push(titlePageSection[0]);
+    if (tocSection.length > 0) orderedSections.push(tocSection[0]);
+    
+    orderedSections = [...orderedSections, ...regularNonSpecialSections];
+    
+    if (referencesSection.length > 0) orderedSections.push(referencesSection[0]);
+    if (appendicesSection.length > 0) orderedSections.push(appendicesSection[0]);
+    
+    return orderedSections;
   });
 };
 

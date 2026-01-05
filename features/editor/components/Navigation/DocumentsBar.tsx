@@ -3,6 +3,7 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import {
   type DocumentTemplate,
   useDocumentsBarState,
+  useEditorStore,
 } from '@/features/editor/lib';
 
 export default function DocumentsBar({ compact = false }: { compact?: boolean }) {
@@ -18,7 +19,7 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
         {/* Header with count */}
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xs font-bold uppercase tracking-wide text-white/80">
-            {t('editor.desktop.documents.title' as any) || 'Documents'}
+            {t('editor.desktop.documents.title' as any) || (useEditorStore.getState().plan?.language === 'de' ? 'Dokumente' : 'Documents')}
           </h3>
         </div>
 
@@ -122,10 +123,12 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
   return (
     <div className="relative w-full pb-3">
       {/* Header with separator */}
-      <div className="flex-shrink-0 mb-3">
-        <h2 className="text-lg font-bold uppercase tracking-wide text-white" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
-          {t('editor.desktop.documents.title' as any) || 'Deine Dokumente'} ({documentCounts.totalCount})
-        </h2>
+      <div className="flex-shrink-0 mb-3 px-3 pt-2">
+        <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
+          <h2 className="text-xl font-bold uppercase tracking-wide text-white text-center flex-1">
+            {t('editor.desktop.documents.title' as any) || (useEditorStore.getState().plan?.language === 'de' ? 'Dokumente' : 'Documents')} ({documentCounts.totalCount})
+          </h2>
+        </div>
       </div>
       
       {/* Document cards row */}

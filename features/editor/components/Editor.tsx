@@ -74,28 +74,27 @@ export default function Editor({}: EditorProps = {}) {
                 className="flex-1 px-3 lg:px-4 pb-3 lg:pb-4 flex gap-4"
                 style={{ minHeight: 0, overflow: 'hidden' }}
               >
-                {/* Left Column: CurrentSelection + DocumentsBar + Sidebar - Fixed width */}
+                {/* Left Column: CurrentSelection + Sidebar - Fixed width */}
                 <div className="flex-shrink-0 flex flex-col gap-3" style={{ width: '320px', minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
                   {/* Current Selection - Top */}
                   <div className="flex-shrink-0">
                     <CurrentSelection />
                   </div>
                               
-                  {/* DocumentsBar - Middle */}
-                  <div className="flex-shrink-0">
-                    <DocumentsBar compact={false} />
-                  </div>
-                              
-                  {/* Sidebar - Below DocumentsBar */}
+                  {/* Sidebar - Below CurrentSelection */}
                   <div className="flex-1 border-t border-white/10 pt-3" style={{ minHeight: 0, overflow: 'auto' }}>
                     <Sidebar />
                   </div>
                 </div>
                             
                 {/* Preview Area - Grows to fill space */}
-                <div className="flex-1" style={{ minWidth: 0, minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
+                <div className="flex-1 flex flex-col" style={{ minWidth: 0, minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
+                  {/* DocumentsBar above Preview */}
+                  <div className="flex-shrink-0">
+                    <DocumentsBar compact={false} />
+                  </div>
                   {/* Preview */}
-                  <div className="h-full">
+                  <div className="flex-1" style={{ minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
                     <PreviewWorkspace />
                   </div>
                 </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import {
   useSidebarState,
+  useEditorStore,
 } from '@/features/editor/lib';
 
 type SidebarProps = {
@@ -142,17 +143,11 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
         </div>
       )}
       
-      <div className="flex-shrink-0 mb-2">
+      <div className="flex-shrink-0 mb-3 px-3 pt-2">
         <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
-          <h2 className="text-lg font-bold uppercase tracking-wide text-white">
-            {t('editor.desktop.sections.title' as any) || 'Deine Abschnitte'} ({sectionCounts.totalCount})
+          <h2 className="text-xl font-bold uppercase tracking-wide text-white text-center flex-1">
+            {t('editor.desktop.sections.title' as any) || (useEditorStore.getState().plan?.language === 'de' ? 'Abschnitte' : 'Sections')} ({sectionCounts.totalCount})
           </h2>
-          {sectionCounts.requiredCount > 0 && (
-            <div className="flex items-center gap-1 text-xs">
-              <span className="text-amber-400" title="Required sections">⚠️</span>
-              <span className="text-amber-400 font-bold">{sectionCounts.requiredCount}</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -245,20 +240,8 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
               onClick={() => {
                 if (isDisabled) return;
                 
-                // Set active section
+                // Set active section - the PreviewWorkspace handles the scrolling via useEffect
                 actions.setActiveSectionId(section.id);
-                
-                // Scroll preview to this section (within preview container only)
-                const sectionElement = document.getElementById(`section-${section.id}`);
-                const previewContainer = document.getElementById('preview-scroll-container');
-                if (sectionElement && previewContainer) {
-                  // Scroll within the preview container, not the entire page
-                  const sectionTop = sectionElement.offsetTop;
-                  previewContainer.scrollTo({
-                    top: sectionTop - 20, // 20px offset for better visibility
-                    behavior: 'smooth'
-                  });
-                }
               }}
               className={`relative border rounded-lg p-2 transition-all w-full flex flex-col items-center justify-center gap-1.5 cursor-pointer ${cardClass}`}
             >

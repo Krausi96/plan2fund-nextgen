@@ -1,6 +1,6 @@
 import React from 'react';
 import type { PlanDocument, PlanSection } from '@/features/editor/lib';
-import { PAGE_STYLE, calculatePageNumber, formatTableLabel } from '@/features/editor/lib';
+import { PAGE_STYLE, calculatePageNumber, formatTableLabel, shouldDisplayPageNumber } from '@/features/editor/lib';
 
 interface SectionRendererProps {
   section: PlanSection;
@@ -16,7 +16,7 @@ interface SectionRendererProps {
 export function SectionRenderer({ section, sectionIndex, planDocument, previewMode, t }: SectionRendererProps) {
   const hasContent = section.content && section.content.trim().length > 0;
   const displayTitle = section.fields?.displayTitle || section.title;
-  const pageNumber = calculatePageNumber(sectionIndex, planDocument.settings.includeTitlePage ?? false);
+  const pageNumber = calculatePageNumber(sectionIndex, planDocument.settings.includeTitlePage ?? false, 0, section.key, planDocument.sections);
   
   return (
     <div 
@@ -88,7 +88,11 @@ export function SectionRenderer({ section, sectionIndex, planDocument, previewMo
             </div>
           )}
           {planDocument.settings.includePageNumbers && (
-            <div className="export-preview-page-footer"><span>{t.page} {pageNumber}</span></div>
+            <div className="export-preview-page-footer">
+              <div>© {planDocument.settings.titlePage?.companyName || 'Author'}</div>
+              {!shouldDisplayPageNumber(sectionIndex, section.key, planDocument.sections) && <div>Confidentiality: Restricted</div>}
+              {shouldDisplayPageNumber(sectionIndex, section.key, planDocument.sections) && <div>{t.page} {pageNumber}</div>}
+            </div>
           )}
         </div>
       </div>

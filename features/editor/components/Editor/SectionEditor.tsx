@@ -6,6 +6,10 @@ import {
   generateSectionContent,
   detectAIContext,
   type ConversationMessage,
+  METADATA_SECTION_ID,
+  ANCILLARY_SECTION_ID,
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
 } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
@@ -34,6 +38,7 @@ export default function SectionEditor({ sectionId, onClose, isCollapsed = false,
   const plan = useEditorStore(state => state.plan);
   const program = useEditorStore(state => state.programSummary);
   const updateSection = useEditorStore(state => state.updateSection);
+  const setEditingMode = useEditorStore(state => state.setEditingMode);
   
   useEscapeKeyHandler(!!sectionId, onClose);
 
@@ -52,9 +57,59 @@ export default function SectionEditor({ sectionId, onClose, isCollapsed = false,
   // Welcome message when section opens
   useEffect(() => {
     if (sectionId && editorState.section && messages.length === 0) {
+      // For special sections, provide appropriate context
+      let sectionSpecificHelp = `
+
+• Write or improve content
+• Suggest what to include
+• Answer questions about this section
+• Add references or citations
+
+What would you like to do?`;
+      
+      if (editorState.section.isSpecial) {
+        switch (editorState.section.id) {
+          case METADATA_SECTION_ID:
+            sectionSpecificHelp = `
+
+• Update title page information (title, company name, date, etc.)
+• Modify contact information
+• Add company details
+
+What would you like to update?`;
+            break;
+          case ANCILLARY_SECTION_ID:
+            sectionSpecificHelp = `
+
+• The Table of Contents is generated automatically based on your sections.
+• Add or modify content in your sections to update the TOC.
+
+What would you like to know?`;
+            break;
+          case REFERENCES_SECTION_ID:
+            sectionSpecificHelp = `
+
+• Add new references and citations
+• Update existing references
+• Organize your reference list
+
+What would you like to do?`;
+            break;
+          case APPENDICES_SECTION_ID:
+            sectionSpecificHelp = `
+
+• Add new appendices
+• Update existing appendices
+• Organize your appendix materials
+
+What would you like to do?`;
+            break;
+        }
+      }
+      
       setMessages([{
         role: 'assistant',
-        content: `Hi! I'm here to help you with the **${editorState.section.title}** section. You can ask me to:\n\n• Write or improve content\n• Suggest what to include\n• Answer questions about this section\n• Add references or citations\n\nWhat would you like to do?`,
+        content: `Hi! I'm here to help you with the **${editorState.section.title}** section.${sectionSpecificHelp}`,
         timestamp: Date.now()
       }]);
     }
@@ -64,6 +119,21 @@ export default function SectionEditor({ sectionId, onClose, isCollapsed = false,
   // If no plan, show a helpful welcome message
 
   const { section } = editorState;
+  
+  // Set editing mode when section is selected and clear when unselected
+  useEffect(() => {
+    if (sectionId) {
+      setEditingMode('section');
+    } else {
+      setEditingMode('none');
+    }
+    
+    return () => {
+      if (!sectionId) {
+        setEditingMode('none');
+      }
+    };
+  }, [sectionId, setEditingMode]);
 
   const handleSend = async () => {
     if (!input.trim() || !section || isLoading) return;
@@ -77,6 +147,7 @@ export default function SectionEditor({ sectionId, onClose, isCollapsed = false,
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setEditingMode('ai'); // Set AI editing mode
     
     try {
       // Detect context from user message
@@ -116,7 +187,42 @@ export default function SectionEditor({ sectionId, onClose, isCollapsed = false,
          lowerInput.includes('improve') ||
          lowerInput.includes('make it'))
       ) {
-        updateSection(section.id, { content: response.content });
+        // Handle special sections differently
+        if (section.isSpecial) {
+          // For special sections, we might need to update different parts of the plan
+          switch (section.id) {
+            case METADATA_SECTION_ID: // Title page
+              if (plan && plan.settings && plan.settings.titlePage) {
+                // Update title page settings based on AI response
+                // For now, we'll just pass the content as an update (it will be handled by updateSection)
+                updateSection(section.id, { content: response.content });
+              }
+              break;
+            case ANCILLARY_SECTION_ID: // Table of Contents
+              // TOC is generated dynamically, no direct content editing
+              const tocMessage: ConversationMessage = {
+                role: 'assistant',
+                content: `The Table of Contents is generated automatically based on your sections and their content. It updates dynamically as you add content to your plan.`,
+                timestamp: Date.now()
+              };
+              setMessages(prev => [...prev, tocMessage]);
+              break;
+            case REFERENCES_SECTION_ID: // References
+              // References have their own data structure in plan.references
+              // This would parse the response content for references
+              updateSection(section.id, { content: response.content });
+              break;
+            case APPENDICES_SECTION_ID: // Appendices
+              // Appendices have their own data structure in plan.appendices
+              // This would parse the response content for appendices
+              updateSection(section.id, { content: response.content });
+              break;
+            default:
+              updateSection(section.id, { content: response.content });
+          }
+        } else {
+          updateSection(section.id, { content: response.content });
+        }
       }
       
     } catch (error) {
@@ -129,6 +235,7 @@ export default function SectionEditor({ sectionId, onClose, isCollapsed = false,
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      setEditingMode('section'); // Return to section editing mode after AI interaction
     }
   };
 
@@ -160,7 +267,7 @@ export default function SectionEditor({ sectionId, onClose, isCollapsed = false,
         {/* Header with separator and collapse button */}
         <div className="flex-shrink-0 mb-3 px-3 pt-2">
           <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
-            <h2 className="text-lg font-bold uppercase tracking-wide text-white">
+            <h2 className="text-base font-bold uppercase tracking-wide text-white">
               {t('editor.ai.assistant.title')}
             </h2>
             {onToggleCollapse && (
