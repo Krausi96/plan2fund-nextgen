@@ -78,6 +78,9 @@ export interface EditorState {
   // ========== EDITING MODE STATE ==========
   editingMode: 'none' | 'section' | 'ai';
   
+  // ========== NAVIGATION STATE ==========
+  navigationSource: 'sidebar' | 'scroll' | 'editor' | 'direct' | null;
+  
   // ========== TEMPLATE MANAGEMENT STATE ==========
   disabledSectionIds: string[];
   disabledDocumentIds: string[];
@@ -125,7 +128,7 @@ export interface EditorActions {
   removeCustomSection: (sectionId: string) => void;
   
   // Navigation actions
-  setActiveSectionId: (id: string | null) => void;
+  setActiveSectionId: (id: string | null, source?: 'sidebar' | 'scroll' | 'editor' | 'direct') => void;
   setActiveQuestionId: (id: string | null) => void;
   
   // Product & Program actions
@@ -138,6 +141,7 @@ export interface EditorActions {
   setIsConfiguratorOpen: (open: boolean) => void;
   setEditingSectionId: (id: string | null) => void;
   setEditingMode: (mode: 'none' | 'section' | 'ai') => void;
+  setNavigationSource: (source: 'sidebar' | 'scroll' | 'editor' | 'direct' | null) => void;
   
   // Template management actions
   setDisabledSectionIds: (ids: string[]) => void;
@@ -208,6 +212,9 @@ const initialState: EditorState = {
   
   // Editing mode
   editingMode: 'none',
+  
+  // Navigation state
+  navigationSource: null,
   
   // Template management
   disabledSectionIds: [],
@@ -405,7 +412,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   
   // ========== NAVIGATION ACTIONS ==========
-  setActiveSectionId: (id) => set({ activeSectionId: id }),
+  setActiveSectionId: (id, source: 'sidebar' | 'scroll' | 'editor' | 'direct' = 'direct') => {
+    set({ activeSectionId: id });
+    set({ navigationSource: source });
+  },
   setActiveQuestionId: (id) => set({ activeQuestionId: id }),
   
   // ========== PRODUCT & PROGRAM ACTIONS ==========
@@ -548,6 +558,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setIsConfiguratorOpen: (open) => set({ isConfiguratorOpen: open }),
   setEditingSectionId: (id) => set({ editingSectionId: id }),
   setEditingMode: (mode) => set({ editingMode: mode }),
+  setNavigationSource: (source) => set({ navigationSource: source }),
   
   // ========== TEMPLATE MANAGEMENT ACTIONS ==========
   setDisabledSectionIds: (ids) => {

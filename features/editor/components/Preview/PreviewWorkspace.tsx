@@ -54,8 +54,13 @@ function PreviewPanel() {
     setIsConfiguratorOpen: a.setIsConfiguratorOpen,
   }));
   const activeSectionId = useEditorStore(state => state.activeSectionId);
-  const setActiveSectionId = useEditorStore(state => state.setActiveSectionId);
   const editingMode = useEditorStore(state => state.editingMode);
+  const setActiveSectionIdAction = useEditorStore(state => state.setActiveSectionId);
+  
+  // Create setActiveSectionId function with source parameter
+  const setActiveSectionId = (id: string | null, source: 'sidebar' | 'scroll' | 'editor' | 'direct' = 'direct') => {
+    setActiveSectionIdAction(id, source);
+  };
   const [viewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<ZoomPreset>('100');
@@ -152,7 +157,7 @@ function PreviewPanel() {
             if (sectionId) {
               // Additional check: Only update if the section is different from current active section
               if (sectionId !== activeSectionId) {
-                setActiveSectionId(sectionId);
+                setActiveSectionId(sectionId, 'scroll');
               }
             }
           }
@@ -200,7 +205,7 @@ function PreviewPanel() {
         clearTimeout(scrollTimeout);
       }
     };
-  }, [planDocument, sectionsToRender, setActiveSectionId, activeSectionId]);
+  }, [planDocument, sectionsToRender, setActiveSectionIdAction, activeSectionId]);
   
 
   

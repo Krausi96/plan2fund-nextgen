@@ -240,8 +240,8 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
               onClick={() => {
                 if (isDisabled) return;
                 
-                // Set active section - the PreviewWorkspace handles the scrolling via useEffect
-                actions.setActiveSectionId(section.id);
+                // Set active section with source - the PreviewWorkspace handles the scrolling via useEffect
+                actions.setActiveSectionId(section.id, 'sidebar');
               }}
               className={`relative border rounded-lg p-2 transition-all w-full flex flex-col items-center justify-center gap-1.5 cursor-pointer ${cardClass}`}
             >
