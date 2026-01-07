@@ -177,22 +177,94 @@ function PreviewPanel() {
 
   const viewportStyle = createViewportStyle(previewPadding);
 
-  // Simple scroll handler for zoom controls
+  // Scroll observer: Update active section when scrolling preview
   useEffect(() => {
+    if (!planDocument || typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') return;
+    
     const scrollContainer = document.getElementById('preview-scroll-container');
     if (!scrollContainer) return;
     
+    // Track if user is actively scrolling to prevent observer from interfering
+    let isUserScrolling = false;
+    let scrollTimeout: NodeJS.Timeout | null = null;
+    
+    // Set up scroll event listener to track user scrolling
     const handleScroll = () => {
-      // Reset scroll flags when user scrolls
-      isScrollingToSection.current = false;
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
+      isUserScrolling = true;
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
       }
+      scrollTimeout = setTimeout(() => {
+        isUserScrolling = false;
+      }, 150); // Reset after user stops scrolling
     };
     
     scrollContainer.addEventListener('scroll', handleScroll);
-    return () => scrollContainer.removeEventListener('scroll', handleScroll);
-  }, []);
+    
+    // Use a timeout to delay observer setup to avoid initial scroll conflicts
+    const setupObserver = setTimeout(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          // Find the most visible section
+          let mostVisibleRatio = 0;
+          let mostVisibleElement: Element | null = null;
+          
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && entry.intersectionRatio > mostVisibleRatio) {
+              mostVisibleRatio = entry.intersectionRatio;
+              mostVisibleElement = entry.target;
+            }
+          });
+          
+          // Only update active section if not programmatically scrolling and not user scrolling
+          if (mostVisibleElement && !isScrollingToSection.current && !isUserScrolling) {
+            // First try to get section ID from the element's id attribute (for regular sections)
+            let sectionId = '';
+            if ('id' in mostVisibleElement && (mostVisibleElement as HTMLElement).id.startsWith('section-')) {
+              sectionId = (mostVisibleElement as HTMLElement).id.replace('section-', '');
+            } else {
+              // If no id attribute or doesn't start with 'section-', try to get from data-section-id attribute (for special sections)
+              sectionId = (mostVisibleElement as HTMLElement).getAttribute('data-section-id') || '';
+            }
+            
+            if (sectionId) {
+              setActiveSectionId(sectionId, 'scroll');
+            }
+          }
+        },
+        {
+          root: scrollContainer,
+          threshold: [0.5], // Only trigger when 50% of element is visible
+          rootMargin: '-25% 0px -25% 0px' // Margin to be more selective
+        }
+      );
+      
+      // Observe all section elements
+      sectionsToRender.forEach((section) => {
+        const element = document.getElementById(`section-${section.id || section.key}`);
+        if (element) {
+          observer.observe(element);
+        }
+      });
+      
+      // Cleanup function for the observer
+      return () => {
+        observer.disconnect();
+        if (scrollTimeout) {
+          clearTimeout(scrollTimeout);
+        }
+      };
+    }, 300); // Delay to avoid initial scroll conflicts
+    
+    // Cleanup for the timeout and scroll listener
+    return () => {
+      clearTimeout(setupObserver);
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+    };
+  }, [planDocument, sectionsToRender, setActiveSectionId]);
 
   return (
     <div className="relative w-full h-full flex flex-col">
