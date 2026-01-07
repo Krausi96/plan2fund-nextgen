@@ -54,10 +54,7 @@ function PreviewPanel() {
   const programSummary = useEditorStore(state => state.programSummary);
   const selectedProduct = useEditorStore(state => state.selectedProduct);
   
-  // Create setActiveSectionId function with source parameter
-  const setActiveSectionId = (id: string | null, source: 'sidebar' | 'scroll' | 'editor' | 'direct' = 'direct') => {
-    setActiveSectionIdAction(id, source);
-  };
+
   const [viewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<ZoomPreset>('100');
@@ -228,7 +225,7 @@ function PreviewPanel() {
             }
             
             if (sectionId) {
-              setActiveSectionId(sectionId, 'scroll');
+              setActiveSectionIdAction(sectionId, 'scroll');
             }
           }
         },
@@ -264,7 +261,7 @@ function PreviewPanel() {
         clearTimeout(scrollTimeout);
       }
     };
-  }, [planDocument, sectionsToRender, setActiveSectionId]);
+  }, [planDocument, sectionsToRender, setActiveSectionIdAction]);
 
   return (
     <div className="relative w-full h-full flex flex-col">
