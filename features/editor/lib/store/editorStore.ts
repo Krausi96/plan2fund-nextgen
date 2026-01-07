@@ -483,71 +483,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         currentPlan.productType = product;
       }
       
-      // Ensure special sections exist in the plan sections if they don't already exist
-      if (currentPlan && currentPlan.sections) {
-        const existingSectionIds = new Set(currentPlan.sections.map(s => s.id));
-        
-        // Define the special sections that should always exist
-        const specialSections = [
-          {
-            id: 'metadata',
-            title: 'Title Page',
-            description: 'Document title page with company information',
-            required: true,
-            category: 'general',
-            origin: 'template',
-          },
-          {
-            id: 'ancillary',
-            title: 'Table of Contents',
-            description: 'Automatically generated table of contents',
-            required: true,
-            category: 'general',
-            origin: 'template',
-          },
-          {
-            id: 'references',
-            title: 'References',
-            description: 'List of references and citations',
-            required: false,
-            category: 'general',
-            origin: 'template',
-          },
-          {
-            id: 'appendices',
-            title: 'Appendices',
-            description: 'Additional supporting documents and information',
-            required: false,
-            category: 'general',
-            origin: 'template',
-          }
-        ];
-        
-        // Find missing special sections
-        const missingSpecialSections = specialSections.filter(s => !existingSectionIds.has(s.id));
-        
-        // Add missing special sections to the plan
-        if (missingSpecialSections.length > 0) {
-          const newPlanSections = [...currentPlan.sections];
-          
-          missingSpecialSections.forEach(specialSection => {
-            newPlanSections.push({
-              key: specialSection.id,
-              id: specialSection.id,
-              title: specialSection.title,
-              content: '', // Empty content initially
-              fields: {
-                displayTitle: specialSection.title,
-                sectionNumber: null,
-              },
-              status: 'draft',
-            });
-          });
-          
-          currentPlan.sections = newPlanSections;
-          set({ plan: currentPlan });
-        }
-      }
+      // Special sections are now managed through templates, not automatically added
+      // This prevents duplication issues with Strategy and Review products
     }
   },
   setProgramSummary: (summary) => set({ programSummary: summary }),

@@ -4,39 +4,74 @@ import type { DocumentTemplate, SectionTemplate } from './types/types';
 // STRATEGY DOCUMENTS
 // ============================================================================
 
-const STRATEGY_DOCUMENTS: DocumentTemplate[] = [
+// ============================================================================
+// STRATEGY SECTIONS
+// ====================================================================
+
+const STRATEGY_SECTIONS: SectionTemplate[] = [
   {
-    id: 'business_model_value_proposition',
-    name: 'Business Model & Value Proposition',
-    description: 'Outline how your business will generate revenue, pricing strategy, and value delivered to customers.',
+    id: 'business_model_canvas',
+    title: 'Business Model Canvas',
+    description: 'Outline your business model using the 9-block canvas framework.',
     required: true,
-    format: 'docx',
-    maxSize: '5MB',
-    category: 'business',
-    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa'],
-    origin: 'template'
+    wordCountMin: 300,
+    wordCountMax: 600,
+    order: 1,
+    category: 'project',
+    origin: 'template',
+    prompts: [
+      'Describe your value proposition and customer segments',
+      'Explain your revenue streams and cost structure',
+      'Define your key activities and resources'
+    ]
   },
   {
-    id: 'competitive_landscape',
-    name: 'Competitive Landscape',
-    description: 'Identify key competitors and differentiate your offering.',
+    id: 'go_to_market_strategy',
+    title: 'Go-To-Market Strategy',
+    description: 'Detail your market entry approach and customer acquisition plan.',
     required: true,
-    format: 'docx',
-    maxSize: '5MB',
+    wordCountMin: 250,
+    wordCountMax: 500,
+    order: 2,
     category: 'market',
-    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa'],
-    origin: 'template'
+    origin: 'template',
+    prompts: [
+      'Identify your target market and customer personas',
+      'Outline your pricing strategy and distribution channels',
+      'Describe your promotional and sales tactics'
+    ]
   },
   {
-    id: 'preliminary_financial_overview',
-    name: 'Preliminary Financial Overview',
-    description: 'Provide high-level financial assumptions including costs, revenue potential, and funding needed.',
+    id: 'unit_economics',
+    title: 'Unit Economics',
+    description: 'Calculate and explain your unit-level financial metrics.',
     required: true,
-    format: 'xlsx',
-    maxSize: '10MB',
+    wordCountMin: 200,
+    wordCountMax: 400,
+    order: 3,
     category: 'financial',
-    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa'],
-    origin: 'template'
+    origin: 'template',
+    prompts: [
+      'Calculate your price per unit and unit costs',
+      'Determine contribution margin and break-even point',
+      'Explain your path to profitability'
+    ]
+  },
+  {
+    id: 'milestones_next_steps',
+    title: 'Milestones & Next Steps',
+    description: 'Outline key milestones and immediate next steps for your venture.',
+    required: true,
+    wordCountMin: 150,
+    wordCountMax: 300,
+    order: 4,
+    category: 'general',
+    origin: 'template',
+    prompts: [
+      'List your short-term and medium-term milestones',
+      'Identify key resources and partnerships needed',
+      'Define success metrics and timeline'
+    ]
   }
 ];
 
@@ -127,38 +162,15 @@ const FULL_SECTIONS: SectionTemplate[] = [
 // MASTER TEMPLATES
 // ============================================================================
 
-export const MASTER_DOCUMENTS: Record<string, Record<string, DocumentTemplate[]>> = {
-  grants: {
-    submission: [],
-    strategy: STRATEGY_DOCUMENTS,
-    review: []
-  },
-  bankLoans: {
-    submission: [],
-    strategy: STRATEGY_DOCUMENTS,
-    review: []
-  },
-  equity: {
-    submission: [],
-    strategy: STRATEGY_DOCUMENTS,
-    review: []
-  },
-  visa: {
-    submission: [],
-    strategy: STRATEGY_DOCUMENTS,
-    review: []
-  }
-};
-
 export const MASTER_SECTIONS: Record<string, SectionTemplate[]> = {
-  strategy: [], // Strategy uses documents instead
-  review: FULL_SECTIONS,
+  strategy: STRATEGY_SECTIONS, // Strategy now uses strategy-specific sections
+  review: FULL_SECTIONS, // Review now uses sections
   submission: FULL_SECTIONS
 };
 
 // Simplified document lookup by product type (all funding types share same docs per product)
 export const MASTER_DOCUMENTS_BY_PRODUCT: Record<string, DocumentTemplate[]> = {
-  strategy: STRATEGY_DOCUMENTS,
-  review: [],
+  strategy: [], // Strategy now uses sections, no documents
+  review: [], // Review now uses sections, no documents
   submission: []
 };
