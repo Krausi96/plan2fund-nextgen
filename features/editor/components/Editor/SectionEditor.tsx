@@ -38,7 +38,9 @@ export default function SectionEditor({ sectionId, onClose, isCollapsed = false,
   const plan = useEditorStore(state => state.plan);
   const program = useEditorStore(state => state.programSummary);
   const updateSection = useEditorStore(state => state.updateSection);
-  const setEditingMode = useEditorStore(state => state.setEditingMode);
+  
+  // Removed: setEditingMode (not used)
+
   
   useEscapeKeyHandler(!!sectionId, onClose);
 
@@ -120,20 +122,7 @@ What would you like to do?`;
 
   const { section } = editorState;
   
-  // Set editing mode when section is selected and clear when unselected
-  useEffect(() => {
-    if (sectionId) {
-      setEditingMode('section');
-    } else {
-      setEditingMode('none');
-    }
-    
-    return () => {
-      if (!sectionId) {
-        setEditingMode('none');
-      }
-    };
-  }, [sectionId, setEditingMode]);
+
 
   const handleSend = async () => {
     if (!input.trim() || !section || isLoading) return;
@@ -147,7 +136,7 @@ What would you like to do?`;
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-    setEditingMode('ai'); // Set AI editing mode
+    
     
     try {
       // Detect context from user message
@@ -235,7 +224,6 @@ What would you like to do?`;
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      setEditingMode('section'); // Return to section editing mode after AI interaction
     }
   };
 

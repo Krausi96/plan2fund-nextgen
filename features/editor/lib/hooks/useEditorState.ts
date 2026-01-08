@@ -24,7 +24,7 @@
  *   2. useSidebarState() - Complete sidebar state + actions + handlers
  *   3. useDocumentsBarState() - Complete documents bar state + actions + handlers
  *   4. useConfiguratorState() - Product/program selection state + actions
- *   5. useSectionsDocumentsManagementState() - Sections/documents management state
+
  *   6. useSectionEditorState() - Section editor specific state
  *   7. usePreviewState() - Preview workspace state
  * 
@@ -51,9 +51,7 @@ import {
   useDisabledSectionsSet,
   useDisabledDocumentsSet,
   // Data selectors
-  useSectionsForConfig,
   useSectionsForSidebar,
-  useDocumentsForConfig,
   useVisibleDocuments,
 
   useSectionsAndDocumentsCounts,
@@ -79,7 +77,6 @@ export function useEditorState() {
     plan: state.plan,
     isLoading: state.isLoading,
     error: state.error,
-    progressSummary: state.progressSummary,
     
     // Navigation
     activeSectionId: state.activeSectionId,
@@ -144,72 +141,7 @@ export function useConfiguratorState() {
   };
 }
 
-/**
- * Unified Sections & Documents Management State Hook (like useIsNewUser pattern)
- * Consolidates all sections/documents management data and actions
- * Optimized: Only subscribes to needed actions
- */
-export function useSectionsDocumentsManagementState() {
-  const { t } = useI18n();
-  // Optimized: Single selector
-  const { allSections, allDocuments, disabledSectionIds, disabledDocumentIds, selectedProduct, programSummary, showAddSection, showAddDocument } = useEditorStore((state) => ({
-    allSections: state.allSections,
-    allDocuments: state.allDocuments,
-    disabledSectionIds: state.disabledSectionIds,
-    disabledDocumentIds: state.disabledDocumentIds,
-    selectedProduct: state.selectedProduct,
-    programSummary: state.programSummary,
-    showAddSection: state.showAddSection,
-    showAddDocument: state.showAddDocument,
-  }));
-  
-  // Use selector hook for consistency
-  const selectedProductMeta = useSelectedProductMeta();
-  
-  // Optimized: Select only needed actions instead of all actions
-  const actions = useEditorActions((a) => ({
-    setDisabledSectionIds: a.setDisabledSectionIds,
-    setDisabledDocumentIds: a.setDisabledDocumentIds,
-    setShowAddSection: a.setShowAddSection,
-    setShowAddDocument: a.setShowAddDocument,
-    addCustomSection: a.addCustomSection,
-  }));
-  
-  // Use store hooks (single source of truth) - these need complex logic so keep as separate hooks
-  const sectionsToShow = useSectionsForConfig(t);
-  const documentsToShow = useDocumentsForConfig();
-  const counts = useSectionsAndDocumentsCounts();
-  const documentCounts = {
-    enabledCount: counts.enabledDocumentsCount,
-    totalCount: counts.totalDocumentsCount,
-  };
-  
-  // Toggle handlers
-  const sectionToggleHandlers = useToggleHandlers(allSections, disabledSectionIds, actions.setDisabledSectionIds);
-  const documentToggleHandlers = useToggleHandlers(allDocuments, disabledDocumentIds, actions.setDisabledDocumentIds);
-  
-  // Memoized actions
-  const managementActions = useMemo(() => ({
-    toggleSection: sectionToggleHandlers.toggle,
-    toggleDocument: documentToggleHandlers.toggle,
-    toggleAddSection: () => actions.setShowAddSection(!showAddSection),
-    toggleAddDocument: () => actions.setShowAddDocument(!showAddDocument),
-    addCustomSection: actions.addCustomSection,
-  }), [sectionToggleHandlers, documentToggleHandlers, actions, showAddSection, showAddDocument]);
-  
-  return {
-    sections: sectionsToShow,
-    documents: documentsToShow,
-    documentCounts,
-    counts,
-    selectedProductMeta,
-    selectedProduct,
-    programSummary,
-    showAddSection,
-    showAddDocument,
-    actions: managementActions,
-  };
-}
+
 
 /**
  * Unified Section Editor State Hook (like useIsNewUser pattern)
@@ -302,26 +234,18 @@ export function useSectionEditorState(sectionId: string | null) {
  */
 export function usePreviewState() {
   // Optimized: Batch all state reads into single selector + compute booleans inline
-  const { plan, clickedDocumentId, isNewUser, hasPlan } = useEditorStore((state) => {
+  const { plan, isNewUser, hasPlan } = useEditorStore((state) => {
     const plan = state.plan;
-    const clickedDocumentId = state.clickedDocumentId;
     // Compute booleans inline instead of separate hook calls
     const isNewUser = !plan && !state.selectedProduct;
     const hasPlan = !!plan;
-    return { plan, clickedDocumentId, isNewUser, hasPlan };
+    return { plan, isNewUser, hasPlan };
   });
-  
-  const selectedDocument = useMemo(() => {
-    if (!plan || !clickedDocumentId) return null;
-    return plan.documents?.find((doc: any) => doc.id === clickedDocumentId) || null;
-  }, [plan, clickedDocumentId]);
   
   return {
     plan,
     isNewUser,
     hasPlan,
-    selectedDocument,
-    clickedDocumentId,
   };
 }
 

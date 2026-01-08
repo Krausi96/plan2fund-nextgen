@@ -32,8 +32,6 @@ export default function DevClearCacheButton() {
         isLoading: false,
         error: null,
         activeSectionId: null,
-        activeQuestionId: null,
-        progressSummary: undefined,
         selectedProduct: null,
         programSummary: null,
         allSections: [],

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 
 import CurrentSelection from './Navigation/CurrentSelection';
-import DocumentsBar from './Navigation/DocumentsBar';
-import Sidebar from './Navigation/Sidebar';
+import TreeNavigator from './Navigation/TreeNavigator';
 import PreviewWorkspace from './Preview/PreviewWorkspace';
 import SectionEditor from './Editor/SectionEditor';
 import { 
@@ -59,11 +58,9 @@ export default function Editor({}: EditorProps = {}) {
         <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)] h-full" style={{ maxWidth: '1800px', margin: '0 auto' }}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900 rounded-[32px]" />
           <div className="relative z-10 flex flex-col gap-2 p-4 lg:p-6 h-full" style={{ overflow: 'hidden' }}>
-            {/* Dein Schreibtisch Header */}
-            <div className="flex-shrink-0 mb-1">
-              <h1 className="text-lg font-bold uppercase tracking-wide text-white">
-                🖥️ {t('editor.desktop.title' as any) || 'Dein Schreibtisch'}
-              </h1>
+            {/* CurrentSelection as Unified Header - No spacing above/below */}
+            <div className="flex-shrink-0">
+              <CurrentSelection />
             </div>
 
             {/* Workspace Container */}
@@ -74,25 +71,13 @@ export default function Editor({}: EditorProps = {}) {
                 className="flex-1 px-3 lg:px-4 pb-3 lg:pb-4 flex gap-4"
                 style={{ minHeight: 0, overflow: 'hidden' }}
               >
-                {/* Left Column: CurrentSelection + Sidebar - Fixed width */}
-                <div className="flex-shrink-0 flex flex-col gap-3" style={{ width: '320px', minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
-                  {/* Current Selection - Top */}
-                  <div className="flex-shrink-0">
-                    <CurrentSelection />
-                  </div>
-                              
-                  {/* Sidebar - Below CurrentSelection */}
-                  <div className="flex-1 border-t border-white/10 pt-3" style={{ minHeight: 0, overflow: 'auto' }}>
-                    <Sidebar />
-                  </div>
+                {/* Left Column: Unified Tree Navigator - Fixed width */}
+                <div className="flex-shrink-0" style={{ width: '320px', minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
+                  <TreeNavigator />
                 </div>
                             
                 {/* Preview Area - Grows to fill space */}
                 <div className="flex-1 flex flex-col" style={{ minWidth: 0, minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
-                  {/* DocumentsBar above Preview */}
-                  <div className="flex-shrink-0">
-                    <DocumentsBar compact={false} />
-                  </div>
                   {/* Preview */}
                   <div className="flex-1" style={{ minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
                     <PreviewWorkspace />

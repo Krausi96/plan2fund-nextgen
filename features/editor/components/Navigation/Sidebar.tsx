@@ -168,11 +168,12 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
           <button
             type="button"
             onClick={actions.toggleAddSection}
-            className={`w-full rounded-lg transition-colors flex flex-col items-center justify-center gap-1.5 p-2 ${
+            className={`mx-auto rounded-lg transition-colors flex flex-col items-center justify-center gap-1.5 p-2 ${
               showAddSection 
                 ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
                 : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
             }`}
+            style={{ width: '224px', height: '85px' }}
           >
             <span className="text-xl leading-none">＋</span>
             <span className="text-[10px] font-semibold">{t('editor.desktop.sections.addButton' as any) || 'Add Section'}</span>
@@ -243,7 +244,8 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                 // Set active section with source - the PreviewWorkspace handles the scrolling via useEffect
                 actions.setActiveSectionId(section.id, 'sidebar');
               }}
-              className={`relative border rounded-lg p-2 transition-all w-full flex flex-col items-center justify-center gap-1.5 cursor-pointer ${cardClass}`}
+              className={`relative border rounded-lg p-2 transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${cardClass}`}
+              style={{ width: '224px', height: '85px', margin: '0 auto' }}
             >
               <span className="text-xl leading-none flex-shrink-0">📋</span>
               <div className="w-full text-center">

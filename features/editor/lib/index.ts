@@ -143,7 +143,6 @@ export {
   useDocumentsBarState,
   usePreviewState,
   useConfiguratorState,
-  useSectionsDocumentsManagementState,
   useSectionEditorState,
 } from './hooks/useEditorState';
 
@@ -179,7 +178,6 @@ export {
 
 export {
   detectAIContext,
-  parseAIActions,
   generateSectionContent,
 } from '../components/Editor/sectionAiClient';
 
@@ -196,6 +194,5 @@ export type {
 // ============================================================================
 
 export {
-  MASTER_DOCUMENTS,
   MASTER_SECTIONS,
 } from './templates';

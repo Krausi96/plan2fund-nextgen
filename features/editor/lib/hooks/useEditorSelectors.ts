@@ -116,7 +116,6 @@ export const useSelectedProductMeta = (): ProductOption | null => {
  */
 export const useEffectiveEditingSectionId = (): string | null => {
   return useEditorStore((state) => {
-    if (state.editingSectionId) return state.editingSectionId;
     if (state.activeSectionId) return state.activeSectionId;
     if (state.plan?.sections && state.plan.sections.length > 0) {
       return state.plan.sections[0].id;
@@ -138,7 +137,7 @@ export const useVisibleDocuments = (): DocumentTemplate[] => {
 /**
  * Hook to get sections for configuration view
  * Combines normal sections with special sections in correct order
- * Used by: SectionsDocumentsManagement, useSectionsDocumentsManagementState
+ * Used by: SectionsDocumentsManagement
  */
 export const useSectionsForConfig = (
   t: (key: any) => string
@@ -267,7 +266,7 @@ export const useSectionsForSidebar = (
 
 /**
  * Hook to get documents for configuration view
- * Used by: SectionsDocumentsManagement, useSectionsDocumentsManagementState
+ * Used by: SectionsDocumentsManagement
  */
 export const useDocumentsForConfig = (): DocumentWithMetadata[] => {
   return useEditorStore((state) =>
@@ -283,7 +282,7 @@ export const useDocumentsForConfig = (): DocumentWithMetadata[] => {
 
 /**
  * Hook to get document counts (enabled and total)
- * Used by: DocumentsBar, useDocumentsBarState, useSectionsDocumentsManagementState
+ * Used by: DocumentsBar, useDocumentsBarState
  */
 export const useDocumentCounts = (): {
   enabledCount: number;

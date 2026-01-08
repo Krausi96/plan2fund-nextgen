@@ -24,12 +24,9 @@
 import { create } from 'zustand';
 import type { BusinessPlan, ProductType, SectionTemplate, DocumentTemplate, ProgramSummary } from '../types/types';
 import { MASTER_SECTIONS, MASTER_DOCUMENTS_BY_PRODUCT } from '../templates';
-import { METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '../constants';
+import { METADATA_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '../constants';
 
-// ============================================================================
-// HELPER TYPES
-// ============================================================================
-
+// Helper types
 export type SectionWithMetadata = {
   id: string;
   title: string;
@@ -48,22 +45,19 @@ export type DocumentWithMetadata = {
   [key: string]: any;
 };
 
-type ProgressSummary = any;
 
-// ============================================================================
-// STATE INTERFACE - All editor state in one place
-// ============================================================================
 
+// State interface
 export interface EditorState {
   // ========== PLAN DATA (Core business plan) ==========
   plan: BusinessPlan | null;
   isLoading: boolean;
   error: string | null;
-  progressSummary: ProgressSummary[];
+  // Removed: progressSummary (not used)
 
   // ========== NAVIGATION STATE ==========
   activeSectionId: string | null;
-  activeQuestionId: string | null;
+  // Removed: activeQuestionId (not used)
 
   // ========== PRODUCT & PROGRAM STATE ==========
   selectedProduct: ProductType | null;
@@ -73,13 +67,13 @@ export interface EditorState {
 
   // ========== UI STATE ==========
   isConfiguratorOpen: boolean;
-  editingSectionId: string | null;
+  // Removed: editingSectionId (not used)
   
   // ========== EDITING MODE STATE ==========
-  editingMode: 'none' | 'section' | 'ai';
+  // Removed: editingMode (not used)
   
   // ========== NAVIGATION STATE ==========
-  navigationSource: 'sidebar' | 'scroll' | 'editor' | 'direct' | null;
+  // Removed: navigationSource (not used)
   
   // ========== TEMPLATE MANAGEMENT STATE ==========
   disabledSectionIds: string[];
@@ -109,27 +103,23 @@ export interface EditorState {
   clickedDocumentId: string | null;
   
   // ========== LOADING STATES ==========
-  templateLoading: boolean;
-  templateError: string | null;
+  // Removed: templateLoading, templateError (not used)
 }
 
-// ============================================================================
-// ACTIONS INTERFACE - All ways to update state
-// ============================================================================
-
+// Actions interface
 export interface EditorActions {
   // Plan actions
   setPlan: (plan: BusinessPlan | null) => void;
   setIsLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  setProgressSummary: (summary: ProgressSummary[]) => void;
+  // Removed: setProgressSummary (not used)
   updateSection: (sectionId: string, updates: Partial<{content: string; title: string; [key: string]: any}>) => void;
   addCustomSection: (title: string, description?: string) => void;
   removeCustomSection: (sectionId: string) => void;
   
   // Navigation actions
   setActiveSectionId: (id: string | null, source?: 'sidebar' | 'scroll' | 'editor' | 'direct') => void;
-  setActiveQuestionId: (id: string | null) => void;
+  // Removed: setActiveQuestionId (not used)
   
   // Product & Program actions
   setSelectedProduct: (product: ProductType | null) => void;
@@ -139,9 +129,9 @@ export interface EditorActions {
   
   // UI actions
   setIsConfiguratorOpen: (open: boolean) => void;
-  setEditingSectionId: (id: string | null) => void;
-  setEditingMode: (mode: 'none' | 'section' | 'ai') => void;
-  setNavigationSource: (source: 'sidebar' | 'scroll' | 'editor' | 'direct' | null) => void;
+  // Removed: setEditingSectionId (not used)
+  // Removed: setEditingMode (not used)
+  // Removed: setNavigationSource (not used)
   
   // Template management actions
   setDisabledSectionIds: (ids: string[]) => void;
@@ -171,34 +161,25 @@ export interface EditorActions {
   setClickedDocumentId: (id: string | null) => void;
   
   // Loading actions
-  setTemplateLoading: (loading: boolean) => void;
-  setTemplateError: (error: string | null) => void;
+  // Removed: setTemplateLoading, setTemplateError (not used)
   
   // Helper actions (combine multiple updates)
   resetFormState: () => void;
   syncTemplateStateFromPlan: () => void;
 }
 
-// ============================================================================
-// STORE TYPE
-// ============================================================================
-
+// Store type
 export type EditorStore = EditorState & EditorActions;
 
-// ============================================================================
-// INITIAL STATE
-// ============================================================================
-
+// Initial state
 const initialState: EditorState = {
-  // Plan data
+  // Core data
   plan: null,
   isLoading: false,
   error: null,
-  progressSummary: [],
   
   // Navigation
   activeSectionId: null,
-  activeQuestionId: null,
   
   // Product & Program
   selectedProduct: null,
@@ -206,17 +187,10 @@ const initialState: EditorState = {
   programLoading: false,
   programError: null,
   
-  // UI
+  // UI state
   isConfiguratorOpen: false,
-  editingSectionId: null,
   
-  // Editing mode
-  editingMode: 'none',
-  
-  // Navigation state
-  navigationSource: null,
-  
-  // Template management
+  // Templates
   disabledSectionIds: [],
   disabledDocumentIds: [],
   customSections: [],
@@ -224,7 +198,7 @@ const initialState: EditorState = {
   allSections: [],
   allDocuments: [],
   
-  // Form state
+  // Forms
   showAddSection: false,
   showAddDocument: false,
   newSectionTitle: '',
@@ -232,92 +206,63 @@ const initialState: EditorState = {
   newDocumentName: '',
   newDocumentDescription: '',
   
-  // Expansion
+  // Expansion & Editing
   expandedSectionId: null,
   expandedDocumentId: null,
-  
-  // Editing
   editingSection: null,
   editingDocument: null,
   
-  // Document selection
+  // Selection & Loading
   clickedDocumentId: null,
-  
-  // Loading
-  templateLoading: false,
-  templateError: null,
 };
 
-// ============================================================================
-// ZUSTAND STORE CREATION
-// ============================================================================
-
+// Zustand store
 export const useEditorStore = create<EditorStore>((set, get) => ({
   ...initialState,
   
-  // ========== PLAN ACTIONS ==========
+  // Plan actions
   setPlan: (plan) => {
     set({ plan });
-    // Auto-sync template state from plan when plan changes
     get().syncTemplateStateFromPlan();
   },
   setIsLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),
-  setProgressSummary: (summary) => set({ progressSummary: summary }),
+  // Removed: setProgressSummary (not used)
   
   updateSection: (sectionId, updates) => {
     const plan = get().plan;
     if (!plan) return;
     
-    // Check if this is a special section that requires different handling
-    if (sectionId === METADATA_SECTION_ID) {
-      // Handle title page updates
-      if (plan.settings && plan.settings.titlePage) {
-        const updatedTitlePage = { ...plan.settings.titlePage, ...updates };
-        const updatedPlan = {
-          ...plan,
-          settings: {
-            ...plan.settings,
-            titlePage: updatedTitlePage
-          }
-        };
-        set({ plan: updatedPlan });
-        return;
-      }
-    } else if (sectionId === ANCILLARY_SECTION_ID) {
-      // Handle table of contents updates
-      // Ancillary section typically doesn't have direct content updates
-      // but we'll ensure it's properly handled
-      const updatedPlan = { ...plan };
-      set({ plan: updatedPlan });
-      return;
-    } else if (sectionId === REFERENCES_SECTION_ID) {
-      // Handle references updates
+    // Handle special sections
+    if (sectionId === METADATA_SECTION_ID && plan.settings?.titlePage) {
       const updatedPlan = {
         ...plan,
-        references: updates.references || plan.references || []
-      };
-      set({ plan: updatedPlan });
-      return;
-    } else if (sectionId === APPENDICES_SECTION_ID) {
-      // Handle appendices updates
-      const updatedPlan = {
-        ...plan,
-        appendices: updates.appendices || plan.appendices || []
+        settings: {
+          ...plan.settings,
+          titlePage: { ...plan.settings.titlePage, ...updates }
+        }
       };
       set({ plan: updatedPlan });
       return;
     }
     
+    if (sectionId === REFERENCES_SECTION_ID) {
+      set({ plan: { ...plan, references: updates.references || plan.references || [] } });
+      return;
+    }
+    
+    if (sectionId === APPENDICES_SECTION_ID) {
+      set({ plan: { ...plan, appendices: updates.appendices || plan.appendices || [] } });
+      return;
+    }
+    
     // Regular section updates
     if (plan.sections) {
-      const updatedSections = plan.sections.map(section => {
-        if (section.id === sectionId || section.key === sectionId) {
-          return { ...section, ...updates };
-        }
-        return section;
-      });
-      
+      const updatedSections = plan.sections.map(section => 
+        section.id === sectionId || section.key === sectionId 
+          ? { ...section, ...updates }
+          : section
+      );
       set({ plan: { ...plan, sections: updatedSections } });
     }
   },
@@ -411,20 +356,14 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }
   },
   
-  // ========== NAVIGATION ACTIONS ==========
-  setActiveSectionId: (id, source: 'sidebar' | 'scroll' | 'editor' | 'direct' = 'direct') => {
+  // Navigation actions
+  setActiveSectionId: (id, _source: 'sidebar' | 'scroll' | 'editor' | 'direct' = 'direct') => {
     set({ activeSectionId: id });
-    set({ navigationSource: source });
   },
-  setActiveQuestionId: (id) => set({ activeQuestionId: id }),
+  // Removed: setActiveQuestionId (not used)
   
-  // ========== PRODUCT & PROGRAM ACTIONS ==========
+  // Product & Program actions
   setSelectedProduct: (product) => {
-    const currentPlan = get().plan;
-    const disabledSectionIds = get().disabledSectionIds;
-    
-    // Always load sections and documents for the selected product
-    // This ensures correct templates are loaded when product changes
     let allSections: SectionTemplate[] = [];
     let allDocuments: DocumentTemplate[] = [];
     
@@ -434,24 +373,20 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       set({ allSections, allDocuments });
     }
     
-    // If no plan exists and product is selected, create a new plan
-    if (!currentPlan && product && allSections.length > 0) {
-      // Build sections from allSections template (excluding disabled ones)
-      const planSections = allSections
-        .filter(section => !disabledSectionIds.includes(section.id))
-        .map(section => ({
-          key: section.id,
-          id: section.id,
-          title: section.title || section.name || '',
-          content: '', // Empty content initially
-          fields: {
-            displayTitle: section.title || section.name,
-            sectionNumber: null,
-          },
-          status: 'draft',
-        }));
+    // Create/update plan with new product's sections
+    if (product && allSections.length > 0) {
+      const planSections = allSections.map(section => ({
+        key: section.id,
+        id: section.id,
+        title: section.title || section.name || '',
+        content: '',
+        fields: {
+          displayTitle: section.title || section.name,
+          sectionNumber: null,
+        },
+        status: 'draft',
+      }));
       
-      // Create new plan with basic structure
       const newPlan: BusinessPlan = {
         language: 'en',
         productType: product,
@@ -477,100 +412,70 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       
       set({ selectedProduct: product, plan: newPlan });
     } else {
-      // Plan exists or no product selected, just update product type
-      set({ selectedProduct: product });
-      if (currentPlan && product) {
-        currentPlan.productType = product;
-      }
-      
-      // Special sections are now managed through templates, not automatically added
-      // This prevents duplication issues with Strategy and Review products
+      set({ selectedProduct: product, plan: null });
     }
   },
   setProgramSummary: (summary) => set({ programSummary: summary }),
   setProgramLoading: (loading) => set({ programLoading: loading }),
   setProgramError: (error) => set({ programError: error }),
   
-  // ========== UI ACTIONS ==========
+  // UI actions
   setIsConfiguratorOpen: (open) => set({ isConfiguratorOpen: open }),
-  setEditingSectionId: (id) => set({ editingSectionId: id }),
-  setEditingMode: (mode) => set({ editingMode: mode }),
-  setNavigationSource: (source) => set({ navigationSource: source }),
+  // Removed: setEditingSectionId (not used)
+  // Removed: setEditingMode (not used)
+  // Removed: setNavigationSource (not used)
   
-  // ========== TEMPLATE MANAGEMENT ACTIONS ==========
+  // Template management
   setDisabledSectionIds: (ids) => {
     set({ disabledSectionIds: ids });
-    // Sync to plan.metadata
     const plan = get().plan;
-    if (plan && plan.metadata) {
-      plan.metadata.disabledSectionIds = ids;
-    }
+    if (plan?.metadata) plan.metadata.disabledSectionIds = ids;
   },
   setDisabledDocumentIds: (ids) => {
     set({ disabledDocumentIds: ids });
-    // Sync to plan.metadata
     const plan = get().plan;
-    if (plan && plan.metadata) {
-      plan.metadata.disabledDocumentIds = ids;
-    }
+    if (plan?.metadata) plan.metadata.disabledDocumentIds = ids;
   },
   setCustomSections: (sections) => {
     set({ customSections: sections });
-    // Sync to plan.metadata
     const plan = get().plan;
-    if (plan && plan.metadata) {
-      plan.metadata.customSections = sections;
-    }
+    if (plan?.metadata) plan.metadata.customSections = sections;
   },
   setCustomDocuments: (documents) => {
     set({ customDocuments: documents });
-    // Sync to plan.metadata
     const plan = get().plan;
-    if (plan && plan.metadata) {
-      plan.metadata.customDocuments = documents;
-    }
+    if (plan?.metadata) plan.metadata.customDocuments = documents;
   },
   setAllSections: (sections) => set({ allSections: sections }),
   setAllDocuments: (documents) => set({ allDocuments: documents }),
   
-  // ========== FORM ACTIONS ==========
+  // Forms, Expansion, Editing
   setShowAddSection: (show) => set({ showAddSection: show }),
   setShowAddDocument: (show) => set({ showAddDocument: show }),
   setNewSectionTitle: (title) => set({ newSectionTitle: title }),
   setNewSectionDescription: (description) => set({ newSectionDescription: description }),
   setNewDocumentName: (name) => set({ newDocumentName: name }),
   setNewDocumentDescription: (description) => set({ newDocumentDescription: description }),
-  
-  // ========== EXPANSION ACTIONS ==========
   setExpandedSectionId: (id) => set({ expandedSectionId: id }),
   setExpandedDocumentId: (id) => set({ expandedDocumentId: id }),
-  
-  // ========== EDITING ACTIONS ==========
   setEditingSection: (section) => set({ editingSection: section }),
   setEditingDocument: (document) => set({ editingDocument: document }),
-  
-  // ========== DOCUMENT SELECTION ACTIONS ==========
   setClickedDocumentId: (id) => set({ clickedDocumentId: id }),
+  // Removed: setTemplateLoading, setTemplateError (not used)
   
-  // ========== LOADING ACTIONS ==========
-  setTemplateLoading: (loading) => set({ templateLoading: loading }),
-  setTemplateError: (error) => set({ templateError: error }),
-  
-  // ========== HELPER ACTIONS ==========
-  resetFormState: () => {
-    set({
-      showAddSection: false,
-      showAddDocument: false,
-      newSectionTitle: '',
-      newSectionDescription: '',
-      newDocumentName: '',
-      newDocumentDescription: '',
-    });
-  },
+  // Helpers
+  resetFormState: () => set({
+    showAddSection: false,
+    showAddDocument: false,
+    newSectionTitle: '',
+    newSectionDescription: '',
+    newDocumentName: '',
+    newDocumentDescription: '',
+  }),
   
   syncTemplateStateFromPlan: () => {
     const plan = get().plan;
-    if (!plan || !plan.metadata) return;
+    if (!plan?.metadata) return;
     
     set({
       disabledSectionIds: plan.metadata.disabledSectionIds || [],

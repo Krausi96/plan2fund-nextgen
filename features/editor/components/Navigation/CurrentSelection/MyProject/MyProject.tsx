@@ -26,9 +26,6 @@ const MyProject: React.FC<MyProjectProps> = ({ className = '' }) => {
 
   return (
     <div className={`flex-1 min-w-0 ${className}`}>
-      <div className="text-white/60 text-[11px] font-semibold uppercase tracking-wide leading-tight mb-1">
-        {t('editor.desktop.myProject.title' as any) || 'My Project'}
-      </div>
       <div className="text-white font-semibold text-sm leading-snug truncate" title={projectSummary}>
         {projectSummary}
       </div>

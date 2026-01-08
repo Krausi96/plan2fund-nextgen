@@ -23,10 +23,10 @@
  *   2. useEscapeKeyHandler(isActive, handler) - Handle Escape key press
  * 
  * ACTIONS AVAILABLE:
- *   - Plan: setPlan, setIsLoading, setError, setProgressSummary
- *   - Navigation: setActiveSectionId, setActiveQuestionId
+ *   - Plan: setPlan, setIsLoading, setError
+ *   - Navigation: setActiveSectionId
  *   - Product/Program: setSelectedProduct, setProgramSummary, etc.
- *   - UI: setIsConfiguratorOpen, setEditingSectionId
+ *   - UI: setIsConfiguratorOpen
  *   - Templates: setDisabledSectionIds, setAllSections, etc.
  *   - Forms: setShowAddSection, setNewSectionTitle, etc.
  *   - Expansion: setExpandedSectionId, setExpandedDocumentId
@@ -50,18 +50,18 @@ export function useEditorActions<T>(selector: (actions: any) => T): T {
       setPlan: state.setPlan,
       setIsLoading: state.setIsLoading,
       setError: state.setError,
-      setProgressSummary: state.setProgressSummary,
+      // Removed: setProgressSummary (not used - property removed from store)
       updateSection: state.updateSection,
       addCustomSection: state.addCustomSection,
       removeCustomSection: state.removeCustomSection,
       setActiveSectionId: state.setActiveSectionId,
-      setActiveQuestionId: state.setActiveQuestionId,
+      // Removed: setActiveQuestionId (not used - property removed from store)
       setSelectedProduct: state.setSelectedProduct,
       setProgramSummary: state.setProgramSummary,
       setProgramLoading: state.setProgramLoading,
       setProgramError: state.setProgramError,
       setIsConfiguratorOpen: state.setIsConfiguratorOpen,
-      setEditingSectionId: state.setEditingSectionId,
+      // Removed: setEditingSectionId (not used - property removed from store)
       setDisabledSectionIds: state.setDisabledSectionIds,
       setDisabledDocumentIds: state.setDisabledDocumentIds,
       setCustomSections: state.setCustomSections,
@@ -79,8 +79,8 @@ export function useEditorActions<T>(selector: (actions: any) => T): T {
       setEditingSection: state.setEditingSection,
       setEditingDocument: state.setEditingDocument,
       setClickedDocumentId: state.setClickedDocumentId,
-      setTemplateLoading: state.setTemplateLoading,
-      setTemplateError: state.setTemplateError,
+      // Removed: setTemplateLoading (not used - property removed from store)
+      // Removed: setTemplateError (not used - property removed from store)
       resetFormState: state.resetFormState,
       syncTemplateStateFromPlan: state.syncTemplateStateFromPlan,
     };

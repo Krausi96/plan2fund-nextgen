@@ -26,9 +26,6 @@ const ReadinessCheck: React.FC<ReadinessCheckProps> = ({ className = '' }) => {
 
   return (
     <div className={`flex-1 min-w-0 ${className}`}>
-      <div className="text-white/60 text-[11px] font-semibold uppercase tracking-wide leading-tight mb-1">
-        {t('editor.desktop.readinessCheck.title' as any) || 'Readiness Check'}
-      </div>
       <div className={`text-white font-semibold text-sm leading-snug truncate ${scoreColor}`} title={`${t('editor.desktop.readinessCheck.overall' as any) || 'Overall'}: ${overallScore}%`}>
         {readinessSummary}
       </div>

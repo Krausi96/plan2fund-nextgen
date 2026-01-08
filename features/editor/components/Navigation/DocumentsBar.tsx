@@ -121,9 +121,9 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
   }
 
   return (
-    <div className="relative w-full pb-3">
-      {/* Header with separator */}
-      <div className="flex-shrink-0 mb-3 px-3 pt-2">
+    <div className="relative w-full pb-2">
+      {/* Header with separator - Reduced spacing */}
+      <div className="flex-shrink-0 mb-2 px-3 pt-1">
         <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
           <h2 className="text-xl font-bold uppercase tracking-wide text-white text-center flex-1">
             {t('editor.desktop.documents.title' as any) || (useEditorStore.getState().plan?.language === 'de' ? 'Dokumente' : 'Documents')} ({documentCounts.totalCount})
@@ -131,8 +131,8 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
         </div>
       </div>
       
-      {/* Document cards row */}
-      <div className="flex gap-2 overflow-x-auto pb-1 justify-center" style={{ scrollbarWidth: 'thin', minHeight: '90px', maxHeight: '140px' }}>
+      {/* Document cards row - Increased min height for more space */}
+      <div className="flex gap-2 overflow-x-auto pb-1 justify-center" style={{ scrollbarWidth: 'thin', minHeight: '110px', maxHeight: '160px' }}>
         {showEmptyState && (
           <div className="border rounded-lg bg-white/5 border-white/10 text-center flex flex-col items-center justify-center gap-2" style={{ width: '272px', height: '94px' }}>
             <span className="text-4xl leading-none">📄</span>
@@ -146,7 +146,7 @@ export default function DocumentsBar({ compact = false }: { compact?: boolean })
           <button
             type="button"
             onClick={actions.toggleAddDocument}
-            className={`rounded-lg transition-colors flex flex-col items-center justify-center gap-1.5 p-2 ${
+            className={`relative border rounded-lg transition-all w-[70px] h-[85px] flex flex-col items-center justify-center gap-1.5 ${
               showAddDocument 
                 ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
                 : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
