@@ -9,7 +9,7 @@ import {
 type TreeNode = {
   id: string;
   name: string;
-  type: 'document' | 'section';
+  type: 'document' | 'section' | 'add-document' | 'add-section';
   parentId?: string;
   children?: TreeNode[];
   isDisabled?: boolean;
@@ -20,6 +20,7 @@ type TreeNode = {
   origin?: string;
   isExpanded?: boolean;
   level?: number;
+  isSpecial?: boolean;
 };
 
 
@@ -101,6 +102,19 @@ export default function TreeNavigator() {
   const treeData = React.useMemo<TreeNode[]>(() => {
     const treeNodes: TreeNode[] = [];
     
+    // Add document add button as first item if needed
+    if (!selectedProductMeta || expandedDocumentId) {
+      treeNodes.push({
+        id: 'add-document-button',
+        name: t('editor.desktop.documents.addButton' as any) || 'Add Document',
+        type: 'add-document',
+        icon: '+',
+        children: [],
+        level: 0,
+        isSpecial: true,
+      });
+    }
+    
     // Add core product document if selected
     if (selectedProductMeta && !expandedDocumentId) {
       const translatedLabel = t(selectedProductMeta.label as any) || selectedProductMeta.label || 'No selection';
@@ -139,6 +153,23 @@ export default function TreeNavigator() {
         }));
       }
       
+      // Add section add button as last child if document is expanded
+      if (documentNode.isExpanded && !expandedSectionId && !isEditingSection) {
+        documentNode.children = [
+          ...(documentNode.children || []),
+          {
+            id: 'add-section-button-core',
+            name: t('editor.desktop.sections.addButton' as any) || 'Add Section',
+            type: 'add-section',
+            icon: '+',
+            parentId: 'core-product',
+            children: [],
+            level: 1,
+            isSpecial: true,
+          }
+        ];
+      }
+      
       treeNodes.push(documentNode);
     }
     
@@ -162,11 +193,28 @@ export default function TreeNavigator() {
       // TODO: Add sections for this document if they exist
       // This would require document-specific sections which aren't implemented yet
       
+      // Add section add button as last child if document is expanded
+      if (documentNode.isExpanded && !expandedSectionId && !isEditingSection) {
+        documentNode.children = [
+          ...(documentNode.children || []),
+          {
+            id: `add-section-button-${doc.id}`,
+            name: t('editor.desktop.sections.addButton' as any) || 'Add Section',
+            type: 'add-section',
+            icon: '+',
+            parentId: doc.id,
+            children: [],
+            level: 1,
+            isSpecial: true,
+          }
+        ];
+      }
+      
       treeNodes.push(documentNode);
     });
     
     return treeNodes;
-  }, [sections, disabledSections, activeSectionId, documents, disabledDocuments, clickedDocumentId, selectedProductMeta, expandedDocumentId, t, expandedNodes]);
+  }, [sections, disabledSections, activeSectionId, documents, disabledDocuments, clickedDocumentId, selectedProductMeta, expandedDocumentId, t, expandedNodes, expandedSectionId, isEditingSection]);
 
   // Toggle node expansion
   const toggleNode = (nodeId: string) => {
@@ -190,6 +238,50 @@ export default function TreeNavigator() {
     
     // Special styling for product documents
     const isProductDoc = node.id === 'core-product';
+    
+    // Handle special button nodes
+    if (node.isSpecial) {
+      if (node.type === 'add-document') {
+        return (
+          <div key={node.id} className="px-3 py-1">
+            <button
+              type="button"
+              onClick={safeDocumentsBarActions.toggleAddDocument}
+              className={`w-full py-2 rounded transition-colors text-sm font-medium flex items-center justify-center gap-2 ${
+                showAddDocument 
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              }`}
+            >
+              <span>+</span>
+              <span>{node.name}</span>
+            </button>
+            {showAddDocument && renderAddDocumentForm()}
+          </div>
+        );
+      }
+      
+      if (node.type === 'add-section') {
+        return (
+          <div key={node.id} className="px-3 py-1">
+            <button
+              type="button"
+              onClick={safeSidebarActions.toggleAddSection}
+              className={`w-full py-1.5 rounded transition-colors text-xs font-medium flex items-center justify-center gap-1 ${
+                showAddSection 
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              }`}
+              style={{ marginLeft: `${12 + (level * 20)}px` }}
+            >
+              <span>+</span>
+              <span>{node.name}</span>
+            </button>
+            {showAddSection && renderAddSectionForm()}
+          </div>
+        );
+      }
+    }
     
     // Tree characters
     const getTreePrefix = (nodeLevel: number, isLastChild: boolean, hasChildrenNodes: boolean) => {
