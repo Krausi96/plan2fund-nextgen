@@ -173,3 +173,30 @@ Multiple interconnected issues affecting editor layout, component synchronizatio
 **Estimated Time:** 2-3 days for complete implementation  
 **Dependencies:** None - can be worked on independently  
 **Testing Required:** Cross-browser and responsive testing essential
+
+## 📝 ADDITIONAL NOTES & TODOs
+
+### TreeNavigator Add Document Button - Completed Fixes
+- ✅ Fixed persistent button visibility logic
+- ✅ Resolved state update mechanism (`showAddDocument` toggle)
+- ✅ Corrected conditional rendering for new users vs existing users
+- ✅ Removed debug logs and console statements for production
+- ✅ Verified button appears in both empty state and product-selected scenarios
+
+### Pending Optimizations for Tomorrow
+1. **UI Adjustment of Add Document Button**
+   - Fine-tune button styling and positioning
+   - Improve visual hierarchy and user guidance
+   - Consider removing button from new user empty state (per user feedback)
+
+2. **Adding to Sidebar Integration**
+   - Evaluate if document functionality should be moved to sidebar
+   - Assess user workflow and navigation patterns
+   - Plan component restructuring if needed
+
+3. **General Cleanup**
+   - Final lint check and build verification
+   - Git commit with descriptive message
+   - Push to repository for team review
+
+---

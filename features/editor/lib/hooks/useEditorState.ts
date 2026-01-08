@@ -374,7 +374,10 @@ export function useDocumentsBarState() {
     toggleDocument: documentToggleHandlers.toggle,
     editDocument: (doc: DocumentTemplate) => documentEditHandlers.onEdit(doc),
     cancelEdit: documentEditHandlers.onCancel,
-    toggleAddDocument: () => actions.setShowAddDocument(!showAddDocument),
+    toggleAddDocument: () => {
+      const currentState = useEditorStore.getState();
+      actions.setShowAddDocument(!currentState.showAddDocument);
+    },
     removeCustomDocument: (id: string) => {
       actions.setAllDocuments(allDocuments.filter(d => d.id !== id));
     },

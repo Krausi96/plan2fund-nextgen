@@ -66,7 +66,7 @@ export default function Editor({}: EditorProps = {}) {
             {/* Workspace Container */}
             <div className="relative rounded-2xl border border-dashed border-white/60 shadow-lg backdrop-blur-sm w-full flex-1" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                           
-              {/* Flex layout: (CurrentSelection + DocumentsBar + Sidebar) | Preview | AI */}
+              {/* Flex layout: CurrentSelection | TreeNavigator | Preview | AI */}
               <div 
                 className="flex-1 px-3 lg:px-4 pb-3 lg:pb-4 flex gap-4"
                 style={{ minHeight: 0, overflow: 'hidden' }}

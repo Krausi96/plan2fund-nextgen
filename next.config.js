@@ -11,7 +11,7 @@ const nextConfig = {
   },
   // Enable API routes for Vercel deployment
   experimental: {
-    outputFileTracingRoot: undefined,
+    // outputFileTracingRoot removed - not recognized in this Next.js version
   },
   // Performance optimizations
   compress: true,

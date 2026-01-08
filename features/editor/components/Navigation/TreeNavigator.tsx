@@ -85,35 +85,26 @@ export default function TreeNavigator() {
 
   // Debug logging
   React.useEffect(() => {
-    console.log('TreeNavigator - sidebarState:', sidebarState);
-    console.log('TreeNavigator - documentsState:', documentsState);
-    console.log('TreeNavigator - sections:', sections);
-    console.log('TreeNavigator - documents:', documents);
-    console.log('TreeNavigator - selectedProductMeta:', selectedProductMeta);
-    
-    // Log the document loading issue
-    if (selectedProductMeta && documents.length === 0) {
-      console.log('ISSUE: Product selected but no documents loaded');
-      console.log('Expected documents for product:', selectedProductMeta);
-    }
-  }, [sidebarState, documentsState, sections, documents, selectedProductMeta]);
+    // Removed debug logs for production
+  }, [sidebarState, documentsState, sections, documents, selectedProductMeta, showAddDocument]);
 
   // Create hierarchical tree structure with documents as parents and sections as children
   const treeData = React.useMemo<TreeNode[]>(() => {
     const treeNodes: TreeNode[] = [];
     
-    // Add document add button as first item if needed
-    if (!selectedProductMeta || expandedDocumentId) {
-      treeNodes.push({
-        id: 'add-document-button',
-        name: t('editor.desktop.documents.addButton' as any) || 'Add Document',
-        type: 'add-document',
-        icon: '+',
-        children: [],
-        level: 0,
-        isSpecial: true,
-      });
-    }
+    // Add document add button when explicitly adding a document
+    // REMOVED: This was creating duplicate buttons - persistent button handles this now
+    // if (showAddDocument) {
+    //   treeNodes.push({
+    //     id: 'add-document-button',
+    //     name: t('editor.desktop.documents.addButton' as any) || 'Add Document',
+    //     type: 'add-document',
+    //     icon: '+',
+    //     children: [],
+    //     level: 0,
+    //     isSpecial: true,
+    //   });
+    // }
     
     // Add core product document if selected
     if (selectedProductMeta && !expandedDocumentId) {
@@ -213,6 +204,9 @@ export default function TreeNavigator() {
       treeNodes.push(documentNode);
     });
     
+    // Debug logging for treeData
+    // Removed for production
+    
     return treeNodes;
   }, [sections, disabledSections, activeSectionId, documents, disabledDocuments, clickedDocumentId, selectedProductMeta, expandedDocumentId, t, expandedNodes, expandedSectionId, isEditingSection]);
 
@@ -241,25 +235,26 @@ export default function TreeNavigator() {
     
     // Handle special button nodes
     if (node.isSpecial) {
-      if (node.type === 'add-document') {
-        return (
-          <div key={node.id} className="px-3 py-1">
-            <button
-              type="button"
-              onClick={safeDocumentsBarActions.toggleAddDocument}
-              className={`w-full py-2 rounded transition-colors text-sm font-medium flex items-center justify-center gap-2 ${
-                showAddDocument 
-                  ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
-                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-              }`}
-            >
-              <span>+</span>
-              <span>{node.name}</span>
-            </button>
-            {showAddDocument && renderAddDocumentForm()}
-          </div>
-        );
-      }
+      // REMOVED: Add document button handling - now handled by persistent button
+      // if (node.type === 'add-document') {
+      //   return (
+      //     <div key={node.id} className="px-3 py-1">
+      //       <button
+      //         type="button"
+      //         onClick={safeDocumentsBarActions.toggleAddDocument}
+      //         className={`w-full py-2 rounded transition-colors text-sm font-medium flex items-center justify-center gap-2 ${
+      //           showAddDocument 
+      //             ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
+      //             : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+      //         }`}
+      //       >
+      //         <span>+</span>
+      //         <span>{node.name}</span>
+      //       </button>
+      //       {showAddDocument && renderAddDocumentForm()}
+      //     </div>
+      //   );
+      // }
       
       if (node.type === 'add-section') {
         return (
@@ -576,28 +571,54 @@ export default function TreeNavigator() {
         </div>
       </div>
       
-      {/* Add forms */}
-      <div className="px-3">
-        {renderAddSectionForm()}
-        {renderAddDocumentForm()}
-      </div>
+      {/* Forms are rendered within tree nodes - no duplicate rendering needed */}
       
       {/* Debug info - Removed as requested */}
       
       {/* Tree nodes - Unified hierarchical tree */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
         <div className="px-3">
-          {treeData.length === 0 ? (
-            <div className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-center flex flex-col items-center justify-center">
-              <div className="text-4xl mb-2 flex justify-center">
-                <span className="text-4xl">📄</span>
+          {/* Show empty state OR persistent button based on product selection and add document state */}
+          {treeData.length === 0 && !selectedProductMeta && !showAddDocument ? (
+            <div className="px-4 py-4 bg-white/5 border border-white/10 rounded-lg text-center flex flex-col items-center justify-center space-y-3">
+              <div className="text-5xl flex justify-center">
+                <span className="text-5xl">📄</span>
               </div>
-              <div className="text-white/60 text-sm">
-                {t('editor.desktop.sections.noSectionsYet' as any) || 'No Documents or Sections Yet'}
+              <div>
+                <div className="text-white font-semibold text-base">
+                  {t('editor.desktop.documents.noDocumentsYet' as any) || 'No Documents Yet'}
+                </div>
               </div>
+              {/* Optional: Manual document creation */}
+              <button
+                type="button"
+                onClick={safeDocumentsBarActions.toggleAddDocument}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-lg transition-colors text-sm font-medium"
+              >
+                <span className="mr-2">+</span>
+                {t('editor.desktop.documents.addButton' as any) || 'Add New Document'}
+              </button>
             </div>
           ) : (
             <div className="space-y-1">
+              {/* Persistent Add Document Button - Always visible when product selected, documents exist, or add mode is active */}
+              <div className="px-3 py-1">
+                <button
+                  type="button"
+                  onClick={safeDocumentsBarActions.toggleAddDocument}
+                  className={`w-full py-2 rounded transition-colors text-sm font-medium flex items-center justify-center gap-2 ${
+                    showAddDocument 
+                      ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
+                      : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                  }`}
+                >
+                  <span>+</span>
+                  <span>{t('editor.desktop.documents.addButton' as any) || 'Add New Document'}</span>
+                </button>
+                {showAddDocument && renderAddDocumentForm()}
+              </div>
+              
+              {/* Document tree */}
               {treeData.map(node => renderTreeNode(node, 0))}
             </div>
           )}
