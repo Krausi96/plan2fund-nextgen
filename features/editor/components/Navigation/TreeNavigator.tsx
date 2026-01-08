@@ -263,21 +263,38 @@ export default function TreeNavigator() {
       
       if (node.type === 'add-section') {
         return (
-          <div key={node.id} className="px-3 py-1">
-            <button
-              type="button"
-              onClick={safeSidebarActions.toggleAddSection}
-              className={`w-full py-1.5 rounded transition-colors text-xs font-medium flex items-center justify-center gap-1 ${
-                showAddSection 
-                  ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
-                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-              }`}
-              style={{ marginLeft: `${12 + (level * 20)}px` }}
+          <div key={node.id}>
+            {/* Tree prefix with proper characters */}
+            <div
+              className="relative w-full px-3 py-1 transition-all flex items-center gap-2"
+              style={{ 
+                height: '36px',
+                paddingLeft: `${12 + (level * 20)}px`
+              }}
             >
-              <span>+</span>
-              <span>{node.name}</span>
-            </button>
-            {showAddSection && renderAddSectionForm()}
+              {/* Tree connector */}
+              <span className="text-white/70 mr-1" style={{ width: '16px', textAlign: 'center', fontFamily: 'monospace' }}>
+                └─
+              </span>
+              
+              <button
+                type="button"
+                onClick={safeSidebarActions.toggleAddSection}
+                className={`flex-1 py-1.5 rounded transition-colors text-xs font-medium flex items-center justify-center gap-1 ${
+                  showAddSection 
+                    ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
+                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                }`}
+              >
+                <span>+</span>
+                <span>{node.name}</span>
+              </button>
+            </div>
+            {showAddSection && (
+              <div className="px-3 py-1" style={{ paddingLeft: `${12 + ((level + 1) * 20)}px` }}>
+                {renderAddSectionForm()}
+              </div>
+            )}
           </div>
         );
       }
@@ -557,33 +574,6 @@ export default function TreeNavigator() {
             {t('editor.desktop.sections.title' as any) || 'Sections & Documents'}
           </h2>
         </div>
-      </div>
-      
-      {/* Add buttons */}
-      <div className="flex gap-2 px-3 mb-2">
-        <button
-          type="button"
-          onClick={safeSidebarActions.toggleAddSection}
-          className={`flex-1 py-1.5 rounded transition-colors text-sm font-medium ${
-            showAddSection 
-              ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
-              : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-          }`}
-        >
-  {t('editor.desktop.sections.addButton' as any) || 'Add Section'}
-        </button>
-        
-        <button
-          type="button"
-          onClick={safeDocumentsBarActions.toggleAddDocument}
-          className={`flex-1 py-1.5 rounded transition-colors text-sm font-medium ${
-            showAddDocument 
-              ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
-              : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-          }`}
-        >
-  {t('editor.desktop.documents.addButton' as any) || 'Add Document'}
-        </button>
       </div>
       
       {/* Add forms */}
