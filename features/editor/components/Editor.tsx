@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-import CurrentSelection from './Navigation/CurrentSelection';
 import TreeNavigator from './Navigation/TreeNavigator';
 import PreviewWorkspace from './Preview/PreviewWorkspace';
 import SectionEditor from './Editor/SectionEditor';
@@ -23,9 +22,18 @@ export default function Editor({}: EditorProps = {}) {
   // Computed selectors
   const isWaitingForPlan = useIsWaitingForPlan();
   const activeSectionId = useEditorStore(state => state.activeSectionId);
+  const selectedProduct = useEditorStore(state => state.selectedProduct);
+  const actions = useEditorStore(state => state);
   
   // AI Assistant collapse state
   const [isAICollapsed, setIsAICollapsed] = useState(false);
+  
+  // Initialize default product to 'submission' if none selected
+  useEffect(() => {
+    if (selectedProduct === null) {
+      actions.setSelectedProduct('submission');
+    }
+  }, [selectedProduct, actions]);
   
   if (isWaitingForPlan) {
     return (
@@ -54,16 +62,11 @@ export default function Editor({}: EditorProps = {}) {
     <div className="bg-neutral-200 text-textPrimary">
       <DevClearCacheButton />
       
-      <div className="pb-6 px-4" style={{ maxWidth: '100vw', height: '100vh', overflow: 'hidden' }}>
+      <div className="pb-6 px-4 pt-2" style={{ maxWidth: '100vw', height: '100vh', overflow: 'hidden' }}>
         <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)] h-full" style={{ maxWidth: '1800px', margin: '0 auto' }}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900 rounded-[32px]" />
-          <div className="relative z-10 flex flex-col gap-2 p-4 lg:p-6 h-full" style={{ overflow: 'hidden' }}>
-            {/* CurrentSelection as Unified Header - No spacing above/below */}
-            <div className="flex-shrink-0">
-              <CurrentSelection />
-            </div>
-
-            {/* Workspace Container */}
+          <div className="relative z-10 flex flex-col p-4 lg:p-6 h-full" style={{ overflow: 'hidden' }}>
+            {/* Workspace Container - Now fills entire space */}
             <div className="relative rounded-2xl border border-dashed border-white/60 shadow-lg backdrop-blur-sm w-full flex-1" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                           
               {/* Flex layout: CurrentSelection | TreeNavigator | Preview | AI */}

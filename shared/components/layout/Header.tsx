@@ -7,6 +7,8 @@ import { useI18n } from "@/shared/contexts/I18nContext"
 import { useUser } from "@/shared/user/context/UserContext"
 import LoginModal from '@/shared/components/auth/LoginModal'
 
+import CurrentSelection from '@/features/editor/components/Navigation/CurrentSelection';
+
 export default function Header() {
   const { t } = useI18n()
   const router = useRouter()
@@ -16,6 +18,9 @@ export default function Header() {
   const [isMounted, setIsMounted] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
+
+  // Check if we're on the editor page
+  const isEditorPage = router.pathname === '/app/user/editor';
 
   useEffect(() => {
     setIsMounted(true)
@@ -52,69 +57,130 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b-2 border-neutral-200 bg-white/95 backdrop-blur-md shadow-md">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 md:py-5">
-        {/* Logo */}
-        <Link 
-          href="/" 
-          className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-neutral-700 to-neutral-900 bg-clip-text text-transparent hover:from-neutral-800 hover:to-neutral-900 transition-all duration-300"
-        >
-          Plan2Fund
-        </Link>
-
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex gap-8 items-center">
-          <Link href="/about" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
-            {t('nav.howItWorks')}
-          </Link>
-          <Link href="/pricing" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
-            {t('nav.pricing')}
-          </Link>
-          <Link href="/faq" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
-            FAQ
-          </Link>
-          {isMounted && userProfile ? (
-            <div className="flex items-center gap-4">
-              <Link 
-                href="/app/user/dashboard" 
-                className="flex items-center gap-2 text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm"
-              >
-                <User className="w-4 h-4" />
-                My Account
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm"
-                title="Log out"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Log out</span>
-              </button>
+      {isEditorPage ? (
+        // Editor-specific header with CurrentSelection - Full width blue gradient
+        <div className="w-full">
+          <div className="flex flex-col bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 px-0 py-0 text-white">
+            {/* Top row: Logo + editor label + Login/Language */}
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-4">
+                <Link 
+                  href="/" 
+                  className="text-xl font-bold text-white hover:text-white/90 transition-all duration-300"
+                >
+                  Plan2Fund
+                </Link>
+                <span className="text-sm font-medium text-white/80">editor</span>
+              </div>
+              
+              {/* Right side: Login + Language */}
+              <div className="flex items-center gap-3">
+                {isMounted && userProfile ? (
+                  <div className="flex items-center gap-2">
+                    <Link 
+                      href="/app/user/dashboard" 
+                      className="flex items-center gap-1 text-white/80 hover:text-white transition-colors text-sm"
+                    >
+                      <User className="w-4 h-4" />
+                      <span className="hidden sm:inline">My Account</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-1 text-white/80 hover:text-white transition-colors text-sm"
+                      title="Log out"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="hidden sm:inline">Log out</span>
+                    </button>
+                  </div>
+                ) : isMounted ? (
+                  <button
+                    onClick={() => setLoginModalOpen(true)}
+                    className="px-3 py-1 border border-white/30 text-white bg-white/10 rounded hover:bg-white/20 transition-all duration-300 text-sm"
+                  >
+                    Log in
+                  </button>
+                ) : (
+                  <div className="w-16 h-6" />
+                )}
+                <div className="text-white">
+                  <LanguageSwitcher />
+                </div>
+              </div>
             </div>
-          ) : isMounted ? (
-            <button
-              onClick={() => setLoginModalOpen(true)}
-              className="px-6 py-2.5 border-2 border-blue-600 text-blue-700 bg-white rounded-xl hover:bg-blue-700 hover:text-white hover:border-blue-700 transition-all duration-300 font-semibold shadow-md hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
-            >
-              Log in
-            </button>
-          ) : (
-            <div className="w-20 h-10" />
-          )}
-          <LanguageSwitcher />
-        </nav>
+            
+            {/* CurrentSelection component - Full width */}
+            <div className="w-full">
+              <CurrentSelection />
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Regular header for other pages
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 md:py-5">
+          {/* Logo */}
+          <Link 
+            href="/" 
+            className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-neutral-700 to-neutral-900 bg-clip-text text-transparent hover:from-neutral-800 hover:to-neutral-900 transition-all duration-300"
+          >
+            Plan2Fund
+          </Link>
 
-        {/* Mobile Menu Button */}
-        <button 
-          ref={buttonRef}
-          className="md:hidden p-2 hover:bg-surfaceAlt rounded-lg transition-colors touch-target" 
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-        >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </div>
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex gap-8 items-center">
+            <Link href="/about" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
+              {t('nav.howItWorks')}
+            </Link>
+            <Link href="/pricing" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
+              {t('nav.pricing')}
+            </Link>
+            <Link href="/faq" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
+              FAQ
+            </Link>
+            {isMounted && userProfile ? (
+              <div className="flex items-center gap-4">
+                <Link 
+                  href="/app/user/dashboard" 
+                  className="flex items-center gap-2 text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm"
+                >
+                  <User className="w-4 h-4" />
+                  My Account
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm"
+                  title="Log out"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Log out</span>
+                </button>
+              </div>
+            ) : isMounted ? (
+              <button
+                onClick={() => setLoginModalOpen(true)}
+                className="px-6 py-2.5 border-2 border-blue-600 text-blue-700 bg-white rounded-xl hover:bg-blue-700 hover:text-white hover:border-blue-700 transition-all duration-300 font-semibold shadow-md hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+              >
+                Log in
+              </button>
+            ) : (
+              <div className="w-20 h-10" />
+            )}
+            <LanguageSwitcher />
+          </nav>
+
+          {/* Mobile Menu Button */}
+          <button 
+            ref={buttonRef}
+            className="md:hidden p-2 hover:bg-surfaceAlt rounded-lg transition-colors touch-target" 
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle menu"
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+          >
+            {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
+      )}
 
       {/* Mobile Nav */}
       {open && (

@@ -62,92 +62,79 @@ function CurrentSelection({}: CurrentSelectionProps) {
     actions.setIsConfiguratorOpen(!isConfiguratorOpen);
   };
 
-  // Compact info row - shows current selections with improved layout
+  // Compact info row - single line header with all elements inline
   const CompactInfoRow = () => {
     return (
-      <div className="flex flex-col bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 px-0 py-0 text-white w-full">
-        {/* SINGLE-LINE HEADER WITH ALL ELEMENTS INLINE - Reduced spacing */}
-        <div className="flex flex-col px-4 py-1">
-          {/* First Line - Header with Action Button and Selection Info */}
-          <div className="flex items-center justify-between">
-            {/* Current Selection Label - Left side */}
-            <div className="text-white font-bold text-lg whitespace-nowrap">
-              {t('editor.desktop.selection.current' as any) || 'Aktuelle Auswahl:'}
+      <div className="flex items-center justify-between bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 px-4 py-2 text-white w-full">
+        {/* Current Selection Label - Left side */}
+        <div className="text-white font-bold text-lg whitespace-nowrap">
+          {t('editor.desktop.selection.current' as any) || 'Aktuelle Auswahl:'}
+        </div>
+        
+        {/* All 4 Parameters - Perfectly even distribution */}
+        <div className="grid grid-cols-4 gap-4 text-xs flex-grow max-w-4xl">
+          {/* Mein Projekt - Clickable */}
+          <div 
+            className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
+            onClick={handleMyProjectClick}
+          >
+            <span className="text-white/70 font-medium text-[10px] whitespace-nowrap mb-1">
+              {t('editor.desktop.myProject.title' as any) || 'Mein Projekt'}
+            </span>
+            <div className="text-white font-medium flex items-center justify-center gap-1">
+              <MyProject />
+              <ChevronRight className="w-3 h-3 text-white/70" />
             </div>
-            
-            {/* All 4 Parameters - Perfectly even distribution - Takes remaining space */}
-            <div className="grid grid-cols-4 gap-5 text-[11px] flex-grow max-w-3xl">
-                {/* Mein Projekt - Clickable */}
-                <div 
-                  className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
-                  onClick={handleMyProjectClick}
-                >
-                  <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">
-                    {t('editor.desktop.myProject.title' as any) || 'Mein Projekt'}
-                  </span>
-                  <div className="text-white font-medium w-full flex items-center justify-center gap-1">
-                    <MyProject />
-                    <ChevronRight className="w-3 h-3 text-white/60" />
-                  </div>
-                </div>
-                
-                {/* PLAN - Core Products with Icons - Clickable */}
-                <div 
-                  className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
-                  onClick={handlePlanClick}
-                >
-                  <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">
-                    {t('editor.desktop.selection.productLabel' as any) || 'PLAN'}
-                  </span>
-                  <div className="flex items-center justify-center gap-1 w-full">
-                    {selectedProductMeta?.icon && (
-                      <span className="text-sm leading-none flex-shrink-0">{selectedProductMeta.icon}</span>
-                    )}
-                    <span className="text-white font-medium truncate">
-                      {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.product.unselected' as any) || 'No plan'}
-                    </span>
-                    <ChevronRight className="w-3 h-3 text-white/60 flex-shrink-0" />
-                  </div>
-                </div>
-                
-                {/* Programm/Vorlage - Actual Programs - Clickable */}
-                <div 
-                  className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
-                  onClick={handleProgramClick}
-                >
-                  <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">
-                    {t('editor.desktop.selection.programLabel' as any) || 'Programm'}
-                  </span>
-                  <div className="text-white font-medium truncate w-full flex items-center justify-center gap-1">
-                    <span className="truncate">
-                      {programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
-                    </span>
-                    <ChevronRight className="w-3 h-3 text-white/60 flex-shrink-0" />
-                  </div>
-                </div>
-                
-                {/* Readiness Check - Clickable */}
-                <div 
-                  className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
-                  onClick={handleReadinessClick}
-                >
-                  <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">
-                    {t('editor.desktop.readinessCheck.title' as any) || 'Readiness'}
-                  </span>
-                  <div className="text-white font-medium w-full flex items-center justify-center gap-1">
-                    <ReadinessCheck />
-                    <ChevronRight className="w-3 h-3 text-white/60" />
-                  </div>
-                </div>
-              </div>
-            
-
           </div>
           
-          {/* Separation Line - Reduced margins */}
-          <div className="border-b border-white/50 mt-1 mb-0.5"></div>
+          {/* PLAN - Core Products with Icons - Clickable */}
+          <div 
+            className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
+            onClick={handlePlanClick}
+          >
+            <span className="text-white/70 font-medium text-[10px] whitespace-nowrap mb-1">
+              {t('editor.desktop.selection.productLabel' as any) || 'PLAN'}
+            </span>
+            <div className="flex items-center justify-center gap-1">
+              {selectedProductMeta?.icon && (
+                <span className="text-sm leading-none flex-shrink-0">{selectedProductMeta.icon}</span>
+              )}
+              <span className="text-white font-medium truncate">
+                {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.product.unselected' as any) || 'No plan'}
+              </span>
+              <ChevronRight className="w-3 h-3 text-white/70 flex-shrink-0" />
+            </div>
+          </div>
           
-
+          {/* Programm/Vorlage - Actual Programs - Clickable */}
+          <div 
+            className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
+            onClick={handleProgramClick}
+          >
+            <span className="text-white/70 font-medium text-[10px] whitespace-nowrap mb-1">
+              {t('editor.desktop.selection.programLabel' as any) || 'Programm'}
+            </span>
+            <div className="text-white font-medium truncate flex items-center justify-center gap-1">
+              <span className="truncate">
+                {programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
+              </span>
+              <ChevronRight className="w-3 h-3 text-white/70 flex-shrink-0" />
+            </div>
+          </div>
+          
+          {/* Readiness Check - Clickable */}
+          <div 
+            className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
+            onClick={handleReadinessClick}
+          >
+            <span className="text-white/70 font-medium text-[10px] whitespace-nowrap mb-1">
+              {t('editor.desktop.readinessCheck.title' as any) || 'Readiness'}
+            </span>
+            <div className="text-white font-medium flex items-center justify-center gap-1">
+              <ReadinessCheck />
+              <ChevronRight className="w-3 h-3 text-white/70" />
+            </div>
+          </div>
         </div>
       </div>
     );
