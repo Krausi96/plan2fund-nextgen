@@ -3,7 +3,7 @@ import ProductSelection from './ProductSelection/ProductSelection';
 import ProgramSelection from './ProgramSelection/ProgramSelection';
 import ReadinessCheck from './ReadinessCheck/ReadinessCheck';
 import MyProject from './MyProject/MyProject';
-
+import { ChevronRight } from 'lucide-react';
 import { useConfiguratorState, useEditorActions, useEditorStore } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
@@ -24,6 +24,29 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const actions = useEditorActions((a) => ({
     setIsConfiguratorOpen: a.setIsConfiguratorOpen,
   }));
+  
+  // Handlers for clickable items
+  const handleMyProjectClick = () => {
+    // Navigate to My Project configuration
+    console.log('Navigate to My Project');
+  };
+  
+  const handlePlanClick = () => {
+    // Open configurator and switch to product tab
+    actions.setIsConfiguratorOpen(true);
+    setActiveTab('product');
+  };
+  
+  const handleProgramClick = () => {
+    // Open configurator and switch to program tab
+    actions.setIsConfiguratorOpen(true);
+    setActiveTab('program');
+  };
+  
+  const handleReadinessClick = () => {
+    // Navigate to Readiness check
+    console.log('Navigate to Readiness Check');
+  };
 
   // No overlay positioning needed - inline expansion
 
@@ -41,8 +64,6 @@ function CurrentSelection({}: CurrentSelectionProps) {
 
   // Compact info row - shows current selections with improved layout
   const CompactInfoRow = () => {
-    const hasSelections = !!selectedProductMeta || !!programSummary;
-
     return (
       <div className="flex flex-col bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 px-0 py-0 text-white w-full">
         {/* SINGLE-LINE HEADER WITH ALL ELEMENTS INLINE - Reduced spacing */}
@@ -56,67 +77,71 @@ function CurrentSelection({}: CurrentSelectionProps) {
             
             {/* All 4 Parameters - Perfectly even distribution - Takes remaining space */}
             <div className="grid grid-cols-4 gap-5 text-[11px] flex-grow max-w-3xl">
-                {/* Mein Projekt */}
-                <div className="flex flex-col items-center text-center">
-                  <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">Mein Projekt</span>
-                  <div className="text-white font-medium w-full">
+                {/* Mein Projekt - Clickable */}
+                <div 
+                  className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
+                  onClick={handleMyProjectClick}
+                >
+                  <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">
+                    {t('editor.desktop.myProject.title' as any) || 'Mein Projekt'}
+                  </span>
+                  <div className="text-white font-medium w-full flex items-center justify-center gap-1">
                     <MyProject />
+                    <ChevronRight className="w-3 h-3 text-white/60" />
                   </div>
                 </div>
                 
-                {/* PLAN - Core Products with Icons */}
-                <div className="flex flex-col items-center text-center">
-                  <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">PLAN</span>
+                {/* PLAN - Core Products with Icons - Clickable */}
+                <div 
+                  className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
+                  onClick={handlePlanClick}
+                >
+                  <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">
+                    {t('editor.desktop.selection.productLabel' as any) || 'PLAN'}
+                  </span>
                   <div className="flex items-center justify-center gap-1 w-full">
                     {selectedProductMeta?.icon && (
                       <span className="text-sm leading-none flex-shrink-0">{selectedProductMeta.icon}</span>
                     )}
                     <span className="text-white font-medium truncate">
-                      {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : 'No plan'}
+                      {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.product.unselected' as any) || 'No plan'}
                     </span>
+                    <ChevronRight className="w-3 h-3 text-white/60 flex-shrink-0" />
                   </div>
                 </div>
                 
-                {/* Programm/Vorlage - Actual Programs */}
-                <div className="flex flex-col items-center text-center">
+                {/* Programm/Vorlage - Actual Programs - Clickable */}
+                <div 
+                  className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
+                  onClick={handleProgramClick}
+                >
                   <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">
-                    Programm
+                    {t('editor.desktop.selection.programLabel' as any) || 'Programm'}
                   </span>
-                  <span className="text-white font-medium truncate w-full">
-                    {programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
-                  </span>
+                  <div className="text-white font-medium truncate w-full flex items-center justify-center gap-1">
+                    <span className="truncate">
+                      {programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
+                    </span>
+                    <ChevronRight className="w-3 h-3 text-white/60 flex-shrink-0" />
+                  </div>
                 </div>
                 
-                {/* Readiness Check */}
-                <div className="flex flex-col items-center text-center">
-                  <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">Readiness</span>
-                  <div className="text-white font-medium w-full flex justify-center">
+                {/* Readiness Check - Clickable */}
+                <div 
+                  className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
+                  onClick={handleReadinessClick}
+                >
+                  <span className="text-white/60 font-medium text-[9px] whitespace-nowrap mb-0.5">
+                    {t('editor.desktop.readinessCheck.title' as any) || 'Readiness'}
+                  </span>
+                  <div className="text-white font-medium w-full flex items-center justify-center gap-1">
                     <ReadinessCheck />
+                    <ChevronRight className="w-3 h-3 text-white/60" />
                   </div>
                 </div>
               </div>
             
-            {/* Action Button - Right side */}
-            <button
-              onClick={handleToggle}
-              className={`px-2 py-1 text-xs font-bold rounded flex items-center gap-1 transition-all ${
-                hasSelections
-                  ? 'bg-white/10 hover:bg-white/20 text-white'
-                  : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-md hover:shadow-lg'
-              }`}
-            >
-              {hasSelections ? (
-                <>
-                  <span>⚙️</span>
-                  <span>{t('editor.desktop.selection.edit' as any) || 'Edit'}</span>
-                </>
-              ) : (
-                <>
-                  <span>✏️</span>
-                  <span>{t('editor.desktop.selection.start' as any) || 'Start'}</span>
-                </>
-              )}
-            </button>
+
           </div>
           
           {/* Separation Line - Reduced margins */}

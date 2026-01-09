@@ -564,8 +564,8 @@ export default function TreeNavigator() {
     <div className="flex flex-col h-full">
       {/* Header with separator */}
       <div className="flex-shrink-0 mb-2 px-3 pt-1">
-        <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
-          <h2 className="text-xl font-bold uppercase tracking-wide text-white text-center flex-1">
+        <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem',paddingTop:'0.5rem' }}>
+          <h2 className="text-xl font-semibold tracking-wide text-white text-center flex-1">
             {t('editor.desktop.sections.title' as any) || 'Sections & Documents'}
           </h2>
         </div>
@@ -578,7 +578,7 @@ export default function TreeNavigator() {
       {/* Tree nodes - Unified hierarchical tree */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
         <div className="px-3">
-          {/* Show empty state OR persistent button based on product selection and add document state */}
+          {/* Show empty state without Add Document button for new users */}
           {treeData.length === 0 && !selectedProductMeta && !showAddDocument ? (
             <div className="px-4 py-4 bg-white/5 border border-white/10 rounded-lg text-center flex flex-col items-center justify-center space-y-3">
               <div className="text-5xl flex justify-center">
@@ -589,31 +589,27 @@ export default function TreeNavigator() {
                   {t('editor.desktop.documents.noDocumentsYet' as any) || 'No Documents Yet'}
                 </div>
               </div>
-              {/* Optional: Manual document creation */}
-              <button
-                type="button"
-                onClick={safeDocumentsBarActions.toggleAddDocument}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-lg transition-colors text-sm font-medium"
-              >
-                <span className="mr-2">+</span>
-                {t('editor.desktop.documents.addButton' as any) || 'Add New Document'}
-              </button>
+              <div className="text-white/60 text-sm max-w-xs">
+                {t('editor.desktop.documents.emptyStateHint' as any) || 'Select a product first to begin creating your documents.'}
+              </div>
             </div>
           ) : (
             <div className="space-y-1">
               {/* Persistent Add Document Button - Always visible when product selected, documents exist, or add mode is active */}
-              <div className="px-3 py-1">
+              <div className="py-1">
                 <button
                   type="button"
                   onClick={safeDocumentsBarActions.toggleAddDocument}
-                  className={`w-full py-2 rounded transition-colors text-sm font-medium flex items-center justify-center gap-2 ${
+                  className={`w-full py-2 rounded transition-colors text-sm font-medium flex items-center justify-start pl-4 gap-2 ${
                     showAddDocument 
                       ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
                       : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
                   }`}
+                  style={{ height: '36px' }}
                 >
-                  <span>+</span>
-                  <span>{t('editor.desktop.documents.addButton' as any) || 'Add New Document'}</span>
+                  <span className="flex-shrink-0 text-lg font-bold">+</span>
+                  <span className="flex-shrink-0 text-lg">📄</span>
+                  <span className="flex-1 text-left">{t('editor.desktop.documents.addButton' as any) || 'Add Document'}</span>
                 </button>
                 {showAddDocument && renderAddDocumentForm()}
               </div>
