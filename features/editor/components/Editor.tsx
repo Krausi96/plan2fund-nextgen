@@ -26,6 +26,40 @@ export default function Editor({}: EditorProps = {}) {
   // AI Assistant collapse state
   const [isAICollapsed, setIsAICollapsed] = useState(false);
   
+  // Resizable column states
+  const [leftColumnWidth, setLeftColumnWidth] = useState(320);
+  const [rightColumnWidth, setRightColumnWidth] = useState(360);
+  const [isDragging, setIsDragging] = useState(false);
+  
+  // Drag handlers for resizable columns
+  const handleMouseDown = (e: React.MouseEvent, column: 'left' | 'right') => {
+    e.preventDefault();
+    setIsDragging(true);
+    
+    const startX = e.clientX;
+    const startWidth = column === 'left' ? leftColumnWidth : rightColumnWidth;
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const newWidth = Math.max(200, Math.min(600, startWidth + (column === 'left' ? deltaX : -deltaX)));
+      
+      if (column === 'left') {
+        setLeftColumnWidth(newWidth);
+      } else {
+        setRightColumnWidth(newWidth);
+      }
+    };
+    
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
 // Default product selection removed - user should select product manually
   
   if (isWaitingForPlan) {
@@ -55,38 +89,47 @@ export default function Editor({}: EditorProps = {}) {
     <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950 text-textPrimary">
       <DevClearCacheButton />
       
-      <div className="px-4" style={{ maxWidth: '100vw', height: '100vh' }}>
-        <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)] h-full" style={{ maxWidth: '1800px', margin: '0 auto' }}>
+      <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)] h-full" style={{ maxWidth: '1800px', margin: '0 auto', height: '100vh' }}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900 rounded-[32px]" />
-          <div className="relative z-10 flex flex-col p-4 lg:p-6 h-full">
+          <div className="relative z-10 flex flex-col h-full">
             {/* Workspace Container - Now fills entire space */}
             <div className="relative rounded-2xl border border-dashed border-white/60 shadow-lg backdrop-blur-sm w-full flex-1" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                           
               {/* Flex layout: CurrentSelection | TreeNavigator | Preview | AI */}
               <div 
-                className="flex-1 px-3 lg:px-4 pb-3 lg:pb-4 flex gap-4"
+                className={`flex-1 pb-3 lg:pb-4 flex ${isDragging ? 'cursor-col-resize' : ''}`}
                 style={{ minHeight: 0 }}
               >
-                {/* Left Column: Unified Tree Navigator - Fixed width */}
-                <div className="flex-shrink-0 relative" style={{ width: '320px', minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
+                {/* Left Column: Unified Tree Navigator - Draggable width */}
+                <div className="flex-shrink-0 relative" style={{ width: `${leftColumnWidth}px`, minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
                   <TreeNavigator />
-                  {/* Vertical Separator Line */}
+                  {/* Draggable separator */}
+                  <div 
+                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize bg-transparent hover:bg-blue-400/30 transition-colors z-20"
+                    onMouseDown={(e) => handleMouseDown(e, 'left')}
+                  ></div>
                   <div className="absolute right-0 top-0 bottom-0 w-px bg-white/20"></div>
                 </div>
                             
-                {/* Preview Area - Grows to fill space */}
+                {/* Preview Area - Grows to fill space (no padding) */}
                 <div className="flex-1 flex flex-col" style={{ minWidth: 0, minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
-                  {/* Preview */}
                   <div className="flex-1" style={{ minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
                     <PreviewWorkspace />
                   </div>
                 </div>
                 
-                {/* AI Assistant - Collapsible */}
+                {/* AI Assistant - Draggable and Collapsible */}
                 <div 
-                  className="flex-shrink-0 transition-all duration-300" 
-                  style={{ width: isAICollapsed ? '40px' : '360px', minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}
+                  className="flex-shrink-0 transition-all duration-300 relative"
+                  style={{ width: isAICollapsed ? '40px' : `${rightColumnWidth}px`, minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}
                 >
+                  {!isAICollapsed && (
+                    /* Draggable separator */
+                    <div 
+                      className="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize bg-transparent hover:bg-blue-400/30 transition-colors z-20"
+                      onMouseDown={(e) => handleMouseDown(e, 'right')}
+                    ></div>
+                  )}
                   <SectionEditor
                     sectionId={activeSectionId}
                     onClose={() => {}}
@@ -99,7 +142,6 @@ export default function Editor({}: EditorProps = {}) {
           </div>
         </div>
       </div>
-    </div>
   );
 }
 

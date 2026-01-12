@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import ProductSelection from './ProductSelection/ProductSelection';
 import ProgramSelection from './ProgramSelection/ProgramSelection';
 import ReadinessCheck from './ReadinessCheck/ReadinessCheck';
@@ -142,14 +143,33 @@ function CurrentSelection({}: CurrentSelectionProps) {
     );
   };
 
-  // Simple inline expansion with horizontal tabs - full-width expansion below header
+  // Overlay modal expansion with horizontal tabs - positioned absolutely to overlay content
   const InlineExpansion = () => {
     if (!isConfiguratorOpen) return null;
+    
+    // Close modal when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as Node;
+        // Close if click is outside the modal and not on the trigger elements
+        if (target instanceof Element) {
+          const isTriggerClick = target.closest('[data-configurator-trigger]');
+          if (!isTriggerClick) {
+            actions.setIsConfiguratorOpen(false);
+          }
+        }
+      };
+      
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [actions]);
 
-    return (
-      <div className="mt-4 w-full">
-        {/* Expanded panel */}
-        <div className="rounded-lg border-2 border-blue-400 bg-slate-900 shadow-2xl">
+    return createPortal(
+      <div className="fixed inset-0 z-[10001] flex items-start justify-center pt-20 pointer-events-none">
+        <div 
+          className="pointer-events-auto w-full max-w-4xl mx-4 rounded-lg border-2 border-blue-400 bg-slate-900 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/20 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975">
             <h2 className="text-lg font-bold uppercase tracking-wide text-white">
@@ -199,12 +219,13 @@ function CurrentSelection({}: CurrentSelectionProps) {
             </div>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full" data-configurator-trigger>
       <CompactInfoRow />
       <InlineExpansion />
     </div>
