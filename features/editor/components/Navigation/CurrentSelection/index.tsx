@@ -147,27 +147,18 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const InlineExpansion = () => {
     if (!isConfiguratorOpen) return null;
     
-    // Close modal when clicking outside
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        const target = event.target as Node;
-        // Close if click is outside the modal and not on the trigger elements
-        if (target instanceof Element) {
-          const isTriggerClick = target.closest('[data-configurator-trigger]');
-          if (!isTriggerClick) {
+    return createPortal(
+      <div 
+        className="fixed inset-0 z-[10001] flex items-start justify-center pt-20"
+        onClick={(e) => {
+          // Close modal when clicking on backdrop (outside the content)
+          if (e.target === e.currentTarget) {
             actions.setIsConfiguratorOpen(false);
           }
-        }
-      };
-      
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [actions]);
-
-    return createPortal(
-      <div className="fixed inset-0 z-[10001] flex items-start justify-center pt-20 pointer-events-none">
+        }}
+      >
         <div 
-          className="pointer-events-auto w-full max-w-4xl mx-4 rounded-lg border-2 border-blue-400 bg-slate-900 shadow-2xl"
+          className="w-full max-w-4xl mx-4 rounded-lg border-2 border-blue-400 bg-slate-900 shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -225,7 +216,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
   };
 
   return (
-    <div className="w-full" data-configurator-trigger>
+    <div className="w-full">
       <CompactInfoRow />
       <InlineExpansion />
     </div>
