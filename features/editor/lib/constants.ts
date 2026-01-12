@@ -118,17 +118,36 @@ export function getSectionTitle(
   originalTitle: string,
   t?: (key: any) => string
 ): string {
+  // For special sections, use translation keys
   if (sectionId === METADATA_SECTION_ID) {
-    return t?.('editor.sections.metadata.title' as any) || 'Title Page';
+    return t?.('editor.section.metadata' as any) || 'Title Page';
   }
   if (sectionId === ANCILLARY_SECTION_ID) {
-    return t?.('editor.sections.ancillary.title' as any) || 'Table of Contents';
+    return t?.('editor.section.ancillary' as any) || 'Table of Contents';
   }
   if (sectionId === REFERENCES_SECTION_ID) {
-    return t?.('editor.sections.references.title' as any) || 'References';
+    return t?.('editor.section.references' as any) || 'References';
   }
   if (sectionId === APPENDICES_SECTION_ID) {
-    return t?.('editor.sections.appendices.title' as any) || 'Appendices';
+    return t?.('editor.section.appendices' as any) || 'Appendices';
   }
-  return originalTitle;
+  
+  // For custom sections (those with 'custom_' prefix), return the original title directly
+  // Custom sections should display the user-entered title as-is
+  if (sectionId.startsWith('custom_')) {
+    return originalTitle && typeof originalTitle === 'string' ? originalTitle : 'Untitled Section';
+  }
+  
+  // For regular sections, try to translate using section ID
+  const translationKey = `editor.section.${sectionId}` as any;
+  const translated = t?.(translationKey);
+  
+  // Return translated title if found and different from key, otherwise return original
+  // Safety check to ensure we always return a valid title
+  if (translated && typeof translated === 'string' && translated !== translationKey) {
+    return translated;
+  }
+  
+  // Always return the original title as fallback
+  return originalTitle && typeof originalTitle === 'string' ? originalTitle : 'Untitled Section';
 }

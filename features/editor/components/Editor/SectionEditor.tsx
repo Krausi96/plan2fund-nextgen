@@ -10,6 +10,7 @@ import {
   ANCILLARY_SECTION_ID,
   REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
+  getSectionTitle,
 } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
@@ -144,7 +145,7 @@ What would you like to do?`;
       
       // Generate AI response
       const response = await generateSectionContent({
-        sectionTitle: section.title,
+        sectionTitle: section ? getSectionTitle(section.id, section.title, t) : '',
         context: input,
         program: {
           id: program?.id,
@@ -305,7 +306,7 @@ What would you like to do?`;
         <div className="flex items-center justify-between mb-2">
           <div className="flex-1 min-w-0">
             <h2 className="text-sm font-bold text-white truncate">
-              {section.title}
+              {section ? getSectionTitle(section.id, section.title, t) : ''}
             </h2>
           </div>
         </div>

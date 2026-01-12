@@ -68,8 +68,10 @@ export default function Editor({}: EditorProps = {}) {
                 style={{ minHeight: 0 }}
               >
                 {/* Left Column: Unified Tree Navigator - Fixed width */}
-                <div className="flex-shrink-0" style={{ width: '320px', minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
+                <div className="flex-shrink-0 relative" style={{ width: '320px', minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
                   <TreeNavigator />
+                  {/* Vertical Separator Line */}
+                  <div className="absolute right-0 top-0 bottom-0 w-px bg-white/20"></div>
                 </div>
                             
                 {/* Preview Area - Grows to fill space */}

@@ -268,6 +268,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
   
   addCustomSection: (title, description = '') => {
+    // Debug logging - remove in production
+    console.log('Adding custom section with title:', title);
+    
     const plan = get().plan;
     const customSections = get().customSections;
     const allSections = get().allSections;

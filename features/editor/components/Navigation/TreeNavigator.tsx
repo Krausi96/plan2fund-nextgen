@@ -4,6 +4,7 @@ import {
   useSidebarState,
   useDocumentsBarState,
   useEditorStore,
+  getSectionTitle,
 } from '@/features/editor/lib';
 
 type TreeNode = {
@@ -130,7 +131,7 @@ export default function TreeNavigator() {
       if (sections && sections.length > 0) {
         documentNode.children = sections.map((section: any) => ({
           id: section.id,
-          name: section.title || section.name || 'Untitled Section',
+          name: getSectionTitle(section.id, section.title || section.name || 'Untitled Section', t),
           type: 'section',
           parentId: 'core-product',
           isDisabled: disabledSections?.has?.(section.id) || false,
@@ -357,7 +358,7 @@ export default function TreeNavigator() {
             <span className="flex-shrink-0">{node.icon}</span>
           )}
           
-          {/* Node name */}
+          {/* Node name - already translated in tree data construction */}
           <span className={`flex-1 text-sm font-medium truncate ${node.isDisabled ? 'line-through' : ''}`}>
             {node.name}
           </span>

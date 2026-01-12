@@ -18,13 +18,7 @@ export default function LanguageSwitcher({ compact }: Props) {
   const handleLanguageChange = (newLocale: string) => {
     setLocale(newLocale);
     setIsOpen(false);
-    
-    // Reload page to apply language change
-    setTimeout(() => {
-      if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
-    }, 100);
+    // No reload needed - React will re-render components with new translations
   }
 
   const languageOptions = [
