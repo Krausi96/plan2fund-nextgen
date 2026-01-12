@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 import TreeNavigator from './Navigation/TreeNavigator';
 import PreviewWorkspace from './Preview/PreviewWorkspace';
@@ -22,18 +22,11 @@ export default function Editor({}: EditorProps = {}) {
   // Computed selectors
   const isWaitingForPlan = useIsWaitingForPlan();
   const activeSectionId = useEditorStore(state => state.activeSectionId);
-  const selectedProduct = useEditorStore(state => state.selectedProduct);
-  const actions = useEditorStore(state => state);
   
   // AI Assistant collapse state
   const [isAICollapsed, setIsAICollapsed] = useState(false);
   
-  // Initialize default product to 'submission' if none selected
-  useEffect(() => {
-    if (selectedProduct === null) {
-      actions.setSelectedProduct('submission');
-    }
-  }, [selectedProduct, actions]);
+// Default product selection removed - user should select product manually
   
   if (isWaitingForPlan) {
     return (
@@ -59,20 +52,20 @@ export default function Editor({}: EditorProps = {}) {
   }
 
   return (
-    <div className="bg-neutral-200 text-textPrimary">
+    <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950 text-textPrimary">
       <DevClearCacheButton />
       
-      <div className="pb-6 px-4 pt-2" style={{ maxWidth: '100vw', height: '100vh', overflow: 'hidden' }}>
+      <div className="px-4" style={{ maxWidth: '100vw', height: '100vh' }}>
         <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)] h-full" style={{ maxWidth: '1800px', margin: '0 auto' }}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900 rounded-[32px]" />
-          <div className="relative z-10 flex flex-col p-4 lg:p-6 h-full" style={{ overflow: 'hidden' }}>
+          <div className="relative z-10 flex flex-col p-4 lg:p-6 h-full">
             {/* Workspace Container - Now fills entire space */}
-            <div className="relative rounded-2xl border border-dashed border-white/60 shadow-lg backdrop-blur-sm w-full flex-1" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div className="relative rounded-2xl border border-dashed border-white/60 shadow-lg backdrop-blur-sm w-full flex-1" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                           
               {/* Flex layout: CurrentSelection | TreeNavigator | Preview | AI */}
               <div 
                 className="flex-1 px-3 lg:px-4 pb-3 lg:pb-4 flex gap-4"
-                style={{ minHeight: 0, overflow: 'hidden' }}
+                style={{ minHeight: 0 }}
               >
                 {/* Left Column: Unified Tree Navigator - Fixed width */}
                 <div className="flex-shrink-0" style={{ width: '320px', minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>

@@ -23,10 +23,10 @@ export default function EditorHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b-2 border-neutral-200 bg-white/95 backdrop-blur-md shadow-md">
-      {/* Blue gradient background - matching workspace width and padding */}
-      <div className="w-full bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950 px-0 py-0">
-        <div className="mx-auto" style={{ maxWidth: '1800px', padding: '0.75rem 1.5rem' }}>
+    <header className="sticky top-0 z-50 w-full">
+      {/* Blue gradient background - seamless with workspace */}
+      <div className="w-full bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950 px-4 py-0">
+        <div className="mx-auto" style={{ maxWidth: '1800px', padding: '0.75rem 0' }}>
           <div className="flex items-center justify-between">
             {/* Left: Logo */}
             <div className="flex items-center">
@@ -39,8 +39,8 @@ export default function EditorHeader() {
             </div>
             
             {/* Center: CurrentSelection - perfectly centered */}
-            <div className="flex-grow flex justify-center px-4">
-              <div className="w-full max-w-4xl">
+            <div className="flex-grow flex justify-center px-6">
+              <div className="w-full max-w-6xl">
                 <CurrentSelection />
               </div>
             </div>
@@ -68,7 +68,7 @@ export default function EditorHeader() {
               ) : isMounted ? (
                 <button
                   onClick={() => setLoginModalOpen(true)}
-                  className="px-3 py-1 border border-white/30 text-white bg-white/10 rounded hover:bg-white/20 transition-all duration-300 text-sm whitespace-nowrap"
+                  className="px-5 py-2.5 border-2 border-blue-600 text-white bg-blue-600 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-700 font-semibold tracking-wide text-sm whitespace-nowrap"
                 >
                   Log in
                 </button>

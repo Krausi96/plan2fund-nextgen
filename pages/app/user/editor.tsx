@@ -2,7 +2,6 @@
 // Main editor page - simplified: always loads, defaults to 'submission' product
 
 import React from 'react';
-import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 import Editor from '@/features/editor/components/Editor';
 
 class ErrorBoundary extends React.Component<
@@ -58,11 +57,6 @@ class ErrorBoundary extends React.Component<
 function EditorPage() {
   return (
     <ErrorBoundary>
-      <PageEntryIndicator 
-        icon="hint"
-        translationKey="editor"
-        duration={0}
-      />
       <Editor />
     </ErrorBoundary>
   );

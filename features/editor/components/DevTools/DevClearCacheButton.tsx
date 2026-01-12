@@ -126,7 +126,7 @@ export default function DevClearCacheButton() {
       className="pointer-events-auto" 
       style={{ 
         position: 'fixed',
-        top: '16px',
+        top: '80px',
         right: '16px',
         zIndex: 99999,
         pointerEvents: 'auto'

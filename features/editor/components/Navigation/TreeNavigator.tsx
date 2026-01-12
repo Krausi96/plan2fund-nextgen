@@ -233,6 +233,14 @@ export default function TreeNavigator() {
     // Special styling for product documents
     const isProductDoc = node.id === 'core-product';
     
+    // Special styling for special sections (References, Appendices, etc.)
+    const isSpecialSection = [
+      'references',
+      'appendices', 
+      'metadata',
+      'ancillary'
+    ].includes(node.id);
+    
     // Handle special button nodes
     if (node.isSpecial) {
       // REMOVED: Add document button handling - now handled by persistent button
@@ -315,6 +323,8 @@ export default function TreeNavigator() {
               ? 'bg-blue-600/20 text-white'
               : isProductDoc
               ? 'bg-purple-600/20 text-white'
+              : isSpecialSection
+              ? 'bg-emerald-600/20 text-white'
               : node.isRequired
               ? 'bg-amber-600/20 text-white'
               : 'text-white hover:bg-white/10'

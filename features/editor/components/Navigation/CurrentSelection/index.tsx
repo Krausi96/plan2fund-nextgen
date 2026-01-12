@@ -48,11 +48,6 @@ function CurrentSelection({}: CurrentSelectionProps) {
     console.log('Navigate to Readiness Check');
   };
 
-  // No overlay positioning needed - inline expansion
-
-  // Translations
-  // Removed unused translations since we're no longer showing sections/documents stats
-
   // Track active navigation tab
   const [activeTab, setActiveTab] = useState<'product' | 'program'>('product');
   
@@ -65,20 +60,20 @@ function CurrentSelection({}: CurrentSelectionProps) {
   // Compact info row - single line header with all elements inline
   const CompactInfoRow = () => {
     return (
-      <div className="flex items-center justify-between bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 px-4 py-2 text-white w-full">
+      <div className="flex items-center justify-between bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 px-4 py-2 text-white w-full gap-12">
         {/* Current Selection Label - Left side */}
-        <div className="text-white font-bold text-lg whitespace-nowrap">
+        <div className="text-white font-bold text-xl whitespace-nowrap">
           {t('editor.desktop.selection.current' as any) || 'Aktuelle Auswahl:'}
         </div>
         
         {/* All 4 Parameters - Perfectly even distribution */}
-        <div className="grid grid-cols-4 gap-4 text-xs flex-grow max-w-4xl">
+        <div className="grid grid-cols-4 gap-12 text-xs flex-grow max-w-6xl">
           {/* Mein Projekt - Clickable */}
           <div 
             className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
             onClick={handleMyProjectClick}
           >
-            <span className="text-white/70 font-medium text-[10px] whitespace-nowrap mb-1">
+            <span className="text-white/70 font-medium text-xs whitespace-nowrap mb-1">
               {t('editor.desktop.myProject.title' as any) || 'Mein Projekt'}
             </span>
             <div className="text-white font-medium flex items-center justify-center gap-1">
@@ -92,7 +87,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
             className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
             onClick={handlePlanClick}
           >
-            <span className="text-white/70 font-medium text-[10px] whitespace-nowrap mb-1">
+            <span className="text-white/70 font-medium text-xs whitespace-nowrap mb-1">
               {t('editor.desktop.selection.productLabel' as any) || 'PLAN'}
             </span>
             <div className="flex items-center justify-center gap-1">
@@ -111,7 +106,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
             className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
             onClick={handleProgramClick}
           >
-            <span className="text-white/70 font-medium text-[10px] whitespace-nowrap mb-1">
+            <span className="text-white/70 font-medium text-xs whitespace-nowrap mb-1">
               {t('editor.desktop.selection.programLabel' as any) || 'Programm'}
             </span>
             <div className="text-white font-medium truncate flex items-center justify-center gap-1">
@@ -127,7 +122,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
             className="flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors"
             onClick={handleReadinessClick}
           >
-            <span className="text-white/70 font-medium text-[10px] whitespace-nowrap mb-1">
+            <span className="text-white/70 font-medium text-xs whitespace-nowrap mb-1">
               {t('editor.desktop.readinessCheck.title' as any) || 'Readiness'}
             </span>
             <div className="text-white font-medium flex items-center justify-center gap-1">
