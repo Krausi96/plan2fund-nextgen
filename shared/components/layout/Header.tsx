@@ -7,7 +7,7 @@ import { useI18n } from "@/shared/contexts/I18nContext"
 import { useUser } from "@/shared/user/context/UserContext"
 import LoginModal from '@/shared/components/auth/LoginModal'
 
-import CurrentSelection from '@/features/editor/components/Navigation/CurrentSelection';
+import EditorHeader from '@/shared/components/layout/EditorHeader';
 
 export default function Header() {
   const { t } = useI18n()
@@ -58,63 +58,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b-2 border-neutral-200 bg-white/95 backdrop-blur-md shadow-md">
       {isEditorPage ? (
-        // Editor-specific header with CurrentSelection - Full width blue gradient
-        <div className="w-full">
-          <div className="flex flex-col bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 px-0 py-0 text-white">
-            {/* Top row: Logo + editor label + Login/Language */}
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-4">
-                <Link 
-                  href="/" 
-                  className="text-xl font-bold text-white hover:text-white/90 transition-all duration-300"
-                >
-                  Plan2Fund
-                </Link>
-                <span className="text-sm font-medium text-white/80">editor</span>
-              </div>
-              
-              {/* Right side: Login + Language */}
-              <div className="flex items-center gap-3">
-                {isMounted && userProfile ? (
-                  <div className="flex items-center gap-2">
-                    <Link 
-                      href="/app/user/dashboard" 
-                      className="flex items-center gap-1 text-white/80 hover:text-white transition-colors text-sm"
-                    >
-                      <User className="w-4 h-4" />
-                      <span className="hidden sm:inline">My Account</span>
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-1 text-white/80 hover:text-white transition-colors text-sm"
-                      title="Log out"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span className="hidden sm:inline">Log out</span>
-                    </button>
-                  </div>
-                ) : isMounted ? (
-                  <button
-                    onClick={() => setLoginModalOpen(true)}
-                    className="px-3 py-1 border border-white/30 text-white bg-white/10 rounded hover:bg-white/20 transition-all duration-300 text-sm"
-                  >
-                    Log in
-                  </button>
-                ) : (
-                  <div className="w-16 h-6" />
-                )}
-                <div className="text-white">
-                  <LanguageSwitcher />
-                </div>
-              </div>
-            </div>
-            
-            {/* CurrentSelection component - Full width */}
-            <div className="w-full">
-              <CurrentSelection />
-            </div>
-          </div>
-        </div>
+        <EditorHeader />
       ) : (
         // Regular header for other pages
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 md:py-5">
