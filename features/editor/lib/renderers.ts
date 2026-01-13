@@ -24,7 +24,7 @@ import React from 'react';
 export const PAGE_STYLE: React.CSSProperties = {
   width: '210mm',
   minHeight: '297mm',
-  margin: '0 auto',
+  margin: '0',
   padding: '20mm',
   backgroundColor: '#ffffff',
   boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',

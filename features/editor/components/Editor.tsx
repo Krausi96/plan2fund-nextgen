@@ -89,11 +89,11 @@ export default function Editor({}: EditorProps = {}) {
     <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950 text-textPrimary">
       <DevClearCacheButton />
       
-      <div className="relative rounded-xl border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)] h-full" style={{ maxWidth: '1800px', margin: '0 auto', height: 'calc(100vh - 90px)' }}>
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900 rounded-[32px]" />
+      <div className="relative border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)] h-full" style={{ maxWidth: '1800px', margin: '0 auto', height: 'calc(100vh - 90px)' }}>
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900" />
           <div className="relative z-10 flex flex-col h-full">
             {/* Workspace Container - Now fills entire space */}
-            <div className="relative rounded-lg border border-dashed border-white/60 shadow-lg backdrop-blur-sm w-full flex-1" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div className="relative border border-dashed border-white/60 shadow-lg backdrop-blur-sm w-full flex-1" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                           
               {/* Flex layout: CurrentSelection | TreeNavigator | Preview | AI */}
               <div 

@@ -18,17 +18,14 @@ import {
   AppendicesRenderer 
 } from './renderers/AncillaryRenderers';
 
-type ZoomPreset = '50' | '75' | '100' | '125' | '150' | '200';
-type PreviewMode = 'preview' | 'formatted' | 'print';
+type ZoomPreset = '50' | '75' | '100' | '125';
 
 const ZOOM_PRESETS: Record<ZoomPreset, number> = {
-  '50': 0.5, '75': 0.75, '100': 1, '125': 1.25, '150': 1.5, '200': 2
+  '50': 0.5, '75': 0.75, '100': 1, '125': 1.25,
 };
 
-const getPreviewPadding = () => 0;
-const getInitialPreviewPadding = () => 0;
-const calculateViewportZoom = (viewMode: 'page' | 'fluid', zoomPreset: ZoomPreset, fitScale: number) => {
-  if (viewMode === 'fluid') return 1;
+
+const calculateViewportZoom = (zoomPreset: ZoomPreset, fitScale: number) => {
   return ZOOM_PRESETS[zoomPreset] * fitScale;
 };
 const calculateFitScale = (width: number, height: number) => {
@@ -38,8 +35,10 @@ const calculateFitScale = (width: number, height: number) => {
   const scaleY = (height - 80) / pageHeight;
   return Math.min(scaleX, scaleY, 1);
 };
-const createViewportStyle = (padding: number) => ({ padding: `${padding}px` });
-const createZoomStyle = (zoom: number) => ({ transform: `scale(${zoom})`, transformOrigin: 'center center' });
+
+const createZoomStyle = (zoom: number) => ({
+  zoom: zoom.toString()
+});
 
 function PreviewPanel() {
   const { t: i18nT } = useI18n();
@@ -54,24 +53,14 @@ function PreviewPanel() {
   const programSummary = useEditorStore(state => state.programSummary);
   const selectedProduct = useEditorStore(state => state.selectedProduct);
   
-
-  const [viewMode] = useState<'page' | 'fluid'>('page');
+  const viewMode: 'page' = 'page';
   const [showWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<ZoomPreset>('100');
   const [fitScale, setFitScale] = useState(1);
   const viewportRef = useRef<HTMLDivElement | null>(null);
-  const [previewPadding, setPreviewPadding] = useState(() => getInitialPreviewPadding());
-  
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const updatePadding = () => setPreviewPadding(getPreviewPadding());
-    updatePadding();
-    window.addEventListener('resize', updatePadding);
-    return () => window.removeEventListener('resize', updatePadding);
-  }, []);
 
   useEffect(() => {
-    if (viewMode !== 'page' || typeof window === 'undefined' || typeof ResizeObserver === 'undefined') {
+    if (typeof window === 'undefined' || typeof ResizeObserver === 'undefined') {
       setFitScale(1);
       return;
     }
@@ -84,19 +73,18 @@ function PreviewPanel() {
     });
     observer.observe(node);
     return () => observer.disconnect();
-  }, [viewMode]);
+  }, []);
 
   const planDocument = useMemo<PlanDocument | null>(() => plan ? plan as PlanDocument : null, [plan]);
-  const viewportZoom = calculateViewportZoom(viewMode, zoomPreset, fitScale);
+  const viewportZoom = calculateViewportZoom(zoomPreset, fitScale);
   const zoomStyle = createZoomStyle(viewportZoom);
-  const previewMode: PreviewMode = viewMode === 'page' ? 'formatted' : 'preview';
+  const previewMode: 'formatted' | 'print' = 'formatted';
   const isGerman = planDocument?.language === 'de';
   const t = getTranslation(isGerman);
   const sectionsToRender = planDocument?.sections || [];
 
   // Refs for scroll handling
   const isScrollingToSection = useRef(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isZooming = useRef(false);
   
   // Empty state content
@@ -168,8 +156,6 @@ function PreviewPanel() {
       Start drafting your sections to see the live business plan preview here.
     </div>
   );
-
-  const viewportStyle = createViewportStyle(previewPadding);
 
   // Scroll observer: Update active section when scrolling preview
   useEffect(() => {
@@ -268,39 +254,65 @@ function PreviewPanel() {
         noPlanContent
       ) : (
         <div className="relative w-full h-full flex flex-col">
+          {/* Zoom Controls - Positioned outside the scroll container to ensure visibility */}
+          <div className="absolute top-4 right-4 z-[101]">
+            <div className="flex flex-col gap-1 bg-slate-900 backdrop-blur-sm rounded-lg p-1.5 border-2 border-blue-500/50 shadow-xl">
+              {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
+                <button 
+                  key={id} 
+                  className={`px-2 py-1 rounded text-xs font-bold transition-all ${
+                    zoomPreset === id ? 'bg-blue-600 text-white shadow-md' : 'bg-white/10 text-white/90 hover:bg-white/20'
+                  }`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Store current scroll position before zoom change
+                    const scrollContainer = document.getElementById('preview-scroll-container');
+                    let savedScrollTop = 0;
+                    
+                    if (scrollContainer) {
+                      savedScrollTop = scrollContainer.scrollTop;
+                    }
+                    
+                    isZooming.current = true;
+                    
+                    // Capture current zoom level for calculating the ratio
+                    const currentZoom = ZOOM_PRESETS[zoomPreset];
+                    const newZoom = ZOOM_PRESETS[id as ZoomPreset];
+                    const zoomRatio = newZoom / currentZoom;
+                    
+                    setZoomPreset(id);
+                    
+                    // Restore scroll position proportionally after zoom update
+                    setTimeout(() => {
+                      if (scrollContainer) {
+                        // Apply zoom ratio to maintain relative scroll position
+                        scrollContainer.scrollTop = savedScrollTop * zoomRatio;
+                        
+                        // Force a recalculation of scroll dimensions after zoom change
+                        // Temporarily toggle overflow to force recalculation
+                        const prevOverflow = scrollContainer.style.overflow;
+                        scrollContainer.style.overflow = 'hidden';
+                        
+                        // Trigger reflow
+                        scrollContainer.offsetHeight;
+                        
+                        // Restore original overflow
+                        scrollContainer.style.overflow = prevOverflow;
+                      }
+                      isZooming.current = false;
+                    }, 30);
+                  }}
+                >
+                  {id}%
+                </button>
+              ))}
+            </div>
+          </div>
+          
           {/* Main preview content */}
           <div className="flex-1 overflow-auto relative" id="preview-scroll-container">
-            {/* Sticky Zoom Controls */}
-            <div className="sticky top-4 right-4 float-right z-[100] mr-4">
-              <div className="flex flex-col gap-1 bg-slate-900 backdrop-blur-sm rounded-lg p-1.5 border-2 border-blue-500/50 shadow-xl">
-                {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
-                  <button 
-                    key={id} 
-                    className={`px-2 py-1 rounded text-xs font-bold transition-all ${
-                      zoomPreset === id ? 'bg-blue-600 text-white shadow-md' : 'bg-white/10 text-white/90 hover:bg-white/20'
-                    }`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      isZooming.current = true;
-                      setZoomPreset(id);
-                      // When zoom changes, make sure to reset the scrolling flag to prevent conflicts
-                      isScrollingToSection.current = false;
-                      if (scrollTimeoutRef.current) {
-                        clearTimeout(scrollTimeoutRef.current);
-                      }
-                      // Clear zooming flag after a short delay
-                      setTimeout(() => {
-                        isZooming.current = false;
-                      }, 100);
-                    }}
-                  >
-                    {id}%
-                  </button>
-                ))}
-              </div>
-            </div>
-            
             <div ref={viewportRef} className={`export-preview ${previewMode}`} style={zoomStyle}>
               {showWatermark && (
                 <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
