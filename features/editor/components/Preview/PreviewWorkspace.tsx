@@ -39,7 +39,7 @@ const calculateFitScale = (width: number, height: number) => {
   return Math.min(scaleX, scaleY, 1);
 };
 const createViewportStyle = (padding: number) => ({ padding: `${padding}px` });
-const createZoomStyle = (zoom: number) => ({ transform: `scale(${zoom})`, transformOrigin: 'top left' });
+const createZoomStyle = (zoom: number) => ({ transform: `scale(${zoom})`, transformOrigin: 'center center' });
 
 function PreviewPanel() {
   const { t: i18nT } = useI18n();
@@ -97,6 +97,7 @@ function PreviewPanel() {
   // Refs for scroll handling
   const isScrollingToSection = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isZooming = useRef(false);
   
   // Empty state content
   const emptyStateContent = (
@@ -209,8 +210,8 @@ function PreviewPanel() {
             }
           });
           
-          // Only update active section if not programmatically scrolling and not user scrolling
-          if (mostVisibleElement && !isScrollingToSection.current && !isUserScrolling) {
+          // Only update active section if not programmatically scrolling, not user scrolling, and not zooming
+          if (mostVisibleElement && !isScrollingToSection.current && !isUserScrolling && !isZooming.current) {
             // First try to get section ID from the element's id attribute (for regular sections)
             let sectionId = '';
             if ('id' in mostVisibleElement && (mostVisibleElement as HTMLElement).id.startsWith('section-')) {
@@ -268,67 +269,69 @@ function PreviewPanel() {
       ) : (
         <div className="relative w-full h-full flex flex-col">
           {/* Main preview content */}
-          <div className="flex-1 overflow-auto" id="preview-scroll-container">
-            <div className="relative w-full h-full flex justify-center">
-              <div ref={viewportRef} className="relative" style={viewportStyle}>
-                <div className={`export-preview ${previewMode}`} style={zoomStyle}>
-                  {showWatermark && (
-                    <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
-                      <div className="text-6xl font-bold text-gray-200 opacity-30 transform -rotate-45 select-none">DRAFT</div>
-                    </div>
-                  )}
-                  <div className="relative z-10" style={{ margin: 0, padding: 0 }}>
-                    <TitlePageRenderer planDocument={planDocument} disabledSections={disabledSections} t={t} />
-                    <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                    {sectionsToRender.map((section, index) => (
-                      <SectionRenderer
-                        key={section.key}
-                        section={section}
-                        sectionIndex={index}
-                        planDocument={planDocument}
-                        previewMode={previewMode}
-                        t={t}
-                      />
-                    ))}
-                    <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                    <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                    <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                    <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                    {/* Zoom Controls - Positioned as overlay to not interfere with scrolling */}
-                    <div className="absolute top-4 right-4 z-[100]">
-                      <div className="flex flex-col gap-1 bg-slate-900 backdrop-blur-sm rounded-lg p-1.5 border-2 border-blue-500/50 shadow-xl">
-                        {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
-                          <button 
-                            key={id} 
-                            className={`px-2 py-1 rounded text-xs font-bold transition-all ${
-                              zoomPreset === id ? 'bg-blue-600 text-white shadow-md' : 'bg-white/10 text-white/90 hover:bg-white/20'
-                            }`}
-                            onClick={() => {
-                              setZoomPreset(id);
-                              // When zoom changes, make sure to reset the scrolling flag to prevent conflicts
-                              isScrollingToSection.current = false;
-                              if (scrollTimeoutRef.current) {
-                                clearTimeout(scrollTimeoutRef.current);
-                              }
-                            }}
-                          >
-                            {id}%
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          <div className="flex-1 overflow-auto relative" id="preview-scroll-container">
+            {/* Sticky Zoom Controls */}
+            <div className="sticky top-4 right-4 float-right z-[100] mr-4">
+              <div className="flex flex-col gap-1 bg-slate-900 backdrop-blur-sm rounded-lg p-1.5 border-2 border-blue-500/50 shadow-xl">
+                {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
+                  <button 
+                    key={id} 
+                    className={`px-2 py-1 rounded text-xs font-bold transition-all ${
+                      zoomPreset === id ? 'bg-blue-600 text-white shadow-md' : 'bg-white/10 text-white/90 hover:bg-white/20'
+                    }`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      isZooming.current = true;
+                      setZoomPreset(id);
+                      // When zoom changes, make sure to reset the scrolling flag to prevent conflicts
+                      isScrollingToSection.current = false;
+                      if (scrollTimeoutRef.current) {
+                        clearTimeout(scrollTimeoutRef.current);
+                      }
+                      // Clear zooming flag after a short delay
+                      setTimeout(() => {
+                        isZooming.current = false;
+                      }, 100);
+                    }}
+                  >
+                    {id}%
+                  </button>
+                ))}
               </div>
+            </div>
+            
+            <div ref={viewportRef} className={`export-preview ${previewMode}`} style={zoomStyle}>
+              {showWatermark && (
+                <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
+                  <div className="text-6xl font-bold text-gray-200 opacity-30 transform -rotate-45 select-none">DRAFT</div>
+                </div>
+              )}
+              <TitlePageRenderer planDocument={planDocument} disabledSections={disabledSections} t={t} />
+              <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+              {sectionsToRender.map((section, index) => (
+                <SectionRenderer
+                  key={section.key}
+                  section={section}
+                  sectionIndex={index}
+                  planDocument={planDocument}
+                  previewMode={previewMode}
+                  t={t}
+                />
+              ))}
+              <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+              <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+              <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+              <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
             </div>
           </div>
           
           {/* Bottom sticky Readiness Check bar */}
           <div className="flex-shrink-0 border-t border-white/20 bg-slate-900/90 backdrop-blur-sm">
-            <div className="px-4 py-3">
+            <div className="px-2 py-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-white/60 text-sm font-medium">Readiness:</span>
+                  <span className="text-white/60 text-xs font-medium">Readiness:</span>
                   <div className="flex items-center gap-2">
                     {selectedProduct && (
                       <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded font-medium">

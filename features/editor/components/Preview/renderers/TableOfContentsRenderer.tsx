@@ -34,8 +34,7 @@ export function TableOfContentsRenderer({ planDocument, sectionsToRender, disabl
   
   return (
     <div className="export-preview-page export-preview-toc-page" data-section-id={ANCILLARY_SECTION_ID} style={PAGE_STYLE}>
-      <div className="export-preview-page-scaler">
-        <div className="space-y-2">
+      <div className="space-y-2">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t.tableOfContents}</h2>
           <div className="space-y-1">
             {sectionsToRender.map((section, sectionIndex) => {
@@ -85,6 +84,5 @@ export function TableOfContentsRenderer({ planDocument, sectionsToRender, disabl
           )}
         </div>
       </div>
-    </div>
   );
 }

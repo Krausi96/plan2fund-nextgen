@@ -45,8 +45,7 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
   
   return (
     <div className="preview-title-page export-preview-page" data-section-id={METADATA_SECTION_ID} style={PAGE_STYLE}>
-      <div className="export-preview-page-scaler">
-        <div className="flex flex-col justify-between h-full pb-16 px-10">
+      <div className="flex flex-col justify-between h-full pb-16 px-10">
           <div className="flex-shrink-0 flex flex-col items-center">
             {tp?.logoUrl && <img src={tp.logoUrl} alt="Company Logo" className="mx-auto h-24 object-contain mb-8" />}
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">{t.businessPlan}</p>
@@ -79,6 +78,5 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
           </div>
         </div>
       </div>
-    </div>
   );
 }

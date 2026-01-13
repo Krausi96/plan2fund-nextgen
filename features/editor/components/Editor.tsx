@@ -89,15 +89,15 @@ export default function Editor({}: EditorProps = {}) {
     <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950 text-textPrimary">
       <DevClearCacheButton />
       
-      <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)] h-full" style={{ maxWidth: '1800px', margin: '0 auto', height: '100vh' }}>
+      <div className="relative rounded-xl border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)] h-full" style={{ maxWidth: '1800px', margin: '0 auto', height: 'calc(100vh - 90px)' }}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900 rounded-[32px]" />
           <div className="relative z-10 flex flex-col h-full">
             {/* Workspace Container - Now fills entire space */}
-            <div className="relative rounded-2xl border border-dashed border-white/60 shadow-lg backdrop-blur-sm w-full flex-1" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div className="relative rounded-lg border border-dashed border-white/60 shadow-lg backdrop-blur-sm w-full flex-1" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                           
               {/* Flex layout: CurrentSelection | TreeNavigator | Preview | AI */}
               <div 
-                className={`flex-1 pb-3 lg:pb-4 flex ${isDragging ? 'cursor-col-resize' : ''}`}
+                className={`flex-1 flex ${isDragging ? 'cursor-col-resize' : ''}`}
                 style={{ minHeight: 0 }}
               >
                 {/* Left Column: Unified Tree Navigator - Draggable width */}
@@ -111,9 +111,9 @@ export default function Editor({}: EditorProps = {}) {
                   <div className="absolute right-0 top-0 bottom-0 w-px bg-white/20"></div>
                 </div>
                             
-                {/* Preview Area - Grows to fill space (no padding) */}
-                <div className="flex-1 flex flex-col" style={{ minWidth: 0, minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
-                  <div className="flex-1" style={{ minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}>
+                {/* Preview Area - Scrollable content with fixed readiness bar */}
+                <div className="flex-1 flex flex-col" style={{ minWidth: 0, minHeight: 0 }}>
+                  <div className="flex-1 overflow-auto">
                     <PreviewWorkspace />
                   </div>
                 </div>

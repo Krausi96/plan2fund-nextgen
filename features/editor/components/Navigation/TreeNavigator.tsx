@@ -574,7 +574,7 @@ export default function TreeNavigator() {
   return (
     <div className="flex flex-col h-full">
       {/* Header with separator */}
-      <div className="flex-shrink-0 mb-2 px-3 pt-1">
+      <div className="flex-shrink-0 mb-1 px-3 pt-0.5">
         <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem',paddingTop:'0.5rem' }}>
           <h2 className="text-xl font-semibold tracking-wide text-white text-center flex-1">
             {t('editor.desktop.sections.title' as any) || 'Sections & Documents'}
