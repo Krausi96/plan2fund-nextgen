@@ -1115,7 +1115,7 @@
   "editor.desktop.sections.custom.add": "Hinzufügen",
   "editor.desktop.sections.custom.cancel": "Abbrechen",
   "editor.desktop.sections.activate": "Aktivieren",
-  "editor.desktop.preview.emptyState.cta": "Plan starten",
+  "editor.desktop.preview.emptyState.cta": "Projekt anlegen",
   "editor.desktop.preview.emptyState.description": "Es gibt viele Wege, such dir deinen aus.",
   "editor.desktop.preview.emptyState.optionALabel": "Option A:",
   "editor.desktop.preview.emptyState.optionA": "Wähle einen Plan (Strategiedokument, Individueller Business-Plan oder Upgrade) aus. Du kannst später ein Förderprogramm hinzufügen, um programmspezifische Anforderungen und Empfehlungen zu erhalten.",

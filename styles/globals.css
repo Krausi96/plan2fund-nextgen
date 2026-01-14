@@ -88,6 +88,35 @@
 }
 
 @layer components {
+  /* Smooth zoom slider styling */
+  .slider-thumb::-webkit-slider-thumb {
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+  }
+  
+  .slider-thumb::-webkit-slider-thumb:hover {
+    background: #2563eb;
+    transform: scale(1.1);
+  }
+  
+  .slider-thumb::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  
+
+
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
@@ -488,43 +517,42 @@
 
   /* ========== PAGE BREAKS AND FOOTERS ========== */
   
-  /* Container for all pages - centered layout */
+  /* Container for all pages - static layout */
   .export-preview {
     --preview-page-width: 210mm;
     --preview-page-height: 297mm;
-    --preview-viewport-zoom: 1;
     background: transparent;
-    padding: 0 !important;
-    gap: 0 !important;
-    row-gap: 0 !important;
-    width: 100%;
+    margin: 0;
+    width: var(--preview-page-width);
     display: flex;
     flex-direction: column;
-    align-items: center !important;
+    align-items: center;
+    justify-content: flex-start;
     overflow-x: hidden;
-    min-height: unset;
-    align-content: flex-start;
-    transform: scale(var(--preview-viewport-zoom, 1));
-    transform-origin: top center;
+    min-height: fit-content;
+    /* Static layout - transforms now applied via new zoom system */
   }
+  
 
-  /* Page container - Fixed A4 size, centered */
+
+  /* Page container - Fixed A4 size, centered (static) */
   .export-preview-page {
     width: var(--preview-page-width) !important;
     height: var(--preview-page-height) !important;
+    min-height: var(--preview-page-height) !important; /* Ensure minimum height */
     background: white !important;
-    margin: 0 auto !important;
+    margin: 0 auto !important; /* Center the page horizontally */
     border: 1px solid;
     border-image: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.15)) 1;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     position: relative;
     padding: 1.5cm 2cm 2cm 2cm;
-    transform-origin: center top;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
     flex-shrink: 0;
+    /* Static container - dimensions controlled by CSS custom properties */
   }
 
   .export-preview-page:not(:last-of-type) {
@@ -534,8 +562,6 @@
   .export-preview-page:last-of-type {
     margin-bottom: 0.5rem !important;
   }
-
-
 
   /* Page footer */
   .export-preview-page-footer {
@@ -551,6 +577,37 @@
     color: #6b7280;
   }
   
+  /* SCROLL CONTAINER */
+  .preview-scroll {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    padding: 2rem 0;
+  }
+
+  /* STAGE — defines layout width so scrollbars behave */
+  .preview-stage{
+    width: calc(var(--preview-page-width) * var(--zoom));
+    min-height: 100%;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* CANVAS — visually scaled only */
+  .export-preview{
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--preview-page-width);
+    transform: translateX(-50%) scale(var(--zoom));
+    transform-origin: top center;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent;
+    overflow: visible;
+  }
+
   /* Page break before sections */
   .export-preview-section {
     page-break-before: always;

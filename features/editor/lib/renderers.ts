@@ -16,16 +16,10 @@ import React from 'react';
 /**
  * Page style constants for export preview (A4 format).
  * 
- * Defines dimensions and styling for PDF-like preview pages.
+ * Defines styling for PDF-like preview pages.
  * Used in PreviewWorkspace to render document pages.
- * 
- * Dimensions: 210mm × 297mm (standard A4 size)
  */
 export const PAGE_STYLE: React.CSSProperties = {
-  width: '210mm',
-  minHeight: '297mm',
-  margin: '0',
-  padding: '20mm',
   backgroundColor: '#ffffff',
   boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
 };

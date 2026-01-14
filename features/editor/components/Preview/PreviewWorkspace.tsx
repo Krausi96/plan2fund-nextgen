@@ -18,28 +18,6 @@ import {
   AppendicesRenderer 
 } from './renderers/AncillaryRenderers';
 
-type ZoomPreset = '50' | '75' | '100' | '125';
-
-const ZOOM_PRESETS: Record<ZoomPreset, number> = {
-  '50': 0.5, '75': 0.75, '100': 1, '125': 1.25,
-};
-
-
-const calculateViewportZoom = (zoomPreset: ZoomPreset, fitScale: number) => {
-  return ZOOM_PRESETS[zoomPreset] * fitScale;
-};
-const calculateFitScale = (width: number, height: number) => {
-  const pageWidth = 210 * 3.779527559;
-  const pageHeight = 297 * 3.779527559;
-  const scaleX = (width - 80) / pageWidth;
-  const scaleY = (height - 80) / pageHeight;
-  return Math.min(scaleX, scaleY, 1);
-};
-
-const createZoomStyle = (zoom: number) => ({
-  zoom: zoom.toString()
-});
-
 function PreviewPanel() {
   const { t: i18nT } = useI18n();
   const previewState = usePreviewState();
@@ -53,32 +31,45 @@ function PreviewPanel() {
   const programSummary = useEditorStore(state => state.programSummary);
   const selectedProduct = useEditorStore(state => state.selectedProduct);
   
-  const viewMode: 'page' = 'page';
   const [showWatermark] = useState(true);
-  const [zoomPreset, setZoomPreset] = useState<ZoomPreset>('100');
-  const [fitScale, setFitScale] = useState(1);
+  const [zoomLevel, setZoomLevel] = useState(1); // Scale factor
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
+  
+  function setZoomCentered(nextZoom: number) {
+    const scroller = scrollRef.current ?? document.getElementById("preview-scroll-container");
+    const stage = stageRef.current; // optional, only if you store --zoom here
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof ResizeObserver === 'undefined') {
-      setFitScale(1);
+    if (!scroller) {
+      setZoomLevel(nextZoom);
+      stage?.style.setProperty("--zoom", String(nextZoom));
       return;
     }
-    const node = viewportRef.current;
-    if (!node) return;
-    const observer = new ResizeObserver((entries) => {
-      const { width, height } = entries[0]?.contentRect || {};
-      if (!width || !height) return;
-      setFitScale(calculateFitScale(width, height));
+
+    const prevZoom = zoomLevel;
+
+    // Current viewport center in "content pixels"
+    const cx = scroller.scrollLeft + scroller.clientWidth / 2;
+    const cy = scroller.scrollTop + scroller.clientHeight / 2;
+
+    // Update zoom (state + CSS var)
+    setZoomLevel(nextZoom);
+    stage?.style.setProperty("--zoom", String(nextZoom));
+
+    // After DOM updates, adjust scroll so the same logical center stays under the viewport center
+    requestAnimationFrame(() => {
+      const ratio = nextZoom / prevZoom;
+
+      scroller.scrollLeft = cx * ratio - scroller.clientWidth / 2;
+      scroller.scrollTop  = cy * ratio - scroller.clientHeight / 2;
     });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
+  }
+  
 
   const planDocument = useMemo<PlanDocument | null>(() => plan ? plan as PlanDocument : null, [plan]);
-  const viewportZoom = calculateViewportZoom(zoomPreset, fitScale);
-  const zoomStyle = createZoomStyle(viewportZoom);
-  const previewMode: 'formatted' | 'print' = 'formatted';
+
+const previewMode: 'formatted' | 'print' = 'formatted';
   const isGerman = planDocument?.language === 'de';
   const t = getTranslation(isGerman);
   const sectionsToRender = planDocument?.sections || [];
@@ -87,6 +78,11 @@ function PreviewPanel() {
   const isScrollingToSection = useRef(false);
   const isZooming = useRef(false);
   
+  // Ref for tracking zoom state
+  useEffect(() => {
+    isZooming.current = false;
+  }, [zoomLevel]);
+
   // Empty state content
   const emptyStateContent = (
     <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
@@ -254,87 +250,59 @@ function PreviewPanel() {
         noPlanContent
       ) : (
         <div className="relative w-full h-full flex flex-col">
-          {/* Zoom Controls - Positioned outside the scroll container to ensure visibility */}
+                  
+          {/* Zoom Control Slider */}
           <div className="absolute top-4 right-4 z-[101]">
-            <div className="flex flex-col gap-1 bg-slate-900 backdrop-blur-sm rounded-lg p-1.5 border-2 border-blue-500/50 shadow-xl">
-              {(Object.keys(ZOOM_PRESETS) as ZoomPreset[]).map((id) => (
-                <button 
-                  key={id} 
-                  className={`px-2 py-1 rounded text-xs font-bold transition-all ${
-                    zoomPreset === id ? 'bg-blue-600 text-white shadow-md' : 'bg-white/10 text-white/90 hover:bg-white/20'
-                  }`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Store current scroll position before zoom change
-                    const scrollContainer = document.getElementById('preview-scroll-container');
-                    let savedScrollTop = 0;
-                    
-                    if (scrollContainer) {
-                      savedScrollTop = scrollContainer.scrollTop;
-                    }
-                    
-                    isZooming.current = true;
-                    
-                    // Capture current zoom level for calculating the ratio
-                    const currentZoom = ZOOM_PRESETS[zoomPreset];
-                    const newZoom = ZOOM_PRESETS[id as ZoomPreset];
-                    const zoomRatio = newZoom / currentZoom;
-                    
-                    setZoomPreset(id);
-                    
-                    // Restore scroll position proportionally after zoom update
-                    setTimeout(() => {
-                      if (scrollContainer) {
-                        // Apply zoom ratio to maintain relative scroll position
-                        scrollContainer.scrollTop = savedScrollTop * zoomRatio;
-                        
-                        // Force a recalculation of scroll dimensions after zoom change
-                        // Temporarily toggle overflow to force recalculation
-                        const prevOverflow = scrollContainer.style.overflow;
-                        scrollContainer.style.overflow = 'hidden';
-                        
-                        // Trigger reflow
-                        scrollContainer.offsetHeight;
-                        
-                        // Restore original overflow
-                        scrollContainer.style.overflow = prevOverflow;
-                      }
-                      isZooming.current = false;
-                    }, 30);
-                  }}
-                >
-                  {id}%
-                </button>
-              ))}
+            <div className="flex items-center gap-2 bg-slate-900 backdrop-blur-sm rounded-lg p-2 border-2 border-blue-500/50 shadow-xl">
+              <span className="text-white text-xs font-medium">Zoom:</span>
+              <input
+                type="range"
+                min="0.5"
+                max="1.25"
+                step="0.01"
+                value={zoomLevel}
+                onChange={(e) => setZoomCentered(parseFloat(e.target.value))}
+                className="w-32 h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider-thumb"
+              />
+              <span className="text-white text-xs font-bold w-12">
+                {Math.round(zoomLevel * 100)}%
+              </span>
             </div>
           </div>
-          
-          {/* Main preview content */}
-          <div className="flex-1 overflow-auto relative" id="preview-scroll-container">
-            <div ref={viewportRef} className={`export-preview ${previewMode}`} style={zoomStyle}>
-              {showWatermark && (
-                <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
-                  <div className="text-6xl font-bold text-gray-200 opacity-30 transform -rotate-45 select-none">DRAFT</div>
-                </div>
-              )}
-              <TitlePageRenderer planDocument={planDocument} disabledSections={disabledSections} t={t} />
-              <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-              {sectionsToRender.map((section, index) => (
-                <SectionRenderer
-                  key={section.key}
-                  section={section}
-                  sectionIndex={index}
-                  planDocument={planDocument}
-                  previewMode={previewMode}
-                  t={t}
-                />
-              ))}
-              <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-              <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-              <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-              <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                  
+          {/* Main preview content - fixed container with isolated zoom */}
+          <div
+            id="preview-scroll-container"
+            ref={scrollRef}
+            className="flex-1 overflow-auto relative pt-8 pb-8"
+          >
+            <div ref={stageRef} className="preview-stage" style={{ ["--zoom" as any]: zoomLevel }}>
+              <div 
+                ref={viewportRef} 
+                className={`export-preview ${previewMode}`}
+              >
+                {showWatermark && (
+                  <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
+                    <div className="text-6xl font-bold text-gray-200 opacity-30 transform -rotate-45 select-none">DRAFT</div>
+                  </div>
+                )}
+                <TitlePageRenderer planDocument={planDocument} disabledSections={disabledSections} t={t} />
+                <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                {sectionsToRender.map((section, index) => (
+                  <SectionRenderer
+                    key={section.key}
+                    section={section}
+                    sectionIndex={index}
+                    planDocument={planDocument}
+                    previewMode={previewMode}
+                    t={t}
+                  />
+                ))}
+                <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+              </div>
             </div>
           </div>
           

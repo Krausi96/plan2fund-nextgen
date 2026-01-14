@@ -1184,7 +1184,7 @@
   "editor.desktop.sections.activate": "Activate",
   "editor.desktop.sections.deactivate": "Deactivate",
   "editor.desktop.documents.emptyHint": "No matching documents found – add one now.",
-  "editor.desktop.preview.emptyState.cta": "Start Your Plan",
+  "editor.desktop.preview.emptyState.cta": "Create Project",
   "editor.desktop.preview.emptyState.description": "There are many ways, choose yours.",
   "editor.desktop.preview.emptyState.optionALabel": "Option A:",
   "editor.desktop.preview.emptyState.optionA": "Choose a plan (Strategy Document, Individual Business Plan, or Upgrade). You can add a funding program later to get program-specific requirements and recommendations.",

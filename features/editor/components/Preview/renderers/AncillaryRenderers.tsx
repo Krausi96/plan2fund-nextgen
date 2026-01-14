@@ -47,8 +47,7 @@ export function ListOfTablesRenderer({ planDocument, sectionsToRender, disabledS
   
   return (
     <div className="export-preview-page export-preview-section" data-section-id={ANCILLARY_SECTION_ID} style={PAGE_STYLE}>
-      <div className="export-preview-page-scaler">
-        <div className="section-block space-y-4">
+      <div className="section-block space-y-4">
           <div className="section-heading border-b border-gray-200/80 pb-3">
             <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.listOfTables}</h2>
           </div>
@@ -72,7 +71,6 @@ export function ListOfTablesRenderer({ planDocument, sectionsToRender, disabledS
             {shouldDisplayPageNumber(-1, 'list_of_figures', planDocument.sections) && <div>{t.page} {pageNumber}</div>}
           </div>
         )}
-      </div>
     </div>
   );
 }
@@ -97,8 +95,7 @@ export function ListOfFiguresRenderer({ planDocument, sectionsToRender, disabled
   
   return (
     <div className="export-preview-page export-preview-section" data-section-id={ANCILLARY_SECTION_ID} style={PAGE_STYLE}>
-      <div className="export-preview-page-scaler">
-        <div className="section-block space-y-4">
+      <div className="section-block space-y-4">
           <div className="section-heading border-b border-gray-200/80 pb-3">
             <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.listOfFigures}</h2>
           </div>
@@ -121,7 +118,6 @@ export function ListOfFiguresRenderer({ planDocument, sectionsToRender, disabled
             {shouldDisplayPageNumber(-1, 'list_of_figures', planDocument.sections) && <div>{t.page} {pageNumber}</div>}
           </div>
         )}
-      </div>
     </div>
   );
 }
@@ -133,8 +129,7 @@ export function ReferencesRenderer({ planDocument, sectionsToRender, disabledSec
   
   return (
     <div className="export-preview-page export-preview-section" data-section-id={REFERENCES_SECTION_ID} style={PAGE_STYLE}>
-      <div className="export-preview-page-scaler">
-        <div className="section-block space-y-4">
+      <div className="section-block space-y-4">
           <div className="section-heading border-b border-gray-200/80 pb-3">
             <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.references}</h2>
           </div>
@@ -160,7 +155,6 @@ export function ReferencesRenderer({ planDocument, sectionsToRender, disabledSec
             {shouldDisplayPageNumber(-1, REFERENCES_SECTION_ID, planDocument.sections) && <div>{t.page} {pageNumber}</div>}
           </div>
         )}
-      </div>
     </div>
   );
 }
@@ -172,8 +166,7 @@ export function AppendicesRenderer({ planDocument, sectionsToRender, disabledSec
   
   return (
     <div className="export-preview-page export-preview-section" data-section-id={APPENDICES_SECTION_ID} style={PAGE_STYLE}>
-      <div className="export-preview-page-scaler">
-        <div className="section-block space-y-4">
+      <div className="section-block space-y-4">
           <div className="section-heading border-b border-gray-200/80 pb-3">
             <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.appendices}</h2>
           </div>
@@ -198,7 +191,6 @@ export function AppendicesRenderer({ planDocument, sectionsToRender, disabledSec
             {shouldDisplayPageNumber(-1, APPENDICES_SECTION_ID, planDocument.sections) && <div>{t.page} {pageNumber}</div>}
           </div>
         )}
-      </div>
     </div>
   );
 }

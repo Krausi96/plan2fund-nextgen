@@ -26,8 +26,7 @@ export function SectionRenderer({ section, sectionIndex, planDocument, previewMo
       className="export-preview-page export-preview-section" 
       style={PAGE_STYLE}
     >
-      <div className="export-preview-page-scaler">
-        <div className="flex h-full flex-col space-y-4">
+      <div className="flex h-full flex-col space-y-4">
           <div className="border-b border-gray-200 pb-2 flex-shrink-0">
             <h2 className="text-2xl font-semibold text-gray-900">{displayTitle}</h2>
           </div>
@@ -95,7 +94,6 @@ export function SectionRenderer({ section, sectionIndex, planDocument, previewMo
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }
