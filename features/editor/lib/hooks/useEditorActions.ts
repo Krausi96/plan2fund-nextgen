@@ -71,14 +71,19 @@ export function useEditorActions<T>(selector: (actions: any) => T): T {
       setShowAddSection: state.setShowAddSection,
       setShowAddDocument: state.setShowAddDocument,
       setNewSectionTitle: state.setNewSectionTitle,
-      setNewSectionDescription: state.setNewSectionDescription,
       setNewDocumentName: state.setNewDocumentName,
-      setNewDocumentDescription: state.setNewDocumentDescription,
       setExpandedSectionId: state.setExpandedSectionId,
       setExpandedDocumentId: state.setExpandedDocumentId,
       setEditingSection: state.setEditingSection,
       setEditingDocument: state.setEditingDocument,
       setClickedDocumentId: state.setClickedDocumentId,
+      // Setup Wizard Actions
+      setSetupWizardStep: state.setSetupWizardStep,
+      setProjectProfile: state.setProjectProfile,
+      setProgramProfile: state.setProgramProfile,
+      setDocumentTemplateId: state.setDocumentTemplateId,
+      completeSetupWizard: state.completeSetupWizard,
+      resetSetupWizard: state.resetSetupWizard,
       // Removed: setTemplateLoading (not used - property removed from store)
       // Removed: setTemplateError (not used - property removed from store)
       resetFormState: state.resetFormState,

@@ -193,7 +193,7 @@ export default function FAQPage() {
                   {t("faq.cta.contactSupport")}
                 </a>
                 <a
-                  href="/about"
+                  href="/marketing/about"
                   className="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-all font-semibold text-sm"
                 >
                   {t("faq.cta.learnMore")}

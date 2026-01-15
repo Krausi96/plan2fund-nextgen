@@ -30,7 +30,7 @@ export default function PrivacyPage() {
             <a href="/legal/terms" className="text-blue-600 hover:text-blue-700 font-medium text-sm">
               {t('privacy.navigation.terms')}
             </a>
-            <a href="/about" className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+            <a href="/marketing/about" className="text-blue-600 hover:text-blue-700 font-medium text-sm">
               {t('privacy.navigation.legal')}
             </a>
             <a href="/contact" className="text-blue-600 hover:text-blue-700 font-medium text-sm">

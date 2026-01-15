@@ -27,7 +27,7 @@ import {
   REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
 } from '../constants';
-import type { SectionWithMetadata, DocumentWithMetadata } from '../store/editorStore';
+import type { SectionWithMetadata, DocumentWithMetadata } from '../types/types';
 import type { ProductOption, DocumentTemplate, SectionTemplate } from '../types/types';
 
 // ============================================================================

@@ -30,7 +30,7 @@ export default function TermsPage() {
             <a href="/legal/privacy" className="text-blue-600 hover:text-blue-700 font-medium text-sm">
               {t('terms.navigation.privacy')}
             </a>
-            <a href="/about" className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+            <a href="/marketing/about" className="text-blue-600 hover:text-blue-700 font-medium text-sm">
               {t('terms.navigation.legal')}
             </a>
             <a href="/contact" className="text-blue-600 hover:text-blue-700 font-medium text-sm">

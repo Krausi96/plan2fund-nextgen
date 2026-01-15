@@ -24,6 +24,7 @@ export interface EditorState {
   programLoading: boolean;
   programError: string | null;
   isConfiguratorOpen: boolean;
+
   // Setup Wizard State
   setupWizard: SetupWizardState;
   disabledSectionIds: string[];
@@ -56,6 +57,7 @@ export interface EditorActions {
   setProgramLoading: (loading: boolean) => void;
   setProgramError: (error: string | null) => void;
   setIsConfiguratorOpen: (open: boolean) => void;
+  
   // Setup Wizard Actions
   setSetupWizardStep: (step: 1 | 2 | 3) => void;
   setProjectProfile: (profile: ProjectProfile | null) => void;

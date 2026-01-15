@@ -1,10 +1,10 @@
-import React, { useState} from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import ProductSelection from './ProductSelection/ProductSelection';
 import ProgramSelection from './ProgramSelection/ProgramSelection';
 import ReadinessCheck from './ReadinessCheck/ReadinessCheck';
 import MyProject from './MyProject/MyProject';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useConfiguratorState, useEditorActions, useEditorStore } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
@@ -22,26 +22,31 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const { selectedProductMeta, programSummary } = useConfiguratorState();
   // Removed unused section/document counts since we're now showing ReadinessCheck and MyProject instead of stats
   const isConfiguratorOpen = useEditorStore((state) => state.isConfiguratorOpen);
+  const setupWizard = useEditorStore((state) => state.setupWizard);
   const actions = useEditorActions((a) => ({
     setIsConfiguratorOpen: a.setIsConfiguratorOpen,
+    setSetupWizardStep: a.setSetupWizardStep,
+    setProjectProfile: a.setProjectProfile,
+    completeSetupWizard: a.completeSetupWizard,
   }));
   
   // Handlers for clickable items
   const handleMyProjectClick = () => {
-    // Navigate to My Project configuration
-    console.log('Navigate to My Project');
+    // Open wizard and go to step 1
+    actions.setIsConfiguratorOpen(true);
+    actions.setSetupWizardStep(1);
   };
   
   const handlePlanClick = () => {
-    // Open configurator and switch to product tab
+    // Open wizard and go to step 3
     actions.setIsConfiguratorOpen(true);
-    setActiveTab('product');
+    actions.setSetupWizardStep(3);
   };
   
   const handleProgramClick = () => {
-    // Open configurator and switch to program tab
+    // Open wizard and go to step 2
     actions.setIsConfiguratorOpen(true);
-    setActiveTab('program');
+    actions.setSetupWizardStep(2);
   };
   
   const handleReadinessClick = () => {
@@ -49,8 +54,25 @@ function CurrentSelection({}: CurrentSelectionProps) {
     console.log('Navigate to Readiness Check');
   };
 
-  // Track active navigation tab
-  const [activeTab, setActiveTab] = useState<'product' | 'program'>('product');
+  // Setup Wizard navigation
+  const handleNextStep = () => {
+    if (setupWizard.currentStep < 3) {
+      actions.setSetupWizardStep((setupWizard.currentStep + 1) as 1 | 2 | 3);
+    }
+  };
+  
+  const handlePrevStep = () => {
+    if (setupWizard.currentStep > 1) {
+      actions.setSetupWizardStep((setupWizard.currentStep - 1) as 1 | 2 | 3);
+    }
+  };
+  
+  const handleCompleteWizard = () => {
+    actions.completeSetupWizard();
+    actions.setIsConfiguratorOpen(false);
+    // Initialize editor with selected configuration
+    // Set readiness to 0%
+  };
   
 
 
@@ -143,7 +165,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
     );
   };
 
-  // Overlay modal expansion with horizontal tabs - positioned absolutely to overlay content
+  // Overlay modal expansion with 3-step wizard - positioned absolutely to overlay content
   const InlineExpansion = () => {
     if (!isConfiguratorOpen) return null;
     
@@ -158,14 +180,40 @@ function CurrentSelection({}: CurrentSelectionProps) {
         }}
       >
         <div 
-          className="w-full max-w-4xl mx-4 rounded-lg border-2 border-blue-400 bg-slate-900 shadow-2xl"
+          className="w-full max-w-6xl mx-4 rounded-lg border-2 border-blue-400 bg-slate-900 shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/20 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975">
-            <h2 className="text-lg font-bold uppercase tracking-wide text-white">
-              {t('editor.desktop.selection.current' as any) || 'Configure Selection'}
-            </h2>
+          {/* Header with Step Progress */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/20 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
+            <div>
+              <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-1">
+                Setup Wizard
+              </h2>
+              <div className="flex items-center gap-2">
+                {[1, 2, 3].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                      step <= setupWizard.currentStep 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-white/20 text-white/50'
+                    }`}>
+                      {step < setupWizard.currentStep ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        step
+                      )}
+                    </div>
+                    {step < 3 && (
+                      <div className={`w-8 h-1 mx-1 ${
+                        step < setupWizard.currentStep 
+                          ? 'bg-blue-500' 
+                          : 'bg-white/20'
+                      }`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
             <button
               onClick={handleToggle}
               className="text-white/60 hover:text-white text-xl leading-none transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
@@ -174,40 +222,92 @@ function CurrentSelection({}: CurrentSelectionProps) {
             </button>
           </div>
           
-          {/* Horizontal Tabs */}
-          <div className="flex border-b border-white/20 bg-slate-800">
-            <button
-              onClick={() => setActiveTab('product')}
-              className={`flex-1 px-6 py-4 text-center text-base font-medium transition-colors flex items-center justify-center gap-2 ${
-                activeTab === 'product'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <span>📦</span>
-              {t('editor.desktop.config.step1.title' as any) || 'Product'}
-              {selectedProductMeta && <span className="ml-1 text-xs text-green-400">✓</span>}
-            </button>
-            <button
-              onClick={() => setActiveTab('program')}
-              className={`flex-1 px-6 py-4 text-center text-base font-medium transition-colors flex items-center justify-center gap-2 ${
-                activeTab === 'program'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <span>🎯</span>
-              {t('editor.desktop.config.step2.title' as any) || 'Program'}
-              {programSummary && <span className="ml-1 text-xs text-green-400">✓</span>}
-            </button>
-          </div>
-
-          {/* Dynamic height content area - no fixed height limit */}
+          {/* Step Content - USING EXISTING MYPROJECT COMPONENT AS REQUESTED */}
           <div className="p-6 bg-slate-800/50 max-h-[60vh]">
             <div className="overflow-y-auto">
-              {activeTab === 'product' && <ProductSelection />}
-              {activeTab === 'program' && <ProgramSelection />}
+              {/* Step 1: My Project Form (enhanced existing component with form fields) */}
+              {setupWizard.currentStep === 1 && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      Step 1: Project Basics
+                    </h3>
+                    <p className="text-white/80 text-sm mb-4">
+                      Collect information that affects your document and title page
+                    </p>
+                  </div>
+                  <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+                    <MyProject 
+                      mode="form" 
+                      onSubmit={(data) => {
+                        // Handle form submission and proceed to next step
+                        actions.setProjectProfile(data);
+                        handleNextStep();
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Step 2: Program Selection */}
+              {setupWizard.currentStep === 2 && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-2">Step 2: Target Selection</h3>
+                    <p className="text-white/80 text-sm mb-4">
+                      Select your funding type to determine document structure
+                    </p>
+                  </div>
+                  <ProgramSelection />
+                </div>
+              )}
+              
+              {/* Step 3: Product Selection */}
+              {setupWizard.currentStep === 3 && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-2">Step 3: Document Type</h3>
+                    <p className="text-white/80 text-sm mb-4">
+                      Choose your document template
+                    </p>
+                  </div>
+                  <ProductSelection />
+                </div>
+              )}
             </div>
+          </div>
+          
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between px-6 py-4 border-t border-white/20 bg-slate-800">
+            <button
+              onClick={handlePrevStep}
+              disabled={setupWizard.currentStep === 1}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                setupWizard.currentStep === 1
+                  ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Previous
+            </button>
+            
+            {setupWizard.currentStep < 3 ? (
+              <button
+                onClick={handleNextStep}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Next
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                onClick={handleCompleteWizard}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+              >
+                Complete Setup
+              </button>
+            )}
           </div>
         </div>
       </div>,

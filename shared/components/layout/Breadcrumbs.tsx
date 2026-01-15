@@ -9,24 +9,15 @@ export default function Breadcrumbs() {
 
   const stepsReco = [
     { href: "/", label: t('breadcrumb.home') },
-    { href: "/app/user/reco", label: t('breadcrumb.recommendation') },
-    // Removed /results - results are now shown inline in ProgramFinder
+    { href: "/app/user/reco", label: "Recommendation" },
     { href: "/app/user/editor", label: t('breadcrumb.editor') },
-    { href: "/app/user/preview", label: t('breadcrumb.preview') },
-    { href: "/confirm", label: t('breadcrumb.confirm') },
     { href: "/checkout", label: t('breadcrumb.checkout') },
-    { href: "/app/user/export", label: t('breadcrumb.export') },
-    { href: "/checkout/success/thank-you", label: t('breadcrumb.successHub') },
   ]
-
+  
   const stepsDirect = [
     { href: "/", label: t('breadcrumb.home') },
     { href: "/app/user/editor", label: t('breadcrumb.editor') },
-    { href: "/app/user/preview", label: t('breadcrumb.preview') },
-    { href: "/confirm", label: t('breadcrumb.confirm') },
     { href: "/checkout", label: t('breadcrumb.checkout') },
-    { href: "/app/user/export", label: t('breadcrumb.export') },
-    { href: "/checkout/success/thank-you", label: t('breadcrumb.successHub') },
   ]
 
   const isRecoFlow = ["/app/user/reco"].some((p) =>

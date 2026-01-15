@@ -9,11 +9,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   // Define flow routes where Breadcrumbs should be shown (aligned to product workflow)
   const flowRoutes = [
-    "/app/user/preview",
-    "/confirm",
     "/checkout",
-    "/app/user/export",
-    "/checkout/success/thank-you",
   ];
 
   const showBreadcrumbs = flowRoutes.some((route) =>

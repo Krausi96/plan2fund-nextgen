@@ -188,7 +188,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-bold text-neutral-900 mb-2 text-lg">{t('contact.help.faq.title')}</h3>
                   <p className="text-sm text-neutral-700 mb-3 leading-relaxed">{t('contact.help.faq.description')}</p>
-                  <a href="/faq" className="text-blue-600 hover:text-blue-700 text-sm font-semibold underline decoration-2 underline-offset-2">
+                  <a href="/marketing/faq" className="text-blue-600 hover:text-blue-700 text-sm font-semibold underline decoration-2 underline-offset-2">
                     {t('contact.help.faq.link')}
                   </a>
                 </div>
@@ -221,7 +221,7 @@ export default function ContactPage() {
       {/* Quick Links */}
       <div className="mt-16 text-center">
         <p className="text-neutral-600 mb-4">
-          Have questions? Check out our <Link href="/faq" className="text-blue-600 hover:text-blue-700 font-semibold underline decoration-2 underline-offset-2">FAQ page</Link> for quick answers.
+          Have questions? Check out our <Link href="/marketing/faq" className="text-blue-600 hover:text-blue-700 font-semibold underline decoration-2 underline-offset-2">FAQ page</Link> for quick answers.
         </p>
       </div>
         </div>

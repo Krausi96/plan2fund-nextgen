@@ -194,7 +194,7 @@ export default function Home() {
                     t("planTypes.strategy.feature3"),
                     t("planTypes.strategy.feature4")
                   ],
-                  href: "/pricing#strategy"
+                  href: "/checkout/pricing#strategy"
                 },
                 {
                   id: "review",
@@ -207,7 +207,7 @@ export default function Home() {
                     t("planTypes.review.feature3"),
                     t("planTypes.review.feature4")
                   ],
-                  href: "/pricing#review"
+                  href: "/checkout/pricing#review"
                 },
                 {
                   id: "custom",
@@ -220,7 +220,7 @@ export default function Home() {
                     t("planTypes.custom.feature3"),
                     t("planTypes.custom.feature4")
                   ],
-                  href: "/pricing#custom"
+                  href: "/checkout/pricing#custom"
                 }
               ].map((plan) => {
                 const isHighlighted = targetGroup !== 'default' && (

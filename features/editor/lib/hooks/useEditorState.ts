@@ -229,20 +229,19 @@ export const useDocumentsBarState = () => {
     clickedId: state.clickedDocumentId,
     allItems: state.allDocuments
   }));
-  
+
+  const { enabledDocumentsCount, totalDocumentsCount } = useSectionsAndDocumentsCounts();
+
   const selectors = {
     isNewUser: useIsNewUser(),
     isEditing: useIsEditingDocument(),
     selectedProductMeta: useSelectedProductMeta(),
     documents: useVisibleDocuments(),
     disabledDocuments: useDisabledDocumentsSet(),
-    documentCounts: (() => {
-      const counts = useSectionsAndDocumentsCounts();
-      return {
-        enabledCount: counts.enabledDocumentsCount,
-        totalCount: counts.totalDocumentsCount,
-      };
-    })()
+    documentCounts: {
+      enabledCount: enabledDocumentsCount,
+      totalCount: totalDocumentsCount,
+    }
   };
   
   const actions = useEditorActions((a) => ({

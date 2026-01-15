@@ -45,7 +45,7 @@ export default function Footer() {
             <h4 className="font-bold text-neutral-900 mb-6 text-lg uppercase tracking-wide">{t('footer.company')}</h4>
             <ul className="space-y-4 text-sm">
               <li><Link href="/contact" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.contact')}</Link></li>
-              <li><Link href="/about#partners" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.forPartners')}</Link></li>
+              <li><Link href="/marketing/about#partners" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.forPartners')}</Link></li>
             </ul>
           </div>
 
@@ -55,7 +55,7 @@ export default function Footer() {
             <ul className="space-y-4 text-sm">
               <li><Link href="/legal/privacy" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.privacy')}</Link></li>
               <li><Link href="/legal/terms" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.terms')}</Link></li>
-              <li><Link href="/about" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.legalNotice')}</Link></li>
+              <li><Link href="/marketing/about" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.legalNotice')}</Link></li>
               <li><Link href="/legal/privacy#security" className="text-neutral-700 hover:text-neutral-900 transition-colors font-medium">{t('footer.security')}</Link></li>
             </ul>
           </div>

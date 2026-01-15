@@ -72,13 +72,13 @@ export default function Header() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex gap-8 items-center">
-            <Link href="/about" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
+            <Link href="/marketing/about" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
               {t('nav.howItWorks')}
             </Link>
-            <Link href="/pricing" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
+            <Link href="/checkout/pricing" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
               {t('nav.pricing')}
             </Link>
-            <Link href="/faq" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
+            <Link href="/marketing/faq" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
               FAQ
             </Link>
             {isMounted && userProfile ? (
@@ -131,21 +131,21 @@ export default function Header() {
         <div id="mobile-menu" ref={menuRef} className="md:hidden border-t-2 border-neutral-200 bg-white/95 backdrop-blur-md shadow-lg">
           <div className="px-4 py-6 flex flex-col gap-4">
             <Link 
-              href="/about" 
+              href="/marketing/about" 
               className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
               onClick={() => setOpen(false)}
             >
               {t('nav.howItWorks')}
             </Link>
             <Link 
-              href="/pricing" 
+              href="/checkout/pricing" 
               className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
               onClick={() => setOpen(false)}
             >
               {t('nav.pricing')}
             </Link>
             <Link 
-              href="/faq" 
+              href="/marketing/faq" 
               className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
               onClick={() => setOpen(false)}
             >
