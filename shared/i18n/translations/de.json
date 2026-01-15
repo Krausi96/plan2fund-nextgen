@@ -1626,6 +1626,13 @@
   "editor.desktop.setupWizard.validation.oneLiner": "Ein-Zeilen-Beschreibung ist erforderlich",
   "editor.desktop.setupWizard.validation.country": "Land ist erforderlich",
   
+  "editor.desktop.myProject.sections.generalInfo": "Allgemeine Informationen",
+  "editor.desktop.myProject.sections.projectProfile": "Projektprofil",
+  "editor.desktop.myProject.sections.planningContext": "Planungskontext",
+  "editor.desktop.myProject.fields.industryTags": "Branchen-Tags",
+  "editor.desktop.myProject.fields.planningHorizon": "Planungshorizont",
+  "editor.desktop.myProject.placeholders.industryTags": "Technologie, SaaS, FinTech",
+  
   "reco.pageTitle": "Empfehlungsmaschine",
   "reco.pageSubtitle": "Finden Sie die perfekten Förderprogramme für Ihr Projekt",
   "reco.skipQuestion": "Diese Frage überspringen"

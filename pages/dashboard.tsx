@@ -294,7 +294,7 @@ function DashboardPage() {
                   className="w-full justify-start h-auto py-4 bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md transition-all" 
                   asChild
                 >
-                  <Link href="/app/user/editor?product=submission&route=grant" onClick={()=>analytics.trackUserAction('dashboard_cta_new_plan', {})}>
+                  <Link href="/editor?product=submission&route=grant" onClick={()=>analytics.trackUserAction('dashboard_cta_new_plan', {})}>
                     <Plus className="w-5 h-5 mr-3" />
                     <div className="text-left">
                       <div className="font-semibold">Create New Plan</div>
@@ -308,7 +308,7 @@ function DashboardPage() {
                   className="w-full justify-start h-auto py-4 border-2 hover:bg-gray-50 transition-all duration-200" 
                   asChild
                 >
-                  <Link href="/app/user/reco" onClick={()=>analytics.trackUserAction('dashboard_cta_recommendations', {})}>
+                  <Link href="/reco" onClick={()=>analytics.trackUserAction('dashboard_cta_recommendations', {})}>
                     <Target className="w-5 h-5 mr-3 text-blue-600" />
                     <div className="text-left">
                       <div className="font-semibold text-gray-900">Find Funding</div>
@@ -323,7 +323,7 @@ function DashboardPage() {
                     className="w-full justify-start h-auto py-3 border border-gray-200 hover:bg-gray-50 transition-all duration-200" 
                     asChild
                   >
-                    <Link href="/app/user/editor">
+                    <Link href="/editor">
                       <FileText className="w-4 h-4 mr-2 text-gray-600" />
                       <span className="text-sm font-medium text-gray-700">
                         View All Plans ({filteredPlans.length})
@@ -339,7 +339,7 @@ function DashboardPage() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Active Applications</h2>
                 <Button size="sm" variant="outline" asChild>
-                  <Link href="/app/user/reco">
+                  <Link href="/reco">
                     Find More
                   </Link>
                 </Button>
@@ -355,7 +355,7 @@ function DashboardPage() {
                     Start finding funding opportunities that match your business needs
                   </p>
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm" asChild>
-                    <Link href="/app/user/reco">
+                    <Link href="/reco">
                       Find Funding Opportunities
                     </Link>
                   </Button>

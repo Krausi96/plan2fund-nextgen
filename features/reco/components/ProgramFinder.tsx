@@ -124,7 +124,7 @@ export default function ProgramFinder({
       product: 'submission',
       programId: programId,
     });
-    router.push(`/app/user/editor?${params.toString()}`);
+    router.push(`/editor?${params.toString()}`);
   }, [router]);
   
   
@@ -182,7 +182,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
       
       // Handle planning_only - redirect immediately
       if (questionId === 'funding_intent' && value === 'planning_only') {
-        router.push('/app/user/editor');
+        router.push('/editor');
         return prevAnswers; // Don't update state if redirecting
       }
       
@@ -333,7 +333,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                       </button>
                       <button
                         type="button"
-                        onClick={() => router.push('/app/user/editor?product=submission&connect=manual')}
+                        onClick={() => router.push('/editor?product=submission&connect=manual')}
                         className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         {(t('reco.results.empty.manual' as any) as string) || 'Add program in editor'}

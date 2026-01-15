@@ -147,7 +147,7 @@ export default function Pricing() {
 
                     {/* CTA Button */}
                     <Link
-                      href={`/app/user/editor?product=${plan.product}&route=${selectedRoute}`}
+                      href={`/editor?product=${plan.product}&route=${selectedRoute}`}
                       onClick={() => analytics.trackUserAction('pricing_select_plan', { 
                         product: plan.product, 
                         route: selectedRoute 

@@ -1585,6 +1585,13 @@
   "editor.desktop.setupWizard.validation.oneLiner": "One-liner description is required",
   "editor.desktop.setupWizard.validation.country": "Country is required",
   
+  "editor.desktop.myProject.sections.generalInfo": "General Information",
+  "editor.desktop.myProject.sections.projectProfile": "Project Profile",
+  "editor.desktop.myProject.sections.planningContext": "Planning Context",
+  "editor.desktop.myProject.fields.industryTags": "Industry Tags",
+  "editor.desktop.myProject.fields.planningHorizon": "Planning Horizon",
+  "editor.desktop.myProject.placeholders.industryTags": "Tech, SaaS, FinTech",
+  
   "reco.pageTitle": "Recommendation Engine",
   "reco.pageSubtitle": "Find the perfect funding programs for your project",
   "reco.skipQuestion": "Skip this question"

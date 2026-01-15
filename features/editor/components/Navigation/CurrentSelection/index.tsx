@@ -32,9 +32,13 @@ function CurrentSelection({}: CurrentSelectionProps) {
   
   // Handlers for clickable items
   const handleMyProjectClick = () => {
+    console.log('MyProject clicked!');
+    console.log('Current isConfiguratorOpen:', isConfiguratorOpen);
+    console.log('Current setupWizard step:', setupWizard.currentStep);
     // Open wizard and go to step 1
     actions.setIsConfiguratorOpen(true);
     actions.setSetupWizardStep(1);
+    console.log('After setting state - isConfiguratorOpen should be true');
   };
   
   const handlePlanClick = () => {
@@ -167,6 +171,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
 
   // Overlay modal expansion with 3-step wizard - positioned absolutely to overlay content
   const InlineExpansion = () => {
+    console.log('InlineExpansion rendering, isConfiguratorOpen:', isConfiguratorOpen);
     if (!isConfiguratorOpen) return null;
     
     return createPortal(

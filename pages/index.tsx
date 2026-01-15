@@ -37,14 +37,14 @@ export default function Home() {
       case 1: // Idea - Define Business Concept
       case 2: // Business Model - Prepare Market Entry
       case 3: // Funding - Find Funding Options
-        router.push('/app/user/reco');
+        router.push('/reco');
         break;
       case 4: // Business Plan - Build your Business Plan
       case 5: // Application - Apply for funding
-        router.push('/app/user/editor?product=submission&route=grant');
+        router.push('/editor?product=submission&route=grant');
         break;
       default:
-        router.push('/app/user/reco');
+        router.push('/reco');
     }
   };
 
@@ -286,11 +286,11 @@ export default function Home() {
           subtitle={t('cta.joinFounders')}
           primaryAction={{
             label: t('nav.startPlan'),
-            href: "/app/user/editor?product=submission&route=grant"
+            href: "/editor?product=submission&route=grant"
           }}
           secondaryAction={{
             label: t('cta.findYourFunding'),
-            href: "/app/user/reco"
+            href: "/reco"
           }}
         />
       </main>

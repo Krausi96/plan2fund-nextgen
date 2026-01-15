@@ -26,11 +26,17 @@ const nextConfig = {
   // Redirects for reorganized user pages
   async redirects() {
     return [
-      { source: '/dashboard', destination: '/app/user/dashboard', permanent: true },
-      { source: '/editor', destination: '/app/user/editor', permanent: true },
-      { source: '/export', destination: '/app/user/export', permanent: true },
-      { source: '/preview', destination: '/app/user/preview', permanent: true },
-      { source: '/reco', destination: '/app/user/reco', permanent: true },
+      // Redirect legacy routes to flattened structure
+      { source: '/app/user/dashboard', destination: '/dashboard', permanent: true },
+      { source: '/app/user/editor', destination: '/editor', permanent: true },
+      { source: '/app/user/reco', destination: '/reco', permanent: true },
+      { source: '/app/user/export', destination: '/editor', permanent: true },
+      { source: '/app/user/preview', destination: '/editor', permanent: true },
+      // Redirect marketing/legal routes
+      { source: '/marketing/about', destination: '/about', permanent: true },
+      { source: '/marketing/faq', destination: '/faq', permanent: true },
+      { source: '/legal/privacy', destination: '/privacy', permanent: true },
+      { source: '/legal/terms', destination: '/terms', permanent: true },
     ];
   },
   // Bundle analyzer (uncomment for analysis)

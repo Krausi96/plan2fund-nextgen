@@ -20,7 +20,7 @@ export default function Header() {
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   // Check if we're on the editor page
-  const isEditorPage = router.pathname === '/app/user/editor';
+  const isEditorPage = router.pathname === '/editor';
 
   useEffect(() => {
     setIsMounted(true)
@@ -72,19 +72,19 @@ export default function Header() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex gap-8 items-center">
-            <Link href="/marketing/about" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
+            <Link href="/about" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
               {t('nav.howItWorks')}
             </Link>
             <Link href="/checkout/pricing" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
               {t('nav.pricing')}
             </Link>
-            <Link href="/marketing/faq" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
+            <Link href="/faq" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
               FAQ
             </Link>
             {isMounted && userProfile ? (
               <div className="flex items-center gap-4">
                 <Link 
-                  href="/app/user/dashboard" 
+                  href="/dashboard" 
                   className="flex items-center gap-2 text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm"
                 >
                   <User className="w-4 h-4" />
@@ -131,7 +131,7 @@ export default function Header() {
         <div id="mobile-menu" ref={menuRef} className="md:hidden border-t-2 border-neutral-200 bg-white/95 backdrop-blur-md shadow-lg">
           <div className="px-4 py-6 flex flex-col gap-4">
             <Link 
-              href="/marketing/about" 
+              href="/about" 
               className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
               onClick={() => setOpen(false)}
             >
@@ -145,7 +145,7 @@ export default function Header() {
               {t('nav.pricing')}
             </Link>
             <Link 
-              href="/marketing/faq" 
+              href="/faq" 
               className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
               onClick={() => setOpen(false)}
             >
