@@ -14,9 +14,7 @@
   "nav.faq": "FAQ",
   "nav.myAccount": "Mein Konto",
   "nav.advancedSearch": "Erweiterte Suche",
-  "breadcrumb.home": "Startseite",
-  "breadcrumb.editor": "Editor",
-  "breadcrumb.checkout": "Kasse",
+
   "reco.errors.generationFailed": "Wir konnten gerade keine Programme generieren. Bitte versuchen Sie es in Kürze erneut.",
   "reco.errors.noProgramsFound": "Keine Programme gefunden. Bitte überprüfen Sie die Server-Logs für Details.",
   "reco.errors.generationError": "Fehler beim Generieren von Programmen: {error}",

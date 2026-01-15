@@ -1587,9 +1587,5 @@
   
   "reco.pageTitle": "Recommendation Engine",
   "reco.pageSubtitle": "Find the perfect funding programs for your project",
-  "reco.skipQuestion": "Skip this question",
-  
-  "breadcrumb.home": "Home",
-  "breadcrumb.editor": "Editor",
-  "breadcrumb.checkout": "Checkout"
+  "reco.skipQuestion": "Skip this question"
 }
