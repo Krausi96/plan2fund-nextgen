@@ -70,3 +70,29 @@ export function normalizeProgramInput(input: string): string | null {
     return trimmed;
   }
 }
+
+/**
+ * Sync template state from plan metadata.
+ * 
+ * Updates the store's template-related state (disabled sections/documents,
+ * custom sections/documents) based on the current plan's metadata.
+ * 
+ * @param plan - Current business plan
+ * @param setState - Zustand set function
+ * @param getState - Zustand get function
+ */
+export function syncTemplateStateFromPlan(
+  plan: any,
+  setState: (partial: any) => void,
+  getState: () => any
+): void {
+  if (!plan?.metadata) return;
+  
+  setState({
+    disabledSectionIds: plan.metadata.disabledSectionIds || [],
+    disabledDocumentIds: plan.metadata.disabledDocumentIds || [],
+    customSections: plan.metadata.customSections || [],
+    customDocuments: plan.metadata.customDocuments || [],
+    selectedProduct: plan.productType || getState().selectedProduct,
+  });
+}

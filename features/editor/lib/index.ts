@@ -57,19 +57,19 @@ export type {
   PlanDocument,
   BusinessPlan,
   ProgramSummary,
-  ConnectCopy,
   ConversationMessage,
   QuestionStatus,
-  Section,
   SectionTemplate,
   DocumentTemplate,
   DropdownPosition,
   DropdownPositionOptions,
-  ZoomPreset,
-  ViewMode,
-  PreviewControls,
   EditHandlers,
   ToggleHandlers,
+  ConnectCopy,
+  ProjectProfile,
+  ProgramProfile,
+  DocumentTemplateId,
+  SetupWizardState,
 } from './types/types';
 
 // ============================================================================
@@ -84,9 +84,12 @@ export type {
   EditorStore,
   EditorActions,
   EditorState,
+} from './store/editorStore';
+
+export type {
   SectionWithMetadata,
   DocumentWithMetadata,
-} from './store/editorStore';
+} from './types/types';
 
 // ============================================================================
 // CONSTANTS - Constants and IDs

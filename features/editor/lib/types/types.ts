@@ -152,20 +152,9 @@ export interface ProgramSummary {
   [key: string]: any;
 }
 
-export interface ConnectCopy {
-  openFinder?: string;
-  pasteLink?: string;
-  inputLabel?: string;
-  placeholder?: string;
-  example?: string;
-  submit?: string;
-  error?: string;
-  [key: string]: any;
-}
-
 // ============================================================================
 // AI & CONVERSATION TYPES
-// ============================================================================
+// =============================================================================
 
 export interface ConversationMessage {
   role: 'user' | 'assistant' | 'system';
@@ -175,13 +164,6 @@ export interface ConversationMessage {
 }
 
 export type QuestionStatus = 'pending' | 'answered' | 'skipped' | 'hidden';
-
-export interface Section {
-  id: string;
-  title: string;
-  content?: string;
-  [key: string]: any;
-}
 
 // ============================================================================
 // TEMPLATE TYPES
@@ -255,30 +237,6 @@ export type DropdownPositionOptions = {
 };
 
 /**
- * Preview zoom presets
- * Used by: PreviewWorkspace, usePreviewControls hook
- */
-export type ZoomPreset = '50' | '75' | '100' | '125' | '150' | '200';
-
-/**
- * Preview view mode
- * Used by: PreviewWorkspace, usePreviewControls hook
- */
-export type ViewMode = 'page' | 'fluid';
-
-/**
- * Preview controls state
- * Used by: PreviewWorkspace, usePreviewControls hook
- */
-export interface PreviewControls {
-  viewMode: ViewMode;
-  showWatermark: boolean;
-  zoomPreset: ZoomPreset;
-  fitScale: number;
-  previewPadding: number;
-}
-
-/**
  * Edit handlers interface
  * Used by: Editor, Sidebar, DocumentsBar, useEditHandlers hook
  */
@@ -297,4 +255,91 @@ export interface ToggleHandlers {
   isDisabled: (id: string) => boolean;
   enabledCount: number;
   totalCount: number;
+}
+
+// ============================================================================
+// SETUP WIZARD TYPES
+// ============================================================================
+
+/**
+ * ProjectProfile - Output of Step 1 (Project Basics)
+ * Contains essential project metadata that affects document structure
+ */
+export interface ProjectProfile {
+  projectName: string;
+  author: string;
+  confidentiality: 'public' | 'confidential' | 'private';
+  oneLiner: string;
+  stage: 'idea' | 'MVP' | 'revenue';
+  country: string;
+  industryTags: string[]; // max 3
+  financialBaseline: {
+    fundingNeeded: number;
+    currency: string;
+    startDate: string;
+    planningHorizon: 12 | 24 | 36; // months
+  };
+}
+
+/**
+ * ProgramProfile - Output of Step 2 (Target Selection)
+ * Determines document structure based on funding type and program
+ */
+export interface ProgramProfile {
+  fundingType: 'bank' | 'grant' | 'investor' | 'custom';
+  programId?: string;
+  programName?: string;
+  // What this affects:
+  requiredSections: string[];
+  requiredAnnexes: string[];
+  scoringChecks: string[];
+}
+
+/**
+ * DocumentTemplateId - Output of Step 3 (Document Type)
+ * Final document template selection
+ */
+export type DocumentTemplateId = 'business-plan' | 'pitch-deck' | 'executive-summary' | 'custom';
+
+/**
+ * SetupWizardState - Tracks progress through the 3-step wizard
+ */
+export interface SetupWizardState {
+  currentStep: 1 | 2 | 3;
+  projectProfile: ProjectProfile | null;
+  programProfile: ProgramProfile | null;
+  documentTemplateId: DocumentTemplateId | null;
+  isComplete: boolean;
+}
+
+// Helper types for editor store
+export type SectionWithMetadata = {
+  id: string;
+  title: string;
+  isDisabled: boolean;
+  origin?: 'template' | 'custom';
+  isSpecial: boolean;
+  required?: boolean;
+  [key: string]: any;
+};
+
+export type DocumentWithMetadata = {
+  id: string;
+  name: string;
+  isDisabled: boolean;
+  origin?: 'template' | 'custom';
+  [key: string]: any;
+};
+
+/**
+ * ConnectCopy - Interface for program connection copy text
+ */
+export interface ConnectCopy {
+  openFinder?: string;
+  pasteLink?: string;
+  inputLabel?: string;
+  placeholder?: string;
+  submit?: string;
+  example?: string;
+  error?: string;
 }

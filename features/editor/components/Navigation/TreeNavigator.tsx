@@ -39,8 +39,8 @@ export default function TreeNavigator() {
     sections = [], 
     disabledSections = new Set(), 
     actions: sidebarActions, 
-    activeSectionId = null,
-    showAddSection = false,
+    activeId: activeSectionId = null,
+    showAdd: showAddSection = false,
     isEditing: isEditingSection = false
   } = sidebarState || {};
   
@@ -48,9 +48,9 @@ export default function TreeNavigator() {
     documents = [], 
     disabledDocuments = new Set(), 
     actions: documentsBarActions, 
-    clickedDocumentId = null,
+    clickedId: clickedDocumentId = null,
     selectedProductMeta = null,
-    showAddDocument = false,
+    showAdd: showAddDocument = false,
     isEditing: isEditingDocument = false
   } = documentsState || {};
   
