@@ -56,7 +56,7 @@ export default function Header() {
   }, [open])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b-2 border-neutral-200 bg-white/95 backdrop-blur-md shadow-md">
+    <header className="sticky top-0 z-50 w-full border-neutral-200 bg-white/95 backdrop-blur-md shadow-md">
       {isEditorPage ? (
         <EditorHeader />
       ) : (

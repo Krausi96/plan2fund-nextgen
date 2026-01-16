@@ -115,7 +115,6 @@
     border: none;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   }
-  
 
 
   .container {
@@ -736,4 +735,9 @@
 
 .animate-modal-exit {
   animation: modal-fade-out 0.15s ease-in forwards;
+}
+
+/* Smooth header height transition */
+.transition-height {
+  transition: height 0.3s ease-in-out;
 }

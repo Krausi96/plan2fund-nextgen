@@ -21,19 +21,19 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const { selectedProductMeta, programSummary } = useConfiguratorState();
   const isConfiguratorOpen = useEditorStore((state) => state.isConfiguratorOpen);
   const setupWizard = useEditorStore((state) => state.setupWizard);
-  const [myProjectSubStep, setMyProjectSubStep] = useState<1 | 2 | 3>(1);
   const actions = useEditorActions((a) => ({
     setIsConfiguratorOpen: a.setIsConfiguratorOpen,
     setSetupWizardStep: a.setSetupWizardStep,
     setProjectProfile: a.setProjectProfile,
     completeSetupWizard: a.completeSetupWizard,
   }));
-  
 
+  // Section navigation state for MyProject
+  const [currentSection, setCurrentSection] = useState<1 | 2 | 3>(1);
 
-  // Reset sub-step when opening MyProject
+  // Reset section when opening MyProject
   const handleMyProjectClick = () => {
-    setMyProjectSubStep(1);
+    setCurrentSection(1);
     actions.setIsConfiguratorOpen(true);
     actions.setSetupWizardStep(1);
   };
@@ -91,7 +91,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
           onClick={handleMyProjectClick}
         >
           <div className="flex items-center gap-2">
-            <span className="text-white/70 font-medium text-xs mb-1">💼 My Project</span>
+            <span className="text-white/70 font-medium text-xs mb-1">💼 {t('editor.desktop.myProject.title') || 'My Project'}</span>
             {setupWizard.currentStep === 1 && isConfiguratorOpen && (
               <span className="relative">
                 <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
@@ -143,7 +143,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
           onClick={handleProgramClick}
         >
           <div className="flex items-center gap-2">
-            <span className="text-white/70 font-medium text-xs mb-1">📚 Program</span>
+            <span className="text-white/70 font-medium text-xs mb-1">📚 {t('editor.desktop.selection.programLabel') || 'Program / Template'}</span>
             {setupWizard.currentStep === 2 && isConfiguratorOpen && (
               <span className="relative">
                 <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
@@ -212,8 +212,8 @@ function CurrentSelection({}: CurrentSelectionProps) {
         const headerEl = document.querySelector('header .flex-grow.flex.justify-center.px-6 .w-full.max-w-6xl');
         const rect = headerEl?.getBoundingClientRect();
         
-        // Position modal just below the compact header when values are hidden
-        const modalTop = isConfiguratorOpen ? (rect?.top || 0) + 52 : (rect?.bottom || 60);
+        // Position modal slightly below header to avoid cutting
+        const modalTop = (rect?.bottom || 60) + 2;
         
         return createPortal(
           <div 
@@ -228,32 +228,31 @@ function CurrentSelection({}: CurrentSelectionProps) {
             onClick={(e) => e.stopPropagation()}
             onAnimationEnd={handleAnimationEnd}
           >
-            {/* Create Project header */}
-            <div className="px-32 py-3 border-b border-white/20 bg-gradient-to-r from-blue-800 to-blue-700">
-              <h2 className="text-base font-bold uppercase tracking-wide text-white/80">
-                {t('editor.desktop.preview.emptyState.cta') || 'Create Project'}
-              </h2>
-            </div>
-            
             {/* Wizard content goes here */}
-            <div className="p-6 bg-slate-800/50">
-              <div className="max-w-4xl mx-auto">
+            <div className="px-4 py-6 bg-slate-800/50">
+              <div className="w-full">
                 {/* Step 1: My Project with sub-steps */}
                 {setupWizard.currentStep === 1 && (
-                  <MyProject 
-                    mode="form" 
-                    subStep={myProjectSubStep}
-                    onSubStepChange={setMyProjectSubStep}
-                    onSkip={handleNextStep}
-                    onSubmit={handleNextStep}
-                  />
+                  <>
+                    <h2 className="text-xl font-bold text-white mb-4 text-left">
+                      {t('editor.desktop.preview.emptyState.cta') || 'Create Project'}
+                    </h2>
+                    <div className="w-full">
+                      <MyProject 
+                        mode="form" 
+                        onSubmit={handleNextStep}
+                        currentSection={currentSection}
+                        onSectionChange={setCurrentSection}
+                      />
+                    </div>
+                  </>
                 )}
                 
                 {/* Step 2: Program Selection */}
                 {setupWizard.currentStep === 2 && (
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2">Step 2: Target Selection</h3>
+                      <h3 className="text-xl font-bold text-white mb-2 text-left">Step 2: Target Selection</h3>
                       <p className="text-white/80 text-sm mb-4">
                         Select your funding type to determine document structure
                       </p>
@@ -266,7 +265,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                 {setupWizard.currentStep === 3 && (
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2">Step 3: Document Type</h3>
+                      <h3 className="text-xl font-bold text-white mb-2 text-left">Step 3: Document Type</h3>
                       <p className="text-white/80 text-sm mb-4">
                         Choose your document template
                       </p>

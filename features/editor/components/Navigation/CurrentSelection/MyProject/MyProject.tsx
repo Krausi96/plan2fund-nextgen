@@ -3,25 +3,22 @@ import { useEditorState } from '../../../../lib/hooks/useEditorState';
 import { useEditorActions } from '../../../../lib/hooks/useEditorActions';
 import { useI18n } from '../../../../../../shared/contexts/I18nContext';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
-// Import other sub-steps when created
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface MyProjectProps {
   className?: string;
   mode?: 'display' | 'form';
   onSubmit?: (data: any) => void;
-  subStep?: 1 | 2 | 3;
-  onSubStepChange?: (step: 1 | 2 | 3) => void;
-  onSkip?: () => void;
+  currentSection?: 1 | 2 | 3;
+  onSectionChange?: (section: 1 | 2 | 3) => void;
 }
 
 const MyProject: React.FC<MyProjectProps> = ({ 
   className = '', 
   mode = 'display', 
   onSubmit,
-  subStep = 1,
-  onSubStepChange,
-  onSkip
+  currentSection = 1,
+  onSectionChange
 }) => {
   const { t } = useI18n();
   const { plan } = useEditorState();
@@ -47,19 +44,6 @@ const MyProject: React.FC<MyProjectProps> = ({
       planningHorizon: 12 as 12 | 24 | 36
     }
   });
-
-  // Navigation handlers
-  const handleNext = () => {
-    if (subStep < 3 && onSubStepChange) {
-      onSubStepChange((subStep + 1) as 1 | 2 | 3);
-    }
-  };
-
-  const handlePrev = () => {
-    if (subStep > 1 && onSubStepChange) {
-      onSubStepChange((subStep - 1) as 1 | 2 | 3);
-    }
-  };
 
   const handleFieldChange = (field: string, value: any) => {
     if (field.includes('.')) {
@@ -105,111 +89,183 @@ const MyProject: React.FC<MyProjectProps> = ({
     );
   }
 
-  // Form mode - simplified with sub-step navigation
+  // Form mode - section navigation like subtle
   if (mode === 'form') {
+    // Navigation handler
+    const handleNavClick = (section: 1 | 2 | 3) => {
+      if (onSectionChange) {
+        onSectionChange(section);
+      }
+    };
+
     return (
-      <div className={`${className}`}>
-        {/* Sub-step Header */}
-        <div className="mb-6 bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                {subStep === 1 && <><span className="text-2xl">📋</span> General Information (Title Page)</>}
-                {subStep === 2 && <><span className="text-2xl">🏢</span> Project Profile</>}
-                {subStep === 3 && <><span className="text-2xl">✨</span> Planning Context</>}
-              </h3>
-              <p className="text-white/70 text-sm mt-1">
-                Substep {subStep}/3
-              </p>
-            </div>
-            <button
-              onClick={onSkip}
-              className="text-white/60 hover:text-white text-sm underline transition-colors"
-            >
-              Skip
-            </button>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="flex items-center gap-2">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  step <= subStep 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-white/20 text-white/50'
-                }`}>
-                  {step < subStep ? <Check className="w-3 h-3" /> : step}
-                </div>
-                {step < 3 && (
-                  <div className={`w-6 h-1 mx-1 ${
-                    step < subStep ? 'bg-blue-500' : 'bg-white/20'
-                  }`} />
-                )}
-              </div>
-            ))}
+      <div className={`${className} flex gap-4`}>
+        {/* Navigation Sidebar - Reduced Width */}
+        <div className="w-40 flex-shrink-0">
+          <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+            <nav className="space-y-2">
+              <button
+                onClick={() => handleNavClick(1)}
+                className={`w-full text-left flex items-center gap-2 p-2 rounded transition-colors ${
+                  currentSection === 1 
+                    ? 'bg-blue-500/30 text-white' 
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <span className="text-lg">📋</span>
+                <span className="text-sm">General Info</span>
+              </button>
+              
+              <button
+                onClick={() => handleNavClick(2)}
+                className={`w-full text-left flex items-center gap-2 p-2 rounded transition-colors ${
+                  currentSection === 2 
+                    ? 'bg-blue-500/30 text-white' 
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <span className="text-lg">🏢</span>
+                <span className="text-sm">Project Profile</span>
+              </button>
+              
+              <button
+                onClick={() => handleNavClick(3)}
+                className={`w-full text-left flex items-center gap-2 p-2 rounded transition-colors ${
+                  currentSection === 3 
+                    ? 'bg-blue-500/30 text-white' 
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <span className="text-lg">✨</span>
+                <span className="text-sm">Planning Context</span>
+              </button>
+            </nav>
           </div>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Render current sub-step */}
-          {subStep === 1 && (
-            <GeneralInfoStep 
-              formData={formData} 
-              onChange={handleFieldChange} 
-            />
-          )}
-          
-          {/* TODO: Add other sub-steps */}
-          {subStep === 2 && (
-            <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-              <h4 className="text-white font-medium mb-3">🏢 Project Profile</h4>
-              <p className="text-white/70 text-sm">Coming soon...</p>
-            </div>
-          )}
-          
-          {subStep === 3 && (
-            <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-              <h4 className="text-white font-medium mb-3">✨ Planning Context</h4>
-              <p className="text-white/70 text-sm">Coming soon...</p>
-            </div>
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="flex items-center justify-between pt-4">
-            <button
-              type="button"
-              onClick={handlePrev}
-              disabled={subStep === 1}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                subStep === 1
-                  ? 'bg-white/10 text-white/50 cursor-not-allowed'
-                  : 'bg-white/20 text-white hover:bg-white/30'
-              }`}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Previous
-            </button>
+        
+        {/* Main Content - Single Section at a Time */}
+        <div className="flex-1">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Show only current section */}
+            {currentSection === 1 && (
+              <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                  <span className="text-2xl">📋</span> 
+                  {t('editor.desktop.myProject.sections.generalInfo') || 'General Information'}
+                </h3>
+                <GeneralInfoStep 
+                  formData={formData} 
+                  onChange={handleFieldChange} 
+                />
+              </div>
+            )}
             
-            {subStep < 3 ? (
+            {currentSection === 2 && (
+              <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                  <span className="text-2xl">🏢</span> 
+                  {t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      {t('editor.desktop.myProject.fields.industryTags') || 'Industry Tags'}
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.industryTags.join(', ')}
+                      onChange={(e) => handleFieldChange('industryTags', e.target.value.split(',').map(tag => tag.trim()).filter(Boolean))}
+                      placeholder={t('editor.desktop.myProject.placeholders.industryTags') || 'Tech, SaaS, FinTech'}
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      {t('editor.desktop.myProject.fields.planningHorizon') || 'Planning Horizon (months)'}
+                    </label>
+                    <select
+                      value={formData.financialBaseline.planningHorizon}
+                      onChange={(e) => handleFieldChange('financialBaseline.planningHorizon', parseInt(e.target.value))}
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value={12}>12 months</option>
+                      <option value={24}>24 months</option>
+                      <option value={36}>36 months</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {currentSection === 3 && (
+              <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                  <span className="text-2xl">✨</span> 
+                  {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-white font-medium mb-2">One-liner Description</label>
+                    <textarea
+                      value={formData.oneLiner}
+                      onChange={(e) => handleFieldChange('oneLiner', e.target.value)}
+                      placeholder="Brief description of your project vision"
+                      rows={3}
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-white font-medium mb-2">Confidentiality Level</label>
+                    <select
+                      value={formData.confidentiality}
+                      onChange={(e) => handleFieldChange('confidentiality', e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="public">Public</option>
+                      <option value="confidential">Confidential</option>
+                      <option value="private">Private</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-700">
               <button
                 type="button"
-                onClick={handleNext}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                onClick={() => currentSection > 1 && handleNavClick((currentSection - 1) as 1 | 2 | 3)}
+                disabled={currentSection === 1}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentSection === 1
+                    ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
               >
-                Next
-                <ArrowRight className="w-4 h-4" />
+                ← Previous
               </button>
-            ) : (
-              <button
-                type="submit"
-                className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-              >
-                Save & Continue
-              </button>
-            )}
-          </div>
-        </form>
+              
+              {currentSection < 3 ? (
+                <button
+                  type="button"
+                  onClick={() => handleNavClick((currentSection + 1) as 1 | 2 | 3)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Next →
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                >
+                  Save & Continue
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
       </div>
     );
   }
