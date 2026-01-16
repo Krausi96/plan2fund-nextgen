@@ -13,8 +13,8 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
   return (
     <Card className="bg-slate-800 border-slate-700">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-3 text-white">
-          <span className="text-2xl">📋</span>
+        <CardTitle className="flex items-center gap-3 text-white text-xl">
+          <span className="text-xl">📋</span>
           <span>{t('editor.desktop.myProject.sections.generalInfo') || 'General Information'}</span>
         </CardTitle>
       </CardHeader>

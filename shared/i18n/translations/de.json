@@ -762,6 +762,7 @@
   "editor.ui.tabs.data": "Daten",
   "editor.desktop.myProject.title": "Mein Projekt",
   "editor.desktop.myProject.noProject": "Noch kein Projekt",
+    "editor.desktop.myProject.subtitle": "Grundlegende Projektdaten eingeben",
   "editor.desktop.readinessCheck.title": "Readiness Check",
   "editor.desktop.readinessCheck.overall": "Insgesamt",
   "editor.desktop.readinessCheck.completeness": "Vollständigkeit",

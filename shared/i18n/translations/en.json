@@ -751,6 +751,7 @@
   "editor.ui.tabs.data": "Data",
   "editor.desktop.myProject.title": "My Project",
   "editor.desktop.myProject.noProject": "No project",
+  "editor.desktop.myProject.subtitle": "Enter basic project data",
   "editor.desktop.readinessCheck.title": "Readiness Check",
   "editor.desktop.readinessCheck.overall": "Overall",
   "editor.desktop.readinessCheck.completeness": "Completeness",

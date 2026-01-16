@@ -3,7 +3,6 @@ import { useEditorState } from '../../../../lib/hooks/useEditorState';
 import { useEditorActions } from '../../../../lib/hooks/useEditorActions';
 import { useI18n } from '../../../../../../shared/contexts/I18nContext';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface MyProjectProps {
   className?: string;
@@ -148,22 +147,16 @@ const MyProject: React.FC<MyProjectProps> = ({
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Show only current section */}
             {currentSection === 1 && (
-              <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                  <span className="text-2xl">📋</span> 
-                  {t('editor.desktop.myProject.sections.generalInfo') || 'General Information'}
-                </h3>
-                <GeneralInfoStep 
-                  formData={formData} 
-                  onChange={handleFieldChange} 
-                />
-              </div>
+              <GeneralInfoStep 
+                formData={formData} 
+                onChange={handleFieldChange} 
+              />
             )}
             
             {currentSection === 2 && (
               <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                  <span className="text-2xl">🏢</span> 
+                  <span className="text-xl">🏢</span> 
                   {t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}
                 </h3>
                 <div className="space-y-4">
@@ -201,7 +194,7 @@ const MyProject: React.FC<MyProjectProps> = ({
             {currentSection === 3 && (
               <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                  <span className="text-2xl">✨</span> 
+                  <span className="text-xl">✨</span> 
                   {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
                 </h3>
                 <div className="space-y-4">

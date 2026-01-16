@@ -229,14 +229,18 @@ function CurrentSelection({}: CurrentSelectionProps) {
             onAnimationEnd={handleAnimationEnd}
           >
             {/* Wizard content goes here */}
-            <div className="px-4 py-6 bg-slate-800/50">
+            <div className="px-4 py-4 bg-slate-800/50">
               <div className="w-full">
                 {/* Step 1: My Project with sub-steps */}
                 {setupWizard.currentStep === 1 && (
                   <>
-                    <h2 className="text-xl font-bold text-white mb-4 text-left">
+                    <h2 className="text-2xl font-bold text-white mb-2 text-left">
                       {t('editor.desktop.preview.emptyState.cta') || 'Create Project'}
                     </h2>
+                    <div className="border-b border-white/20 mb-4"></div>
+                    <p className="text-white/60 text-sm mb-6">
+                      {t('editor.desktop.myProject.subtitle') || 'Enter basic project data'}
+                    </p>
                     <div className="w-full">
                       <MyProject 
                         mode="form" 
