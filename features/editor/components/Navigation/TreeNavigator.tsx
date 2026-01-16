@@ -600,9 +600,7 @@ export default function TreeNavigator() {
                   {t('editor.desktop.documents.noDocumentsYet' as any) || 'No Documents Yet'}
                 </div>
               </div>
-              <div className="text-white/60 text-sm max-w-xs">
-                {t('editor.desktop.documents.emptyStateHint' as any) || 'Select a product first to begin creating your documents.'}
-              </div>
+              
             </div>
           ) : (
             <div className="space-y-1">

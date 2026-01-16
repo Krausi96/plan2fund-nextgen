@@ -828,7 +828,7 @@
   "editor.desktop.documents.legend.open": "Open contents",
   "editor.desktop.documents.addButton": "Add Document",
   "editor.desktop.documents.noDocumentsYet": "No documents yet",
-  "editor.desktop.documents.emptyStateHint": "Select a product first to begin creating your documents.",
+  
   "editor.desktop.documents.custom.title": "Add a custom document to your plan",
   "editor.desktop.documents.custom.name": "Name *",
   "editor.desktop.documents.custom.namePlaceholder": "e.g. Financial plan",

@@ -837,7 +837,7 @@
   "editor.desktop.documents.legend.open": "Inhalte öffnen",
   "editor.desktop.documents.addButton": "Dokument hinzufügen",
   "editor.desktop.documents.noDocumentsYet": "Noch keine Dokumente",
-  "editor.desktop.documents.emptyStateHint": "Wählen Sie zuerst ein Produkt aus, um mit der Erstellung Ihrer Dokumente zu beginnen.",
+  
   "editor.desktop.documents.custom.title": "Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen",
   "editor.desktop.documents.custom.name": "Name *",
   "editor.desktop.documents.custom.namePlaceholder": "z.B. Finanzplan",
