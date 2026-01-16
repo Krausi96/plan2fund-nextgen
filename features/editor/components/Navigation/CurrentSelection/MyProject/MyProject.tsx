@@ -99,8 +99,8 @@ const MyProject: React.FC<MyProjectProps> = ({
 
     return (
       <div className={`${className} flex gap-4`}>
-        {/* Navigation Sidebar - Reduced Width */}
-        <div className="w-40 flex-shrink-0">
+        {/* Navigation Sidebar - Slightly Increased Width */}
+        <div className="w-48 flex-shrink-0">
           <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
             <nav className="space-y-2">
               <button
