@@ -68,7 +68,7 @@ export default function EditorHeader() {
               ) : isMounted ? (
                 <button
                   onClick={() => setLoginModalOpen(true)}
-                  className="px-5 py-2.5 border-2 border-blue-600 text-white bg-blue-600 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-700 font-semibold tracking-wide text-sm whitespace-nowrap"
+                  className="px-5 py-2.5  border-blue-600 text-white bg-blue-600 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-700 font-semibold tracking-wide text-sm whitespace-nowrap"
                 >
                   Log in
                 </button>

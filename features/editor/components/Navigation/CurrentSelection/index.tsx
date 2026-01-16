@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import ProductSelection from './ProductSelection/ProductSelection';
 import ProgramSelection from './ProgramSelection/ProgramSelection';
@@ -66,11 +66,12 @@ function CurrentSelection({}: CurrentSelectionProps) {
     actions.setIsConfiguratorOpen(false);
   };
 
+  // Toggle configurator and update wizard step
   const handleToggle = () => {
     actions.setIsConfiguratorOpen(!isConfiguratorOpen);
   };
 
-  // Compact header - collapses value rows when modal is open
+  // Compact header - always shows "Current Selection:" 
   const CompactInfoRow = () => (
     <div className={`flex items-center gap-12 px-4 py-2 text-white w-full transition-all duration-300 rounded-lg ${
       isConfiguratorOpen 
@@ -84,16 +85,23 @@ function CurrentSelection({}: CurrentSelectionProps) {
       <div className="flex items-center gap-14 text-sm ml-8 flex-grow">
         {/* My Project */}
         <div 
-          className={`flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
+          className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
             setupWizard.currentStep === 1 ? 'bg-white/20' : ''
           }`}
           onClick={handleMyProjectClick}
         >
-          <span className="text-white/70 font-medium text-xs mb-1">💼 My Project</span>
+          <div className="flex items-center gap-2">
+            <span className="text-white/70 font-medium text-xs mb-1">💼 My Project</span>
+            {setupWizard.currentStep === 1 && isConfiguratorOpen && (
+              <span className="relative">
+                <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
+                <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
+              </span>
+            )}
+          </div>
           {!isConfiguratorOpen && (
             <div className="text-white font-medium flex items-center gap-1">
               <MyProject />
-              {setupWizard.currentStep === 1 && <span className="text-green-400">●</span>}
             </div>
           )}
         </div>
@@ -102,18 +110,25 @@ function CurrentSelection({}: CurrentSelectionProps) {
         
         {/* Plan */}
         <div 
-          className={`flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
+          className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
             setupWizard.currentStep === 3 ? 'bg-white/20' : ''
           }`}
           onClick={handlePlanClick}
         >
-          <span className="text-white/70 font-medium text-xs mb-1">📋 Plan</span>
+          <div className="flex items-center gap-2">
+            <span className="text-white/70 font-medium text-xs mb-1">📋 Plan</span>
+            {setupWizard.currentStep === 3 && isConfiguratorOpen && (
+              <span className="relative">
+                <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
+                <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
+              </span>
+            )}
+          </div>
           {!isConfiguratorOpen && (
             <div className="flex items-center gap-1">
-              <span className="text-white font-medium truncate">
+              <span className="text-white font-medium truncate text-sm">
                 {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : 'No plan'}
               </span>
-              {setupWizard.currentStep === 3 && <span className="text-green-400">●</span>}
             </div>
           )}
         </div>
@@ -122,18 +137,25 @@ function CurrentSelection({}: CurrentSelectionProps) {
         
         {/* Program */}
         <div 
-          className={`flex flex-col items-center text-center cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
+          className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
             setupWizard.currentStep === 2 ? 'bg-white/20' : ''
           }`}
           onClick={handleProgramClick}
         >
-          <span className="text-white/70 font-medium text-xs mb-1">📚 Program</span>
+          <div className="flex items-center gap-2">
+            <span className="text-white/70 font-medium text-xs mb-1">📚 Program</span>
+            {setupWizard.currentStep === 2 && isConfiguratorOpen && (
+              <span className="relative">
+                <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
+                <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
+              </span>
+            )}
+          </div>
           {!isConfiguratorOpen && (
             <div className="text-white font-medium truncate flex items-center gap-1">
-              <span className="truncate">
+              <span className="truncate text-sm">
                 {programSummary?.name || 'No program selected'}
               </span>
-              {setupWizard.currentStep === 2 && <span className="text-green-400">●</span>}
             </div>
           )}
         </div>
@@ -141,8 +163,10 @@ function CurrentSelection({}: CurrentSelectionProps) {
         <div className="w-0.5 h-6 bg-white/30"></div>
         
         {/* Readiness */}
-        <div className="flex flex-col items-center text-center">
-          <span className="text-white/70 font-medium text-xs mb-1">📊 Readiness</span>
+        <div className="flex flex-col items-start text-left">
+          <div className="flex items-center gap-2">
+            <span className="text-white/70 font-medium text-xs mb-1">📊 Readiness</span>
+          </div>
           {!isConfiguratorOpen && (
             <div className="text-white font-medium flex items-center gap-1">
               <ReadinessCheck />
@@ -163,27 +187,46 @@ function CurrentSelection({}: CurrentSelectionProps) {
     </div>
   );
 
+  // Keep modal mounted during exit animation
+  const [showModal, setShowModal] = useState(isConfiguratorOpen);
+  
+  useEffect(() => {
+    if (isConfiguratorOpen) {
+      setShowModal(true);
+    }
+  }, [isConfiguratorOpen]);
+
+  const handleAnimationEnd = () => {
+    if (!isConfiguratorOpen) {
+      setShowModal(false);
+    }
+  };
+  
   return (
     <div className="w-full relative">
       <CompactInfoRow />
       
       {/* Portal-based expansion that doesn't affect parent layout */}
-      {isConfiguratorOpen && (() => {
+      {showModal && (() => {
         // Get exact header position for precise alignment
         const headerEl = document.querySelector('header .flex-grow.flex.justify-center.px-6 .w-full.max-w-6xl');
         const rect = headerEl?.getBoundingClientRect();
         
+        // Position modal just below the compact header when values are hidden
+        const modalTop = isConfiguratorOpen ? (rect?.top || 0) + 52 : (rect?.bottom || 60);
+        
         return createPortal(
           <div 
-            className="fixed border-2 border-t-0 border-blue-400 rounded-b-lg bg-slate-900 shadow-2xl z-[1000]"
+            className={`fixed border-2 border-t-0 border-blue-400 rounded-b-lg bg-slate-900 shadow-2xl z-[1000] ${isConfiguratorOpen ? 'animate-modal-enter' : 'animate-modal-exit'}`}
             style={{
-              top: `${rect?.bottom || 60}px`,
+              top: `${modalTop}px`,
               left: `${rect?.left || 0}px`,
               width: `${rect?.width || 1200}px`,
               maxHeight: '80vh',
               overflow: 'auto'
             }}
             onClick={(e) => e.stopPropagation()}
+            onAnimationEnd={handleAnimationEnd}
           >
             {/* Create Project header */}
             <div className="px-32 py-3 border-b border-white/20 bg-gradient-to-r from-blue-800 to-blue-700">

@@ -81,6 +81,7 @@
     @apply outline-none ring-2 ring-blue-500 ring-offset-2;
   }
   
+  
   /* Skip link for keyboard navigation */
   .skip-link {
     @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded;
@@ -687,4 +688,52 @@
     pointer-events: none;
     z-index: 1;
   }
+}
+
+/* Custom subtle pulse animation for selection indicators */
+@keyframes subtle-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.4;
+  }
+}
+
+.animate-subtle-pulse {
+  animation: subtle-pulse 1.5s ease-in-out infinite;
+}
+
+/* Smooth modal entrance animation */
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth modal exit animation */
+@keyframes modal-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+}
+
+.animate-modal-enter {
+  animation: modal-fade-in 0.2s ease-out forwards;
+}
+
+.animate-modal-exit {
+  animation: modal-fade-out 0.15s ease-in forwards;
 }
