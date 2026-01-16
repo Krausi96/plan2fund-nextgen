@@ -1625,6 +1625,9 @@
   "editor.desktop.setupWizard.validation.author": "Autor ist erforderlich",
   "editor.desktop.setupWizard.validation.oneLiner": "Ein-Zeilen-Beschreibung ist erforderlich",
   "editor.desktop.setupWizard.validation.country": "Land ist erforderlich",
+  "editor.desktop.wizard.step1": "💼 Mein Projekt",
+  "editor.desktop.wizard.step2": "📚 Programm / Vorlage", 
+  "editor.desktop.wizard.step3": "📄 Dokument(e)",
   
   "editor.desktop.myProject.sections.generalInfo": "Allgemeine Informationen",
   "editor.desktop.myProject.sections.projectProfile": "Projektprofil",
