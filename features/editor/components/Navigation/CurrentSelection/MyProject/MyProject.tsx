@@ -225,38 +225,7 @@ const MyProject: React.FC<MyProjectProps> = ({
               </div>
             )}
 
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-700">
-              <button
-                type="button"
-                onClick={() => currentSection > 1 && handleNavClick((currentSection - 1) as 1 | 2 | 3)}
-                disabled={currentSection === 1}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  currentSection === 1
-                    ? 'bg-white/10 text-white/50 cursor-not-allowed'
-                    : 'bg-white/20 text-white hover:bg-white/30'
-                }`}
-              >
-                ← Previous
-              </button>
-              
-              {currentSection < 3 ? (
-                <button
-                  type="button"
-                  onClick={() => handleNavClick((currentSection + 1) as 1 | 2 | 3)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Next →
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                >
-                  Save & Continue
-                </button>
-              )}
-            </div>
+            
           </form>
         </div>
       </div>

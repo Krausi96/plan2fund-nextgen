@@ -234,10 +234,10 @@ function CurrentSelection({}: CurrentSelectionProps) {
                 {/* Step 1: My Project with sub-steps */}
                 {setupWizard.currentStep === 1 && (
                   <>
-                    <h2 className="text-2xl font-bold text-white mb-2 text-left">
+                    <h2 className="text-2xl font-bold text-white mb-1 text-left">
                       {t('editor.desktop.preview.emptyState.cta') || 'Create Project'}
                     </h2>
-                    <div className="border-b border-white/20 mb-4"></div>
+                    <div className="border-b border-white/20 mb-2"></div>
                     <p className="text-white/60 text-sm mb-6">
                       {t('editor.desktop.myProject.subtitle') || 'Enter basic project data'}
                     </p>
@@ -280,36 +280,76 @@ function CurrentSelection({}: CurrentSelectionProps) {
               </div>
             </div>
             
-            {/* Navigation Buttons */}
+            {/* Navigation Buttons - Single CTA bar handling all navigation */}
             <div className="flex items-center justify-between px-6 py-4 border-t border-white/20 bg-slate-800 sticky bottom-0">
-              <button
-                onClick={handlePrevStep}
-                disabled={setupWizard.currentStep === 1}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  setupWizard.currentStep === 1
-                    ? 'bg-white/10 text-white/50 cursor-not-allowed'
-                    : 'bg-white/20 text-white hover:bg-white/30'
-                }`}
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Previous
-              </button>
-              
-              {setupWizard.currentStep < 3 ? (
-                <button
-                  onClick={handleNextStep}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Next
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+              {setupWizard.currentStep === 1 ? (
+                <>
+                  <button
+                    onClick={() => currentSection > 1 && setCurrentSection((currentSection - 1) as 1 | 2 | 3)}
+                    disabled={currentSection === 1}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                      currentSection === 1
+                        ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                        : 'bg-white/20 text-white hover:bg-white/30'
+                    }`}
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Previous
+                  </button>
+                  
+                  {currentSection < 3 ? (
+                    <button
+                      onClick={() => setCurrentSection((currentSection + 1) as 1 | 2 | 3)}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Next
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleNextStep}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    >
+                      Continue to Program
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
+                </>
+              ) : setupWizard.currentStep === 2 ? (
+                <>
+                  <button
+                    onClick={handlePrevStep}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Project
+                  </button>
+                  
+                  <button
+                    onClick={handleNextStep}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Continue to Templates
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </>
               ) : (
-                <button
-                  onClick={handleComplete}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                >
-                  Complete Setup
-                </button>
+                <>
+                  <button
+                    onClick={handlePrevStep}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Program
+                  </button>
+                  
+                  <button
+                    onClick={handleComplete}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  >
+                    Complete Setup
+                  </button>
+                </>
               )}
             </div>
           </div>,
