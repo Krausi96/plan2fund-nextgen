@@ -86,62 +86,121 @@ const previewMode: 'formatted' | 'print' = 'formatted';
   // Empty state content
   const emptyStateContent = (
     <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
-      <div className="max-w-md space-y-6">
-        <div className="flex justify-center relative">
-          <div className="text-6xl mb-2 relative">
-            <span className="relative z-10">📝</span>
+      <div className="max-w-4xl space-y-6">
+        <div className="flex justify-center">
+          <div className="text-6xl mb-4">
+            <span>📝</span>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <p className="text-white/80 text-base leading-relaxed max-w-2xl mx-auto">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.description';
+              const translated = i18nT(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? (isGerman ? 'Lege zuerst dein Projekt an. Die Basisdaten werden für Titelblatt, Exporte und System-Einstellungen verwendet.' : 'First, create your project. The basic data will be used for the title page, exports, and system settings.') : translated;
+            })()}
+          </p>
+          
+          <p className="text-white/70 text-sm italic">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.instruction';
+              const translated = i18nT(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? (isGerman ? 'Anschließend legst du fest, wie deine Dokumente aufgebaut werden:' : 'Then you define how your documents are structured:') : translated;
+            })()}
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          {/* Option A: Select Program */}
+          <div className="group relative flex flex-col items-center p-6 bg-slate-800/50 rounded-xl border border-white/10 hover:border-blue-400/40 hover:bg-slate-800/70 transition-all duration-200">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-16 h-16 mb-4 rounded-lg bg-blue-500/20 border border-blue-400/40 text-blue-300 text-2xl">
+              📄
+            </div>
+            <h3 className="text-white font-bold text-lg mb-2">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionA';
+                const translated = i18nT(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? (isGerman ? 'Programm wählen' : 'Select Program') : translated;
+              })()}
+            </h3>
+            <p className="text-white/70 text-sm text-center leading-relaxed">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionADescription';
+                const translated = i18nT(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? (isGerman 
+                  ? 'Wähle ein Förder-, Bank- oder Investorenprogramm. Das Programm bestimmt, welche Dokumente und welche Struktur benötigt werden.'
+                  : 'Choose a funding, bank or investor program. The program determines which documents and structure are needed.') : translated;
+              })()}
+            </p>
+          </div>
+          
+          {/* Option B: Use Own Template */}
+          <div className="group relative flex flex-col items-center p-6 bg-slate-800/50 rounded-xl border border-white/10 hover:border-blue-400/40 hover:bg-slate-800/70 transition-all duration-200">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-16 h-16 mb-4 rounded-lg bg-purple-500/20 border border-purple-400/40 text-purple-300 text-2xl">
+              🧩
+            </div>
+            <h3 className="text-white font-bold text-lg mb-2">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionB';
+                const translated = i18nT(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? (isGerman ? 'Eigene Vorlage verwenden' : 'Use Own Template') : translated;
+              })()}
+            </h3>
+            <p className="text-white/70 text-sm text-center leading-relaxed">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionBDescription';
+                const translated = i18nT(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? (isGerman
+                  ? 'Lade eine eigene Vorlage hoch (z. B. DOCX/PDF). Die Struktur der Vorlage wird übernommen.'
+                  : 'Upload your own template (e.g. DOCX/PDF). The structure of the template will be adopted.') : translated;
+              })()}
+            </p>
+          </div>
+          
+          {/* Option C: Start Free (Custom) */}
+          <div className="group relative flex flex-col items-center p-6 bg-slate-800/50 rounded-xl border border-white/10 hover:border-blue-400/40 hover:bg-slate-800/70 transition-all duration-200">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-16 h-16 mb-4 rounded-lg bg-green-500/20 border border-green-400/40 text-green-300 text-2xl">
+              📋
+            </div>
+            <h3 className="text-white font-bold text-lg mb-2">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionC';
+                const translated = i18nT(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? (isGerman ? 'Frei starten (Custom)' : 'Start Free (Custom)') : translated;
+              })()}
+            </h3>
+            <p className="text-white/70 text-sm text-center leading-relaxed">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionCDescription';
+                const translated = i18nT(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? (isGerman
+                  ? 'Starte mit einer neutralen Standard-Struktur. Programme oder Vorlagen kannst du später hinzufügen.'
+                  : 'Start with a neutral standard structure. You can add programs or templates later.') : translated;
+              })()}
+            </p>
           </div>
         </div>
         
         <button
           onClick={() => actions.setIsConfiguratorOpen(true)}
-          className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+          className="mt-8 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
         >
           {(() => {
             const key = 'editor.desktop.preview.emptyState.cta';
             const translated = i18nT(key as any) as string;
             const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-            return isMissing ? (isGerman ? 'Plan starten' : 'Start Your Plan') : translated;
+            return isMissing ? (isGerman ? 'Projekt anlegen' : 'Create Your Project') : translated;
           })()}
         </button>
-        
-        <p className="text-white/80 text-sm leading-relaxed">
-          {(() => {
-            const key = 'editor.desktop.preview.emptyState.description';
-            const translated = i18nT(key as any) as string;
-            const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-            return isMissing ? (isGerman ? 'Es gibt viele Wege, such dir deinen aus.' : 'There are many ways, choose yours.') : translated;
-          })()}
-        </p>
-        
-        <div className="mt-4 flex flex-col gap-6 text-left text-xs text-white/60">
-          <div className="group relative flex items-center gap-3">
-            <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
-              📋
-            </span>
-            <span className="flex-1 cursor-help">{(() => {
-              const key = 'editor.desktop.preview.emptyState.optionA';
-              const translated = i18nT(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? (isGerman 
-                ? 'Wähle einen Plan (Strategiedokument, Individueller Business-Plan oder Upgrade) aus. Du kannst später ein Förderprogramm hinzufügen, um programmspezifische Anforderungen und Empfehlungen zu erhalten.'
-                : 'Start by selecting a plan (Strategy, Review, or Submission). You can add a funding program later to get program-specific requirements and recommendations.') : translated;
-            })()}</span>
-          </div>
-          <div className="group relative flex items-center gap-3">
-            <span className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 group-hover:w-10 group-hover:h-10 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold text-xl group-hover:text-lg transition-all duration-200">
-              🔍
-            </span>
-            <span className="flex-1 cursor-help">{(() => {
-              const key = 'editor.desktop.preview.emptyState.optionB';
-              const translated = i18nT(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? (isGerman
-                ? 'Suche oder verbinde ein Förderprogramm. Wir empfehlen die notwendigen Dokumente und stellen programmspezifische Anforderungen und Dokumentenvorlagen bereit.'
-                : "Start by finding or connecting a funding program. We'll recommend a plan and provide program-specific requirements and document templates.") : translated;
-            })()}</span>
-          </div>
-        </div>
       </div>
     </div>
   );
