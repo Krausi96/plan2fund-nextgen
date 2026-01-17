@@ -284,36 +284,37 @@ function CurrentSelection({}: CurrentSelectionProps) {
             <div className="flex items-center justify-between px-6 py-4 border-t border-white/20 bg-slate-800 sticky bottom-0">
               {setupWizard.currentStep === 1 ? (
                 <>
-                  <button
-                    onClick={() => currentSection > 1 && setCurrentSection((currentSection - 1) as 1 | 2 | 3)}
-                    disabled={currentSection === 1}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                      currentSection === 1
-                        ? 'bg-white/10 text-white/50 cursor-not-allowed'
-                        : 'bg-white/20 text-white hover:bg-white/30'
-                    }`}
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Previous
-                  </button>
+                  <div>
+                    {currentSection > 1 && (
+                      <button
+                        onClick={() => setCurrentSection((currentSection - 1) as 1 | 2 | 3)}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        Previous
+                      </button>
+                    )}
+                  </div>
                   
-                  {currentSection < 3 ? (
-                    <button
-                      onClick={() => setCurrentSection((currentSection + 1) as 1 | 2 | 3)}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      Next
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleNextStep}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                    >
-                      Continue to Program
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  )}
+                  <div>
+                    {currentSection < 3 ? (
+                      <button
+                        onClick={() => setCurrentSection((currentSection + 1) as 1 | 2 | 3)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                      >
+                        Next
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleNextStep}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                      >
+                        Continue to Program
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </>
               ) : setupWizard.currentStep === 2 ? (
                 <>

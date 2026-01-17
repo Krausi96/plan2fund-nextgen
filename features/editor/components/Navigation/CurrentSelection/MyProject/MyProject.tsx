@@ -3,6 +3,7 @@ import { useEditorState } from '../../../../lib/hooks/useEditorState';
 import { useEditorActions } from '../../../../lib/hooks/useEditorActions';
 import { useI18n } from '../../../../../../shared/contexts/I18nContext';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
+import ProjectProfileStep from './subSteps/ProjectProfileStep';
 
 interface MyProjectProps {
   className?: string;
@@ -27,15 +28,25 @@ const MyProject: React.FC<MyProjectProps> = ({
   
   // Form state
   const [formData, setFormData] = useState({
-    projectName: plan?.settings?.titlePage?.companyName || '',
+    // Title Page fields
+    title: plan?.settings?.titlePage?.title || '',
+    subtitle: plan?.settings?.titlePage?.subtitle || '',
+    companyName: plan?.settings?.titlePage?.companyName || '',
     legalForm: plan?.settings?.titlePage?.legalForm || '',
-    headquartersLocation: plan?.settings?.titlePage?.headquartersLocation || '',
-    confidentiality: 'confidential' as 'public' | 'confidential' | 'private',
+    date: plan?.settings?.titlePage?.date || new Date().toISOString().split('T')[0],
+    // Other form fields
     author: plan?.settings?.titlePage?.companyName || '',
+    confidentiality: 'confidential' as 'public' | 'confidential' | 'private',
     stage: 'idea' as 'idea' | 'MVP' | 'revenue',
     country: '',
     industryTags: [] as string[],
     oneLiner: '',
+    contactInfo: {
+      email: plan?.settings?.titlePage?.contactInfo?.email || '',
+      phone: plan?.settings?.titlePage?.contactInfo?.phone || '',
+      website: plan?.settings?.titlePage?.contactInfo?.website || '',
+      address: plan?.settings?.titlePage?.contactInfo?.address || '',
+    },
     financialBaseline: {
       fundingNeeded: 0,
       currency: 'EUR',
@@ -62,13 +73,20 @@ const MyProject: React.FC<MyProjectProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Simple validation
-    if (!formData.projectName.trim()) {
+    if (!formData.title.trim()) {
       alert(t('editor.desktop.setupWizard.validation.projectName') || 'Project name is required');
       return;
     }
     
     actions.updateSection('metadata', {
-      titlePage: { companyName: formData.projectName }
+      titlePage: { 
+        title: formData.title,
+        subtitle: formData.subtitle,
+        companyName: formData.companyName,
+        legalForm: formData.legalForm,
+        date: formData.date,
+        contactInfo: formData.contactInfo
+      }
     });
     
     if (onSubmit) {
@@ -78,7 +96,7 @@ const MyProject: React.FC<MyProjectProps> = ({
 
   // Display mode - keep original simple behavior
   if (mode === 'display') {
-    const summary = formData.projectName || t('editor.desktop.myProject.noProject' as any) || 'Not specified';
+    const summary = formData.title || t('editor.desktop.myProject.noProject' as any) || 'Not specified';
     return (
       <div className={`flex-1 min-w-0 ${className}`}>
         <div className="text-white font-semibold text-sm leading-snug truncate" title={summary}>
@@ -98,53 +116,53 @@ const MyProject: React.FC<MyProjectProps> = ({
     };
 
     return (
-      <div className={`${className} flex gap-4`}>
-        {/* Navigation Sidebar - Slightly Increased Width */}
-        <div className="w-44 flex-shrink-0">
-          <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+      <div className={`${className} flex gap-4 items-start`}>
+        {/* Navigation Sidebar - Further increased width to prevent text cutoff */}
+        <div className="w-64 flex-shrink-0">
+          <div className="bg-slate-800 rounded-lg p-2 border border-slate-700">
             <nav className="space-y-2">
               <button
                 onClick={() => handleNavClick(1)}
-                className={`w-full text-left flex items-center gap-2 p-2 rounded transition-colors ${
+                className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
                   currentSection === 1 
                     ? 'bg-blue-500/30 text-white' 
                     : 'text-white/70 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 <span className="text-lg">📋</span>
-                <span className="text-sm">General Info</span>
+                <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.generalInfo') || 'General Info'}</span>
               </button>
               
               <button
                 onClick={() => handleNavClick(2)}
-                className={`w-full text-left flex items-center gap-2 p-2 rounded transition-colors ${
+                className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
                   currentSection === 2 
                     ? 'bg-blue-500/30 text-white' 
                     : 'text-white/70 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 <span className="text-lg">🏢</span>
-                <span className="text-sm">Project Profile</span>
+                <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}</span>
               </button>
               
               <button
                 onClick={() => handleNavClick(3)}
-                className={`w-full text-left flex items-center gap-2 p-2 rounded transition-colors ${
+                className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
                   currentSection === 3 
                     ? 'bg-blue-500/30 text-white' 
                     : 'text-white/70 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 <span className="text-lg">✨</span>
-                <span className="text-sm">Planning Context</span>
+                <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}</span>
               </button>
             </nav>
           </div>
         </div>
         
-        {/* Main Content - Single Section at a Time */}
-        <div className="flex-1">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Main Content - Flexible width to accommodate sidebar */}
+        <div className="flex-1 min-w-0">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Show only current section */}
             {currentSection === 1 && (
               <GeneralInfoStep 
@@ -154,52 +172,23 @@ const MyProject: React.FC<MyProjectProps> = ({
             )}
             
             {currentSection === 2 && (
-              <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                  <span className="text-xl">🏢</span> 
-                  {t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-white font-medium mb-2">
-                      {t('editor.desktop.myProject.fields.industryTags') || 'Industry Tags'}
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.industryTags.join(', ')}
-                      onChange={(e) => handleFieldChange('industryTags', e.target.value.split(',').map(tag => tag.trim()).filter(Boolean))}
-                      placeholder={t('editor.desktop.myProject.placeholders.industryTags') || 'Tech, SaaS, FinTech'}
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-white font-medium mb-2">
-                      {t('editor.desktop.myProject.fields.planningHorizon') || 'Planning Horizon (months)'}
-                    </label>
-                    <select
-                      value={formData.financialBaseline.planningHorizon}
-                      onChange={(e) => handleFieldChange('financialBaseline.planningHorizon', parseInt(e.target.value))}
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value={12}>12 months</option>
-                      <option value={24}>24 months</option>
-                      <option value={36}>36 months</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+              <ProjectProfileStep 
+                formData={formData} 
+                onChange={handleFieldChange} 
+              />
             )}
             
             {currentSection === 3 && (
-              <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+              <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
                   <span className="text-xl">✨</span> 
                   {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-white font-medium mb-2">One-liner Description</label>
+                    <label className="block text-white font-medium mb-2">
+                      {t('editor.desktop.myProject.fields.oneLiner') || 'One-liner Description'}
+                    </label>
                     <textarea
                       value={formData.oneLiner}
                       onChange={(e) => handleFieldChange('oneLiner', e.target.value)}
@@ -210,15 +199,17 @@ const MyProject: React.FC<MyProjectProps> = ({
                   </div>
                   
                   <div>
-                    <label className="block text-white font-medium mb-2">Confidentiality Level</label>
+                    <label className="block text-white font-medium mb-2">
+                      {t('editor.desktop.myProject.fields.confidentiality') || 'Confidentiality Level'}
+                    </label>
                     <select
                       value={formData.confidentiality}
                       onChange={(e) => handleFieldChange('confidentiality', e.target.value)}
                       className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="public">Public</option>
-                      <option value="confidential">Confidential</option>
-                      <option value="private">Private</option>
+                      <option value="public">{t('editor.desktop.setupWizard.options.public') || 'Public'}</option>
+                      <option value="confidential">{t('editor.desktop.setupWizard.options.confidential') || 'Confidential'}</option>
+                      <option value="private">{t('editor.desktop.setupWizard.options.private') || 'Private'}</option>
                     </select>
                   </div>
                 </div>

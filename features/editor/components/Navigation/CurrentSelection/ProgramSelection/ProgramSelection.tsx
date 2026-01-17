@@ -113,8 +113,8 @@ export default function ProgramSelection({
 
   return (
     <div className="relative mb-6 pb-6">
-      <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-xs font-bold text-white/90 uppercase">
+      <div className="flex items-center gap-1.5 mb-4">
+        <span className="text-sm font-bold text-white/90 uppercase">
           {t('editor.desktop.config.connectProgram.title' as any) || 'Connect Program'}
         </span>
         <span className="text-[10px] px-1.5 py-0.5 bg-yellow-600/30 text-yellow-300 rounded uppercase font-semibold">
@@ -124,6 +124,91 @@ export default function ProgramSelection({
           title={t('editor.desktop.config.connectProgram.title' as any) || 'Connect Program'}
           content={t('editor.desktop.config.connectProgram.info' as any) || 'Connecting a funding program automatically loads the specific requirements, sections, and documents for that program. ProgramFinder helps you find matching programs based on your answers. Alternatively, you can paste a direct program link (e.g., from AWS, FFG, or EU calls).'}
         />
+      </div>
+      
+      {/* Document Structure Definition - Moved from PreviewWorkspace */}
+      <div className="bg-slate-800/30 rounded-lg p-4 mb-4 border border-white/10">
+        <div className="space-y-3">
+          <p className="text-white/70 text-xs italic">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.instruction';
+              const translated = t(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? 'Then you define how your documents are structured:' : translated;
+            })()}
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+          {/* Option A: Select Program */}
+          <div className="group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border border-white/10 hover:border-blue-400/40 hover:bg-slate-700/70 transition-all duration-200">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 mb-2 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 text-lg">
+              📄
+            </div>
+            <h3 className="text-white font-semibold text-sm mb-1 text-center">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionA';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Select Program' : translated;
+              })()}
+            </h3>
+            <p className="text-white/70 text-xs text-center leading-relaxed">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionADescription';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Choose a funding, bank or investor program. The program determines which documents and structure are needed.' : translated;
+              })()}
+            </p>
+          </div>
+          
+          {/* Option B: Use Own Template */}
+          <div className="group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border border-white/10 hover:border-purple-400/40 hover:bg-slate-700/70 transition-all duration-200">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 mb-2 rounded-md bg-purple-500/20 border border-purple-400/40 text-purple-300 text-lg">
+              🧩
+            </div>
+            <h3 className="text-white font-semibold text-sm mb-1 text-center">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionB';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Use Own Template' : translated;
+              })()}
+            </h3>
+            <p className="text-white/70 text-xs text-center leading-relaxed">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionBDescription';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Upload your own template (e.g. DOCX/PDF). The structure of the template will be adopted.' : translated;
+              })()}
+            </p>
+          </div>
+          
+          {/* Option C: Start Free (Custom) */}
+          <div className="group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border border-white/10 hover:border-green-400/40 hover:bg-slate-700/70 transition-all duration-200">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 mb-2 rounded-md bg-green-500/20 border border-green-400/40 text-green-300 text-lg">
+              📋
+            </div>
+            <h3 className="text-white font-semibold text-sm mb-1 text-center">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionC';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Start Free (Custom)' : translated;
+              })()}
+            </h3>
+            <p className="text-white/70 text-xs text-center leading-relaxed">
+              {(() => {
+                const key = 'editor.desktop.preview.emptyState.optionCDescription';
+                const translated = t(key as any) as string;
+                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+                return isMissing ? 'Start with a neutral standard structure. You can add programs or templates later.' : translated;
+              })()}
+            </p>
+          </div>
+        </div>
       </div>
       
       {/* Optional Step Message */}

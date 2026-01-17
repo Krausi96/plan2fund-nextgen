@@ -106,7 +106,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
         </div>
         
         <div className="space-y-4">
-          <p className="text-white/80 text-base leading-relaxed max-w-2xl mx-auto">
+          <p className="text-white/80 text-base leading-relaxed max-w-6xl mx-auto">
             {(() => {
               const key = 'editor.desktop.preview.emptyState.description';
               const translated = i18nT(key as any) as string;
@@ -114,93 +114,8 @@ const previewMode: 'formatted' | 'print' = 'formatted';
               return isMissing ? (isGerman ? 'Lege zuerst dein Projekt an. Die Basisdaten werden für Titelblatt, Exporte und System-Einstellungen verwendet.' : 'First, create your project. The basic data will be used for the title page, exports, and system settings.') : translated;
             })()}
           </p>
-          
-          <p className="text-white/70 text-sm italic">
-            {(() => {
-              const key = 'editor.desktop.preview.emptyState.instruction';
-              const translated = i18nT(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? (isGerman ? 'Anschließend legst du fest, wie deine Dokumente aufgebaut werden:' : 'Then you define how your documents are structured:') : translated;
-            })()}
-          </p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Option A: Select Program */}
-          <div className="group relative flex flex-col items-center p-6 bg-slate-800/50 rounded-xl border border-white/10 hover:border-blue-400/40 hover:bg-slate-800/70 transition-all duration-200">
-            <div className="flex-shrink-0 inline-flex items-center justify-center w-16 h-16 mb-4 rounded-lg bg-blue-500/20 border border-blue-400/40 text-blue-300 text-2xl">
-              📄
-            </div>
-            <h3 className="text-white font-bold text-lg mb-2">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionA';
-                const translated = i18nT(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? (isGerman ? 'Programm wählen' : 'Select Program') : translated;
-              })()}
-            </h3>
-            <p className="text-white/70 text-sm text-center leading-relaxed">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionADescription';
-                const translated = i18nT(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? (isGerman 
-                  ? 'Wähle ein Förder-, Bank- oder Investorenprogramm. Das Programm bestimmt, welche Dokumente und welche Struktur benötigt werden.'
-                  : 'Choose a funding, bank or investor program. The program determines which documents and structure are needed.') : translated;
-              })()}
-            </p>
-          </div>
-          
-          {/* Option B: Use Own Template */}
-          <div className="group relative flex flex-col items-center p-6 bg-slate-800/50 rounded-xl border border-white/10 hover:border-blue-400/40 hover:bg-slate-800/70 transition-all duration-200">
-            <div className="flex-shrink-0 inline-flex items-center justify-center w-16 h-16 mb-4 rounded-lg bg-purple-500/20 border border-purple-400/40 text-purple-300 text-2xl">
-              🧩
-            </div>
-            <h3 className="text-white font-bold text-lg mb-2">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionB';
-                const translated = i18nT(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? (isGerman ? 'Eigene Vorlage verwenden' : 'Use Own Template') : translated;
-              })()}
-            </h3>
-            <p className="text-white/70 text-sm text-center leading-relaxed">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionBDescription';
-                const translated = i18nT(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? (isGerman
-                  ? 'Lade eine eigene Vorlage hoch (z. B. DOCX/PDF). Die Struktur der Vorlage wird übernommen.'
-                  : 'Upload your own template (e.g. DOCX/PDF). The structure of the template will be adopted.') : translated;
-              })()}
-            </p>
-          </div>
-          
-          {/* Option C: Start Free (Custom) */}
-          <div className="group relative flex flex-col items-center p-6 bg-slate-800/50 rounded-xl border border-white/10 hover:border-blue-400/40 hover:bg-slate-800/70 transition-all duration-200">
-            <div className="flex-shrink-0 inline-flex items-center justify-center w-16 h-16 mb-4 rounded-lg bg-green-500/20 border border-green-400/40 text-green-300 text-2xl">
-              📋
-            </div>
-            <h3 className="text-white font-bold text-lg mb-2">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionC';
-                const translated = i18nT(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? (isGerman ? 'Frei starten (Custom)' : 'Start Free (Custom)') : translated;
-              })()}
-            </h3>
-            <p className="text-white/70 text-sm text-center leading-relaxed">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionCDescription';
-                const translated = i18nT(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? (isGerman
-                  ? 'Starte mit einer neutralen Standard-Struktur. Programme oder Vorlagen kannst du später hinzufügen.'
-                  : 'Start with a neutral standard structure. You can add programs or templates later.') : translated;
-              })()}
-            </p>
-          </div>
-        </div>
+
       </div>
     </div>
   );
