@@ -133,8 +133,6 @@ export default function Editor({}: EditorProps = {}) {
                   <SectionEditor
                     sectionId={activeSectionId}
                     onClose={() => {}}
-                    isCollapsed={isAICollapsed}
-                    onToggleCollapse={() => setIsAICollapsed(!isAICollapsed)}
                   />
                 </div>
               </div>

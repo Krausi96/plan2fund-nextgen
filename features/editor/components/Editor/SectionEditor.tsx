@@ -17,15 +17,13 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 type SectionEditorProps = {
   sectionId: string | null;
   onClose: () => void;
-  isCollapsed?: boolean;
-  onToggleCollapse?: () => void;
 };
 
 /**
  * ChatAssistant - Virtual Funding Expert for section editing
  * Simple, minimal design inspired by Qoder's interface
  */
-export default function SectionEditor({ sectionId, onClose, isCollapsed = false, onToggleCollapse }: SectionEditorProps) {
+export default function SectionEditor({ sectionId, onClose }: SectionEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const editorState = useSectionEditorState(sectionId);
@@ -259,15 +257,7 @@ What would you like to do?`;
             <h2 className="text-base font-bold uppercase tracking-wide text-white">
               {t('editor.ai.assistant.title')}
             </h2>
-            {onToggleCollapse && (
-              <button
-                onClick={onToggleCollapse}
-                className="text-white/60 hover:text-white text-sm transition-colors"
-                title={t('editor.ai.assistant.title')}
-              >
-                ◀
-              </button>
-            )}
+
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
@@ -289,15 +279,7 @@ What would you like to do?`;
           <h2 className="text-lg font-bold uppercase tracking-wide text-white">
             {t('editor.ai.assistant.title')}
           </h2>
-          {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              className="text-white/60 hover:text-white text-sm transition-colors"
-              title={t('editor.ai.assistant.title')}
-            >
-              ◀
-            </button>
-          )}
+
         </div>
       </div>
       
