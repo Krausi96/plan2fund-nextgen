@@ -773,7 +773,7 @@
   "editor.ui.category.impact": "IMPACT",
   "editor.ui.category.team": "TEAM",
   "editor.ui.category.risk": "RISK",
-  "editor.ai.assistant.title": "Virtual Funding Expert",
+  "editor.ai.assistant.title": "Business Architect",
   "editor.ai.assistant.welcomeTitle": "I'll help you as soon as a project exists.",
   "editor.ui.hint.general": "Lead with the problem, your innovative solution, and expected impact. Keep it to two or three sentences as suggested in the spec.",
   "editor.ui.hint.financial": "Highlight revenue, expenses, and cash needs. Consider adding a table or KPI via the Data panel when you reference numbers.",
