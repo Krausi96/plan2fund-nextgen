@@ -233,20 +233,6 @@ What would you like to do?`;
     }
   };
 
-  if (isCollapsed) {
-    return (
-      <div className="h-full flex items-center justify-center bg-slate-800/50 border-l border-white/10">
-        <button
-          onClick={onToggleCollapse}
-          className="writing-mode-vertical-rl text-white/60 hover:text-white px-2 py-4 text-sm font-semibold uppercase tracking-wider transition-colors"
-          title={t('editor.ai.assistant.title')}
-        >
-          👨‍💼 {t('editor.ai.assistant.title')}
-        </button>
-      </div>
-    );
-  }
-
   if (!sectionId || !section) {
     // Show welcome message when no section is selected
     return (
@@ -254,7 +240,7 @@ What would you like to do?`;
         {/* Header with separator and collapse button */}
         <div className="flex-shrink-0 mb-3 px-3 pt-2">
           <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem' }}>
-            <h2 className="text-base font-bold uppercase tracking-wide text-white">
+            <h2 className="text-xl font-bold text-white">
               {t('editor.ai.assistant.title')}
             </h2>
 

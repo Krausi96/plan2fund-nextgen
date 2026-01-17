@@ -23,9 +23,6 @@ export default function Editor({}: EditorProps = {}) {
   const isWaitingForPlan = useIsWaitingForPlan();
   const activeSectionId = useEditorStore(state => state.activeSectionId);
   
-  // AI Assistant collapse state
-  const [isAICollapsed, setIsAICollapsed] = useState(false);
-  
   // Resizable column states
   const [leftColumnWidth, setLeftColumnWidth] = useState(320);
   const [rightColumnWidth, setRightColumnWidth] = useState(360);
@@ -121,15 +118,13 @@ export default function Editor({}: EditorProps = {}) {
                 {/* AI Assistant - Draggable and Collapsible */}
                 <div 
                   className="flex-shrink-0 transition-all duration-300 relative"
-                  style={{ width: isAICollapsed ? '40px' : `${rightColumnWidth}px`, minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}
+                  style={{ width: `${rightColumnWidth}px`, minHeight: 0, maxHeight: '100%', overflow: 'hidden' }}
                 >
-                  {!isAICollapsed && (
-                    /* Draggable separator */
-                    <div 
-                      className="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize bg-transparent hover:bg-blue-400/30 transition-colors z-20"
-                      onMouseDown={(e) => handleMouseDown(e, 'right')}
-                    ></div>
-                  )}
+                  {/* Draggable separator */}
+                  <div 
+                    className="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize bg-transparent hover:bg-blue-400/30 transition-colors z-20"
+                    onMouseDown={(e) => handleMouseDown(e, 'right')}
+                  ></div>
                   <SectionEditor
                     sectionId={activeSectionId}
                     onClose={() => {}}
