@@ -86,11 +86,23 @@ const previewMode: 'formatted' | 'print' = 'formatted';
   // Empty state content
   const emptyStateContent = (
     <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-slate-900/40 rounded-lg">
-      <div className="max-w-4xl space-y-6">
-        <div className="flex justify-center">
-          <div className="text-6xl mb-4">
+      <div className="max-w-4xl space-y-8">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="text-6xl">
             <span>📝</span>
           </div>
+          
+          <button
+            onClick={() => actions.setIsConfiguratorOpen(true)}
+            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+          >
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.cta';
+              const translated = i18nT(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? (isGerman ? 'Projekt anlegen' : 'Create Your Project') : translated;
+            })()}
+          </button>
         </div>
         
         <div className="space-y-4">
@@ -113,7 +125,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Option A: Select Program */}
           <div className="group relative flex flex-col items-center p-6 bg-slate-800/50 rounded-xl border border-white/10 hover:border-blue-400/40 hover:bg-slate-800/70 transition-all duration-200">
             <div className="flex-shrink-0 inline-flex items-center justify-center w-16 h-16 mb-4 rounded-lg bg-blue-500/20 border border-blue-400/40 text-blue-300 text-2xl">
@@ -189,18 +201,6 @@ const previewMode: 'formatted' | 'print' = 'formatted';
             </p>
           </div>
         </div>
-        
-        <button
-          onClick={() => actions.setIsConfiguratorOpen(true)}
-          className="mt-8 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-        >
-          {(() => {
-            const key = 'editor.desktop.preview.emptyState.cta';
-            const translated = i18nT(key as any) as string;
-            const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-            return isMissing ? (isGerman ? 'Projekt anlegen' : 'Create Your Project') : translated;
-          })()}
-        </button>
       </div>
     </div>
   );
