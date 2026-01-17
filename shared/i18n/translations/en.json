@@ -940,12 +940,7 @@
     "editor.desktop.preview.emptyState.optionBDescription": "Upload your own template (e.g. DOCX/PDF). The structure of the template will be adopted.",
     "editor.desktop.preview.emptyState.optionC": "Start Free (Custom)",
     "editor.desktop.preview.emptyState.optionCDescription": "Start with a neutral standard structure. You can add programs or templates later.",
-  "editor.desktop.preview.emptyState.optionALabel": "Option A:",
-  "editor.desktop.preview.emptyState.optionA": "Choose a plan (Strategy Document, Individual Business Plan, or Upgrade). You can add a funding program later to get program-specific requirements and recommendations.",
-  "editor.desktop.preview.emptyState.optionAHover": "Start with a plan type to get the base document structure. You'll receive standard sections like Executive Summary, Financial Plan, and Project Description. Later, you can connect a funding program to enhance your plan with program-specific requirements and recommendations.",
-  "editor.desktop.preview.emptyState.optionBLabel": "Option B:",
-  "editor.desktop.preview.emptyState.optionB": "Search or connect a funding program. We recommend the necessary documents and provide program-specific requirements and document templates.",
-  "editor.desktop.preview.emptyState.optionBHover": "Begin by connecting a funding program (AWS, FFG, EU, etc.). We'll automatically recommend the appropriate plan type and load program-specific sections, requirements, and document templates tailored to your selected program.",
+  
   "editor.workspace.sidebar.scrollLeft": "Scroll sections left",
   "editor.workspace.sidebar.scrollRight": "Scroll sections right",
   "editor.workspace.sidebar.tablist": "Plan sections",

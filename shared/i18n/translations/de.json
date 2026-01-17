@@ -878,11 +878,7 @@
     "editor.desktop.preview.emptyState.optionC": "Frei starten (Custom)",
     "editor.desktop.preview.emptyState.optionCDescription": "Starte mit einer neutralen Standard-Struktur. Programme oder Vorlagen kannst du später hinzufügen.",
   "editor.desktop.preview.emptyState.optionALabel": "Option A:",
-  "editor.desktop.preview.emptyState.optionA": "Wähle einen Plan (Strategiedokument, Individueller Business-Plan oder Upgrade) aus. Du kannst später ein Förderprogramm hinzufügen, um programmspezifische Anforderungen und Empfehlungen zu erhalten.",
-  "editor.desktop.preview.emptyState.optionAHover": "Beginne mit einem Plantyp, um die grundlegende Dokumentstruktur zu erhalten. Du erhältst Standardabschnitte wie Executive Summary, Finanzplan und Projektbeschreibung. Später kannst du ein Förderprogramm verbinden, um deinen Plan mit programmspezifischen Anforderungen und Empfehlungen zu erweitern.",
-  "editor.desktop.preview.emptyState.optionBLabel": "Option B:",
-  "editor.desktop.preview.emptyState.optionB": "Suche oder verbinde ein Förderprogramm. Wir empfehlen die notwendigen Dokumente und stellen programmspezifische Anforderungen und Dokumentenvorlagen bereit.",
-  "editor.desktop.preview.emptyState.optionBHover": "Beginne mit der Verbindung eines Förderprogramms (AWS, FFG, EU, etc.). Wir empfehlen automatisch den passenden Plantyp und laden programmspezifische Abschnitte, Anforderungen und Dokumentenvorlagen, die auf dein ausgewähltes Programm zugeschnitten sind.",
+  
   "editor.desktop.sections.deactivate": "Deaktivieren",
   "editor.desktop.editForm.sectionTitle": "Abschnitt bearbeiten",
   "editor.desktop.editForm.documentTitle": "Dokument bearbeiten",
