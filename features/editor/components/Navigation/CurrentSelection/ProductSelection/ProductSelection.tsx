@@ -6,7 +6,7 @@ import {
   useConfiguratorState,
   useSectionsAndDocumentsCounts,
 } from '@/features/editor/lib';
-import { InfoTooltip } from '../../../Shared/InfoTooltip';
+import { InfoTooltip } from '@/shared/components/editor/InfoTooltip';
 
 type ProductSelectionProps = {
   // Props removed - component uses store hooks directly
