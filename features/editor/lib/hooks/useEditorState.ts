@@ -157,18 +157,29 @@ export function useSectionEditorState(sectionId: string | null) {
 
 export function usePreviewState() {
   // Optimized: Batch all state reads into single selector + compute booleans inline
-  const { plan, isNewUser, hasPlan } = useEditorStore((state) => {
+  const { plan, isNewUser, hasPlan, hasTitlePageData } = useEditorStore((state) => {
     const plan = state.plan;
     // Compute booleans inline instead of separate hook calls
     const isNewUser = !plan && !state.selectedProduct;
     const hasPlan = !!plan;
-    return { plan, isNewUser, hasPlan };
+    
+    // For live preview: show preview if there's title page data, even without product
+    const hasTitlePageData = plan?.settings?.titlePage && (
+      plan.settings.titlePage.title?.trim() ||
+      plan.settings.titlePage.companyName?.trim() ||
+      plan.settings.titlePage.subtitle?.trim()
+    );
+    
+    return { plan, isNewUser, hasPlan, hasTitlePageData };
   });
+  
+  // Modified logic for live preview: show preview when there's title page data
+  const showPreview = !!(hasPlan || hasTitlePageData);
   
   return {
     plan,
-    isNewUser,
-    hasPlan,
+    isNewUser: isNewUser && !hasTitlePageData, // Only new user if no plan AND no title page data
+    hasPlan: showPreview,
   };
 }
 

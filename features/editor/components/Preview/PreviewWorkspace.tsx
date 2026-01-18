@@ -72,7 +72,27 @@ function PreviewPanel() {
 const previewMode: 'formatted' | 'print' = 'formatted';
   const isGerman = planDocument?.language === 'de';
   const t = getTranslation(isGerman);
-  const sectionsToRender = planDocument?.sections || [];
+  
+
+  
+  // For live preview mode (when there's only title page data), don't show special sections
+  // Only show regular content sections, not TOC, References, or Appendices
+  const sectionsToRender = useMemo(() => {
+    const allSections = planDocument?.sections || [];
+    
+    // In live preview mode (no product selected yet), only show regular sections
+    // Hide special sections: TOC (ancillary), References, Appendices
+    if (!selectedProduct) {
+      return allSections.filter(section => 
+        section.id !== 'ancillary' && 
+        section.id !== 'references' && 
+        section.id !== 'appendices'
+      );
+    }
+    
+    // When product is selected, show all sections
+    return allSections;
+  }, [planDocument?.sections, selectedProduct]);
 
   // Refs for scroll handling
   const isScrollingToSection = useRef(false);
@@ -261,21 +281,27 @@ const previewMode: 'formatted' | 'print' = 'formatted';
                   </div>
                 )}
                 <TitlePageRenderer planDocument={planDocument} disabledSections={disabledSections} t={t} />
-                <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                {sectionsToRender.map((section, index) => (
-                  <SectionRenderer
-                    key={section.key}
-                    section={section}
-                    sectionIndex={index}
-                    planDocument={planDocument}
-                    previewMode={previewMode}
-                    t={t}
-                  />
-                ))}
-                <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                
+                {/* Only show special sections when product is selected (not in live preview mode) */}
+                {selectedProduct && (
+                  <>
+                    <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                    {sectionsToRender.map((section, index) => (
+                      <SectionRenderer
+                        key={section.key}
+                        section={section}
+                        sectionIndex={index}
+                        planDocument={planDocument}
+                        previewMode={previewMode}
+                        t={t}
+                      />
+                    ))}
+                    <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                    <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                    <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                    <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                  </>
+                )}
               </div>
             </div>
           </div>

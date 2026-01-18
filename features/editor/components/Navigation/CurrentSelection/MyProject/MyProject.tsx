@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useEditorState } from '../../../../lib/hooks/useEditorState';
 import { useEditorActions } from '../../../../lib/hooks/useEditorActions';
 import { useI18n } from '../../../../../../shared/contexts/I18nContext';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
 import ProjectProfileStep from './subSteps/ProjectProfileStep';
+import LivePreviewBox from './LivePreviewBox';
 
 interface MyProjectProps {
   className?: string;
@@ -55,18 +56,61 @@ const MyProject: React.FC<MyProjectProps> = ({
     }
   });
 
+  // Debounced store update
+  const debouncedUpdate = useMemo(() => {
+    let timeoutId: NodeJS.Timeout;
+    return (updates: any) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        actions.updateSection('metadata', updates);
+      }, 500); // 500ms debounce
+    };
+  }, [actions]);
+
   const handleFieldChange = (field: string, value: any) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...(prev as any)[parent],
-          [child]: value
-        }
-      }));
+      setFormData(prev => {
+        const newData = {
+          ...prev,
+          [parent]: {
+            ...(prev as any)[parent],
+            [child]: value
+          }
+        };
+        
+        // Update store with debounced save
+        debouncedUpdate({
+          titlePage: { 
+            title: newData.title,
+            subtitle: newData.subtitle,
+            companyName: newData.companyName,
+            legalForm: newData.legalForm,
+            date: newData.date,
+            contactInfo: newData.contactInfo
+          }
+        });
+        
+        return newData;
+      });
     } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
+      setFormData(prev => {
+        const newData = { ...prev, [field]: value };
+        
+        // Update store with debounced save
+        debouncedUpdate({
+          titlePage: { 
+            title: newData.title,
+            subtitle: newData.subtitle,
+            companyName: newData.companyName,
+            legalForm: newData.legalForm,
+            date: newData.date,
+            contactInfo: newData.contactInfo
+          }
+        });
+        
+        return newData;
+      });
     }
   };
 
@@ -116,110 +160,113 @@ const MyProject: React.FC<MyProjectProps> = ({
     };
 
     return (
-      <div className={`${className} flex gap-4 items-start`}>
-        {/* Navigation Sidebar - Further increased width to prevent text cutoff */}
-        <div className="w-64 flex-shrink-0">
-          <div className="bg-slate-800 rounded-lg p-2 border border-slate-700">
-            <nav className="space-y-2">
-              <button
-                onClick={() => handleNavClick(1)}
-                className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
-                  currentSection === 1 
-                    ? 'bg-blue-500/30 text-white' 
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                <span className="text-lg">📋</span>
-                <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.generalInfo') || 'General Info'}</span>
-              </button>
-              
-              <button
-                onClick={() => handleNavClick(2)}
-                className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
-                  currentSection === 2 
-                    ? 'bg-blue-500/30 text-white' 
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                <span className="text-lg">🏢</span>
-                <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}</span>
-              </button>
-              
-              <button
-                onClick={() => handleNavClick(3)}
-                className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
-                  currentSection === 3 
-                    ? 'bg-blue-500/30 text-white' 
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                <span className="text-lg">✨</span>
-                <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}</span>
-              </button>
-            </nav>
+      <>
+        <div className={`${className} flex gap-4 items-start`}>
+          {/* Navigation Sidebar - Further increased width to prevent text cutoff */}
+          <div className="w-64 flex-shrink-0">
+            <div className="bg-slate-800 rounded-lg p-2 border border-slate-700">
+              <nav className="space-y-2">
+                <button
+                  onClick={() => handleNavClick(1)}
+                  className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
+                    currentSection === 1 
+                      ? 'bg-blue-500/30 text-white' 
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <span className="text-lg">📋</span>
+                  <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.generalInfo') || 'General Info'}</span>
+                </button>
+                
+                <button
+                  onClick={() => handleNavClick(2)}
+                  className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
+                    currentSection === 2 
+                      ? 'bg-blue-500/30 text-white' 
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <span className="text-lg">🏢</span>
+                  <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}</span>
+                </button>
+                
+                <button
+                  onClick={() => handleNavClick(3)}
+                  className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
+                    currentSection === 3 
+                      ? 'bg-blue-500/30 text-white' 
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <span className="text-lg">✨</span>
+                  <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}</span>
+                </button>
+              </nav>
+            </div>
           </div>
-        </div>
-        
-        {/* Main Content - Flexible width to accommodate sidebar */}
-        <div className="flex-1 min-w-0">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Show only current section */}
-            {currentSection === 1 && (
-              <GeneralInfoStep 
-                formData={formData} 
-                onChange={handleFieldChange} 
-              />
-            )}
-            
-            {currentSection === 2 && (
-              <ProjectProfileStep 
-                formData={formData} 
-                onChange={handleFieldChange} 
-              />
-            )}
-            
-            {currentSection === 3 && (
-              <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                  <span className="text-xl">✨</span> 
-                  {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
-                </h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-white font-medium mb-2">
-                      {t('editor.desktop.myProject.fields.oneLiner') || 'One-liner Description'}
-                    </label>
-                    <textarea
-                      value={formData.oneLiner}
-                      onChange={(e) => handleFieldChange('oneLiner', e.target.value)}
-                      placeholder="Brief description of your project vision"
-                      rows={3}
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-white font-medium mb-2">
-                      {t('editor.desktop.myProject.fields.confidentiality') || 'Confidentiality Level'}
-                    </label>
-                    <select
-                      value={formData.confidentiality}
-                      onChange={(e) => handleFieldChange('confidentiality', e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="public">{t('editor.desktop.setupWizard.options.public') || 'Public'}</option>
-                      <option value="confidential">{t('editor.desktop.setupWizard.options.confidential') || 'Confidential'}</option>
-                      <option value="private">{t('editor.desktop.setupWizard.options.private') || 'Private'}</option>
-                    </select>
+          
+          {/* Main Content - Flexible width to accommodate sidebar */}
+          <div className="flex-1 min-w-0">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Show only current section */}
+              {currentSection === 1 && (
+                <GeneralInfoStep 
+                  formData={formData} 
+                  onChange={handleFieldChange} 
+                />
+              )}
+              
+              {currentSection === 2 && (
+                <ProjectProfileStep 
+                  formData={formData} 
+                  onChange={handleFieldChange} 
+                />
+              )}
+              
+              {currentSection === 3 && (
+                <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                    <span className="text-xl">✨</span> 
+                    {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-white font-medium mb-2">
+                        {t('editor.desktop.myProject.fields.oneLiner') || 'One-liner Description'}
+                      </label>
+                      <textarea
+                        value={formData.oneLiner}
+                        onChange={(e) => handleFieldChange('oneLiner', e.target.value)}
+                        placeholder="Brief description of your project vision"
+                        rows={3}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white font-medium mb-2">
+                        {t('editor.desktop.myProject.fields.confidentiality') || 'Confidentiality Level'}
+                      </label>
+                      <select
+                        value={formData.confidentiality}
+                        onChange={(e) => handleFieldChange('confidentiality', e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="public">{t('editor.desktop.setupWizard.options.public') || 'Public'}</option>
+                        <option value="confidential">{t('editor.desktop.setupWizard.options.confidential') || 'Confidential'}</option>
+                        <option value="private">{t('editor.desktop.setupWizard.options.private') || 'Private'}</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            
-          </form>
+              
+            </form>
+          </div>
         </div>
-      </div>
+        <LivePreviewBox formData={formData} />
+      </>
     );
   }
 

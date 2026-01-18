@@ -108,33 +108,6 @@ function CurrentSelection({}: CurrentSelectionProps) {
         
         <div className="w-0.5 h-6 bg-white/30"></div>
         
-        {/* Plan */}
-        <div 
-          className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
-            setupWizard.currentStep === 3 ? 'bg-white/20' : ''
-          }`}
-          onClick={handlePlanClick}
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-white/70 font-medium text-xs mb-1">📋 Plan</span>
-            {setupWizard.currentStep === 3 && isConfiguratorOpen && (
-              <span className="relative">
-                <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
-                <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
-              </span>
-            )}
-          </div>
-          {!isConfiguratorOpen && (
-            <div className="flex items-center gap-1">
-              <span className="text-white font-medium truncate text-sm">
-                {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : 'No plan'}
-              </span>
-            </div>
-          )}
-        </div>
-        
-        <div className="w-0.5 h-6 bg-white/30"></div>
-        
         {/* Program */}
         <div 
           className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
@@ -155,6 +128,33 @@ function CurrentSelection({}: CurrentSelectionProps) {
             <div className="text-white font-medium truncate flex items-center gap-1">
               <span className="truncate text-sm">
                 {programSummary?.name || 'No program selected'}
+              </span>
+            </div>
+          )}
+        </div>
+        
+        <div className="w-0.5 h-6 bg-white/30"></div>
+        
+        {/* Plan */}
+        <div 
+          className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
+            setupWizard.currentStep === 3 ? 'bg-white/20' : ''
+          }`}
+          onClick={handlePlanClick}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-white/70 font-medium text-xs mb-1">📋 Plan</span>
+            {setupWizard.currentStep === 3 && isConfiguratorOpen && (
+              <span className="relative">
+                <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
+                <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
+              </span>
+            )}
+          </div>
+          {!isConfiguratorOpen && (
+            <div className="flex items-center gap-1">
+              <span className="text-white font-medium truncate text-sm">
+                {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : 'No plan'}
               </span>
             </div>
           )}
@@ -222,7 +222,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
               top: `${modalTop}px`,
               left: `${rect?.left || 0}px`,
               width: `${rect?.width || 1200}px`,
-              maxHeight: '80vh',
+              maxHeight: '70vh',
               overflow: 'auto'
             }}
             onClick={(e) => e.stopPropagation()}

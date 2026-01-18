@@ -132,8 +132,39 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setError: (error) => set({ error }),
   
   updateSection: (sectionId, updates) => {
-    const plan = get().plan;
-    if (!plan) return;
+    let plan = get().plan;
+    
+    // Create minimal plan if none exists and we're updating title page data
+    if (!plan && sectionId === METADATA_SECTION_ID) {
+      plan = {
+        language: 'en',
+        productType: undefined,
+        settings: {
+          includeTitlePage: true,
+          includePageNumbers: true,
+          titlePage: {
+            title: '',
+            companyName: '',
+            date: new Date().toISOString().split('T')[0],
+          },
+        },
+        sections: [],
+        metadata: {
+          disabledSectionIds: [],
+          disabledDocumentIds: [],
+          customSections: [],
+          customDocuments: [],
+        },
+        references: [],
+        appendices: [],
+      };
+      set({ plan });
+      plan = get().plan; // Get the newly set plan
+    }
+    
+    if (!plan) {
+      return;
+    }
     
     if (sectionId === METADATA_SECTION_ID && plan.settings?.titlePage) {
       const updatedPlan = {
