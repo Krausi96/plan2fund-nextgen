@@ -17,8 +17,8 @@ import {
   ReferencesRenderer, 
   AppendicesRenderer 
 } from './renderers/AncillaryRenderers';
-import { DocumentSettings } from '@/shared/components/ui/DocumentSettings';
-import { DEFAULT_DOCUMENT_STYLE, type DocumentStyleConfig } from './renderers/DocumentStyles';
+import { DocumentSettings } from '@/shared/components/editor/DocumentSettings';
+import { DEFAULT_DOCUMENT_STYLE, type DocumentStyleConfig } from '@/shared/components/editor/DocumentStyles';
 
 function PreviewPanel() {
   const { t: i18nT } = useI18n();
