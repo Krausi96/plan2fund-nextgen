@@ -43,18 +43,36 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
   const tp = planDocument.settings.titlePage;
   const fv = (key: string) => getFieldValue(planDocument, key);
   
+  // Get product-specific title based on product type
+  const getProductTitle = () => {
+    switch (planDocument.productType) {
+      case 'strategy':
+        return 'planTypes.strategy.title';
+      case 'review':
+        return 'planTypes.review.title';
+      case 'submission':
+        return 'planTypes.custom.title';
+      default:
+        return 'businessPlan'; // fallback
+    }
+  };
+  
+  // Use dynamic translation lookup for product title
+  const productTitleKey = getProductTitle();
+  const productTitle = t[productTitleKey as keyof typeof t] || t.businessPlan;
+  
   return (
     <div className="preview-title-page export-preview-page" data-section-id={METADATA_SECTION_ID} style={PAGE_STYLE}>
       <div className="flex flex-col justify-between h-full pb-16 px-10">
           <div className="flex-shrink-0 flex flex-col items-center">
             {tp?.logoUrl && <img src={tp.logoUrl} alt="Company Logo" className="mx-auto h-24 object-contain mb-8" />}
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">{t.businessPlan}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">{productTitle}</p>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center text-center max-w-3xl mx-auto px-6">
-            <h1 className="preview-title mb-4 text-3xl sm:text-4xl font-bold leading-tight text-slate-900">{fv('title') || 'Plan Title'}</h1>
+            <h1 className="preview-title mb-4 text-3xl sm:text-4xl font-bold leading-tight text-slate-900">{fv('title') || 'Your Project Title'}</h1>
             {fv('subtitle') && <p className="text-base text-gray-600 font-normal leading-relaxed mb-6 max-w-2xl block">{fv('subtitle')}</p>}
             <div className="mb-4">
-              <div className="text-lg font-semibold text-gray-800 block">{fv('companyName') || 'Company Name'}</div>
+              <div className="text-lg font-semibold text-gray-800 block">{fv('companyName') || 'Your Company Name'}</div>
               {fv('legalForm') && <span className="font-normal text-gray-600 ml-2">{fv('legalForm')}</span>}
               {fv('teamHighlight') && <p className="text-sm text-gray-600 italic mt-2 block">{fv('teamHighlight')}</p>}
             </div>
@@ -62,7 +80,7 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
           <div className="flex-shrink-0 w-full mt-auto pt-10">
             <div className="mb-6">
               <p className="text-sm text-gray-700 mb-3">
-                <span className="font-semibold">{t.author}:</span> <span className="font-normal">{fv('author') || 'Author / Company Name'}</span>
+                <span className="font-semibold">{t.author}:</span> <span className="font-normal">{fv('author') || 'Your Name'}</span>
               </p>
               <div className="space-y-1.5 text-xs text-gray-600">
                 {fv('email') && <p><span className="font-medium text-gray-700">{t.email}:</span> {fv('email')}</p>}
