@@ -70,12 +70,9 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
 
   return (
     <div 
-      className={`fixed bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-50 transition-all duration-300 ${isDragging ? 'cursor-grabbing' : 'hover:scale-[1.02]'}`} 
+      className={`relative bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-xl transition-all duration-300 ${isDragging ? 'cursor-grabbing' : 'hover:scale-[1.01]'} w-full`} 
       style={{ 
-        width: `${boxWidth}px`, 
-        height: isMinimized ? '40px' : `${calculatedHeight}px`,
-        left: `${position.x}px`,
-        top: `${position.y}px`
+        height: isMinimized ? '40px' : '100%',
       }}
     >
       {/* Window Header with Controls */}
@@ -87,7 +84,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
           <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
         </div>
-        
+          
         {/* Window Controls */}
         <div className="flex items-center gap-1">
           <button 
@@ -109,7 +106,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
           </button>
         </div>
       </div>
-      
+        
       {/* Content (only show when not minimized) */}
       {!isMinimized && (
         <div className="p-3 h-full flex flex-col">
@@ -125,13 +122,13 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
                       <h1 className="text-2xl font-bold text-gray-900 text-center">{formData.title}</h1>
                     </div>
                   )}
-                  
+                    
                   {formData.subtitle && (
                     <div className="mb-4">
                       <h2 className="text-lg text-gray-600 text-center italic">{formData.subtitle}</h2>
                     </div>
                   )}
-                  
+                    
                   {(formData.companyName || formData.legalForm) && (
                     <div className="mb-6 text-center">
                       <div className="text-xl font-semibold text-gray-800">
@@ -140,7 +137,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
                     </div>
                   )}
                 </div>
-                
+                  
                 {/* Contact Information */}
                 <div className="mt-auto">
                   <div className="border-t border-gray-300 pt-3">
@@ -160,7 +157,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
                     </div>
                   </div>
                 </div>
-                
+                  
                 {/* Empty state */}
                 {!hasPreviewData && (
                   <div className="text-gray-400 text-center py-8">
