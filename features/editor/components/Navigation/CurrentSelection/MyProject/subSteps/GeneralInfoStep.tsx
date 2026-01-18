@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../../../../shared/components/ui/card';
 import { useI18n } from '../../../../../../../shared/contexts/I18nContext';
+import { DocumentSettings } from '../../../../../../../shared/components/editor/DocumentSettings';
+import { DEFAULT_DOCUMENT_STYLE, type DocumentStyleConfig } from '../../../../../../../shared/components/editor/DocumentStyles';
 
 interface GeneralInfoStepProps {
   formData: any;
@@ -11,8 +13,18 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
   const { t } = useI18n();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     documentInfo: false,
-    contactInfo: false
+    contactInfo: false,
+    styling: false
   });
+  
+  // Document styling state
+  const [documentStyle, setDocumentStyle] = useState<DocumentStyleConfig>(DEFAULT_DOCUMENT_STYLE);
+  
+  const handleStyleChange = (newStyle: DocumentStyleConfig) => {
+    setDocumentStyle(newStyle);
+    // TODO: Apply styling to live preview
+    console.log('Document style updated:', newStyle);
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
@@ -215,6 +227,99 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                       placeholder={t('editor.desktop.setupWizard.placeholders.address')}
                     />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Document Styling Section - Expandable */}
+          <div className="border border-slate-600 rounded-lg">
+            <button
+              type="button"
+              onClick={() => toggleSection('styling')}
+              className="w-full px-4 py-3 text-left flex items-center justify-between bg-slate-700/50 hover:bg-slate-700 transition-colors rounded-lg"
+            >
+              <div className="flex items-center gap-2">
+                <span>🎨</span>
+                <span className="text-white font-medium">{t('editor.desktop.setupWizard.fields.styling') || 'Document Styling'}</span>
+                <span className="text-white/70 text-sm">({t('editor.desktop.setupWizard.optional') || 'Optional'})</span>
+              </div>
+              <span className={`transform transition-transform ${expandedSections.styling ? 'rotate-180' : ''}`}>
+                ▼
+              </span>
+            </button>
+            
+            {expandedSections.styling && (
+              <div className="px-4 pb-4 pt-2">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Styling Controls */}
+                  <div>
+                    <h4 className="text-white font-medium mb-3 text-sm">Style Settings</h4>
+                    <div className="bg-slate-700/50 rounded-lg p-3">
+                      <DocumentSettings
+                        config={documentStyle}
+                        onChange={handleStyleChange}
+                        className="bg-transparent"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Live Preview of Styled Title Page */}
+                  <div>
+                    <h4 className="text-white font-medium mb-3 text-sm">Live Preview</h4>
+                    <div className="bg-white rounded-lg border border-gray-300 h-64 overflow-hidden">
+                      <div className="p-4 h-full overflow-y-auto">
+                        <div className="min-h-full flex flex-col justify-between">
+                          <div>
+                            {formData.title && (
+                              <div className="mb-2">
+                                <h1 className="text-xl font-bold text-gray-900 text-center" 
+                                    style={{
+                                      fontFamily: documentStyle.fontFamily === 'serif' ? 'Georgia, serif' : 
+                                                 documentStyle.fontFamily === 'mono' ? 'monospace' : 
+                                                 'system-ui, sans-serif',
+                                      fontSize: documentStyle.fontSize === 'small' ? '1.25rem' : 
+                                               documentStyle.fontSize === 'large' ? '1.75rem' : '1.5rem'
+                                    }}>
+                                  {formData.title}
+                                </h1>
+                              </div>
+                            )}
+                            
+                            {formData.subtitle && (
+                              <div className="mb-3">
+                                <h2 className="text-gray-600 text-center italic"
+                                    style={{
+                                      fontFamily: documentStyle.fontFamily === 'serif' ? 'Georgia, serif' : 'system-ui, sans-serif',
+                                      fontSize: documentStyle.fontSize === 'small' ? '0.875rem' : '1rem'
+                                    }}>
+                                  {formData.subtitle}
+                                </h2>
+                              </div>
+                            )}
+                            
+                            {(formData.companyName || formData.legalForm) && (
+                              <div className="mb-4 text-center">
+                                <div className="text-lg font-semibold text-gray-800"
+                                     style={{
+                                       fontFamily: documentStyle.fontFamily === 'serif' ? 'Georgia, serif' : 'system-ui, sans-serif'
+                                     }}>
+                                  {formData.companyName}{formData.legalForm ? ` (${formData.legalForm})` : ''}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="border-t border-gray-300 pt-2 mt-auto">
+                            <div className="text-xs text-gray-500">
+                              <div>Confidential</div>
+                              <div>Date: {new Date().toLocaleDateString()}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
