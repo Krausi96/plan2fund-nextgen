@@ -36,7 +36,7 @@ function PreviewPanel() {
   const [showWatermark] = useState(true);
   const [zoomLevel, setZoomLevel] = useState(1); // Scale factor
   const [documentStyle, setDocumentStyle] = useState<DocumentStyleConfig>(DEFAULT_DOCUMENT_STYLE);
-  const [showSettings, setShowSettings] = useState(false);
+  const [activeBottomTab, setActiveBottomTab] = useState<'readiness' | 'styling' | 'export'>('readiness');
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -247,7 +247,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
       ) : (
         <div className="relative w-full h-full flex flex-col">
                   
-          {/* Zoom Control Slider */}
+          {/* Zoom Control Slider - Clean version without settings button */}
           <div className="absolute top-4 right-4 z-[101]">
             <div className="flex items-center gap-2 bg-slate-900 backdrop-blur-sm rounded-lg p-2 border-2 border-blue-500/50 shadow-xl">
               <span className="text-white text-xs font-medium">Zoom:</span>
@@ -263,31 +263,8 @@ const previewMode: 'formatted' | 'print' = 'formatted';
               <span className="text-white text-xs font-bold w-12">
                 {Math.round(zoomLevel * 100)}%
               </span>
-              
-              {/* Document Settings Button */}
-              <button 
-                onClick={() => setShowSettings(!showSettings)}
-                className={`p-2 rounded-md transition-colors ${showSettings ? 'bg-blue-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
-                title="Document Settings"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                </svg>
-              </button>
             </div>
           </div>
-                  
-          {/* Document Settings Panel */}
-          {showSettings && (
-            <div className="absolute top-16 right-4 z-[102]">
-              <div className="bg-slate-900 backdrop-blur-sm rounded-lg border-2 border-blue-500/50 shadow-2xl p-4 max-w-xs">
-                <DocumentSettings 
-                  config={documentStyle}
-                  onChange={setDocumentStyle}
-                />
-              </div>
-            </div>
-          )}
           <div
             id="preview-scroll-container"
             ref={scrollRef}
@@ -329,33 +306,91 @@ const previewMode: 'formatted' | 'print' = 'formatted';
             </div>
           </div>
           
-          {/* Bottom sticky Readiness Check bar */}
+          {/* Bottom Tabbed Bar - VS Code style */}
           <div className="flex-shrink-0 border-t border-white/20 bg-slate-900/90 backdrop-blur-sm">
-            <div className="px-2 py-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-white/60 text-xs font-medium">Readiness:</span>
+            {/* Tab Headers */}
+            <div className="flex border-b border-white/10">
+              <button
+                onClick={() => setActiveBottomTab('readiness')}
+                className={`px-4 py-2 text-xs font-medium transition-colors flex items-center gap-2 ${
+                  activeBottomTab === 'readiness'
+                    ? 'bg-blue-500/20 text-blue-300 border-b-2 border-blue-400'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span>📊</span>
+                Readiness
+              </button>
+              
+              <button
+                onClick={() => setActiveBottomTab('styling')}
+                className={`px-4 py-2 text-xs font-medium transition-colors flex items-center gap-2 ${
+                  activeBottomTab === 'styling'
+                    ? 'bg-blue-500/20 text-blue-300 border-b-2 border-blue-400'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span>🎨</span>
+                Styling
+              </button>
+              
+              <button
+                onClick={() => setActiveBottomTab('export')}
+                className={`px-4 py-2 text-xs font-medium transition-colors flex items-center gap-2 ${
+                  activeBottomTab === 'export'
+                    ? 'bg-blue-500/20 text-blue-300 border-b-2 border-blue-400'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span>📤</span>
+                Export
+              </button>
+            </div>
+            
+            {/* Tab Content */}
+            <div className="px-4 py-3">
+              {activeBottomTab === 'readiness' && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-white/60 text-xs font-medium">Readiness:</span>
+                    <div className="flex items-center gap-2">
+                      {selectedProduct && (
+                        <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded font-medium">
+                          {selectedProduct.charAt(0).toUpperCase() + selectedProduct.slice(1)}
+                        </span>
+                      )}
+                      {programSummary ? (
+                        <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded font-medium">
+                          {programSummary.name}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-gray-500/20 text-gray-400 text-xs rounded font-medium">
+                          No Program
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   <div className="flex items-center gap-2">
-                    {selectedProduct && (
-                      <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded font-medium">
-                        {selectedProduct.charAt(0).toUpperCase() + selectedProduct.slice(1)}
-                      </span>
-                    )}
-                    {programSummary ? (
-                      <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded font-medium">
-                        {programSummary.name}
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-gray-500/20 text-gray-400 text-xs rounded font-medium">
-                        No Program
-                      </span>
-                    )}
+                    <span className="text-white/40 text-xs">Status indicators would go here</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-white/40 text-xs">Status indicators would go here</span>
+              )}
+              
+              {activeBottomTab === 'styling' && (
+                <div className="max-h-40 overflow-y-auto">
+                  <DocumentSettings
+                    config={documentStyle}
+                    onChange={setDocumentStyle}
+                    className="bg-slate-800/50"
+                  />
                 </div>
-              </div>
+              )}
+              
+              {activeBottomTab === 'export' && (
+                <div className="flex items-center gap-3">
+                  <span className="text-white/60 text-xs">Export options coming soon...</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

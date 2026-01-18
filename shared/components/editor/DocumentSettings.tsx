@@ -1,8 +1,7 @@
 import { 
   DocumentStyleConfig, 
-  DEFAULT_DOCUMENT_STYLE,
-  applyDocumentStyles
-} from '@/features/editor/components/Preview/renderers/DocumentStyles';
+  DEFAULT_DOCUMENT_STYLE
+} from '@/shared/components/editor/DocumentStyles';
 
 interface DocumentSettingsProps {
   config: DocumentStyleConfig;
