@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { DocumentSettings } from '@/shared/components/editor/DocumentSettings';
 import { DEFAULT_DOCUMENT_STYLE, type DocumentStyleConfig } from '@/shared/components/editor/DocumentStyles';
 
@@ -20,15 +21,16 @@ interface LivePreviewBoxProps {
 const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
   // Calculate A4 aspect ratio (210mm × 297mm)
   const a4Ratio = 210 / 297;
-  const boxWidth = 320; // w-80 = 20rem = 320px
+  const boxWidth = Math.min(320, (typeof window !== 'undefined' ? window.innerWidth : 1200) * 0.3); // Max 30% of screen width
   const calculatedHeight = boxWidth / a4Ratio;
   
-  const hasPreviewData = formData.title || formData.companyName || formData.subtitle || formData.legalForm;
-  
-  // Window state
+  // Window state - with drag support
   const [isMinimized, setIsMinimized] = useState(false);
   const [showStyling, setShowStyling] = useState(false);
-  const [position, setPosition] = useState({ x: window.innerWidth - boxWidth - 16, y: window.innerHeight - calculatedHeight - 16 });
+  const [position, setPosition] = useState({ 
+    x: typeof window !== 'undefined' ? Math.max(20, window.innerWidth - boxWidth - 20) : 300, 
+    y: typeof window !== 'undefined' ? 20 : 20 
+  });
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
   
@@ -52,8 +54,8 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
       const newY = e.clientY - dragOffset.current.y;
       
       // Keep within viewport bounds
-      const boundedX = Math.max(16, Math.min(window.innerWidth - boxWidth - 16, newX));
-      const boundedY = Math.max(16, Math.min(window.innerHeight - calculatedHeight - 16, newY));
+      const boundedX = Math.max(20, Math.min(typeof window !== 'undefined' ? window.innerWidth - boxWidth - 20 : 1000, newX));
+      const boundedY = Math.max(20, Math.min(typeof window !== 'undefined' ? window.innerHeight - calculatedHeight - 20 : 1000, newY));
       
       setPosition({ x: boundedX, y: boundedY });
     }
@@ -64,7 +66,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
   };
   
   // Add/remove mouse listeners
-  React.useEffect(() => {
+  useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
@@ -80,17 +82,20 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
     console.log('Document style updated:', newStyle);
   };
 
-  return (
+  // Render the preview box via portal to escape modal context
+  const previewElement = (
     <div 
-      className={`fixed bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-50 transition-all duration-300 ${isDragging ? 'cursor-grabbing' : 'hover:scale-[1.02]'}`} 
+      className={`fixed bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] transition-all duration-300 ${isDragging ? 'cursor-grabbing' : 'hover:scale-[1.02]'}`} 
       style={{ 
         width: `${boxWidth}px`, 
         height: isMinimized ? '40px' : `${calculatedHeight + (showStyling ? 200 : 0)}px`,
         left: `${position.x}px`,
-        top: `${position.y}px`
+        top: `${position.y}px`,
+        maxWidth: 'calc(100vw - 40px)',
+        maxHeight: 'calc(100vh - 40px)'
       }}
     >
-      {/* Window Header with Controls */}
+      {/* Window Header with Controls - now draggable */}
       <div 
         className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg cursor-move select-none"
         onMouseDown={handleMouseDown}
@@ -135,9 +140,9 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
           {/* Main Preview Content */}
           <div className="p-3 flex-1 flex flex-col">
             {/* A4 Page Simulation */}
-            <div className="flex-1 bg-white rounded border border-gray-300 overflow-hidden relative">
+            <div className="flex-1 bg-white rounded border border-gray-300 overflow-hidden relative" style={{ minHeight: 0 }}>
               <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-50"></div>
-              <div className="relative p-4 h-full overflow-y-auto">
+              <div className="relative p-3 h-full overflow-y-auto" style={{ maxHeight: '100%' }}>
                 <div className="min-h-full flex flex-col justify-between">
                   {/* Header Section */}
                   <div>
@@ -204,36 +209,29 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Empty state */}
-                  {!hasPreviewData && (
-                    <div className="text-gray-400 text-center py-8">
-                      <div className="text-lg mb-2">📄</div>
-                      <div>Enter project details to see live preview</div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Styling Controls (expandable) */}
+          {/* Styling Controls Panel */}
           {showStyling && (
             <div className="border-t border-slate-600 bg-slate-700/50 p-3 no-drag">
               <h4 className="text-white font-medium mb-2 text-sm">Document Styling</h4>
-              <div className="max-h-40 overflow-y-auto">
-                <DocumentSettings
-                  config={documentStyle}
-                  onChange={handleStyleChange}
-                  className="bg-slate-800/50"
-                />
-              </div>
+              <DocumentSettings
+                config={documentStyle}
+                onChange={handleStyleChange}
+                className="bg-transparent"
+              />
             </div>
           )}
         </div>
       )}
     </div>
   );
+
+  // Render via portal to document.body to escape modal context
+  return typeof window !== 'undefined' ? createPortal(previewElement, document.body) : null;
 };
 
 export default LivePreviewBox;
