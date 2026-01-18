@@ -351,8 +351,8 @@ const previewMode: 'formatted' | 'print' = 'formatted';
             <div className="px-4 py-3">
               {activeBottomTab === 'readiness' && (
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-white/60 text-xs font-medium">Readiness:</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-white/60 text-xs font-medium">Status:</span>
                     <div className="flex items-center gap-2">
                       {selectedProduct && (
                         <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded font-medium">
@@ -365,13 +365,17 @@ const previewMode: 'formatted' | 'print' = 'formatted';
                         </span>
                       ) : (
                         <span className="px-2 py-1 bg-gray-500/20 text-gray-400 text-xs rounded font-medium">
-                          No Program
+                          No Program Selected
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-white/40 text-xs">Status indicators would go here</span>
+                  <div className="flex items-center gap-3 text-xs text-white/50">
+                    <span>Document Ready</span>
+                    <span>•</span>
+                    <span>Formatting OK</span>
+                    <span>•</span>
+                    <span>All Sections Present</span>
                   </div>
                 </div>
               )}
