@@ -17,7 +17,7 @@ import {
   ReferencesRenderer, 
   AppendicesRenderer 
 } from './renderers/AncillaryRenderers';
-import { DocumentSettings } from './renderers/DocumentSettings';
+import { DocumentSettings } from '@/shared/components/ui/DocumentSettings';
 import { DEFAULT_DOCUMENT_STYLE, type DocumentStyleConfig } from './renderers/DocumentStyles';
 
 function PreviewPanel() {

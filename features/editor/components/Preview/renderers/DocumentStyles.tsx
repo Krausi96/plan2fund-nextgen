@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Document-wide styling configuration
 export interface DocumentStyleConfig {
