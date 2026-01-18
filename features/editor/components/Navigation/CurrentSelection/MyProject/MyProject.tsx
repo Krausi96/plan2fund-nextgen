@@ -205,67 +205,84 @@ const MyProject: React.FC<MyProjectProps> = ({
             </div>
           </div>
           
-          {/* Main Content - Flexible width to accommodate sidebar */}
-          <div className="flex-1 min-w-0">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Show only current section */}
-              {currentSection === 1 && (
-                <GeneralInfoStep 
-                  formData={formData} 
-                  onChange={handleFieldChange} 
-                />
-              )}
-              
-              {currentSection === 2 && (
-                <ProjectProfileStep 
-                  formData={formData} 
-                  onChange={handleFieldChange} 
-                />
-              )}
-              
-              {currentSection === 3 && (
-                <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                    <span className="text-xl">✨</span> 
-                    {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
-                  </h3>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-white font-medium mb-2">
-                        {t('editor.desktop.myProject.fields.oneLiner') || 'One-liner Description'}
-                      </label>
-                      <textarea
-                        value={formData.oneLiner}
-                        onChange={(e) => handleFieldChange('oneLiner', e.target.value)}
-                        placeholder="Brief description of your project vision"
-                        rows={3}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+          {/* Main Content Area with Preview Integration */}
+          <div className="flex-1 min-w-0 flex gap-4">
+            {/* Form Content */}
+            <div className="flex-1 min-w-0">
+              <form onSubmit={handleSubmit} className="space-y-4 h-full flex flex-col">
+                <div className="flex-1 overflow-y-auto pr-2">
+                  {/* Show only current section */}
+                  {currentSection === 1 && (
+                    <GeneralInfoStep 
+                      formData={formData} 
+                      onChange={handleFieldChange} 
+                    />
+                  )}
+                  
+                  {currentSection === 2 && (
+                    <ProjectProfileStep 
+                      formData={formData} 
+                      onChange={handleFieldChange} 
+                    />
+                  )}
+                  
+                  {currentSection === 3 && (
+                    <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                        <span className="text-xl">✨</span> 
+                        {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
+                      </h3>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-white font-medium mb-2">
+                            {t('editor.desktop.myProject.fields.oneLiner') || 'One-liner Description'}
+                          </label>
+                          <textarea
+                            value={formData.oneLiner}
+                            onChange={(e) => handleFieldChange('oneLiner', e.target.value)}
+                            placeholder="Brief description of your project vision"
+                            rows={3}
+                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-white font-medium mb-2">
+                            {t('editor.desktop.myProject.fields.confidentiality') || 'Confidentiality Level'}
+                          </label>
+                          <select
+                            value={formData.confidentiality}
+                            onChange={(e) => handleFieldChange('confidentiality', e.target.value)}
+                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="public">{t('editor.desktop.setupWizard.options.public') || 'Public'}</option>
+                            <option value="confidential">{t('editor.desktop.setupWizard.options.confidential') || 'Confidential'}</option>
+                            <option value="private">{t('editor.desktop.setupWizard.options.private') || 'Private'}</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div>
-                      <label className="block text-white font-medium mb-2">
-                        {t('editor.desktop.myProject.fields.confidentiality') || 'Confidentiality Level'}
-                      </label>
-                      <select
-                        value={formData.confidentiality}
-                        onChange={(e) => handleFieldChange('confidentiality', e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="public">{t('editor.desktop.setupWizard.options.public') || 'Public'}</option>
-                        <option value="confidential">{t('editor.desktop.setupWizard.options.confidential') || 'Confidential'}</option>
-                        <option value="private">{t('editor.desktop.setupWizard.options.private') || 'Private'}</option>
-                      </select>
-                    </div>
-                  </div>
+                  )}
                 </div>
-              )}
-
-              
-            </form>
+              </form>
+            </div>
+            
+            {/* Preview Panel - Integrated as sidebar */}
+            <div className="w-80 flex-shrink-0">
+              <div className="bg-slate-800 rounded-lg border border-slate-700 h-full flex flex-col">
+                <div className="p-3 border-b border-slate-700">
+                  <h3 className="text-white font-medium text-sm flex items-center gap-2">
+                    <span>👁️</span>
+                    Preview
+                  </h3>
+                </div>
+                <div className="flex-1 p-3 overflow-hidden">
+                  <LivePreviewBox formData={formData} />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <LivePreviewBox formData={formData} />
       </>
     );
   }
