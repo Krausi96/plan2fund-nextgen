@@ -44,7 +44,12 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
   const fv = (key: string) => getFieldValue(planDocument, key);
   
   // Get product-specific title based on product type
+  // Only show product title when product is actually selected
   const getProductTitle = () => {
+    if (!planDocument.productType) {
+      return null; // No product selected yet
+    }
+    
     switch (planDocument.productType) {
       case 'strategy':
         return 'planTypes.strategy.title';
@@ -53,48 +58,125 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
       case 'submission':
         return 'planTypes.custom.title';
       default:
-        return 'businessPlan'; // fallback
+        return 'businessPlan';
     }
   };
   
   // Use dynamic translation lookup for product title
   const productTitleKey = getProductTitle();
-  const productTitle = t[productTitleKey as keyof typeof t] || t.businessPlan;
+  const productTitle = productTitleKey ? t[productTitleKey as keyof typeof t] : null;
   
   return (
     <div className="preview-title-page export-preview-page" data-section-id={METADATA_SECTION_ID} style={PAGE_STYLE}>
-      <div className="flex flex-col justify-between h-full pb-16 px-10">
-          <div className="flex-shrink-0 flex flex-col items-center">
-            {tp?.logoUrl && <img src={tp.logoUrl} alt="Company Logo" className="mx-auto h-24 object-contain mb-8" />}
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">{productTitle}</p>
-          </div>
-          <div className="flex-1 flex flex-col justify-center items-center text-center max-w-3xl mx-auto px-6">
-            <h1 className="preview-title mb-4 text-3xl sm:text-4xl font-bold leading-tight text-slate-900">{fv('title') || 'Your Project Title'}</h1>
-            {fv('subtitle') && <p className="text-base text-gray-600 font-normal leading-relaxed mb-6 max-w-2xl block">{fv('subtitle')}</p>}
-            <div className="mb-4">
-              <div className="text-lg font-semibold text-gray-800 block">{fv('companyName') || 'Your Company Name'}</div>
-              {fv('legalForm') && <span className="font-normal text-gray-600 ml-2">{fv('legalForm')}</span>}
-              {fv('teamHighlight') && <p className="text-sm text-gray-600 italic mt-2 block">{fv('teamHighlight')}</p>}
-            </div>
-          </div>
-          <div className="flex-shrink-0 w-full mt-auto pt-10">
-            <div className="mb-6">
-              <p className="text-sm text-gray-700 mb-3">
-                <span className="font-semibold">{t.author}:</span> <span className="font-normal">{fv('author') || 'Your Name'}</span>
-              </p>
-              <div className="space-y-1.5 text-xs text-gray-600">
-                {fv('email') && <p><span className="font-medium text-gray-700">{t.email}:</span> {fv('email')}</p>}
-                {fv('phone') && <p><span className="font-medium text-gray-700">{t.phone}:</span> {fv('phone')}</p>}
-                {fv('website') && <p><span className="font-medium text-gray-700">{t.website}:</span> <a href={fv('website')} className="text-blue-600 hover:text-blue-800 underline">{fv('website')}</a></p>}
-                {fv('address') && <p className="mt-2"><span className="font-medium text-gray-700">{t.address}:</span> {fv('address')}</p>}
+      <div className="flex flex-col justify-between h-full pb-16 px-12">
+        {/* Header Section */}
+        <div className="flex-shrink-0 pt-12">
+          <div className="flex flex-col items-center text-center">
+            {/* Logo */}
+            {tp?.logoUrl && (
+              <div className="mb-8">
+                <img 
+                  src={tp.logoUrl} 
+                  alt="Company Logo" 
+                  className="mx-auto max-h-20 object-contain drop-shadow-sm"
+                />
               </div>
+            )}
+            
+            {/* Product Type (only when selected) */}
+            {productTitle && (
+              <div className="mb-2">
+                <p className="text-sm font-semibold uppercase tracking-wider text-gray-500 letter-spacing-1">
+                  {productTitle}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col justify-center items-center text-center px-8">
+          <div className="max-w-2xl w-full">
+            {/* Project Title */}
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight tracking-tight">
+              {fv('title') || 'Your Project Title'}
+            </h1>
+            
+            {/* Subtitle */}
+            {fv('subtitle') && (
+              <p className="text-xl text-gray-600 font-light mb-8 leading-relaxed">
+                {fv('subtitle')}
+              </p>
+            )}
+            
+            {/* Company Information */}
+            <div className="mb-2">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                {fv('companyName') || 'Your Company Name'}
+              </h2>
+              {fv('legalForm') && (
+                <p className="text-gray-600">
+                  {fv('legalForm')}
+                </p>
+              )}
+              {fv('teamHighlight') && (
+                <p className="text-gray-600 italic mt-3">
+                  {fv('teamHighlight')}
+                </p>
+              )}
             </div>
-            <div className="w-full flex justify-between items-end pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-600"><span className="font-medium text-gray-700">{t.date}:</span> {fv('date') || 'YYYY-MM-DD'}</p>
-              {fv('confidentialityStatement') && <div className="text-right max-w-md"><p className="text-xs text-gray-500 italic leading-relaxed block">{fv('confidentialityStatement')}</p></div>}
+          </div>
+        </div>
+        
+        {/* Footer Section */}
+        <div className="flex-shrink-0 w-full">
+          <div className="border-t border-gray-300 pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+              {/* Contact Information */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide mb-3">
+                  {t.author}
+                </h3>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <p>{fv('author') || 'Your Name'}</p>
+                  {fv('email') && <p>{fv('email')}</p>}
+                  {fv('phone') && <p>{fv('phone')}</p>}
+                  {fv('website') && (
+                    <p>
+                      <a 
+                        href={fv('website')} 
+                        className="text-blue-600 hover:text-blue-800 underline"
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        {fv('website')}
+                      </a>
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Additional Information */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide mb-3">
+                  Information
+                </h3>
+                <div className="space-y-2 text-sm text-gray-600">
+                  {fv('address') && <p>{fv('address')}</p>}
+                  <p>
+                    <span className="font-medium">{t.date}:</span> {fv('date') || new Date().toLocaleDateString()}                    
+                  </p>
+                  {fv('confidentialityStatement') && (
+                    <p className="italic text-gray-500 pt-2 border-t border-gray-200 mt-2">
+                      {fv('confidentialityStatement')}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
   );
 }
