@@ -217,11 +217,14 @@ function CurrentSelection({}: CurrentSelectionProps) {
         
         return (
           <>
-            {/* Backdrop with blur effect */}
+            {/* Backdrop with blur effect - exclude header area */}
             {isConfiguratorOpen && (
               <div 
                 className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[999]"
-                style={{ pointerEvents: 'none' }}
+                style={{ 
+                  pointerEvents: 'none',
+                  top: `${modalTop}px` // Start below the header
+                }}
               />
             )}
             
