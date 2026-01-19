@@ -71,30 +71,25 @@ function CurrentSelection({}: CurrentSelectionProps) {
     }
   }, [setupWizard.currentStep, currentSection]);
 
-  // Show preview when in GeneralInfoStep and either:
-  // 1. User has interacted, OR 
-  // 2. There's existing form data
+  // Simplified preview logic
   const showPreview = setupWizard.currentStep === 1 && 
                      currentSection === 1 && 
                      (hasInteracted || hasExistingFormData);
 
   // Reset section when opening MyProject
+  const navigateToStep = (step: 1 | 2 | 3) => {
+    actions.setIsConfiguratorOpen(true);
+    actions.setSetupWizardStep(step);
+  };
+
   const handleMyProjectClick = () => {
     setCurrentSection(1);
     setHasInteracted(false);
-    actions.setIsConfiguratorOpen(true);
-    actions.setSetupWizardStep(1);
+    navigateToStep(1);
   };
 
-  const handlePlanClick = () => {
-    actions.setIsConfiguratorOpen(true);
-    actions.setSetupWizardStep(3);
-  };
-
-  const handleProgramClick = () => {
-    actions.setIsConfiguratorOpen(true);
-    actions.setSetupWizardStep(2);
-  };
+  const handleProgramClick = () => navigateToStep(2);
+  const handlePlanClick = () => navigateToStep(3);
 
   // Simple step navigation
   const handleNextStep = () => {
@@ -114,10 +109,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
     actions.setIsConfiguratorOpen(false);
   };
 
-  // Toggle configurator and update wizard step
-  const handleToggle = () => {
-    actions.setIsConfiguratorOpen(!isConfiguratorOpen);
-  };
+  const handleToggle = () => actions.setIsConfiguratorOpen(!isConfiguratorOpen);
 
   // Compact header - always shows "Current Selection:" 
   const CompactInfoRow = () => (
@@ -235,19 +227,15 @@ function CurrentSelection({}: CurrentSelectionProps) {
     </div>
   );
 
-  // Keep modal mounted during exit animation
+  // Simplified modal state management
   const [showModal, setShowModal] = useState(isConfiguratorOpen);
   
   useEffect(() => {
-    if (isConfiguratorOpen) {
-      setShowModal(true);
-    }
+    if (isConfiguratorOpen) setShowModal(true);
   }, [isConfiguratorOpen]);
 
   const handleAnimationEnd = () => {
-    if (!isConfiguratorOpen) {
-      setShowModal(false);
-    }
+    if (!isConfiguratorOpen) setShowModal(false);
   };
   
   return (
