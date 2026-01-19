@@ -215,18 +215,21 @@ function CurrentSelection({}: CurrentSelectionProps) {
         // Position modal slightly below header to avoid cutting
         const modalTop = (rect?.bottom || 60) + 2;
         
+        // Backdrop with blur effect - exclude header area
+        const backdropElement = isConfiguratorOpen ? (
+          <div 
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[999]"
+            style={{ 
+              pointerEvents: 'none',
+              top: `${modalTop}px` // Start below the header
+            }}
+          />
+        ) : null;
+        
         return (
           <>
-            {/* Backdrop with blur effect - exclude header area */}
-            {isConfiguratorOpen && (
-              <div 
-                className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[999]"
-                style={{ 
-                  pointerEvents: 'none',
-                  top: `${modalTop}px` // Start below the header
-                }}
-              />
-            )}
+            {/* Render backdrop via portal */}
+            {typeof window !== 'undefined' && backdropElement && createPortal(backdropElement, document.body)}
             
             {createPortal(
               <div 
