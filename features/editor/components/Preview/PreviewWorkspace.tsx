@@ -108,8 +108,6 @@ const previewMode: 'formatted' | 'print' = 'formatted';
     websitePlaceholder: typedT('editor.desktop.setupWizard.placeholders.website'),
     addressPlaceholder: typedT('editor.desktop.setupWizard.placeholders.address'),
     subtitlePlaceholder: typedT('editor.desktop.setupWizard.placeholders.subtitle'),
-    // Custom bilingual placeholders for preview
-    projectTitleBilingual: 'Your Project Title / Dein Projektname',
   };
   
   // For live preview mode (when there's only title page data), don't show special sections

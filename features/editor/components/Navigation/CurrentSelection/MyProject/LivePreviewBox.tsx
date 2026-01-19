@@ -36,8 +36,6 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
     websitePlaceholder: typedT('editor.desktop.setupWizard.placeholders.website'),
     addressPlaceholder: typedT('editor.desktop.setupWizard.placeholders.address'),
     subtitlePlaceholder: typedT('editor.desktop.setupWizard.placeholders.subtitle'),
-    // Custom bilingual placeholders for preview
-    projectTitleBilingual: 'Your Project Title / Dein Projektname',
   };
 
   // Check if we have data to show

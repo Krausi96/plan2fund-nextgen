@@ -43,7 +43,6 @@ interface TitlePageRendererProps {
     websitePlaceholder: string;
     addressPlaceholder: string;
     subtitlePlaceholder: string;
-    projectTitleBilingual: string;
   };
 }
 
@@ -52,6 +51,7 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
   
   const tp = planDocument.settings.titlePage;
   const fv = (key: string) => getFieldValue(planDocument, key);
+  const isGerman = planDocument.language === 'de';
   
   // Get product-specific title based on product type
   // Only show product title when product is actually selected
@@ -86,7 +86,7 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
             )}
           </div>
           <div className="flex-1 flex flex-col justify-center items-center text-center max-w-3xl mx-auto px-6">
-            <h1 className="preview-title mb-4 text-3xl sm:text-4xl font-bold leading-tight text-slate-900">{fv('title') || t.projectTitleBilingual}</h1>
+            <h1 className="preview-title mb-4 text-3xl sm:text-4xl font-bold leading-tight text-slate-900">{fv('title') || (isGerman ? 'Dein Projektname' : 'Your Project Title')}</h1>
             <p className="text-base text-gray-600 font-normal leading-relaxed mb-6 max-w-2xl block">{fv('subtitle') || t.subtitlePlaceholder}</p>
             <div className="mb-4">
               <div className="text-lg font-semibold text-gray-800 block">{fv('companyName') || t.authorPlaceholder}</div>
@@ -102,11 +102,14 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
               </div>
             </div>
             <div className="w-full flex justify-between items-end pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-600"><span className="font-medium text-gray-700">{t.date}:</span> {fv('date') || new Date().toLocaleDateString()}</p>
+              <p className="text-xs text-gray-600"><span className="font-medium text-gray-700">{t.date}:</span> {fv('date') || (() => {
+                const today = new Date();
+                return `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+              })()}</p>
               {(fv('confidentialityStatement') || fv('confidentiality')) && (
                 <div className="text-right max-w-md">
                   <p className="text-xs text-gray-500 italic leading-relaxed block">
-                    <span className="font-medium">{t.confidentiality}:</span> {fv('confidentialityStatement') || fv('confidentiality')}
+                    <span className="font-bold">{t.confidentiality}:</span> {fv('confidentialityStatement')}
                   </p>
                 </div>
               )}
