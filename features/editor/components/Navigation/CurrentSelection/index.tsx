@@ -215,146 +215,158 @@ function CurrentSelection({}: CurrentSelectionProps) {
         // Position modal slightly below header to avoid cutting
         const modalTop = (rect?.bottom || 60) + 2;
         
-        return createPortal(
-          <div 
-            className={`fixed border-2 border-t-0 border-blue-400 rounded-b-lg bg-slate-900 shadow-2xl z-[1000] ${isConfiguratorOpen ? 'animate-modal-enter' : 'animate-modal-exit'}`}
-            style={{
-              top: `${modalTop}px`,
-              left: `${rect?.left || 0}px`,
-              width: `${rect?.width || 1200}px`,
-              maxHeight: '70vh',
-              overflow: 'auto'
-            }}
-            onClick={(e) => e.stopPropagation()}
-            onAnimationEnd={handleAnimationEnd}
-          >
-            {/* Wizard content goes here */}
-            <div className="px-4 py-4 bg-slate-800/50">
-              <div className="w-full">
-                {/* Step 1: My Project with sub-steps */}
-                {setupWizard.currentStep === 1 && (
-                  <>
-                    <h2 className="text-2xl font-bold text-white mb-1 text-left">
-                      {t('editor.desktop.preview.emptyState.cta') || 'Create Project'}
-                    </h2>
-                    <div className="border-b border-white/20 mb-2"></div>
-                    <p className="text-white/60 text-sm mb-6">
-                      {t('editor.desktop.myProject.subtitle') || 'Enter basic project data'}
-                    </p>
-                    <div className="w-full">
-                      <MyProject 
-                        mode="form" 
-                        onSubmit={handleNextStep}
-                        currentSection={currentSection}
-                        onSectionChange={setCurrentSection}
-                      />
-                    </div>
-                  </>
-                )}
-                
-                {/* Step 2: Program Selection */}
-                {setupWizard.currentStep === 2 && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-white mb-2 text-left">Step 2: Target Selection</h3>
-                      <p className="text-white/80 text-sm mb-4">
-                        Select your funding type to determine document structure
-                      </p>
-                    </div>
-                    <ProgramSelection />
-                  </div>
-                )}
-                
-                {/* Step 3: Product Selection */}
-                {setupWizard.currentStep === 3 && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-white mb-2 text-left">Step 3: Document Type</h3>
-                      <p className="text-white/80 text-sm mb-4">
-                        Choose your document template
-                      </p>
-                    </div>
-                    <ProductSelection />
-                  </div>
-                )}
-              </div>
-            </div>
+        return (
+          <>
+            {/* Backdrop with blur effect */}
+            {isConfiguratorOpen && (
+              <div 
+                className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[999]"
+                style={{ pointerEvents: 'none' }}
+              />
+            )}
             
-            {/* Navigation Buttons - Single CTA bar handling all navigation */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-white/20 bg-slate-800 sticky bottom-0">
-              {setupWizard.currentStep === 1 ? (
-                <>
-                  <div>
-                    {currentSection > 1 && (
+            {createPortal(
+              <div 
+                className={`fixed border-2 border-t-0 border-blue-400 rounded-b-lg bg-slate-900 shadow-2xl z-[1000] ${isConfiguratorOpen ? 'animate-modal-enter' : 'animate-modal-exit'}`}
+                style={{
+                  top: `${modalTop}px`,
+                  left: `${rect?.left || 0}px`,
+                  width: `${rect?.width || 1200}px`,
+                  maxHeight: '70vh',
+                  overflow: 'auto'
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onAnimationEnd={handleAnimationEnd}
+              >
+                {/* Wizard content goes here */}
+                <div className="px-4 py-4 bg-slate-800/50">
+                  <div className="w-full">
+                    {/* Step 1: My Project with sub-steps */}
+                    {setupWizard.currentStep === 1 && (
+                      <>
+                        <h2 className="text-2xl font-bold text-white mb-1 text-left">
+                          {t('editor.desktop.preview.emptyState.cta') || 'Create Project'}
+                        </h2>
+                        <div className="border-b border-white/20 mb-2"></div>
+                        <p className="text-white/60 text-sm mb-6">
+                          {t('editor.desktop.myProject.subtitle') || 'Enter basic project data'}
+                        </p>
+                        <div className="w-full">
+                          <MyProject 
+                            mode="form" 
+                            onSubmit={handleNextStep}
+                            currentSection={currentSection}
+                            onSectionChange={setCurrentSection}
+                          />
+                        </div>
+                      </>
+                    )}
+                    
+                    {/* Step 2: Program Selection */}
+                    {setupWizard.currentStep === 2 && (
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-xl font-bold text-white mb-2 text-left">Step 2: Target Selection</h3>
+                          <p className="text-white/80 text-sm mb-4">
+                            Select your funding type to determine document structure
+                          </p>
+                        </div>
+                        <ProgramSelection />
+                      </div>
+                    )}
+                    
+                    {/* Step 3: Product Selection */}
+                    {setupWizard.currentStep === 3 && (
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-xl font-bold text-white mb-2 text-left">Step 3: Document Type</h3>
+                          <p className="text-white/80 text-sm mb-4">
+                            Choose your document template
+                          </p>
+                        </div>
+                        <ProductSelection />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Navigation Buttons - Single CTA bar handling all navigation */}
+                <div className="flex items-center justify-between px-6 py-4 border-t border-white/20 bg-slate-800 sticky bottom-0">
+                  {setupWizard.currentStep === 1 ? (
+                    <>
+                      <div>
+                        {currentSection > 1 && (
+                          <button
+                            onClick={() => setCurrentSection((currentSection - 1) as 1 | 2 | 3)}
+                            className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
+                          >
+                            <ArrowLeft className="w-4 h-4" />
+                            Previous
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div>
+                        {currentSection < 3 ? (
+                          <button
+                            onClick={() => setCurrentSection((currentSection + 1) as 1 | 2 | 3)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                          >
+                            Next
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handleNextStep}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                          >
+                            Continue to Program
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  ) : setupWizard.currentStep === 2 ? (
+                    <>
                       <button
-                        onClick={() => setCurrentSection((currentSection - 1) as 1 | 2 | 3)}
+                        onClick={handlePrevStep}
                         className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
                       >
                         <ArrowLeft className="w-4 h-4" />
-                        Previous
+                        Back to Project
                       </button>
-                    )}
-                  </div>
-                  
-                  <div>
-                    {currentSection < 3 ? (
-                      <button
-                        onClick={() => setCurrentSection((currentSection + 1) as 1 | 2 | 3)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                      >
-                        Next
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    ) : (
+                      
                       <button
                         onClick={handleNextStep}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                       >
-                        Continue to Program
+                        Continue to Templates
                         <ArrowRight className="w-4 h-4" />
                       </button>
-                    )}
-                  </div>
-                </>
-              ) : setupWizard.currentStep === 2 ? (
-                <>
-                  <button
-                    onClick={handlePrevStep}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Project
-                  </button>
-                  
-                  <button
-                    onClick={handleNextStep}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                  >
-                    Continue to Templates
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={handlePrevStep}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Program
-                  </button>
-                  
-                  <button
-                    onClick={handleComplete}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                  >
-                    Complete Setup
-                  </button>
-                </>
-              )}
-            </div>
-          </div>,
-          document.body
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handlePrevStep}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Program
+                      </button>
+                      
+                      <button
+                        onClick={handleComplete}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                      >
+                        Complete Setup
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>,
+              document.body
+            )}
+          </>
         );
       })()}
     </div>
