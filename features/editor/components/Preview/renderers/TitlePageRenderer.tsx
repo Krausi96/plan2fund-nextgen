@@ -19,6 +19,7 @@ const getFieldValue = (plan: PlanDocument, fieldKey: string): string | undefined
     case 'address': return titlePage.contactInfo?.address || titlePage.headquartersLocation;
     case 'date': return titlePage.date;
     case 'confidentialityStatement': return titlePage.confidentialityStatement;
+    case 'confidentiality': return (titlePage as any).confidentiality; // Raw confidentiality value
     default: return undefined;
   }
 };
@@ -34,6 +35,15 @@ interface TitlePageRendererProps {
     website: string;
     address: string;
     date: string;
+    confidentiality: string;
+    projectNamePlaceholder: string;
+    authorPlaceholder: string;
+    emailPlaceholder: string;
+    phonePlaceholder: string;
+    websitePlaceholder: string;
+    addressPlaceholder: string;
+    subtitlePlaceholder: string;
+    projectTitleBilingual: string;
   };
 }
 
@@ -76,29 +86,30 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
             )}
           </div>
           <div className="flex-1 flex flex-col justify-center items-center text-center max-w-3xl mx-auto px-6">
-            <h1 className="preview-title mb-4 text-3xl sm:text-4xl font-bold leading-tight text-slate-900">{fv('title') || 'Your Project Title'}</h1>
-            {fv('subtitle') && <p className="text-base text-gray-600 font-normal leading-relaxed mb-6 max-w-2xl block">{fv('subtitle')}</p>}
+            <h1 className="preview-title mb-4 text-3xl sm:text-4xl font-bold leading-tight text-slate-900">{fv('title') || t.projectTitleBilingual}</h1>
+            <p className="text-base text-gray-600 font-normal leading-relaxed mb-6 max-w-2xl block">{fv('subtitle') || t.subtitlePlaceholder}</p>
             <div className="mb-4">
-              <div className="text-lg font-semibold text-gray-800 block">{fv('companyName') || 'Your Company Name'}</div>
-              {fv('legalForm') && <span className="font-normal text-gray-600 ml-2">{fv('legalForm')}</span>}
-              {fv('teamHighlight') && <p className="text-sm text-gray-600 italic mt-2 block">{fv('teamHighlight')}</p>}
+              <div className="text-lg font-semibold text-gray-800 block">{fv('companyName') || t.authorPlaceholder}</div>
             </div>
           </div>
           <div className="flex-shrink-0 w-full mt-auto pt-10">
             <div className="mb-6">
-              <p className="text-sm text-gray-700 mb-3">
-                <span className="font-semibold">{t.author}:</span> <span className="font-normal">{fv('author') || 'Your Name'}</span>
-              </p>
               <div className="space-y-1.5 text-xs text-gray-600">
-                {fv('email') && <p><span className="font-medium text-gray-700">{t.email}:</span> {fv('email')}</p>}
-                {fv('phone') && <p><span className="font-medium text-gray-700">{t.phone}:</span> {fv('phone')}</p>}
-                {fv('website') && <p><span className="font-medium text-gray-700">{t.website}:</span> <a href={fv('website')} className="text-blue-600 hover:text-blue-800 underline">{fv('website')}</a></p>}
-                {fv('address') && <p className="mt-2"><span className="font-medium text-gray-700">{t.address}:</span> {fv('address')}</p>}
+                <p><span className="font-medium text-gray-700">{t.email}:</span> {fv('email') || t.emailPlaceholder}</p>
+                <p><span className="font-medium text-gray-700">{t.phone}:</span> {fv('phone') || t.phonePlaceholder}</p>
+                <p><span className="font-medium text-gray-700">{t.website}:</span> <a href={fv('website') || '#'} className="text-blue-600 hover:text-blue-800 underline">{fv('website') || t.websitePlaceholder}</a></p>
+                <p className="mt-2"><span className="font-medium text-gray-700">{t.address}:</span> {fv('address') || t.addressPlaceholder}</p>
               </div>
             </div>
             <div className="w-full flex justify-between items-end pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-600"><span className="font-medium text-gray-700">{t.date}:</span> {fv('date') || 'YYYY-MM-DD'}</p>
-              {fv('confidentialityStatement') && <div className="text-right max-w-md"><p className="text-xs text-gray-500 italic leading-relaxed block">{fv('confidentialityStatement')}</p></div>}
+              <p className="text-xs text-gray-600"><span className="font-medium text-gray-700">{t.date}:</span> {fv('date') || new Date().toLocaleDateString()}</p>
+              {(fv('confidentialityStatement') || fv('confidentiality')) && (
+                <div className="text-right max-w-md">
+                  <p className="text-xs text-gray-500 italic leading-relaxed block">
+                    <span className="font-medium">{t.confidentiality}:</span> {fv('confidentialityStatement') || fv('confidentiality')}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

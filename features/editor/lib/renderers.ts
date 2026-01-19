@@ -25,30 +25,6 @@ export const PAGE_STYLE: React.CSSProperties = {
 };
 
 /**
- * Get translation function based on language
- */
-export function getTranslation(isGerman: boolean) {
-  return {
-    tableOfContents: isGerman ? 'Inhaltsverzeichnis' : 'Table of Contents',
-    listOfFigures: isGerman ? 'Abbildungsverzeichnis' : 'List of Figures',
-    listOfTables: isGerman ? 'Tabellenverzeichnis' : 'List of Tables',
-    references: isGerman ? 'Literaturverzeichnis' : 'References',
-    appendices: isGerman ? 'Anhänge' : 'Appendices',
-    page: isGerman ? 'Seite' : 'Page',
-    figure: isGerman ? 'Abbildung' : 'Figure',
-    noReferencesYet: isGerman ? 'Noch keine Referenzen' : 'No references yet',
-    noAppendicesYet: isGerman ? 'Noch keine Anhänge' : 'No appendices yet',
-    businessPlan: isGerman ? 'Businessplan' : 'Business Plan',
-    author: isGerman ? 'Autor' : 'Author',
-    email: isGerman ? 'E-Mail' : 'Email',
-    phone: isGerman ? 'Telefon' : 'Phone',
-    website: isGerman ? 'Website' : 'Website',
-    address: isGerman ? 'Adresse' : 'Address',
-    date: isGerman ? 'Datum' : 'Date',
-  };
-}
-
-/**
  * Calculate page number for a section in the document preview.
  * Page numbering starts after executive summary (or first section if no exec summary) until last page of actual content.
  */

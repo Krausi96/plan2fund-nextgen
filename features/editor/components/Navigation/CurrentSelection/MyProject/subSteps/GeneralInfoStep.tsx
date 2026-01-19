@@ -79,7 +79,26 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                 </label>
                 <select
                   value={formData.confidentiality}
-                  onChange={(e) => handleChange('confidentiality', e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleChange('confidentiality', value);
+                    // Use the same translated values as the dropdown options
+                    let statement = '';
+                    switch(value) {
+                      case 'public':
+                        statement = t('editor.desktop.setupWizard.options.public');
+                        break;
+                      case 'confidential':
+                        statement = t('editor.desktop.setupWizard.options.confidential');
+                        break;
+                      case 'private':
+                        statement = t('editor.desktop.setupWizard.options.private');
+                        break;
+                      default:
+                        statement = value.charAt(0).toUpperCase() + value.slice(1);
+                    }
+                    handleChange('confidentialityStatement', statement);
+                  }}
                   className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                 >
                   <option value="public">{t('editor.desktop.setupWizard.options.public')}</option>
@@ -145,7 +164,12 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          handleChange('logo', file);
+                          // Convert file to data URL for preview
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            handleChange('logoUrl', event.target?.result);
+                          };
+                          reader.readAsDataURL(file);
                         }
                       }}
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-600 file:text-white hover:file:bg-blue-700"

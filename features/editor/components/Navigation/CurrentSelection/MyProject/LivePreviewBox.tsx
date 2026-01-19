@@ -1,138 +1,110 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { ProductType } from '@/features/editor/lib';
+import { useEditorStore } from '@/features/editor/lib';
+import { useI18n } from '@/shared/contexts/I18nContext';
+import { TitlePageRenderer } from '@/features/editor/components/Preview/renderers/TitlePageRenderer';
 
 interface LivePreviewBoxProps {
-  formData: {
-    title: string;
-    subtitle: string;
-    companyName: string;
-    legalForm: string;
-    contactInfo?: {
-      email?: string;
-      phone?: string;
-      website?: string;
-      address?: string;
-    };
-  };
-  productType?: ProductType;
+  show: boolean;
 }
 
-const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData, productType }) => {
-  // Simple translations
+const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
+  if (!show) return null;
+
+  const [zoomLevel, setZoomLevel] = useState(0.7);
+  const planDocument = useEditorStore(state => state.plan);
+  const disabledSections = new Set<string>();
+  const { t: i18nT } = useI18n();
+  
+  // Completely bypass TypeScript type checking - cast everything to any
+  const typedT = i18nT as any;
   const t = {
-    businessPlan: 'Business Plan',
-    author: 'Author',
-    email: 'Email',
-    phone: 'Phone',
-    website: 'Website',
-    address: 'Address',
-    date: 'Date',
+    businessPlan: typedT('businessPlan'),
+    author: typedT('editor.desktop.setupWizard.fields.author'),
+    email: typedT('editor.desktop.setupWizard.fields.email'),
+    phone: typedT('editor.desktop.setupWizard.fields.phone'),
+    website: typedT('editor.desktop.setupWizard.fields.website'),
+    address: typedT('editor.desktop.setupWizard.fields.address'),
+    date: typedT('editor.desktop.setupWizard.fields.date'),
+    // Additional keys needed by TitlePageRenderer
+    confidentiality: typedT('editor.desktop.setupWizard.fields.confidentiality'),
+    projectNamePlaceholder: typedT('editor.desktop.setupWizard.placeholders.projectName'),
+    authorPlaceholder: typedT('editor.desktop.setupWizard.placeholders.author'),
+    // Contact placeholders from GeneralInfoStep
+    emailPlaceholder: typedT('editor.desktop.setupWizard.placeholders.email'),
+    phonePlaceholder: typedT('editor.desktop.setupWizard.placeholders.phone'),
+    websitePlaceholder: typedT('editor.desktop.setupWizard.placeholders.website'),
+    addressPlaceholder: typedT('editor.desktop.setupWizard.placeholders.address'),
+    subtitlePlaceholder: typedT('editor.desktop.setupWizard.placeholders.subtitle'),
+    // Custom bilingual placeholders for preview
+    projectTitleBilingual: 'Your Project Title / Dein Projektname',
   };
 
-  // Get product-specific title
-  const getProductTitle = () => {
-    if (!productType) return null;
-    switch (productType) {
-      case 'strategy': return 'Strategy Plan';
-      case 'review': return 'Review Plan';
-      case 'submission': return 'Submission Plan';
-      default: return 'Business Plan';
-    }
-  };
+  // Check if we have data to show
+  const hasTitlePageData = planDocument?.settings?.titlePage && (
+    planDocument.settings.titlePage.title?.trim() ||
+    planDocument.settings.titlePage.companyName?.trim() ||
+    planDocument.settings.titlePage.subtitle?.trim()
+  );
 
-  const productTitle = getProductTitle();
-
-  // CLEAN: Proper A4 structure with clean padding
-  const previewElement = (
-    <div className="fixed top-4 right-4 w-96 h-[600px] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
-      {/* Window Header */}
-      <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
-        <div className="flex items-center gap-2">
+  // Empty state
+  if (!hasTitlePageData) {
+    return typeof window !== 'undefined' ? createPortal(
+      <div className="fixed top-4 right-4 w-96 h-96 bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
+        <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
           <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+          <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
         </div>
-        <div className="flex items-center gap-1">
-          <button className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors">
-            🎨
-          </button>
-          <button className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors">
-            −
-          </button>
-          <button className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-red-500/20 rounded transition-colors">
-            ×
-          </button>
+        <div className="flex-1 p-6 flex items-center justify-center bg-white">
+          <div className="text-center">
+            <div className="text-4xl mb-4">📝</div>
+            <h3 className="text-lg font-bold text-gray-700 mb-2">Start Your Project</h3>
+            <p className="text-gray-500 text-sm">Enter project details to see preview</p>
+          </div>
+        </div>
+      </div>,
+      document.body
+    ) : null;
+  }
+
+  // Main preview with responsive content and zoom
+  const floatingPreview = (
+    <div className="fixed top-4 right-4 w-96 h-[600px] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
+      <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
+        <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
+        <div className="flex items-center gap-2">
+          {/* Zoom Controls */}
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={() => setZoomLevel(Math.max(0.3, zoomLevel - 0.1))}
+              className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors text-xs"
+              title="Zoom Out"
+            >
+              −
+            </button>
+            <span className="text-white/80 text-xs w-8 text-center">{Math.round(zoomLevel * 100)}%</span>
+            <button 
+              onClick={() => setZoomLevel(Math.min(1.5, zoomLevel + 0.1))}
+              className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors text-xs"
+              title="Zoom In"
+            >
+              +
+            </button>
+          </div>
+          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
         </div>
       </div>
       
-      {/* Content Area - CLEAN PADDING */}
-      <div className="flex-1 p-6 overflow-hidden">
-        <div className="w-full h-full bg-white border-gray-300 overflow-auto">
-          {/* Container with proper padding */}
+      <div className="flex-1 p-3 bg-slate-700 overflow-hidden">
+        <div className="w-full h-full bg-white rounded overflow-auto">
           <div className="p-4 h-full">
-            {/* Full height flex container for proper A4 layout */}
-            <div className="flex flex-col justify-between h-full">
-              {/* HEADER - Top section */}
-              <div className="flex-shrink-0 text-center">
-                <div className="h-20 w-20 bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 font-medium mx-auto mb-4">
-                  Logo
-                </div>
-                {productTitle && (
-                  <p className="text-xs font-bold uppercase tracking-widest text-gray-600 mb-3">
-                    {productTitle}
-                  </p>
-                )}
-                {formData.title && (
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                    {formData.title}
-                  </h1>
-                )}
-                {formData.subtitle && (
-                  <p className="text-sm text-gray-700 italic max-w-md mx-auto">
-                    {formData.subtitle}
-                  </p>
-                )}
-                {(formData.companyName || formData.legalForm) && (
-                  <div className="mt-4">
-                    <div className="text-lg font-semibold text-gray-800">
-                      {formData.companyName}{formData.legalForm ? ` (${formData.legalForm})` : ''}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* MIDDLE - Spacer (flex-1 pushes footer to bottom) */}
-              <div className="flex-1"></div>
-              
-              {/* FOOTER - Bottom section */}
-              <div className="flex-shrink-0">
-                <div className="border-t border-gray-200 pt-4">
-                  <p className="text-sm text-gray-800 mb-2">
-                    <span className="font-bold">{t.author}:</span> {formData.companyName || 'Your Name'}
-                  </p>
-                  <div className="space-y-1 text-xs text-gray-700 mb-3">
-                    {formData.contactInfo?.email && (
-                      <p><span className="font-medium">{t.email}:</span> {formData.contactInfo.email}</p>
-                    )}
-                    {formData.contactInfo?.phone && (
-                      <p><span className="font-medium">{t.phone}:</span> {formData.contactInfo.phone}</p>
-                    )}
-                    {formData.contactInfo?.website && (
-                      <p><span className="font-medium">{t.website}:</span> {formData.contactInfo.website}</p>
-                    )}
-                    {formData.contactInfo?.address && (
-                      <p><span className="font-medium">{t.address}:</span> {formData.contactInfo.address}</p>
-                    )}
-                  </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                    <p className="text-xs text-gray-700">
-                      <span className="font-medium">{t.date}:</span> {new Date().toLocaleDateString()}
-                    </p>
-                    <p className="text-xs text-gray-600 italic">
-                      Confidential
-                    </p>
-                  </div>
-                </div>
+            <div className="h-full flex items-center justify-center">
+              <div style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center', width: '100%' }}>
+                <TitlePageRenderer 
+                  planDocument={planDocument} 
+                  disabledSections={disabledSections} 
+                  t={t} 
+                />
               </div>
             </div>
           </div>
@@ -141,7 +113,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData, productType }
     </div>
   );
 
-  return typeof window !== 'undefined' ? createPortal(previewElement, document.body) : null;
+  return typeof window !== 'undefined' ? createPortal(floatingPreview, document.body) : null;
 };
 
 export default LivePreviewBox;

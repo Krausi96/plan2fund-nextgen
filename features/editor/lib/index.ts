@@ -160,7 +160,6 @@ export {
 
 export {
   PAGE_STYLE,
-  getTranslation,
   calculatePageNumber,
   shouldDisplayPageNumber,
   formatTableLabel,

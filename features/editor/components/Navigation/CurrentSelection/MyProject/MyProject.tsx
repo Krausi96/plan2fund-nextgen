@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useEditorState } from '../../../../lib/hooks/useEditorState';
 import { useEditorActions } from '../../../../lib/hooks/useEditorActions';
 import { useI18n } from '../../../../../../shared/contexts/I18nContext';
+import { METADATA_SECTION_ID } from '@/features/editor/lib/constants';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
 import ProjectProfileStep from './subSteps/ProjectProfileStep';
 import LivePreviewBox from './LivePreviewBox';
@@ -39,6 +40,8 @@ const MyProject: React.FC<MyProjectProps> = ({
     companyName: plan?.settings?.titlePage?.companyName || '',
     legalForm: plan?.settings?.titlePage?.legalForm || '',
     date: plan?.settings?.titlePage?.date || new Date().toISOString().split('T')[0],
+    logoUrl: plan?.settings?.titlePage?.logoUrl || '',
+    confidentialityStatement: plan?.settings?.titlePage?.confidentialityStatement || '',
     // Other form fields
     author: plan?.settings?.titlePage?.companyName || '',
     confidentiality: 'confidential' as 'public' | 'confidential' | 'private',
@@ -60,12 +63,16 @@ const MyProject: React.FC<MyProjectProps> = ({
     }
   });
 
-  // Debug logging for form data
+  // Debug logging for form data and store updates
   console.log('MyProject form data:', {
     title: formData.title,
     companyName: formData.companyName,
-    storeTitle: plan?.settings?.titlePage?.title
+    storeTitle: plan?.settings?.titlePage?.title,
+    confidentiality: formData.confidentiality,
+    confidentialityStatement: formData.confidentialityStatement
   });
+  
+  // Store update debugging can be added later if needed
 
   const handleFieldChange = (field: string, value: any) => {
     if (field.includes('.')) {
@@ -82,15 +89,15 @@ const MyProject: React.FC<MyProjectProps> = ({
         // Immediate update for all title page fields to trigger preview
         // Using queueMicrotask to defer the store update to next tick
         queueMicrotask(() => {
-          actions.updateSection('metadata', {
-            titlePage: { 
-              title: newData.title,
-              subtitle: newData.subtitle,
-              companyName: newData.companyName,
-              legalForm: newData.legalForm,
-              date: newData.date,
-              contactInfo: newData.contactInfo
-            }
+          actions.updateSection(METADATA_SECTION_ID, { 
+            title: newData.title,
+            subtitle: newData.subtitle,
+            companyName: newData.companyName,
+            legalForm: newData.legalForm,
+            date: newData.date,
+            logoUrl: newData.logoUrl,
+            confidentialityStatement: newData.confidentialityStatement,
+            contactInfo: newData.contactInfo
           });
         });
         
@@ -103,15 +110,15 @@ const MyProject: React.FC<MyProjectProps> = ({
         // Immediate update for all title page fields to trigger preview
         // Using queueMicrotask to defer the store update to next tick
         queueMicrotask(() => {
-          actions.updateSection('metadata', {
-            titlePage: { 
-              title: newData.title,
-              subtitle: newData.subtitle,
-              companyName: newData.companyName,
-              legalForm: newData.legalForm,
-              date: newData.date,
-              contactInfo: newData.contactInfo
-            }
+          actions.updateSection(METADATA_SECTION_ID, { 
+            title: newData.title,
+            subtitle: newData.subtitle,
+            companyName: newData.companyName,
+            legalForm: newData.legalForm,
+            date: newData.date,
+            logoUrl: newData.logoUrl,
+            confidentialityStatement: newData.confidentialityStatement,
+            contactInfo: newData.contactInfo
           });
         });
         
@@ -128,15 +135,15 @@ const MyProject: React.FC<MyProjectProps> = ({
       return;
     }
     
-    actions.updateSection('metadata', {
-      titlePage: { 
-        title: formData.title,
-        subtitle: formData.subtitle,
-        companyName: formData.companyName,
-        legalForm: formData.legalForm,
-        date: formData.date,
-        contactInfo: formData.contactInfo
-      }
+    actions.updateSection(METADATA_SECTION_ID, { 
+      title: formData.title,
+      subtitle: formData.subtitle,
+      companyName: formData.companyName,
+      legalForm: formData.legalForm,
+      date: formData.date,
+      logoUrl: formData.logoUrl,
+      confidentialityStatement: formData.confidentialityStatement,
+      contactInfo: formData.contactInfo
     });
     
     if (onSubmit) {
@@ -256,7 +263,26 @@ const MyProject: React.FC<MyProjectProps> = ({
                       </label>
                       <select
                         value={formData.confidentiality}
-                        onChange={(e) => handleFieldChange('confidentiality', e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleFieldChange('confidentiality', value);
+                          // Set the translated confidentiality statement like GeneralInfoStep does
+                          let statement = '';
+                          switch(value) {
+                            case 'public':
+                              statement = t('editor.desktop.setupWizard.options.public');
+                              break;
+                            case 'confidential':
+                              statement = t('editor.desktop.setupWizard.options.confidential');
+                              break;
+                            case 'private':
+                              statement = t('editor.desktop.setupWizard.options.private');
+                              break;
+                            default:
+                              statement = value.charAt(0).toUpperCase() + value.slice(1);
+                          }
+                          handleFieldChange('confidentialityStatement', statement);
+                        }}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="public">{t('editor.desktop.setupWizard.options.public') || 'Public'}</option>
@@ -273,7 +299,7 @@ const MyProject: React.FC<MyProjectProps> = ({
           </div>
         </div>
         {/* Only show preview when explicitly requested */}
-        {showPreview && <LivePreviewBox formData={formData} productType={plan?.productType} />}
+        {showPreview && <LivePreviewBox show={true} />}
       </>
     );
   }

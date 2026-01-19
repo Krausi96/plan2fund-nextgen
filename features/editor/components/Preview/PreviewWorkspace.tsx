@@ -3,7 +3,6 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import { 
   type PlanDocument,
   usePreviewState,
-  getTranslation,
   useDisabledSectionsSet,
   useEditorActions,
   useEditorStore,
@@ -75,7 +74,43 @@ function PreviewPanel() {
 
 const previewMode: 'formatted' | 'print' = 'formatted';
   const isGerman = planDocument?.language === 'de';
-  const t = getTranslation(isGerman);
+  
+  // Use direct i18n keys with type casting - include ALL needed translations
+  const typedT = i18nT as any;
+  const t = {
+    // Title page translations
+    businessPlan: typedT('businessPlan'),
+    author: typedT('editor.desktop.setupWizard.fields.author'),
+    email: typedT('editor.desktop.setupWizard.fields.email'),
+    phone: typedT('editor.desktop.setupWizard.fields.phone'),
+    website: typedT('editor.desktop.setupWizard.fields.website'),
+    address: typedT('editor.desktop.setupWizard.fields.address'),
+    date: typedT('editor.desktop.setupWizard.fields.date'),
+    
+    // Additional translations needed by other renderers
+    tableOfContents: typedT('editor.section.ancillary'),
+    listOfTables: typedT('editor.section.listOfTables'),
+    listOfFigures: typedT('editor.section.listOfFigures'),
+    references: typedT('editor.section.references'),
+    appendices: typedT('editor.section.appendices'),
+    page: typedT('editor.ui.page'),
+    figure: typedT('editor.ui.figure'),
+    noReferencesYet: typedT('editor.ui.noReferencesYet'),
+    noAppendicesYet: typedT('editor.ui.noAppendicesYet'),
+    
+    // Additional keys needed by TitlePageRenderer
+    confidentiality: typedT('editor.desktop.setupWizard.fields.confidentiality'),
+    projectNamePlaceholder: typedT('editor.desktop.setupWizard.placeholders.projectName'),
+    authorPlaceholder: typedT('editor.desktop.setupWizard.placeholders.author'),
+    // Contact placeholders from GeneralInfoStep
+    emailPlaceholder: typedT('editor.desktop.setupWizard.placeholders.email'),
+    phonePlaceholder: typedT('editor.desktop.setupWizard.placeholders.phone'),
+    websitePlaceholder: typedT('editor.desktop.setupWizard.placeholders.website'),
+    addressPlaceholder: typedT('editor.desktop.setupWizard.placeholders.address'),
+    subtitlePlaceholder: typedT('editor.desktop.setupWizard.placeholders.subtitle'),
+    // Custom bilingual placeholders for preview
+    projectTitleBilingual: 'Your Project Title / Dein Projektname',
+  };
   
   // For live preview mode (when there's only title page data), don't show special sections
   // Only show regular content sections, not TOC, References, or Appendices
