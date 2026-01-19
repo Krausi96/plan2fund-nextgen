@@ -43,7 +43,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData, productType }
 
   const productTitle = getProductTitle();
 
-  // CLEAN: Proper A4 structure with header-top, content-middle, footer-bottom
+  // CLEAN: Proper A4 structure with clean padding
   const previewElement = (
     <div className="fixed top-4 right-4 w-96 h-[600px] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
       {/* Window Header */}
@@ -65,11 +65,11 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData, productType }
         </div>
       </div>
       
-      {/* Content Area - PROPER A4 STRUCTURE */}
-      <div className="flex-1 p-3 overflow-hidden">
-        <div className="w-full h-full bg-white rounded border border-gray-300 overflow-auto">
+      {/* Content Area - CLEAN PADDING */}
+      <div className="flex-1 p-6 overflow-hidden">
+        <div className="w-full h-full bg-white border-gray-300 overflow-auto">
           {/* Container with proper padding */}
-          <div className="p-6 h-full">
+          <div className="p-4 h-full">
             {/* Full height flex container for proper A4 layout */}
             <div className="flex flex-col justify-between h-full">
               {/* HEADER - Top section */}
