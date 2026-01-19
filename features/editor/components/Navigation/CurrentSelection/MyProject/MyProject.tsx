@@ -80,15 +80,18 @@ const MyProject: React.FC<MyProjectProps> = ({
         };
         
         // Immediate update for all title page fields to trigger preview
-        actions.updateSection('metadata', {
-          titlePage: { 
-            title: newData.title,
-            subtitle: newData.subtitle,
-            companyName: newData.companyName,
-            legalForm: newData.legalForm,
-            date: newData.date,
-            contactInfo: newData.contactInfo
-          }
+        // Using queueMicrotask to defer the store update to next tick
+        queueMicrotask(() => {
+          actions.updateSection('metadata', {
+            titlePage: { 
+              title: newData.title,
+              subtitle: newData.subtitle,
+              companyName: newData.companyName,
+              legalForm: newData.legalForm,
+              date: newData.date,
+              contactInfo: newData.contactInfo
+            }
+          });
         });
         
         return newData;
@@ -98,15 +101,18 @@ const MyProject: React.FC<MyProjectProps> = ({
         const newData = { ...prev, [field]: value };
         
         // Immediate update for all title page fields to trigger preview
-        actions.updateSection('metadata', {
-          titlePage: { 
-            title: newData.title,
-            subtitle: newData.subtitle,
-            companyName: newData.companyName,
-            legalForm: newData.legalForm,
-            date: newData.date,
-            contactInfo: newData.contactInfo
-          }
+        // Using queueMicrotask to defer the store update to next tick
+        queueMicrotask(() => {
+          actions.updateSection('metadata', {
+            titlePage: { 
+              title: newData.title,
+              subtitle: newData.subtitle,
+              companyName: newData.companyName,
+              legalForm: newData.legalForm,
+              date: newData.date,
+              contactInfo: newData.contactInfo
+            }
+          });
         });
         
         return newData;
