@@ -11,7 +11,7 @@ interface LivePreviewBoxProps {
 const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
   if (!show) return null;
 
-  const [zoomLevel, setZoomLevel] = useState(0.7);
+  const [zoomLevel, setZoomLevel] = useState(1.0);
   const planDocument = useEditorStore(state => state.plan);
   const disabledSections = new Set<string>();
   const { t: i18nT } = useI18n();
@@ -67,7 +67,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
 
   // Main preview with responsive content and zoom
   const floatingPreview = (
-    <div className="fixed top-4 right-4 w-96 h-[600px] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
+    <div className="fixed top-4 right-4 w-[450px] h-[650px] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
       <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
         <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
         <div className="flex items-center gap-2">
@@ -82,7 +82,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
             </button>
             <span className="text-white/80 text-xs w-8 text-center">{Math.round(zoomLevel * 100)}%</span>
             <button 
-              onClick={() => setZoomLevel(Math.min(1.5, zoomLevel + 0.1))}
+              onClick={() => setZoomLevel(Math.min(2.0, zoomLevel + 0.1))}
               className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors text-xs"
               title="Zoom In"
             >
@@ -93,17 +93,15 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
         </div>
       </div>
       
-      <div className="flex-1 p-3 bg-slate-700 overflow-hidden">
-        <div className="w-full h-full bg-white rounded overflow-auto">
-          <div className="p-4 h-full">
-            <div className="h-full flex items-center justify-center">
-              <div style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center', width: '100%' }}>
-                <TitlePageRenderer 
-                  planDocument={planDocument} 
-                  disabledSections={disabledSections} 
-                  t={t} 
-                />
-              </div>
+      <div className="flex-1 p-6 bg-slate-700 overflow-hidden">
+        <div className="w-full h-full bg-white rounded-lg overflow-auto relative">
+          <div className="preview-stage" style={{ ["--zoom" as any]: zoomLevel }}>
+            <div className={`export-preview desktop`}>
+              <TitlePageRenderer 
+                planDocument={planDocument} 
+                disabledSections={disabledSections} 
+                t={t} 
+              />
             </div>
           </div>
         </div>

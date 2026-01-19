@@ -266,7 +266,7 @@ const MyProject: React.FC<MyProjectProps> = ({
                         onChange={(e) => {
                           const value = e.target.value;
                           handleFieldChange('confidentiality', value);
-                          // Set the translated confidentiality statement like GeneralInfoStep does
+                          // Use translated values that match the current UI language
                           let statement = '';
                           switch(value) {
                             case 'public':

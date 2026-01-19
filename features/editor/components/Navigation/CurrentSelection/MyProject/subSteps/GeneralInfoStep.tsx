@@ -82,7 +82,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                   onChange={(e) => {
                     const value = e.target.value;
                     handleChange('confidentiality', value);
-                    // Use the same translated values as the dropdown options
+                    // Use translated values that match the current UI language
                     let statement = '';
                     switch(value) {
                       case 'public':
