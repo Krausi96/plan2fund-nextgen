@@ -5,9 +5,10 @@ import { useI18n } from '../../../../../../../shared/contexts/I18nContext';
 interface GeneralInfoStepProps {
   formData: any;
   onChange: (field: string, value: any) => void;
+  onInteraction?: () => void; // New prop to notify parent of user interaction
 }
 
-const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange }) => {
+const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, onInteraction }) => {
   const { t } = useI18n();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     documentInfo: false,
@@ -19,6 +20,16 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
       ...prev,
       [section]: !prev[section]
     }));
+  };
+
+  // Wrapper function to track user interaction
+  const handleChange = (field: string, value: any) => {
+    // Notify parent that user has interacted (only once)
+    if (onInteraction) {
+      onInteraction();
+    }
+    // Call original onChange
+    onChange(field, value);
   };
 
   return (
@@ -41,7 +52,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => onChange('title', e.target.value)}
+                  onChange={(e) => handleChange('title', e.target.value)}
                   className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                   placeholder={t('editor.desktop.setupWizard.placeholders.projectName') || 'Document Title'}
                   required
@@ -55,7 +66,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                 <input
                   type="text"
                   value={formData.companyName}
-                  onChange={(e) => onChange('companyName', e.target.value)}
+                  onChange={(e) => handleChange('companyName', e.target.value)}
                   className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                   placeholder={t('editor.desktop.setupWizard.placeholders.author') || 'Your name or organization'}
                   required
@@ -68,7 +79,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                 </label>
                 <select
                   value={formData.confidentiality}
-                  onChange={(e) => onChange('confidentiality', e.target.value)}
+                  onChange={(e) => handleChange('confidentiality', e.target.value)}
                   className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                 >
                   <option value="public">{t('editor.desktop.setupWizard.options.public')}</option>
@@ -106,7 +117,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                     <input
                       type="text"
                       value={formData.subtitle || ''}
-                      onChange={(e) => onChange('subtitle', e.target.value)}
+                      onChange={(e) => handleChange('subtitle', e.target.value)}
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                       placeholder={t('editor.desktop.setupWizard.placeholders.subtitle')}
                     />
@@ -119,7 +130,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                     <input
                       type="date"
                       value={formData.date || new Date().toISOString().split('T')[0]}
-                      onChange={(e) => onChange('date', e.target.value)}
+                      onChange={(e) => handleChange('date', e.target.value)}
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                     />
                   </div>
@@ -134,7 +145,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          onChange('logo', file);
+                          handleChange('logo', file);
                         }
                       }}
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-600 file:text-white hover:file:bg-blue-700"
@@ -172,7 +183,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                     <input
                       type="email"
                       value={formData.contactInfo?.email || ''}
-                      onChange={(e) => onChange('contactInfo.email', e.target.value)}
+                      onChange={(e) => handleChange('contactInfo.email', e.target.value)}
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                       placeholder={t('editor.desktop.setupWizard.placeholders.email')}
                     />
@@ -185,7 +196,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                     <input
                       type="tel"
                       value={formData.contactInfo?.phone || ''}
-                      onChange={(e) => onChange('contactInfo.phone', e.target.value)}
+                      onChange={(e) => handleChange('contactInfo.phone', e.target.value)}
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                       placeholder={t('editor.desktop.setupWizard.placeholders.phone')}
                     />
@@ -198,7 +209,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                     <input
                       type="url"
                       value={formData.contactInfo?.website || ''}
-                      onChange={(e) => onChange('contactInfo.website', e.target.value)}
+                      onChange={(e) => handleChange('contactInfo.website', e.target.value)}
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                       placeholder={t('editor.desktop.setupWizard.placeholders.website')}
                     />
@@ -211,7 +222,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange })
                     <input
                       type="text"
                       value={formData.contactInfo?.address || ''}
-                      onChange={(e) => onChange('contactInfo.address', e.target.value)}
+                      onChange={(e) => handleChange('contactInfo.address', e.target.value)}
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                       placeholder={t('editor.desktop.setupWizard.placeholders.address')}
                     />

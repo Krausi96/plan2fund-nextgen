@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import ProductSelection from './ProductSelection/ProductSelection';
 import ProgramSelection from './ProgramSelection/ProgramSelection';
 import ReadinessCheck from './ReadinessCheck/ReadinessCheck';
 import MyProject from './MyProject/MyProject';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { useConfiguratorState, useEditorActions, useEditorStore } from '@/features/editor/lib';
+import { useConfiguratorState, useEditorActions, useEditorState, useEditorStore } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 type CurrentSelectionProps = {
@@ -21,6 +21,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const { selectedProductMeta, programSummary } = useConfiguratorState();
   const isConfiguratorOpen = useEditorStore((state) => state.isConfiguratorOpen);
   const setupWizard = useEditorStore((state) => state.setupWizard);
+  const { plan } = useEditorState();
   const actions = useEditorActions((a) => ({
     setIsConfiguratorOpen: a.setIsConfiguratorOpen,
     setSetupWizardStep: a.setSetupWizardStep,
@@ -30,10 +31,57 @@ function CurrentSelection({}: CurrentSelectionProps) {
 
   // Section navigation state for MyProject
   const [currentSection, setCurrentSection] = useState<1 | 2 | 3>(1);
+  
+  // Initialize hasInteracted based on existing meaningful data
+  const [hasInteracted, setHasInteracted] = useState(() => {
+    if (!plan?.settings?.titlePage) return false;
+    
+    const titlePage = plan.settings.titlePage;
+    return !!(titlePage.title?.trim() || 
+              titlePage.companyName?.trim() || 
+              titlePage.subtitle?.trim());
+  });
+
+  // Check if there's existing meaningful data in the form  
+  const hasExistingFormData = useMemo(() => {
+    // Check the nested structure: plan.settings.titlePage.titlePage
+    const settingsTitlePage = plan?.settings?.titlePage;
+    const nestedTitlePage = (settingsTitlePage as any)?.titlePage;
+    
+    if (nestedTitlePage) {
+      return !!(nestedTitlePage.title?.trim() || 
+                nestedTitlePage.companyName?.trim() || 
+                nestedTitlePage.subtitle?.trim());
+    }
+    
+    // Fallback to direct properties
+    if (settingsTitlePage) {
+      return !!(settingsTitlePage.title?.trim() || 
+                settingsTitlePage.companyName?.trim() || 
+                settingsTitlePage.subtitle?.trim());
+    }
+    
+    return false;
+  }, [plan]);
+
+  // Reset interaction tracking when navigating away or closing
+  useEffect(() => {
+    if (setupWizard.currentStep !== 1 || currentSection !== 1) {
+      setHasInteracted(false);
+    }
+  }, [setupWizard.currentStep, currentSection]);
+
+  // Show preview when in GeneralInfoStep and either:
+  // 1. User has interacted, OR 
+  // 2. There's existing form data
+  const showPreview = setupWizard.currentStep === 1 && 
+                     currentSection === 1 && 
+                     (hasInteracted || hasExistingFormData);
 
   // Reset section when opening MyProject
   const handleMyProjectClick = () => {
     setCurrentSection(1);
+    setHasInteracted(false);
     actions.setIsConfiguratorOpen(true);
     actions.setSetupWizardStep(1);
   };
@@ -263,6 +311,8 @@ function CurrentSelection({}: CurrentSelectionProps) {
                             onSubmit={handleNextStep}
                             currentSection={currentSection}
                             onSectionChange={setCurrentSection}
+                            showPreview={showPreview}
+                            onInteraction={() => setHasInteracted(true)}
                           />
                         </div>
                       </>

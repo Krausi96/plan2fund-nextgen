@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useEditorState } from '../../../../lib/hooks/useEditorState';
 import { useEditorActions } from '../../../../lib/hooks/useEditorActions';
 import { useI18n } from '../../../../../../shared/contexts/I18nContext';
@@ -12,6 +12,8 @@ interface MyProjectProps {
   onSubmit?: (data: any) => void;
   currentSection?: 1 | 2 | 3;
   onSectionChange?: (section: 1 | 2 | 3) => void;
+  showPreview?: boolean;
+  onInteraction?: () => void;
 }
 
 const MyProject: React.FC<MyProjectProps> = ({ 
@@ -19,7 +21,9 @@ const MyProject: React.FC<MyProjectProps> = ({
   mode = 'display', 
   onSubmit,
   currentSection = 1,
-  onSectionChange
+  onSectionChange,
+  showPreview = false,
+  onInteraction
 }) => {
   const { t } = useI18n();
   const { plan } = useEditorState();
@@ -56,16 +60,12 @@ const MyProject: React.FC<MyProjectProps> = ({
     }
   });
 
-  // Debounced store update
-  const debouncedUpdate = useMemo(() => {
-    let timeoutId: NodeJS.Timeout;
-    return (updates: any) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        actions.updateSection('metadata', updates);
-      }, 500); // 500ms debounce
-    };
-  }, [actions]);
+  // Debug logging for form data
+  console.log('MyProject form data:', {
+    title: formData.title,
+    companyName: formData.companyName,
+    storeTitle: plan?.settings?.titlePage?.title
+  });
 
   const handleFieldChange = (field: string, value: any) => {
     if (field.includes('.')) {
@@ -79,8 +79,8 @@ const MyProject: React.FC<MyProjectProps> = ({
           }
         };
         
-        // Update store with debounced save
-        debouncedUpdate({
+        // Immediate update for all title page fields to trigger preview
+        actions.updateSection('metadata', {
           titlePage: { 
             title: newData.title,
             subtitle: newData.subtitle,
@@ -97,8 +97,8 @@ const MyProject: React.FC<MyProjectProps> = ({
       setFormData(prev => {
         const newData = { ...prev, [field]: value };
         
-        // Update store with debounced save
-        debouncedUpdate({
+        // Immediate update for all title page fields to trigger preview
+        actions.updateSection('metadata', {
           titlePage: { 
             title: newData.title,
             subtitle: newData.subtitle,
@@ -212,7 +212,8 @@ const MyProject: React.FC<MyProjectProps> = ({
               {currentSection === 1 && (
                 <GeneralInfoStep 
                   formData={formData} 
-                  onChange={handleFieldChange} 
+                  onChange={handleFieldChange}
+                  onInteraction={onInteraction}
                 />
               )}
               
@@ -265,7 +266,8 @@ const MyProject: React.FC<MyProjectProps> = ({
             </form>
           </div>
         </div>
-        <LivePreviewBox formData={formData} />
+        {/* Only show preview when explicitly requested */}
+        {showPreview && <LivePreviewBox formData={formData} />}
       </>
     );
   }
