@@ -605,7 +605,8 @@
     margin: 0 !important;
     padding: 0 !important;
     background: transparent;
-    overflow: visible;
+    /* FIXED: Changed from overflow: visible to hidden to prevent container overlap */
+    overflow: hidden;
   }
 
   /* Page break before sections */

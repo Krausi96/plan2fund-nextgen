@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
-import { DocumentSettings } from '@/shared/components/editor/DocumentSettings';
-import { DEFAULT_DOCUMENT_STYLE, type DocumentStyleConfig } from '@/shared/components/editor/DocumentStyles';
+import type { ProductType } from '@/features/editor/lib';
 
 interface LivePreviewBoxProps {
   formData: {
@@ -16,221 +15,132 @@ interface LivePreviewBoxProps {
       address?: string;
     };
   };
+  productType?: ProductType;
 }
 
-const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData }) => {
-  // Calculate A4 aspect ratio (210mm × 297mm)
-  const a4Ratio = 210 / 297;
-  const boxWidth = Math.min(320, (typeof window !== 'undefined' ? window.innerWidth : 1200) * 0.3); // Max 30% of screen width
-  const calculatedHeight = boxWidth / a4Ratio;
-  
-  // Window state - with drag support
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [showStyling, setShowStyling] = useState(false);
-  const [position, setPosition] = useState({ 
-    x: typeof window !== 'undefined' ? Math.max(20, window.innerWidth - boxWidth - 20) : 300, 
-    y: typeof window !== 'undefined' ? 20 : 20 
-  });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragOffset = useRef({ x: 0, y: 0 });
-  
-  // Document styling state
-  const [documentStyle, setDocumentStyle] = useState<DocumentStyleConfig>(DEFAULT_DOCUMENT_STYLE);
-  
-  // Drag handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.no-drag')) return;
-    setIsDragging(true);
-    dragOffset.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    };
-    e.preventDefault();
-  };
-  
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      const newX = e.clientX - dragOffset.current.x;
-      const newY = e.clientY - dragOffset.current.y;
-      
-      // Keep within viewport bounds
-      const boundedX = Math.max(20, Math.min(typeof window !== 'undefined' ? window.innerWidth - boxWidth - 20 : 1000, newX));
-      const boundedY = Math.max(20, Math.min(typeof window !== 'undefined' ? window.innerHeight - calculatedHeight - 20 : 1000, newY));
-      
-      setPosition({ x: boundedX, y: boundedY });
-    }
-  };
-  
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-  
-  // Add/remove mouse listeners
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging]);
-  
-  const handleStyleChange = (newStyle: DocumentStyleConfig) => {
-    setDocumentStyle(newStyle);
-    console.log('Document style updated:', newStyle);
+const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ formData, productType }) => {
+  // Simple translations
+  const t = {
+    businessPlan: 'Business Plan',
+    author: 'Author',
+    email: 'Email',
+    phone: 'Phone',
+    website: 'Website',
+    address: 'Address',
+    date: 'Date',
   };
 
-  // Render the preview box via portal to escape modal context
+  // Get product-specific title
+  const getProductTitle = () => {
+    if (!productType) return null;
+    switch (productType) {
+      case 'strategy': return 'Strategy Plan';
+      case 'review': return 'Review Plan';
+      case 'submission': return 'Submission Plan';
+      default: return 'Business Plan';
+    }
+  };
+
+  const productTitle = getProductTitle();
+
+  // CLEAN: Proper A4 structure with header-top, content-middle, footer-bottom
   const previewElement = (
-    <div 
-      className={`fixed bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] transition-all duration-300 ${isDragging ? 'cursor-grabbing' : 'hover:scale-[1.02]'}`} 
-      style={{ 
-        width: `${boxWidth}px`, 
-        height: isMinimized ? '40px' : `${calculatedHeight + (showStyling ? 200 : 0)}px`,
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        maxWidth: 'calc(100vw - 40px)',
-        maxHeight: 'calc(100vh - 40px)'
-      }}
-    >
-      {/* Window Header with Controls - now draggable */}
-      <div 
-        className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg cursor-move select-none"
-        onMouseDown={handleMouseDown}
-      >
+    <div className="fixed top-4 right-4 w-96 h-[600px] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
+      {/* Window Header */}
+      <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
         <div className="flex items-center gap-2">
           <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
         </div>
-        
-        {/* Window Controls */}
         <div className="flex items-center gap-1">
-          <button 
-            onClick={() => setShowStyling(!showStyling)}
-            className={`w-6 h-6 flex items-center justify-center text-white/70 hover:text-white rounded transition-colors ${showStyling ? 'bg-blue-500' : 'hover:bg-white/10'}`}
-            title="Toggle Styling"
-          >
+          <button className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors">
             🎨
           </button>
-          <button 
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors"
-            title={isMinimized ? 'Expand' : 'Minimize'}
-          >
-            {isMinimized ? '□' : '−'}
+          <button className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors">
+            −
           </button>
-          <button 
-            onClick={() => {
-              // Close functionality
-              setIsMinimized(true);
-            }}
-            className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-red-500/20 rounded transition-colors"
-            title="Close"
-          >
+          <button className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-red-500/20 rounded transition-colors">
             ×
           </button>
         </div>
       </div>
       
-      {/* Content (only show when not minimized) */}
-      {!isMinimized && (
-        <div className="flex flex-col h-full">
-          {/* Main Preview Content */}
-          <div className="p-3 flex-1 flex flex-col">
-            {/* A4 Page Simulation */}
-            <div className="flex-1 bg-white rounded border border-gray-300 overflow-hidden relative" style={{ minHeight: 0 }}>
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-50"></div>
-              <div className="relative p-3 h-full overflow-y-auto" style={{ maxHeight: '100%' }}>
-                <div className="min-h-full flex flex-col justify-between">
-                  {/* Header Section */}
-                  <div>
-                    {formData.title && (
-                      <div className="mb-2">
-                        <h1 
-                          className="text-2xl font-bold text-gray-900 text-center"
-                          style={{
-                            fontFamily: documentStyle.fontFamily === 'serif' ? 'Georgia, serif' : 
-                                       documentStyle.fontFamily === 'mono' ? 'monospace' : 
-                                       'system-ui, sans-serif',
-                            fontSize: documentStyle.fontSize === 'small' ? '1.5rem' : 
-                                     documentStyle.fontSize === 'large' ? '2.5rem' : '2rem'
-                          }}
-                        >
-                          {formData.title}
-                        </h1>
-                      </div>
+      {/* Content Area - PROPER A4 STRUCTURE */}
+      <div className="flex-1 p-3 overflow-hidden">
+        <div className="w-full h-full bg-white rounded border border-gray-300 overflow-auto">
+          {/* Container with proper padding */}
+          <div className="p-6 h-full">
+            {/* Full height flex container for proper A4 layout */}
+            <div className="flex flex-col justify-between h-full">
+              {/* HEADER - Top section */}
+              <div className="flex-shrink-0 text-center">
+                <div className="h-20 w-20 bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 font-medium mx-auto mb-4">
+                  Logo
+                </div>
+                {productTitle && (
+                  <p className="text-xs font-bold uppercase tracking-widest text-gray-600 mb-3">
+                    {productTitle}
+                  </p>
+                )}
+                {formData.title && (
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    {formData.title}
+                  </h1>
+                )}
+                {formData.subtitle && (
+                  <p className="text-sm text-gray-700 italic max-w-md mx-auto">
+                    {formData.subtitle}
+                  </p>
+                )}
+                {(formData.companyName || formData.legalForm) && (
+                  <div className="mt-4">
+                    <div className="text-lg font-semibold text-gray-800">
+                      {formData.companyName}{formData.legalForm ? ` (${formData.legalForm})` : ''}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* MIDDLE - Spacer (flex-1 pushes footer to bottom) */}
+              <div className="flex-1"></div>
+              
+              {/* FOOTER - Bottom section */}
+              <div className="flex-shrink-0">
+                <div className="border-t border-gray-200 pt-4">
+                  <p className="text-sm text-gray-800 mb-2">
+                    <span className="font-bold">{t.author}:</span> {formData.companyName || 'Your Name'}
+                  </p>
+                  <div className="space-y-1 text-xs text-gray-700 mb-3">
+                    {formData.contactInfo?.email && (
+                      <p><span className="font-medium">{t.email}:</span> {formData.contactInfo.email}</p>
                     )}
-                    
-                    {formData.subtitle && (
-                      <div className="mb-4">
-                        <h2 
-                          className="text-lg text-gray-600 text-center italic"
-                          style={{
-                            fontFamily: documentStyle.fontFamily === 'serif' ? 'Georgia, serif' : 'system-ui, sans-serif'
-                          }}
-                        >
-                          {formData.subtitle}
-                        </h2>
-                      </div>
+                    {formData.contactInfo?.phone && (
+                      <p><span className="font-medium">{t.phone}:</span> {formData.contactInfo.phone}</p>
                     )}
-                    
-                    {(formData.companyName || formData.legalForm) && (
-                      <div className="mb-6 text-center">
-                        <div 
-                          className="text-xl font-semibold text-gray-800"
-                          style={{
-                            fontFamily: documentStyle.fontFamily === 'serif' ? 'Georgia, serif' : 'system-ui, sans-serif'
-                          }}
-                        >
-                          {formData.companyName}{formData.legalForm ? ` (${formData.legalForm})` : ''}
-                        </div>
-                      </div>
+                    {formData.contactInfo?.website && (
+                      <p><span className="font-medium">{t.website}:</span> {formData.contactInfo.website}</p>
+                    )}
+                    {formData.contactInfo?.address && (
+                      <p><span className="font-medium">{t.address}:</span> {formData.contactInfo.address}</p>
                     )}
                   </div>
-                  
-                  {/* Contact Information */}
-                  <div className="mt-auto">
-                    <div className="border-t border-gray-300 pt-3">
-                      <div className="text-sm text-gray-600 space-y-1">
-                        {formData.contactInfo?.email && (
-                          <div>📧 {formData.contactInfo.email}</div>
-                        )}
-                        {formData.contactInfo?.phone && (
-                          <div>📞 {formData.contactInfo.phone}</div>
-                        )}
-                        {formData.contactInfo?.website && (
-                          <div>🌐 {formData.contactInfo.website}</div>
-                        )}
-                        {formData.contactInfo?.address && (
-                          <div>📍 {formData.contactInfo.address}</div>
-                        )}
-                      </div>
-                    </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                    <p className="text-xs text-gray-700">
+                      <span className="font-medium">{t.date}:</span> {new Date().toLocaleDateString()}
+                    </p>
+                    <p className="text-xs text-gray-600 italic">
+                      Confidential
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
-          {/* Styling Controls Panel */}
-          {showStyling && (
-            <div className="border-t border-slate-600 bg-slate-700/50 p-3 no-drag">
-              <h4 className="text-white font-medium mb-2 text-sm">Document Styling</h4>
-              <DocumentSettings
-                config={documentStyle}
-                onChange={handleStyleChange}
-                className="bg-transparent"
-              />
-            </div>
-          )}
         </div>
-      )}
+      </div>
     </div>
   );
 
-  // Render via portal to document.body to escape modal context
   return typeof window !== 'undefined' ? createPortal(previewElement, document.body) : null;
 };
 

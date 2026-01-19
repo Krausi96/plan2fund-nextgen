@@ -273,7 +273,7 @@ const MyProject: React.FC<MyProjectProps> = ({
           </div>
         </div>
         {/* Only show preview when explicitly requested */}
-        {showPreview && <LivePreviewBox formData={formData} />}
+        {showPreview && <LivePreviewBox formData={formData} productType={plan?.productType} />}
       </>
     );
   }

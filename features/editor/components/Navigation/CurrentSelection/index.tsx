@@ -111,6 +111,68 @@ function CurrentSelection({}: CurrentSelectionProps) {
 
   const handleToggle = () => actions.setIsConfiguratorOpen(!isConfiguratorOpen);
 
+  // Section configuration for dynamic rendering
+  const sections = [
+    {
+      key: 'project',
+      step: 1,
+      label: '💼 ' + (t('editor.desktop.myProject.title') || 'My Project'),
+      isActive: setupWizard.currentStep === 1,
+      onClick: handleMyProjectClick,
+      renderContent: () => !isConfiguratorOpen && <MyProject />
+    },
+    {
+      key: 'program',
+      step: 2,
+      label: '📚 ' + (t('editor.desktop.selection.programLabel') || 'Program / Template'),
+      isActive: setupWizard.currentStep === 2,
+      onClick: handleProgramClick,
+      renderContent: () => !isConfiguratorOpen && (
+        <div className="text-white font-medium truncate flex items-center gap-1">
+          <span className="truncate text-sm">
+            {programSummary?.name || 'No program selected'}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'plan',
+      step: 3,
+      label: '📋 Plan',
+      isActive: setupWizard.currentStep === 3,
+      onClick: handlePlanClick,
+      renderContent: () => !isConfiguratorOpen && (
+        <div className="flex items-center gap-1">
+          <span className="text-white font-medium truncate text-sm">
+            {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : 'No plan'}
+          </span>
+        </div>
+      )
+    }
+  ];
+
+  // Dynamic section renderer
+  const renderSectionCard = (section: typeof sections[0]) => (
+    <div 
+      key={section.key}
+      className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
+        section.isActive ? 'bg-white/20' : ''
+      }`}
+      onClick={section.onClick}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-white/70 font-medium text-xs mb-1">{section.label}</span>
+        {section.isActive && isConfiguratorOpen && (
+          <span className="relative">
+            <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
+            <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
+          </span>
+        )}
+      </div>
+      {section.renderContent()}
+    </div>
+  );
+
   // Compact header - always shows "Current Selection:" 
   const CompactInfoRow = () => (
     <div className={`flex items-center gap-12 px-4 py-2 text-white w-full transition-all duration-300 rounded-lg ${
@@ -123,82 +185,8 @@ function CurrentSelection({}: CurrentSelectionProps) {
       </div>
       
       <div className="flex items-center gap-14 text-sm ml-8 flex-grow">
-        {/* My Project */}
-        <div 
-          className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
-            setupWizard.currentStep === 1 ? 'bg-white/20' : ''
-          }`}
-          onClick={handleMyProjectClick}
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-white/70 font-medium text-xs mb-1">💼 {t('editor.desktop.myProject.title') || 'My Project'}</span>
-            {setupWizard.currentStep === 1 && isConfiguratorOpen && (
-              <span className="relative">
-                <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
-                <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
-              </span>
-            )}
-          </div>
-          {!isConfiguratorOpen && (
-            <div className="text-white font-medium flex items-center gap-1">
-              <MyProject />
-            </div>
-          )}
-        </div>
-        
-        <div className="w-0.5 h-6 bg-white/30"></div>
-        
-        {/* Program */}
-        <div 
-          className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
-            setupWizard.currentStep === 2 ? 'bg-white/20' : ''
-          }`}
-          onClick={handleProgramClick}
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-white/70 font-medium text-xs mb-1">📚 {t('editor.desktop.selection.programLabel') || 'Program / Template'}</span>
-            {setupWizard.currentStep === 2 && isConfiguratorOpen && (
-              <span className="relative">
-                <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
-                <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
-              </span>
-            )}
-          </div>
-          {!isConfiguratorOpen && (
-            <div className="text-white font-medium truncate flex items-center gap-1">
-              <span className="truncate text-sm">
-                {programSummary?.name || 'No program selected'}
-              </span>
-            </div>
-          )}
-        </div>
-        
-        <div className="w-0.5 h-6 bg-white/30"></div>
-        
-        {/* Plan */}
-        <div 
-          className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
-            setupWizard.currentStep === 3 ? 'bg-white/20' : ''
-          }`}
-          onClick={handlePlanClick}
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-white/70 font-medium text-xs mb-1">📋 Plan</span>
-            {setupWizard.currentStep === 3 && isConfiguratorOpen && (
-              <span className="relative">
-                <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
-                <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
-              </span>
-            )}
-          </div>
-          {!isConfiguratorOpen && (
-            <div className="flex items-center gap-1">
-              <span className="text-white font-medium truncate text-sm">
-                {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : 'No plan'}
-              </span>
-            </div>
-          )}
-        </div>
+        {/* Dynamic section cards */}
+        {sections.map(renderSectionCard)}
         
         <div className="w-0.5 h-6 bg-white/30"></div>
         
