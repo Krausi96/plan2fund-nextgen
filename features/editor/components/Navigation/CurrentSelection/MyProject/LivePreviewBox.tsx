@@ -48,7 +48,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
   // Empty state
   if (!hasTitlePageData) {
     return typeof window !== 'undefined' ? createPortal(
-      <div className="fixed top-4 right-4 w-[min(90vw,450px)] h-[min(80vh,550px)] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
+      <div className="fixed top-16 right-8 w-[min(95vw,450px)] h-[min(70vh,450px)] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
         <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
           <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
           <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
@@ -67,22 +67,20 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
 
   // Main preview with responsive A4 page display
   const floatingPreview = (
-    <div className="fixed top-4 right-4 w-[min(90vw,450px)] h-[min(80vh,550px)] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
+    <div className="fixed top-16 right-0 w-[75vw] max-w-[425px] h-[75vh] md:h-[65vh] lg:h-[60vh] bg-white rounded-lg shadow-2xl z-[999999] flex flex-col">
       <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
         <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
         <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
       </div>
       
-      <div className="flex-1 p-4 bg-slate-700 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg w-full h-full flex items-center justify-center overflow-auto">
-          <div className="preview-content-wrapper" style={{ transform: 'scale(0.9)', transformOrigin: 'center' }}>
-            <div style={{'--preview-padding-top': '1cm', '--preview-padding-right': '1.25cm', '--preview-padding-bottom': '1.125cm', '--preview-padding-left': '1cm'} as React.CSSProperties}>
-              <TitlePageRenderer 
-                planDocument={planDocument} 
-                disabledSections={disabledSections} 
-                t={t} 
-              />
-            </div>
+      <div className="flex-1 p-4 flex items-center justify-center overflow-auto">
+        <div className="preview-content-wrapper" style={{ transform: 'scale(0.95)', transformOrigin: 'center' }}>
+          <div style={{'--preview-padding-top': '1cm', '--preview-padding-right': '1.25cm', '--preview-padding-bottom': '1.125cm', '--preview-padding-left': '1cm'} as React.CSSProperties}>
+            <TitlePageRenderer 
+              planDocument={planDocument} 
+              disabledSections={disabledSections} 
+              t={t} 
+            />
           </div>
         </div>
       </div>
