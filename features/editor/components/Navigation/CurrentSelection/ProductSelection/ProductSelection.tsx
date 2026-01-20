@@ -124,7 +124,7 @@ export default function ProductSelection({}: ProductSelectionProps = {}) {
           {selectedMeta?.description && (
             <>
               <span className="text-white/40 flex-shrink-0">|</span>
-              <span className="text-[10px] font-normal text-white/60 leading-tight flex-1 min-w-0 truncate" title={translatedSelectedMeta?.description || ''}>
+              <span className="text-[10px] font-normal text-white/60 leading-tight flex-1 min-w-0 truncate max-w-[120px]" title={translatedSelectedMeta?.description || ''}>
                 {translatedSelectedMeta?.description}
               </span>
             </>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import { useEditorStore } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
@@ -11,7 +11,6 @@ interface LivePreviewBoxProps {
 const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
   if (!show) return null;
 
-  const [zoomLevel, setZoomLevel] = useState(1.0);
   const planDocument = useEditorStore(state => state.plan);
   const disabledSections = new Set<string>();
   const { t: i18nT } = useI18n();
@@ -48,7 +47,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
   // Empty state
   if (!hasTitlePageData) {
     return typeof window !== 'undefined' ? createPortal(
-      <div className="fixed top-4 right-4 w-96 h-96 bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
+      <div className="fixed top-4 right-4 w-[min(90vw,450px)] h-[min(80vh,550px)] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
         <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
           <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
           <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
@@ -65,38 +64,18 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
     ) : null;
   }
 
-  // Main preview with responsive content and zoom
+  // Main preview with responsive A4 page display
   const floatingPreview = (
-    <div className="fixed top-4 right-4 w-[450px] h-[650px] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
+    <div className="fixed top-4 right-4 w-[min(90vw,450px)] h-[min(80vh,550px)] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
       <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
         <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
-        <div className="flex items-center gap-2">
-          {/* Zoom Controls */}
-          <div className="flex items-center gap-1">
-            <button 
-              onClick={() => setZoomLevel(Math.max(0.3, zoomLevel - 0.1))}
-              className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors text-xs"
-              title="Zoom Out"
-            >
-              −
-            </button>
-            <span className="text-white/80 text-xs w-8 text-center">{Math.round(zoomLevel * 100)}%</span>
-            <button 
-              onClick={() => setZoomLevel(Math.min(2.0, zoomLevel + 0.1))}
-              className="w-6 h-6 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors text-xs"
-              title="Zoom In"
-            >
-              +
-            </button>
-          </div>
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-        </div>
+        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
       </div>
       
-      <div className="flex-1 p-6 bg-slate-700 overflow-hidden">
-        <div className="w-full h-full bg-white rounded-lg overflow-auto relative">
-          <div className="preview-stage" style={{ ["--zoom" as any]: zoomLevel }}>
-            <div className={`export-preview desktop`}>
+      <div className="flex-1 p-4 bg-slate-700 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg w-full h-full flex items-center justify-center overflow-auto">
+          <div className="preview-content-wrapper" style={{ transform: 'scale(0.9)', transformOrigin: 'center' }}>
+            <div style={{'--preview-padding-top': '1cm', '--preview-padding-right': '1.25cm', '--preview-padding-bottom': '1.125cm', '--preview-padding-left': '1cm'} as React.CSSProperties}>
               <TitlePageRenderer 
                 planDocument={planDocument} 
                 disabledSections={disabledSections} 

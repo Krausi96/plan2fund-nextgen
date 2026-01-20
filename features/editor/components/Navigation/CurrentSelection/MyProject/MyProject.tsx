@@ -155,8 +155,8 @@ const MyProject: React.FC<MyProjectProps> = ({
   if (mode === 'display') {
     const summary = formData.title || t('editor.desktop.myProject.noProject' as any) || 'Not specified';
     return (
-      <div className={`flex-1 min-w-0 ${className}`}>
-        <div className="text-white font-semibold text-sm leading-snug truncate" title={summary}>
+      <div className={`flex-1 min-w-0 max-w-[140px] ${className}`}>
+        <div className="text-white font-semibold text-sm leading-snug truncate overflow-hidden whitespace-nowrap block w-full" title={summary}>
           {summary}
         </div>
       </div>

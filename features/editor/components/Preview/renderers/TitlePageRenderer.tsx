@@ -83,7 +83,7 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
   
   return (
     <div className="preview-title-page export-preview-page" data-section-id={METADATA_SECTION_ID} style={PAGE_STYLE}>
-      <div className="flex flex-col justify-between h-full pb-16 px-10">
+      <div className="flex flex-col justify-between h-full">
         <div className="flex-shrink-0 flex flex-col items-center">
           {tp?.logoUrl && <img src={tp.logoUrl} alt="Company Logo" className="mx-auto h-24 object-contain mb-8" />}
           {/* Only show product title when product is actually selected */}
@@ -104,7 +104,10 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
             </div>
           </div>
         </div>
-        <div className="flex-shrink-0 w-full mt-auto pt-10">
+        <div className="flex-shrink-0 w-full">
+          <div className="h-10 md:h-12 lg:h-16 bg-gradient-to-b from-transparent to-transparent via-gray-100/30 rounded-lg my-2"></div>
+        </div>
+        <div className="flex-shrink-0 w-full pt-8">
           <div className="mb-6">
             <div className="space-y-1.5 text-xs text-gray-600">
               <p><span className="font-medium text-gray-700">{t.email}:</span> {fv('email') || t.emailPlaceholder}</p>

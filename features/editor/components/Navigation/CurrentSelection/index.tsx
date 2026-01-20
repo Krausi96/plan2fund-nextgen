@@ -116,21 +116,21 @@ function CurrentSelection({}: CurrentSelectionProps) {
     {
       key: 'project',
       step: 1,
-      label: '💼 ' + (t('editor.desktop.myProject.title') || 'My Project'),
+      label: '💼 ' + (t('editor.desktop.myProject.title') || 'Mein Projekt'),
       isActive: setupWizard.currentStep === 1,
       onClick: handleMyProjectClick,
-      renderContent: () => !isConfiguratorOpen && <MyProject />
+      renderContent: () => !isConfiguratorOpen && <MyProject mode="display" />
     },
     {
       key: 'program',
       step: 2,
-      label: '📚 ' + (t('editor.desktop.selection.programLabel') || 'Program / Template'),
+      label: '📚 ' + (t('editor.desktop.selection.programLabel') || 'Programm / Vorlage'),
       isActive: setupWizard.currentStep === 2,
       onClick: handleProgramClick,
       renderContent: () => !isConfiguratorOpen && (
-        <div className="text-white font-medium truncate flex items-center gap-1">
-          <span className="truncate text-sm">
-            {programSummary?.name || 'No program selected'}
+        <div className="text-white font-medium truncate flex items-center gap-1 max-w-[140px]">
+          <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}>
+            {programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
           </span>
         </div>
       )
@@ -138,13 +138,13 @@ function CurrentSelection({}: CurrentSelectionProps) {
     {
       key: 'plan',
       step: 3,
-      label: '📋 Plan',
+      label: '📋 ' + (t('editor.desktop.selection.productLabel') || 'Plan'),
       isActive: setupWizard.currentStep === 3,
       onClick: handlePlanClick,
       renderContent: () => !isConfiguratorOpen && (
-        <div className="flex items-center gap-1">
-          <span className="text-white font-medium truncate text-sm">
-            {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : 'No plan'}
+        <div className="flex items-center gap-1 max-w-[140px]">
+          <span className="text-white font-medium truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}>
+            {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}
           </span>
         </div>
       )
@@ -155,13 +155,13 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const renderSectionCard = (section: typeof sections[0]) => (
     <div 
       key={section.key}
-      className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors ${
+      className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors min-w-0 max-w-[160px] flex-shrink-0 ${
         section.isActive ? 'bg-white/20' : ''
       }`}
       onClick={section.onClick}
     >
       <div className="flex items-center gap-2">
-        <span className="text-white/70 font-medium text-xs mb-1">{section.label}</span>
+        <span className="text-white/70 font-medium text-xs mb-1" title={section.label}>{section.label}</span>
         {section.isActive && isConfiguratorOpen && (
           <span className="relative">
             <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
@@ -175,7 +175,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
 
   // Compact header - always shows "Current Selection:" 
   const CompactInfoRow = () => (
-    <div className={`flex items-center gap-12 px-4 py-2 text-white w-full transition-all duration-300 rounded-lg ${
+    <div className={`flex items-center gap-16 px-4 py-2 text-white w-full transition-all duration-300 rounded-lg overflow-hidden ${
       isConfiguratorOpen 
         ? 'bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950 border-2 border-blue-400 shadow-lg'  // Modal header style
         : 'bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900'  // Normal compact style
@@ -184,19 +184,24 @@ function CurrentSelection({}: CurrentSelectionProps) {
         {t('editor.desktop.selection.current' as any) || 'Current Selection:'}
       </div>
       
-      <div className="flex items-center gap-14 text-sm ml-8 flex-grow">
-        {/* Dynamic section cards */}
-        {sections.map(renderSectionCard)}
-        
-        <div className="w-0.5 h-6 bg-white/30"></div>
+      <div className="flex items-center gap-8 text-sm ml-8 flex-grow min-w-0 overflow-hidden">
+        {/* Dynamic section cards with separators */}
+        {sections.map((section, index) => (
+          <React.Fragment key={section.key}>
+            {renderSectionCard(section)}
+            {(index < sections.length - 1 || sections.length > 0) && (
+              <div className="w-0.5 h-6 bg-white/30 mx-6"></div>
+            )}
+          </React.Fragment>
+        ))}
         
         {/* Readiness */}
-        <div className="flex flex-col items-start text-left">
+        <div className="flex flex-col items-start text-left min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-white/70 font-medium text-xs mb-1">📊 Readiness</span>
+            <span className="text-white/70 font-medium text-xs mb-1">📊 {t('editor.desktop.selection.readiness' as any) || 'Bereitschaft'}</span>
           </div>
           {!isConfiguratorOpen && (
-            <div className="text-white font-medium flex items-center gap-1">
+            <div className="text-white font-medium flex items-center gap-1 min-w-0">
               <ReadinessCheck />
             </div>
           )}
@@ -239,6 +244,13 @@ function CurrentSelection({}: CurrentSelectionProps) {
         // Position modal slightly below header to avoid cutting
         const modalTop = (rect?.bottom || 60) + 2;
         
+        // Calculate responsive width - full width on mobile, constrained on desktop
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+        const modalWidth = isMobile ? (typeof window !== 'undefined' ? window.innerWidth - 32 : 300) : Math.min(rect?.width || 1200, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 64);
+        const modalLeft = isMobile ? 16 : (rect?.left || 0) + Math.max(0, ((rect?.width || 1200) - modalWidth) / 2);
+        
+
+        
         // Backdrop with blur effect - exclude header area
         const backdropElement = isConfiguratorOpen ? (
           <div 
@@ -260,8 +272,8 @@ function CurrentSelection({}: CurrentSelectionProps) {
                 className={`fixed border-2 border-t-0 border-blue-400 rounded-b-lg bg-slate-900 shadow-2xl z-[1000] ${isConfiguratorOpen ? 'animate-modal-enter' : 'animate-modal-exit'}`}
                 style={{
                   top: `${modalTop}px`,
-                  left: `${rect?.left || 0}px`,
-                  width: `${rect?.width || 1200}px`,
+                  left: `${modalLeft}px`,
+                  width: `${modalWidth}px`,
                   maxHeight: '70vh',
                   overflow: 'auto'
                 }}
