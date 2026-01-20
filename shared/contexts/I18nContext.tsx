@@ -72,15 +72,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setLocale = (newLocale: string) => {
-    console.log('I18nContext: Attempting to set locale to', newLocale);
     if (!isValidLocale(newLocale)) {
       console.warn(`Invalid locale: ${newLocale}. Falling back to ${DEFAULT_LOCALE}`);
       newLocale = DEFAULT_LOCALE;
     }
-    console.log('I18nContext: Setting locale state to', newLocale);
     setLocaleState(newLocale);
     setStoredLocale(newLocale);
-    console.log('I18nContext: Locale change completed');
   };
 
   const t = (key: keyof Translations): string => {
@@ -105,16 +102,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   const availableLocales = Object.keys(translations);
 
-  // Debug logging for context provider
-  useEffect(() => {
-    console.log('I18nContext: Provider re-rendered with locale:', locale);
-  }, [locale]);
-
-  const contextValue = { locale, setLocale, t, availableLocales };
-  console.log('I18nContext: Providing context value with locale:', contextValue.locale);
-  
   return (
-    <I18nContext.Provider value={contextValue}>
+    <I18nContext.Provider value={{ locale, setLocale, t, availableLocales }}>
       {children}
     </I18nContext.Provider>
   );
