@@ -32,49 +32,17 @@ function CurrentSelection({}: CurrentSelectionProps) {
   // Section navigation state for MyProject
   const [currentSection, setCurrentSection] = useState<1 | 2 | 3>(1);
   
-  // Initialize hasInteracted based on existing meaningful data
-  const [hasInteracted, setHasInteracted] = useState(() => {
-    if (!plan?.settings?.titlePage) return false;
-    
-    const titlePage = plan.settings.titlePage;
-    return !!(titlePage.title?.trim() || 
-              titlePage.companyName?.trim() || 
-              titlePage.subtitle?.trim());
-  });
-
-  // Check if there's existing meaningful data in the form  
-  const hasExistingFormData = useMemo(() => {
-    // Check the nested structure: plan.settings.titlePage.titlePage
-    const settingsTitlePage = plan?.settings?.titlePage;
-    const nestedTitlePage = (settingsTitlePage as any)?.titlePage;
-    
-    if (nestedTitlePage) {
-      return !!(nestedTitlePage.title?.trim() || 
-                nestedTitlePage.companyName?.trim() || 
-                nestedTitlePage.subtitle?.trim());
-    }
-    
-    // Fallback to direct properties
-    if (settingsTitlePage) {
-      return !!(settingsTitlePage.title?.trim() || 
-                settingsTitlePage.companyName?.trim() || 
-                settingsTitlePage.subtitle?.trim());
-    }
-    
-    return false;
-  }, [plan]);
-
   // Reset interaction tracking when navigating away or closing
   useEffect(() => {
     if (setupWizard.currentStep !== 1 || currentSection !== 1) {
-      setHasInteracted(false);
+      // Reset tracking when leaving MyProject or changing sections
     }
   }, [setupWizard.currentStep, currentSection]);
 
-  // Simplified preview logic
+  // Simplified preview logic - show preview when My Project modal is open and on GeneralInfo section
   const showPreview = setupWizard.currentStep === 1 && 
                      currentSection === 1 && 
-                     (hasInteracted || hasExistingFormData);
+                     isConfiguratorOpen;
 
   // Reset section when opening MyProject
   const navigateToStep = (step: 1 | 2 | 3) => {
@@ -84,7 +52,6 @@ function CurrentSelection({}: CurrentSelectionProps) {
 
   const handleMyProjectClick = () => {
     setCurrentSection(1);
-    setHasInteracted(false);
     navigateToStep(1);
   };
 
@@ -232,24 +199,22 @@ function CurrentSelection({}: CurrentSelectionProps) {
   };
   
   return (
-    <div className="w-full relative">
+    <div className="w-full relative" data-current-selection>
       <CompactInfoRow />
       
       {/* Portal-based expansion that doesn't affect parent layout */}
       {showModal && (() => {
-        // Get exact header position for precise alignment
-        const headerEl = document.querySelector('header .flex-grow.flex.justify-center.px-6 .w-full.max-w-6xl');
-        const rect = headerEl?.getBoundingClientRect();
+        // Get CurrentSelection component position for modal alignment
+        const currentSelectionEl = document.querySelector('[data-current-selection]') || 
+                                 document.querySelector('.w-full.relative > div');
+        const rect = currentSelectionEl?.getBoundingClientRect();
         
-        // Position modal slightly below header to avoid cutting
-        const modalTop = (rect?.bottom || 60) + 2;
+        // Position modal directly below CurrentSelection bar (no gap)
+        const modalTop = rect?.bottom || 60;
         
-        // Calculate responsive width - full width on mobile, constrained on desktop
-        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-        const modalWidth = isMobile ? (typeof window !== 'undefined' ? window.innerWidth - 32 : 300) : Math.min(rect?.width || 1200, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 64);
-        const modalLeft = isMobile ? 16 : (rect?.left || 0) + Math.max(0, ((rect?.width || 1200) - modalWidth) / 2);
-        
-
+        // Calculate responsive width based on CurrentSelection width
+        const modalWidth = Math.min(rect?.width || 800, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 32);
+        const modalLeft = Math.max(16, (rect?.left || 0));
         
         // Backdrop with blur effect - exclude header area
         const backdropElement = isConfiguratorOpen ? (
@@ -257,7 +222,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[999]"
             style={{ 
               pointerEvents: 'none',
-              top: `${modalTop}px` // Start below the header
+              top: `${modalTop}px`
             }}
           />
         ) : null;
@@ -300,7 +265,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                             currentSection={currentSection}
                             onSectionChange={setCurrentSection}
                             showPreview={showPreview}
-                            onInteraction={() => setHasInteracted(true)}
+                            onInteraction={() => {}}
                           />
                         </div>
                       </>

@@ -36,6 +36,10 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
     addressPlaceholder: typedT('editor.desktop.setupWizard.placeholders.address'),
     subtitlePlaceholder: typedT('editor.desktop.setupWizard.placeholders.subtitle'),
     logoPlaceholder: typedT('editor.desktop.setupWizard.placeholders.logo'),
+    // Preview box translations
+    livePreview: typedT('editor.desktop.preview.livePreview') || '📄 Live Preview',
+    startYourProject: typedT('editor.desktop.preview.startYourProject') || 'Start Your Project',
+    enterProjectDetails: typedT('editor.desktop.preview.enterProjectDetails') || 'Enter project details to see preview'
   };
 
   // Check if we have data to show
@@ -48,16 +52,16 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
   // Empty state
   if (!hasTitlePageData) {
     return typeof window !== 'undefined' ? createPortal(
-      <div className="fixed top-16 right-8 w-[min(95vw,450px)] h-[min(70vh,450px)] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
+      <div className="fixed top-20 right-0 w-[min(85vw,400px)] h-[min(70vh,350px)] bg-slate-800/95 backdrop-blur-sm rounded-lg border border-slate-600 shadow-2xl z-[999999] flex flex-col">
         <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
-          <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
+          <h3 className="text-white font-medium text-sm">{t.livePreview}</h3>
           <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
         </div>
         <div className="flex-1 p-6 flex items-center justify-center bg-white">
           <div className="text-center">
             <div className="text-4xl mb-4">📝</div>
-            <h3 className="text-lg font-bold text-gray-700 mb-2">Start Your Project</h3>
-            <p className="text-gray-500 text-sm">Enter project details to see preview</p>
+            <h3 className="text-lg font-bold text-gray-700 mb-2">{t.startYourProject}</h3>
+            <p className="text-gray-500 text-sm">{t.enterProjectDetails}</p>
           </div>
         </div>
       </div>,
@@ -69,7 +73,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
   const floatingPreview = (
     <div className="fixed top-16 right-0 w-[75vw] max-w-[425px] h-[75vh] md:h-[65vh] lg:h-[65vh] bg-white rounded-lg shadow-2xl z-[999999] flex flex-col">
       <div className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg">
-        <h3 className="text-white font-medium text-sm">📄 Live Preview</h3>
+        <h3 className="text-white font-medium text-sm">{t.livePreview}</h3>
         <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
       </div>
       
