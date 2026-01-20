@@ -44,6 +44,7 @@ interface TitlePageRendererProps {
     websitePlaceholder: string;
     addressPlaceholder: string;
     subtitlePlaceholder: string;
+    logoPlaceholder: string;
   };
 }
 
@@ -85,7 +86,15 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
     <div className="preview-title-page export-preview-page" data-section-id={METADATA_SECTION_ID} style={PAGE_STYLE}>
       <div className="flex flex-col justify-between h-full">
         <div className="flex-shrink-0 flex flex-col items-center">
-          {tp?.logoUrl && <img src={tp.logoUrl} alt="Company Logo" className="mx-auto h-24 object-contain mb-8" />}
+          {tp?.logoUrl ? (
+            <img src={tp.logoUrl} alt="Company Logo" className="mx-auto h-24 object-contain mb-8" />
+          ) : (
+            <div className="mx-auto h-24 w-24 rounded-xl flex items-center justify-center mb-8 border-2 border-dashed border-blue-400 bg-blue-50">
+              <div className="text-blue-600 text-sm font-medium text-center px-2">
+                {t.logoPlaceholder || (isGerman ? 'Firmenlogo' : 'Company Logo')}
+              </div>
+            </div>
+          )}
           {/* Only show product title when product is actually selected */}
           {productTitle && planDocument.productType && (
             <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-500 mb-2">{productTitle}</p>
@@ -136,14 +145,27 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
                 }
               })()}
             </p>
-            {(fv('confidentialityStatement') || fv('confidentiality')) && (
-              <div className="text-right max-w-md">
-                <p className="text-xs text-gray-500 italic leading-relaxed block">
-                  <span className="font-bold">{t.confidentiality}:</span>{' '}
-                  {fv('confidentialityStatement')}
-                </p>
-              </div>
-            )}
+            <div className="text-right max-w-md">
+              <p className="text-xs text-gray-500 italic leading-relaxed block">
+                <span className="font-bold">{t.confidentiality}:</span>{' '}
+                {(() => {
+                  const statement = fv('confidentialityStatement');
+                  if (statement) {
+                    return statement;
+                  }
+                  
+                  // Default confidentiality statement when none exists
+                  const confidentialityValue = fv('confidentiality');
+                  if (confidentialityValue) {
+                    // Return the raw confidentiality value capitalized
+                    return confidentialityValue.charAt(0).toUpperCase() + confidentialityValue.slice(1);
+                  }
+                  
+                  // Fallback default
+                  return 'Confidential';
+                })()}
+              </p>
+            </div>
           </div>
         </div>
       </div>

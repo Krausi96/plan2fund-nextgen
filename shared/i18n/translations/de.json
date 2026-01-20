@@ -1615,10 +1615,10 @@
   "editor.desktop.setupWizard.options.mvp": "MVP",
   "editor.desktop.setupWizard.options.revenue": "Umsatz generierend",
   
-  "editor.desktop.setupWizard.placeholders.projectName": "Geben Sie Ihren Projektnamen ein",
-  "editor.desktop.setupWizard.placeholders.author": "Geben Sie den Autorennamen ein",
-  "editor.desktop.setupWizard.placeholders.country": "Geben Sie das Land ein",
-  "editor.desktop.setupWizard.placeholders.oneLiner": "Beschreiben Sie Ihr Projekt in einem Satz",
+  "editor.desktop.setupWizard.placeholders.projectName": "Gib den deinen Projektnamen an",
+  "editor.desktop.setupWizard.placeholders.author": "Gib den Autoren dieses Projekts an",
+  "editor.desktop.setupWizard.placeholders.country": "Gib den Projektstandort an",
+  "editor.desktop.setupWizard.placeholders.oneLiner": "Beschreibe dein Projekt in einem Satz",
   "editor.desktop.setupWizard.placeholders.fundingAmount": "0",
   
   "editor.desktop.setupWizard.buttons.save": "Projektdetails speichern",
@@ -1677,6 +1677,7 @@
   "editor.desktop.setupWizard.placeholders.phone": "+43 (123) 456-7890",
   "editor.desktop.setupWizard.placeholders.website": "https://ihreseite.at",
   "editor.desktop.setupWizard.placeholders.address": "Straße, Stadt, Land",
+  "editor.desktop.setupWizard.placeholders.logo": "Dein Logo",
   
   "reco.pageTitle": "Empfehlungsmaschine",
   "reco.pageSubtitle": "Finden Sie die perfekten Förderprogramme für Ihr Projekt",

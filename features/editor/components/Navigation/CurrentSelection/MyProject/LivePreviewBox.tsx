@@ -35,6 +35,7 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
     websitePlaceholder: typedT('editor.desktop.setupWizard.placeholders.website'),
     addressPlaceholder: typedT('editor.desktop.setupWizard.placeholders.address'),
     subtitlePlaceholder: typedT('editor.desktop.setupWizard.placeholders.subtitle'),
+    logoPlaceholder: typedT('editor.desktop.setupWizard.placeholders.logo'),
   };
 
   // Check if we have data to show

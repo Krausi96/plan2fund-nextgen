@@ -1632,6 +1632,7 @@
   "editor.desktop.setupWizard.placeholders.phone": "+1 (555) 123-4567",
   "editor.desktop.setupWizard.placeholders.website": "https://yoursite.com",
   "editor.desktop.setupWizard.placeholders.address": "Street, City, Country",
+  "editor.desktop.setupWizard.placeholders.logo": "Your Logo",
   
   "reco.pageTitle": "Recommendation Engine",
   "reco.pageSubtitle": "Find the perfect funding programs for your project",
