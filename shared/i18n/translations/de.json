@@ -1615,8 +1615,8 @@
   "editor.desktop.setupWizard.options.mvp": "MVP",
   "editor.desktop.setupWizard.options.revenue": "Umsatz generierend",
   
-  "editor.desktop.setupWizard.placeholders.projectName": "Gib den deinen Projektnamen an",
-  "editor.desktop.setupWizard.placeholders.author": "Gib den Autoren dieses Projekts an",
+  "editor.desktop.setupWizard.placeholders.projectName": "Gib deinen Projektnamen an",
+  "editor.desktop.setupWizard.placeholders.author": "Autor/in dieses Projekts",
   "editor.desktop.setupWizard.placeholders.country": "Gib den Projektstandort an",
   "editor.desktop.setupWizard.placeholders.oneLiner": "Beschreibe dein Projekt in einem Satz",
   "editor.desktop.setupWizard.placeholders.fundingAmount": "0",

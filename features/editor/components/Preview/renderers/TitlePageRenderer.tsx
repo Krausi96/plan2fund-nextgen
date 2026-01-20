@@ -46,9 +46,10 @@ interface TitlePageRendererProps {
     subtitlePlaceholder: string;
     logoPlaceholder: string;
   };
+  compact?: boolean; // Add compact mode prop
 }
 
-export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePageRendererProps) {
+export function TitlePageRenderer({ planDocument, disabledSections, t, compact = false }: TitlePageRendererProps) {
   const { locale } = useI18n(); // Get locale from i18n context
   
   if (!planDocument.settings.includeTitlePage || disabledSections.has(METADATA_SECTION_ID)) return null;
@@ -101,14 +102,14 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
           )}
         </div>
         <div className="flex-1 flex flex-col justify-center items-center text-center max-w-3xl mx-auto px-6">
-          <h1 className="preview-title mb-4 text-3xl sm:text-4xl font-bold leading-tight text-slate-900">
+          <h1 className={`preview-title mb-4 font-bold leading-tight text-slate-900 ${compact ? 'text-2xl' : 'text-3xl sm:text-4xl'}`}>
             {fv('title') || (isGerman ? 'Dein Projektname' : 'Your Project Title')}
           </h1>
-          <p className="text-base text-gray-600 font-normal leading-relaxed mb-6 max-w-2xl block">
+          <p className={`font-normal leading-relaxed mb-6 max-w-2xl block ${compact ? 'text-sm' : 'text-base'} text-gray-600`}>
             {fv('subtitle') || t.subtitlePlaceholder}
           </p>
           <div className="mb-4">
-            <div className="text-lg font-semibold text-gray-800 block">
+            <div className={`block font-semibold text-gray-800 ${compact ? 'text-base' : 'text-lg'}`}>
               {fv('companyName') || t.authorPlaceholder}
             </div>
           </div>
@@ -118,7 +119,7 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
         </div>
         <div className="flex-shrink-0 w-full pt-8">
           <div className="mb-6">
-            <div className="space-y-1.5 text-xs text-gray-600">
+            <div className={`space-y-1.5 text-gray-600 ${compact ? 'text-[0.65rem]' : 'text-xs'}`}>
               <p><span className="font-medium text-gray-700">{t.email}:</span> {fv('email') || t.emailPlaceholder}</p>
               <p><span className="font-medium text-gray-700">{t.phone}:</span> {fv('phone') || t.phonePlaceholder}</p>
               <p><span className="font-medium text-gray-700">{t.website}:</span> <a href={fv('website') || '#'} className="text-blue-600 hover:text-blue-800 underline">{fv('website') || t.websitePlaceholder}</a></p>
@@ -126,7 +127,7 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
             </div>
           </div>
           <div className="w-full flex justify-between items-end pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-600">
+            <p className="text-[0.65rem] text-gray-600">
               <span className="font-medium text-gray-700">{t.date}:</span>{' '}
               {(() => {
                 const fieldValue = fv('date');
@@ -146,7 +147,7 @@ export function TitlePageRenderer({ planDocument, disabledSections, t }: TitlePa
               })()}
             </p>
             <div className="text-right max-w-md">
-              <p className="text-xs text-gray-500 italic leading-relaxed block">
+              <p className="text-[0.65rem] text-gray-500 italic leading-relaxed block">
                 <span className="font-bold">{t.confidentiality}:</span>{' '}
                 {(() => {
                   const statement = fv('confidentialityStatement');
