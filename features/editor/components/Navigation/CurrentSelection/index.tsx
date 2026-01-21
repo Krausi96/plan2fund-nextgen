@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import ProductSelection from './ProductSelection/ProductSelection';
 import ProgramSelection from './ProgramSelection/ProgramSelection';
@@ -21,7 +21,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const { selectedProductMeta, programSummary } = useConfiguratorState();
   const isConfiguratorOpen = useEditorStore((state) => state.isConfiguratorOpen);
   const setupWizard = useEditorStore((state) => state.setupWizard);
-  const { plan } = useEditorState();
+  // const { plan } = useEditorState(); // Not used in current implementation
   const actions = useEditorActions((a) => ({
     setIsConfiguratorOpen: a.setIsConfiguratorOpen,
     setSetupWizardStep: a.setSetupWizardStep,
@@ -58,45 +58,31 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const handleProgramClick = () => navigateToStep(2);
   const handlePlanClick = () => navigateToStep(3);
 
-  // Simple step navigation with comprehensive validation
+  // Simple step navigation with validation
   const handleNextStep = () => {
     // Validate required fields when moving from My Project (step 1) to Program (step 2)
     if (setupWizard.currentStep === 1) {
-      // Directly access the store to check form data
+      // Access store data directly
       const plan = useEditorStore.getState().plan;
       const titlePage = plan?.settings?.titlePage;
       
-      // Required fields from General Info (Section 1)
+      // Required fields
       const title = titlePage?.title;
       const companyName = titlePage?.companyName;
-      
-      // Required fields from Project Profile (Section 2)
       const oneLiner = titlePage?.oneLiner;
       const confidentiality = titlePage?.confidentiality;
       
-      // Check if we're moving from Section 1 to Section 2 (within same step)
-      if (currentSection === 1) {
-        // Validate General Info fields before allowing section navigation
-        if (!title?.trim() || !companyName?.trim()) {
-          alert('Please complete the required fields (Document Title and Author/Organization) before proceeding');
-          return;
-        }
-      }
+      // Validate ALL required fields
+      const missingFields = [];
       
-      // Check if we're moving to next STEP (MyProject → Program)
-      if (currentSection === 3) { // Last section of MyProject
-        // Validate ALL required fields from both sections
-        const missingFields = [];
-        
-        if (!title?.trim()) missingFields.push('Document Title');
-        if (!companyName?.trim()) missingFields.push('Author/Organization');
-        if (!oneLiner?.trim()) missingFields.push('One-liner Description');
-        if (!confidentiality) missingFields.push('Confidentiality Level');
-        
-        if (missingFields.length > 0) {
-          alert(`Please complete the following required fields before proceeding: ${missingFields.join(', ')}`);
-          return;
-        }
+      if (!title?.trim()) missingFields.push('Document Title');
+      if (!companyName?.trim()) missingFields.push('Author/Organization');
+      if (!oneLiner?.trim()) missingFields.push('One-liner Description');
+      if (!confidentiality) missingFields.push('Confidentiality Level');
+      
+      if (missingFields.length > 0) {
+        alert(`Please complete the following required fields before proceeding: ${missingFields.join(', ')}`);
+        return;
       }
     }
     
@@ -368,7 +354,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                         ) : (
                           <button
                             onClick={() => {
-                              // For the final "Continue to Program" button, validate ALL required fields
+                              // Validate required fields before continuing to program
                               const plan = useEditorStore.getState().plan;
                               const titlePage = plan?.settings?.titlePage;
                               

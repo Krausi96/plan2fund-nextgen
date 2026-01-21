@@ -4,7 +4,7 @@ import { useEditorActions } from '../../../../lib/hooks/useEditorActions';
 import { useI18n } from '../../../../../../shared/contexts/I18nContext';
 import { METADATA_SECTION_ID } from '@/features/editor/lib/constants';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
-import ProjectProfileStep from './subSteps/ProjectProfileStep';
+// import ProjectProfileStep from './subSteps/ProjectProfileStep'; // Component doesn't exist
 import LivePreviewBox from './LivePreviewBox';
 
 interface MyProjectProps {
@@ -127,29 +127,26 @@ const MyProject: React.FC<MyProjectProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Simple validation
-    if (!formData.title.trim()) {
-      alert(t('editor.desktop.setupWizard.validation.projectName') || 'Project name is required');
-      return;
-    }
-    
-    actions.updateSection(METADATA_SECTION_ID, { 
-      title: formData.title,
-      subtitle: formData.subtitle,
-      companyName: formData.companyName,
-      legalForm: formData.legalForm,
-      date: formData.date,
-      logoUrl: formData.logoUrl,
-      confidentialityStatement: formData.confidentialityStatement,
-      contactInfo: formData.contactInfo
-    });
-    
-    if (onSubmit) {
-      onSubmit(formData);
-    }
-  };
+    // Enhanced handleSubmit with validation
+    const handleNextStep = () => {
+      // Validate required fields from both sections
+      const missingFields = [];
+      
+      if (!formData.title?.trim()) missingFields.push('Document Title');
+      if (!formData.companyName?.trim()) missingFields.push('Author/Organization');
+      if (!formData.oneLiner?.trim()) missingFields.push('One-liner Description');
+      if (!formData.confidentiality) missingFields.push('Confidentiality Level');
+      
+      if (missingFields.length > 0) {
+        alert(`Please complete the following required fields before proceeding: ${missingFields.join(', ')}`);
+        return;
+      }
+      
+      // Proceed to next step
+      if (onSubmit) {
+        onSubmit(formData);
+      }
+    };
 
   // Display mode - keep original simple behavior
   if (mode === 'display') {
@@ -167,60 +164,21 @@ const MyProject: React.FC<MyProjectProps> = ({
   if (mode === 'form') {
     // Enhanced navigation handler with section-level validation
     const handleNavClick = (section: 1 | 2 | 3) => {
-      // Prevent moving from Section 1 to Section 2 without required fields
+      // Prevent moving from Section 1 to Section 2 without required General Info fields
       if (currentSection === 1 && section === 2) {
-        if (!isGeneralInfoValid()) {
-          alert('Please complete the required fields (Document Title and Author/Organization) before proceeding to Project Profile');
+        if (!formData.title?.trim() || !formData.companyName?.trim()) {
+          alert('Please complete the required fields (Document Title and Author/Organization) before proceeding');
           return;
         }
       }
       
-      // Prevent moving from Section 2 to Section 3 without Project Profile fields
+      // Prevent moving from Section 2 to Section 3 (Planning Context)
       if (currentSection === 2 && section === 3) {
-        const isProjectProfileValid = formData.oneLiner?.trim() && formData.confidentiality;
-        if (!isProjectProfileValid) {
-          alert('Please complete the required fields (One-liner Description and Confidentiality Level) before proceeding to Planning Context');
-          return;
-        }
+        // Could add additional validation here if needed
       }
       
       if (onSectionChange) {
         onSectionChange(section);
-      }
-    };
-
-    // Validation for required fields
-    const isGeneralInfoValid = () => {
-      return formData.title?.trim() && formData.companyName?.trim();
-    };
-    
-    const isProjectProfileValid = () => {
-      return formData.oneLiner?.trim() && formData.confidentiality;
-    };
-    
-    // Comprehensive validation for step progression
-    const isStepReady = () => {
-      return isGeneralInfoValid() && isProjectProfileValid();
-    };
-
-    // Enhanced handleSubmit with comprehensive validation
-    const handleNextStep = () => {
-      // Validate all required fields before allowing step progression
-      if (!isStepReady()) {
-        const missingFields = [];
-        
-        if (!formData.title?.trim()) missingFields.push('Document Title');
-        if (!formData.companyName?.trim()) missingFields.push('Author/Organization');
-        if (!formData.oneLiner?.trim()) missingFields.push('One-liner Description');
-        if (!formData.confidentiality) missingFields.push('Confidentiality Level');
-        
-        alert(`Please complete the following required fields before proceeding: ${missingFields.join(', ')}`);
-        return;
-      }
-      
-      // Proceed to next step
-      if (onSubmit) {
-        onSubmit(formData);
       }
     };
 
@@ -248,11 +206,8 @@ const MyProject: React.FC<MyProjectProps> = ({
                   className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
                     currentSection === 2 
                       ? 'bg-blue-500/30 text-white' 
-                      : isGeneralInfoValid() // Only enable if Section 1 is valid
-                        ? 'text-white/70 hover:bg-white/10 hover:text-white'
-                        : 'text-white/30 cursor-not-allowed'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
                   }`}
-                  disabled={!isGeneralInfoValid()}
                 >
                   <span className="text-lg">🏢</span>
                   <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}</span>
@@ -263,11 +218,8 @@ const MyProject: React.FC<MyProjectProps> = ({
                   className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
                     currentSection === 3 
                       ? 'bg-blue-500/30 text-white' 
-                      : isProjectProfileValid() // Only enable if Section 2 is valid
-                        ? 'text-white/70 hover:bg-white/10 hover:text-white'
-                        : 'text-white/30 cursor-not-allowed'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
                   }`}
-                  disabled={!isProjectProfileValid()}
                 >
                   <span className="text-lg">✨</span>
                   <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}</span>
@@ -289,22 +241,28 @@ const MyProject: React.FC<MyProjectProps> = ({
               )}
               
               {currentSection === 2 && (
-                <ProjectProfileStep 
-                  formData={formData} 
-                  onChange={handleFieldChange} 
-                />
+                <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                    <span className="text-xl">🏢</span> 
+                    {t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}
+                  </h3>
+                  <div className="text-white/60 text-center py-8">
+                    <p>Project Profile section content would go here</p>
+                    <p className="text-sm mt-2">(Currently using Planning Context for required fields)</p>
+                  </div>
+                </div>
               )}
               
               {currentSection === 3 && (
                 <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
                   <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
                     <span className="text-xl">✨</span> 
-                    Planning Context
+                    {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
                   </h3>
                   <div className="space-y-3">
                     <div>
                       <label className="block text-white font-medium mb-2">
-                        One-liner Description
+                        {t('editor.desktop.myProject.fields.oneLiner') || 'One-liner Description'}
                       </label>
                       <textarea
                         value={formData.oneLiner}
@@ -317,23 +275,24 @@ const MyProject: React.FC<MyProjectProps> = ({
                     
                     <div>
                       <label className="block text-white font-medium mb-2">
-                        Confidentiality Level
+                        {t('editor.desktop.myProject.fields.confidentiality') || 'Confidentiality Level'}
                       </label>
                       <select
                         value={formData.confidentiality}
                         onChange={(e) => {
                           const value = e.target.value;
                           handleFieldChange('confidentiality', value);
+                          // Use translated values that match the current UI language
                           let statement = '';
                           switch(value) {
                             case 'public':
-                              statement = 'Public';
+                              statement = t('editor.desktop.setupWizard.options.public');
                               break;
                             case 'confidential':
-                              statement = 'Confidential';
+                              statement = t('editor.desktop.setupWizard.options.confidential');
                               break;
                             case 'private':
-                              statement = 'Private';
+                              statement = t('editor.desktop.setupWizard.options.private');
                               break;
                             default:
                               statement = value.charAt(0).toUpperCase() + value.slice(1);
@@ -342,9 +301,9 @@ const MyProject: React.FC<MyProjectProps> = ({
                         }}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="public">Public</option>
-                        <option value="confidential">Confidential</option>
-                        <option value="private">Private</option>
+                        <option value="public">{t('editor.desktop.setupWizard.options.public') || 'Public'}</option>
+                        <option value="confidential">{t('editor.desktop.setupWizard.options.confidential') || 'Confidential'}</option>
+                        <option value="private">{t('editor.desktop.setupWizard.options.private') || 'Private'}</option>
                       </select>
                     </div>
                   </div>
