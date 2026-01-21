@@ -5,7 +5,8 @@ import ProgramSelection from './ProgramSelection/ProgramSelection';
 import ReadinessCheck from './ReadinessCheck/ReadinessCheck';
 import MyProject from './MyProject/MyProject';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { useConfiguratorState, useEditorActions, useEditorState, useEditorStore } from '@/features/editor/lib';
+// import { useEditorState } from '@/features/editor/lib/hooks/useEditorState'; // Not used in current implementation
+import { useConfiguratorState, useEditorActions, useEditorStore } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 type CurrentSelectionProps = {
@@ -65,12 +66,15 @@ function CurrentSelection({}: CurrentSelectionProps) {
       // Access store data directly
       const plan = useEditorStore.getState().plan;
       const titlePage = plan?.settings?.titlePage;
+      const projectProfile = setupWizard.projectProfile;
       
       // Required fields
       const title = titlePage?.title;
       const companyName = titlePage?.companyName;
-      const oneLiner = titlePage?.oneLiner;
-      const confidentiality = titlePage?.confidentiality;
+      
+      // Try to get oneLiner and confidentiality from projectProfile first, fallback to titlePage
+      const oneLiner = projectProfile?.oneLiner || (titlePage as any)?.oneLiner;
+      const confidentiality = projectProfile?.confidentiality || (titlePage as any)?.confidentiality;
       
       // Validate ALL required fields
       const missingFields = [];
@@ -357,11 +361,14 @@ function CurrentSelection({}: CurrentSelectionProps) {
                               // Validate required fields before continuing to program
                               const plan = useEditorStore.getState().plan;
                               const titlePage = plan?.settings?.titlePage;
+                              const projectProfile = setupWizard.projectProfile;
                               
                               const title = titlePage?.title;
                               const companyName = titlePage?.companyName;
-                              const oneLiner = titlePage?.oneLiner;
-                              const confidentiality = titlePage?.confidentiality;
+                              
+                              // Try to get oneLiner and confidentiality from projectProfile first, fallback to titlePage
+                              const oneLiner = projectProfile?.oneLiner || (titlePage as any)?.oneLiner;
+                              const confidentiality = projectProfile?.confidentiality || (titlePage as any)?.confidentiality;
                               
                               const missingFields = [];
                               
