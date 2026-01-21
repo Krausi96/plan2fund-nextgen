@@ -165,8 +165,25 @@ const MyProject: React.FC<MyProjectProps> = ({
 
   // Form mode - section navigation like subtle
   if (mode === 'form') {
-    // Simple navigation handler - allow free movement between sections
+    // Enhanced navigation handler with section-level validation
     const handleNavClick = (section: 1 | 2 | 3) => {
+      // Prevent moving from Section 1 to Section 2 without required fields
+      if (currentSection === 1 && section === 2) {
+        if (!isGeneralInfoValid()) {
+          alert('Please complete the required fields (Document Title and Author/Organization) before proceeding to Project Profile');
+          return;
+        }
+      }
+      
+      // Prevent moving from Section 2 to Section 3 without Project Profile fields
+      if (currentSection === 2 && section === 3) {
+        const isProjectProfileValid = formData.oneLiner?.trim() && formData.confidentiality;
+        if (!isProjectProfileValid) {
+          alert('Please complete the required fields (One-liner Description and Confidentiality Level) before proceeding to Planning Context');
+          return;
+        }
+      }
+      
       if (onSectionChange) {
         onSectionChange(section);
       }
@@ -176,12 +193,28 @@ const MyProject: React.FC<MyProjectProps> = ({
     const isGeneralInfoValid = () => {
       return formData.title?.trim() && formData.companyName?.trim();
     };
+    
+    const isProjectProfileValid = () => {
+      return formData.oneLiner?.trim() && formData.confidentiality;
+    };
+    
+    // Comprehensive validation for step progression
+    const isStepReady = () => {
+      return isGeneralInfoValid() && isProjectProfileValid();
+    };
 
-    // Enhanced handleSubmit with validation
+    // Enhanced handleSubmit with comprehensive validation
     const handleNextStep = () => {
-      // Validate only when moving from General Info (section 1) to next step
-      if (currentSection === 1 && !isGeneralInfoValid()) {
-        alert('Please complete the required fields (Document Title and Author/Organization) before proceeding');
+      // Validate all required fields before allowing step progression
+      if (!isStepReady()) {
+        const missingFields = [];
+        
+        if (!formData.title?.trim()) missingFields.push('Document Title');
+        if (!formData.companyName?.trim()) missingFields.push('Author/Organization');
+        if (!formData.oneLiner?.trim()) missingFields.push('One-liner Description');
+        if (!formData.confidentiality) missingFields.push('Confidentiality Level');
+        
+        alert(`Please complete the following required fields before proceeding: ${missingFields.join(', ')}`);
         return;
       }
       
@@ -215,8 +248,11 @@ const MyProject: React.FC<MyProjectProps> = ({
                   className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
                     currentSection === 2 
                       ? 'bg-blue-500/30 text-white' 
-                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      : isGeneralInfoValid() // Only enable if Section 1 is valid
+                        ? 'text-white/70 hover:bg-white/10 hover:text-white'
+                        : 'text-white/30 cursor-not-allowed'
                   }`}
+                  disabled={!isGeneralInfoValid()}
                 >
                   <span className="text-lg">🏢</span>
                   <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}</span>
@@ -227,8 +263,11 @@ const MyProject: React.FC<MyProjectProps> = ({
                   className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
                     currentSection === 3 
                       ? 'bg-blue-500/30 text-white' 
-                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      : isProjectProfileValid() // Only enable if Section 2 is valid
+                        ? 'text-white/70 hover:bg-white/10 hover:text-white'
+                        : 'text-white/30 cursor-not-allowed'
                   }`}
+                  disabled={!isProjectProfileValid()}
                 >
                   <span className="text-lg">✨</span>
                   <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}</span>
