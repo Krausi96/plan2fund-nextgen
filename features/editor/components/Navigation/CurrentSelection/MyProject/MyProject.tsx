@@ -4,7 +4,7 @@ import { useEditorActions } from '../../../../lib/hooks/useEditorActions';
 import { useI18n } from '../../../../../../shared/contexts/I18nContext';
 import { METADATA_SECTION_ID } from '@/features/editor/lib/constants';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
-// import ProjectProfileStep from './subSteps/ProjectProfileStep'; // Component doesn't exist
+import ProjectProfileStep from './subSteps/ProjectProfileStep';
 import LivePreviewBox from './LivePreviewBox';
 
 interface MyProjectProps {
@@ -241,16 +241,10 @@ const MyProject: React.FC<MyProjectProps> = ({
               )}
               
               {currentSection === 2 && (
-                <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                    <span className="text-xl">🏢</span> 
-                    {t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}
-                  </h3>
-                  <div className="text-white/60 text-center py-8">
-                    <p>Project Profile section content would go here</p>
-                    <p className="text-sm mt-2">(Currently using Planning Context for required fields)</p>
-                  </div>
-                </div>
+                <ProjectProfileStep 
+                  formData={formData} 
+                  onChange={handleFieldChange}
+                />
               )}
               
               {currentSection === 3 && (
