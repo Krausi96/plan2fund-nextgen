@@ -855,6 +855,8 @@
   "editor.desktop.preview.enterProjectDetails": "Projektdaten eingeben, um Vorschau zu sehen",
   "editor.desktop.preview.toggleMinimize": "Vorschau minimieren",
   "editor.desktop.preview.toggleMaximize": "Vorschau maximieren",
+  "editor.designMode": "Designmodus",
+  "editor.clickToCustomize": "Zum Anpassen klicken",
   "editor.desktop.sections.legend.edit": "Bearbeiten",
   "editor.desktop.sections.legend.toggle": "Zu Dokument hinzufügen",
   "editor.desktop.sections.legend.source": "Herkunft anzeigen",
