@@ -165,10 +165,29 @@ const MyProject: React.FC<MyProjectProps> = ({
 
   // Form mode - section navigation like subtle
   if (mode === 'form') {
-    // Navigation handler
+    // Simple navigation handler - allow free movement between sections
     const handleNavClick = (section: 1 | 2 | 3) => {
       if (onSectionChange) {
         onSectionChange(section);
+      }
+    };
+
+    // Validation for required fields
+    const isGeneralInfoValid = () => {
+      return formData.title?.trim() && formData.companyName?.trim();
+    };
+
+    // Enhanced handleSubmit with validation
+    const handleNextStep = () => {
+      // Validate only when moving from General Info (section 1) to next step
+      if (currentSection === 1 && !isGeneralInfoValid()) {
+        alert('Please complete the required fields (Document Title and Author/Organization) before proceeding');
+        return;
+      }
+      
+      // Proceed to next step
+      if (onSubmit) {
+        onSubmit(formData);
       }
     };
 
@@ -220,7 +239,7 @@ const MyProject: React.FC<MyProjectProps> = ({
           
           {/* Main Content - Flexible width to accommodate sidebar */}
           <div className="flex-1 min-w-0">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleNextStep(); }} className="space-y-4">
               {/* Show only current section */}
               {currentSection === 1 && (
                 <GeneralInfoStep 
@@ -241,12 +260,12 @@ const MyProject: React.FC<MyProjectProps> = ({
                 <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
                   <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
                     <span className="text-xl">✨</span> 
-                    {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
+                    Planning Context
                   </h3>
                   <div className="space-y-3">
                     <div>
                       <label className="block text-white font-medium mb-2">
-                        {t('editor.desktop.myProject.fields.oneLiner') || 'One-liner Description'}
+                        One-liner Description
                       </label>
                       <textarea
                         value={formData.oneLiner}
@@ -259,24 +278,23 @@ const MyProject: React.FC<MyProjectProps> = ({
                     
                     <div>
                       <label className="block text-white font-medium mb-2">
-                        {t('editor.desktop.myProject.fields.confidentiality') || 'Confidentiality Level'}
+                        Confidentiality Level
                       </label>
                       <select
                         value={formData.confidentiality}
                         onChange={(e) => {
                           const value = e.target.value;
                           handleFieldChange('confidentiality', value);
-                          // Use translated values that match the current UI language
                           let statement = '';
                           switch(value) {
                             case 'public':
-                              statement = t('editor.desktop.setupWizard.options.public');
+                              statement = 'Public';
                               break;
                             case 'confidential':
-                              statement = t('editor.desktop.setupWizard.options.confidential');
+                              statement = 'Confidential';
                               break;
                             case 'private':
-                              statement = t('editor.desktop.setupWizard.options.private');
+                              statement = 'Private';
                               break;
                             default:
                               statement = value.charAt(0).toUpperCase() + value.slice(1);
@@ -285,9 +303,9 @@ const MyProject: React.FC<MyProjectProps> = ({
                         }}
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="public">{t('editor.desktop.setupWizard.options.public') || 'Public'}</option>
-                        <option value="confidential">{t('editor.desktop.setupWizard.options.confidential') || 'Confidential'}</option>
-                        <option value="private">{t('editor.desktop.setupWizard.options.private') || 'Private'}</option>
+                        <option value="public">Public</option>
+                        <option value="confidential">Confidential</option>
+                        <option value="private">Private</option>
                       </select>
                     </div>
                   </div>

@@ -58,8 +58,22 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const handleProgramClick = () => navigateToStep(2);
   const handlePlanClick = () => navigateToStep(3);
 
-  // Simple step navigation
+  // Simple step navigation with validation
   const handleNextStep = () => {
+    // Validate required fields when moving from My Project (step 1) to Program (step 2)
+    if (setupWizard.currentStep === 1) {
+      // Directly access the store to check form data
+      const plan = useEditorStore.getState().plan;
+      const title = plan?.settings?.titlePage?.title;
+      const companyName = plan?.settings?.titlePage?.companyName;
+      
+      if (!title?.trim() || !companyName?.trim()) {
+        alert('Please complete the required fields (Document Title and Author/Organization) before proceeding');
+        return;
+      }
+    }
+    
+    // Proceed to next step
     if (setupWizard.currentStep < 3) {
       actions.setSetupWizardStep((setupWizard.currentStep + 1) as 1 | 2 | 3);
     }
@@ -326,7 +340,20 @@ function CurrentSelection({}: CurrentSelectionProps) {
                           </button>
                         ) : (
                           <button
-                            onClick={handleNextStep}
+                            onClick={() => {
+                              // For the final "Continue to Program" button, validate using store data
+                              const plan = useEditorStore.getState().plan;
+                              const title = plan?.settings?.titlePage?.title;
+                              const companyName = plan?.settings?.titlePage?.companyName;
+                              
+                              if (!title?.trim() || !companyName?.trim()) {
+                                alert('Please complete the required fields (Document Title and Author/Organization) before proceeding');
+                                return;
+                              }
+                              
+                              // Proceed to next step
+                              handleNextStep();
+                            }}
                             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
                           >
                             Continue to Program
