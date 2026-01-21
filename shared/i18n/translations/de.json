@@ -853,6 +853,8 @@
   "editor.desktop.preview.livePreview": "📄 Live-Vorschau",
   "editor.desktop.preview.startYourProject": "Projekt starten",
   "editor.desktop.preview.enterProjectDetails": "Projektdaten eingeben, um Vorschau zu sehen",
+  "editor.desktop.preview.toggleMinimize": "Vorschau minimieren",
+  "editor.desktop.preview.toggleMaximize": "Vorschau maximieren",
   "editor.desktop.sections.legend.edit": "Bearbeiten",
   "editor.desktop.sections.legend.toggle": "Zu Dokument hinzufügen",
   "editor.desktop.sections.legend.source": "Herkunft anzeigen",
@@ -1604,7 +1606,7 @@
   "editor.desktop.setupWizard.step3.description": "Wählen Sie Ihre Dokumentvorlage",
   
   "editor.desktop.setupWizard.fields.projectName": "Projektname",
-  "editor.desktop.setupWizard.fields.author": "Autor",
+  "editor.desktop.setupWizard.fields.author": "Autor(in)/Organisation",
   "editor.desktop.setupWizard.fields.confidentiality": "Vertraulichkeit",
   "editor.desktop.setupWizard.fields.stage": "Phase",
   "editor.desktop.setupWizard.fields.country": "Land",
@@ -1619,7 +1621,7 @@
   "editor.desktop.setupWizard.options.revenue": "Umsatz generierend",
   
   "editor.desktop.setupWizard.placeholders.projectName": "Gib deinen Projektnamen an",
-  "editor.desktop.setupWizard.placeholders.author": "Autor/in dieses Projekts",
+  "editor.desktop.setupWizard.placeholders.author": "Autor/in oder Organisation dieses Projekts",
   "editor.desktop.setupWizard.placeholders.country": "Gib den Projektstandort an",
   "editor.desktop.setupWizard.placeholders.oneLiner": "Beschreibe dein Projekt in einem Satz",
   "editor.desktop.setupWizard.placeholders.fundingAmount": "0",

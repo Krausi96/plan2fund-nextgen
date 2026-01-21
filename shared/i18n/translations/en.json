@@ -844,6 +844,8 @@
   "editor.desktop.preview.livePreview": "📄 Live Preview",
   "editor.desktop.preview.startYourProject": "Start Your Project",
   "editor.desktop.preview.enterProjectDetails": "Enter project details to see preview",
+  "editor.desktop.preview.toggleMinimize": "Minimize preview",
+  "editor.desktop.preview.toggleMaximize": "Maximize preview",
   "editor.desktop.sections.legend.edit": "Edit",
   "editor.desktop.sections.legend.toggle": "Add to document",
   "editor.desktop.sections.legend.source": "Show source",
@@ -1562,7 +1564,7 @@
   "editor.desktop.setupWizard.step3.description": "Choose your document template",
   
   "editor.desktop.setupWizard.fields.projectName": "Project Name",
-  "editor.desktop.setupWizard.fields.author": "Author",
+  "editor.desktop.setupWizard.fields.author": "Author/Organization Name",
   "editor.desktop.setupWizard.fields.confidentiality": "Confidentiality",
   "editor.desktop.setupWizard.fields.stage": "Stage",
   "editor.desktop.setupWizard.fields.country": "Country",
@@ -1577,7 +1579,7 @@
   "editor.desktop.setupWizard.options.revenue": "Revenue Generating",
   
   "editor.desktop.setupWizard.placeholders.projectName": "Enter your project name",
-  "editor.desktop.setupWizard.placeholders.author": "Enter author name",
+  "editor.desktop.setupWizard.placeholders.author": "Enter author or organization name",
   "editor.desktop.setupWizard.placeholders.country": "Enter country",
   "editor.desktop.setupWizard.placeholders.oneLiner": "Describe your project in one sentence",
   "editor.desktop.setupWizard.placeholders.fundingAmount": "0",
