@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../../../../shared/components/ui/card';
+import { Card, CardContent } from '../../../../../../../shared/components/ui/card';
 import { useI18n } from '../../../../../../../shared/contexts/I18nContext';
 
 interface GeneralInfoStepProps {
@@ -34,12 +34,6 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
 
   return (
     <Card className="bg-slate-800 border-slate-700">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-3 text-white text-xl">
-          <span className="text-xl">📋</span>
-          <span>{t('editor.desktop.myProject.sections.generalInfo') || 'General Information'}</span>
-        </CardTitle>
-      </CardHeader>
       <CardContent>
         <div className="space-y-6">
           {/* Required Fields */}

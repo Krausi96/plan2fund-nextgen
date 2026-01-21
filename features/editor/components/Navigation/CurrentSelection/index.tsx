@@ -282,13 +282,30 @@ function CurrentSelection({}: CurrentSelectionProps) {
                     {/* Step 1: My Project with sub-steps */}
                     {setupWizard.currentStep === 1 && (
                       <>
+                        {/* Row 1: Static Create Project header */}
                         <h2 className="text-2xl font-bold text-white mb-1 text-left">
                           {t('editor.desktop.preview.emptyState.cta') || 'Create Project'}
                         </h2>
                         <div className="border-b border-white/20 mb-2"></div>
-                        <p className="text-white/60 text-sm mb-6">
-                          {t('editor.desktop.myProject.subtitle') || 'Enter basic project data'}
-                        </p>
+                        
+                        {/* Row 2: Description + Dynamic header closer together */}
+                        <div className="flex items-center gap-8 mb-3">
+                          <p className="text-white/60 text-sm flex-shrink-0">
+                            {t('editor.desktop.myProject.subtitle') || 'Enter basic project data'}
+                          </p>
+                          <h2 className="text-xl font-bold text-white flex items-center gap-2 ml-4">
+                            <span className="text-xl">
+                              {currentSection === 1 && '📋'}
+                              {currentSection === 2 && '🏢'}
+                              {currentSection === 3 && '✨'}
+                            </span>
+                            <span>
+                              {currentSection === 1 && (t('editor.desktop.myProject.sections.generalInfo') || 'General Information')}
+                              {currentSection === 2 && (t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile')}
+                              {currentSection === 3 && (t('editor.desktop.myProject.sections.planningContext') || 'Planning Context')}
+                            </span>
+                          </h2>
+                        </div>
                         <div className="w-full">
                           <MyProject 
                             mode="form" 

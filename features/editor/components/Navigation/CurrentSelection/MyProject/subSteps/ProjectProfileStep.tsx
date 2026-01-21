@@ -2,7 +2,7 @@
  * ProjectProfileStep - Enhanced Project Profile section with reco-inspired UI
  */
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
+import { Card, CardContent } from '@/shared/components/ui/card';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface ProjectProfileStepProps {
@@ -118,12 +118,6 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
 
   return (
     <Card className="bg-slate-800 border-slate-700">
-      <CardHeader className="pb-2">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          <span className="text-lg">🏢</span> 
-          {t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}
-        </h3>
-      </CardHeader>
       <CardContent>
         {/* Emoji Navigation Bar - Smaller and more compact */}
         <div className="mb-4 p-2 bg-slate-700/30 rounded-lg border border-slate-600">
