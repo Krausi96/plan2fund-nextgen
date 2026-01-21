@@ -30,7 +30,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
   
   const getStepTitle = (step: number) => {
     const titles = [
-      t('editor.desktop.myProject.sections.location') || 'Location & Currency',
+      t('editor.desktop.myProject.sections.location') || 'Project Location',
       t('editor.desktop.myProject.fields.projectStage') || 'Project Stage',
       t('editor.desktop.myProject.fields.industry') || 'Industry',
       t('editor.desktop.myProject.fields.team') || 'Team Information',
@@ -41,11 +41,11 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
   
   const getStepDescription = (step: number) => {
     const descriptions = [
-      'Select your country and currency',
-      'Choose your current project stage',
-      'Describe your industry and focus areas',
-      'Provide team size and information',
-      'Set your planning horizon'
+      t('editor.desktop.myProject.descriptions.location'),
+      t('editor.desktop.myProject.descriptions.projectStage'),
+      t('editor.desktop.myProject.descriptions.industry'),
+      t('editor.desktop.myProject.descriptions.team'),
+      t('editor.desktop.myProject.descriptions.timeline')
     ];
     return descriptions[step - 1] || '';
   };
@@ -203,7 +203,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                       required
                     >
-                      <option value="">Select country</option>
+                      <option value="">{t('editor.desktop.myProject.placeholders.selectCountry')}</option>
                       <option value="Austria">Austria</option>
                       <option value="Germany">Germany</option>
                       <option value="France">France</option>
@@ -230,7 +230,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       placeholder="Auto-detected from country"
                     />
                     <p className="text-white/50 text-xs mt-1">
-                      Automatically set based on country selection
+                      {t('editor.desktop.myProject.placeholders.autoDetected')}
                     </p>
                   </div>
                 </div>
@@ -253,9 +253,9 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
             
                 <div className="space-y-3">
                   {[
-                    { value: 'idea', label: 'Idea (Concept phase, no product yet)', icon: '💡' },
-                    { value: 'MVP', label: 'MVP (Minimum Viable Product built)', icon: '🧪' },
-                    { value: 'revenue', label: 'Revenue (Generating income, scaling)', icon: '📈' }
+                    { value: 'idea', label: t('editor.desktop.myProject.stages.idea'), icon: '💡' },
+                    { value: 'MVP', label: t('editor.desktop.myProject.stages.mvp'), icon: '🧪' },
+                    { value: 'revenue', label: t('editor.desktop.myProject.stages.revenue'), icon: '📈' }
                   ].map((stage) => (
                     <button
                       key={stage.value}
@@ -272,7 +272,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                         <div className="font-medium">{stage.label}</div>
                         {formData.stage === stage.value && (
                           <span className="text-sm opacity-90">
-                            Selected
+                            {t('editor.desktop.myProject.buttons.selected')}
                           </span>
                         )}
                       </div>
@@ -306,12 +306,12 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {[
-                        { value: 'digital', label: 'Digital & Software' },
-                        { value: 'sustainability', label: 'Climate & Sustainability' },
-                        { value: 'health', label: 'Health & Life Sciences' },
-                        { value: 'manufacturing', label: 'Manufacturing & Hardware' },
-                        { value: 'export', label: 'Internationalisation' },
-                        { value: 'other', label: 'Something else' }
+                        { value: 'digital', label: t('editor.desktop.myProject.industries.digital') },
+                        { value: 'sustainability', label: t('editor.desktop.myProject.industries.sustainability') },
+                        { value: 'health', label: t('editor.desktop.myProject.industries.health') },
+                        { value: 'manufacturing', label: t('editor.desktop.myProject.industries.manufacturing') },
+                        { value: 'export', label: t('editor.desktop.myProject.industries.export') },
+                        { value: 'other', label: t('editor.desktop.myProject.industries.other') }
                       ].map((focus) => {
                         const isSelected = formData.industryFocus?.includes(focus.value) || false;
                         return (
@@ -388,7 +388,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       </span>
                     </div>
                     <p className="text-white/50 text-xs mt-1">
-                      Number of people working on this project
+                      {t('editor.desktop.myProject.placeholders.teamSize')}
                     </p>
                   </div>
                 </div>
@@ -424,9 +424,9 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       onChange={(e) => handleFieldChange('financialBaseline.planningHorizon', parseInt(e.target.value))}
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                     >
-                      <option value={12}>12 months</option>
-                      <option value={24}>24 months</option>
-                      <option value={36}>36 months</option>
+                      <option value={12}>{t('editor.desktop.myProject.months.12')}</option>
+                      <option value={24}>{t('editor.desktop.myProject.months.24')}</option>
+                      <option value={36}>{t('editor.desktop.myProject.months.36')}</option>
                     </select>
                   </div>
                 </div>
@@ -448,7 +448,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
               className="text-white/70 hover:text-white text-sm flex items-center gap-2 transition-colors"
             >
               <span>⏭️</span>
-              Skip this step
+              {t('editor.desktop.myProject.buttons.skipStep')}
             </button>
           </div>
         )}

@@ -55,7 +55,6 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                   onChange={(e) => handleChange('title', e.target.value)}
                   className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                   placeholder={t('editor.desktop.setupWizard.placeholders.projectName') || 'Document Title'}
-                  required
                 />
               </div>
               
@@ -69,7 +68,6 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                   onChange={(e) => handleChange('companyName', e.target.value)}
                   className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                   placeholder={t('editor.desktop.setupWizard.placeholders.author') || 'Your name or organization'}
-                  required
                 />
               </div>
               

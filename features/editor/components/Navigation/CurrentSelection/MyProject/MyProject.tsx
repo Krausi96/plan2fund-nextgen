@@ -127,22 +127,8 @@ const MyProject: React.FC<MyProjectProps> = ({
     }
   };
 
-    // Enhanced handleSubmit with validation
+    // Simple handleSubmit without validation
     const handleNextStep = () => {
-      // Validate required fields from both sections
-      const missingFields = [];
-      
-      if (!formData.title?.trim()) missingFields.push('Document Title');
-      if (!formData.companyName?.trim()) missingFields.push('Author/Organization');
-      if (!formData.oneLiner?.trim()) missingFields.push('One-liner Description');
-      if (!formData.confidentiality) missingFields.push('Confidentiality Level');
-      
-      if (missingFields.length > 0) {
-        alert(`Please complete the following required fields before proceeding: ${missingFields.join(', ')}`);
-        return;
-      }
-      
-      // Proceed to next step
       if (onSubmit) {
         onSubmit(formData);
       }
@@ -162,21 +148,8 @@ const MyProject: React.FC<MyProjectProps> = ({
 
   // Form mode - section navigation like subtle
   if (mode === 'form') {
-    // Enhanced navigation handler with section-level validation
+    // Navigation handler - allow free movement between sections
     const handleNavClick = (section: 1 | 2 | 3) => {
-      // Prevent moving from Section 1 to Section 2 without required General Info fields
-      if (currentSection === 1 && section === 2) {
-        if (!formData.title?.trim() || !formData.companyName?.trim()) {
-          alert('Please complete the required fields (Document Title and Author/Organization) before proceeding');
-          return;
-        }
-      }
-      
-      // Prevent moving from Section 2 to Section 3 (Planning Context)
-      if (currentSection === 2 && section === 3) {
-        // Could add additional validation here if needed
-      }
-      
       if (onSectionChange) {
         onSectionChange(section);
       }

@@ -1653,7 +1653,7 @@
   "editor.desktop.myProject.fields.industryFocus": "Branchenschwerpunkte",
   "editor.desktop.myProject.fields.team": "Team-Informationen",
   "editor.desktop.myProject.fields.teamSize": "Teamgröße",
-  "editor.desktop.myProject.sections.location": "Standort & Währung",
+  "editor.desktop.myProject.sections.location": "Projektstandort",
     "editor.desktop.myProject.sections.timeline": "Projekt-Zeitplan",
   "editor.desktop.myProject.fields.oneLiner": "Ein-Zeilen-Beschreibung",
   "editor.desktop.myProject.fields.confidentiality": "Vertraulichkeitsstufe",
@@ -1688,5 +1688,26 @@
   
   "reco.pageTitle": "Empfehlungsmaschine",
   "reco.pageSubtitle": "Finden Sie die perfekten Förderprogramme für Ihr Projekt",
-  "reco.skipQuestion": "Diese Frage überspringen"
+  "reco.skipQuestion": "Diese Frage überspringen",
+  
+  "editor.desktop.myProject.descriptions.location": "Wählen Sie Ihr Land und Ihre Währung aus",
+  "editor.desktop.myProject.descriptions.projectStage": "Wählen Sie Ihre aktuelle Projektphase aus",
+  "editor.desktop.myProject.descriptions.industry": "Beschreiben Sie Ihre Branche und Schwerpunkte",
+  "editor.desktop.myProject.descriptions.team": "Geben Sie Teamgröße und Informationen an",
+  "editor.desktop.myProject.descriptions.timeline": "Legen Sie Ihren Planungshorizont fest",
+  
+  "editor.desktop.myProject.industries.digital": "Digital & Software",
+  "editor.desktop.myProject.industries.sustainability": "Klima & Nachhaltigkeit",
+  "editor.desktop.myProject.industries.health": "Gesundheit & Life Sciences",
+  "editor.desktop.myProject.industries.manufacturing": "Produktion & Hardware",
+  "editor.desktop.myProject.industries.export": "Internationalisierung",
+  "editor.desktop.myProject.industries.other": "Etwas anderes",
+  
+  "editor.desktop.myProject.placeholders.autoDetected": "Automatisch basierend auf der Länderauswahl",
+  
+  "editor.desktop.myProject.months.12": "12 Monate",
+  "editor.desktop.myProject.months.24": "24 Monate",
+  "editor.desktop.myProject.months.36": "36 Monate",
+  
+  "editor.desktop.myProject.buttons.skipStep": "Diesen Schritt überspringen"
 }

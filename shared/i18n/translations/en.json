@@ -1608,7 +1608,7 @@
   "editor.desktop.myProject.fields.industryFocus": "Industry Focus Areas",
   "editor.desktop.myProject.fields.team": "Team Information",
   "editor.desktop.myProject.fields.teamSize": "Team Size",
-  "editor.desktop.myProject.sections.location": "Location & Currency",
+  "editor.desktop.myProject.sections.location": "Project Location",
     "editor.desktop.myProject.sections.timeline": "Project Timeline",
   "editor.desktop.myProject.fields.oneLiner": "One-liner Description",
   "editor.desktop.myProject.fields.confidentiality": "Confidentiality Level",
@@ -1616,7 +1616,7 @@
   "editor.desktop.myProject.placeholders.selectCountry": "Select country",
   
   "editor.desktop.myProject.stages.idea": "Idea (Concept phase, no product yet)",
-  "editor.desktop.myProject.stages.mvp": "MVP (Minimum Viable Product built)",
+  "editor.desktop.myProject.stages.mvp": "MVP / Prototype (Minimum Viable Product built)",
   "editor.desktop.myProject.stages.revenue": "Revenue (Generating income, scaling)",
   "editor.desktop.myProject.selected": "Selected",
   "editor.desktop.myProject.hints.currencyAuto": "Automatically set based on country selection",
@@ -1643,5 +1643,28 @@
   
   "reco.pageTitle": "Recommendation Engine",
   "reco.pageSubtitle": "Find the perfect funding programs for your project",
-  "reco.skipQuestion": "Skip this question"
+  "reco.skipQuestion": "Skip this question",
+  
+  "editor.desktop.myProject.descriptions.location": "Select your country and currency",
+  "editor.desktop.myProject.descriptions.projectStage": "Choose your current project stage",
+  "editor.desktop.myProject.descriptions.industry": "Describe your industry and focus areas",
+  "editor.desktop.myProject.descriptions.team": "Provide team size and information",
+  "editor.desktop.myProject.descriptions.timeline": "Set your planning horizon",
+  
+  "editor.desktop.myProject.industries.digital": "Digital & Software",
+  "editor.desktop.myProject.industries.sustainability": "Climate & Sustainability",
+  "editor.desktop.myProject.industries.health": "Health & Life Sciences",
+  "editor.desktop.myProject.industries.manufacturing": "Manufacturing & Hardware",
+  "editor.desktop.myProject.industries.export": "Internationalisation",
+  "editor.desktop.myProject.industries.other": "Something else",
+  
+  "editor.desktop.myProject.placeholders.autoDetected": "Auto-detected from country",
+  "editor.desktop.myProject.placeholders.teamSize": "Number of people working on this project",
+  
+  "editor.desktop.myProject.months.12": "12 months",
+  "editor.desktop.myProject.months.24": "24 months",
+  "editor.desktop.myProject.months.36": "36 months",
+  
+  "editor.desktop.myProject.buttons.selected": "Selected",
+  "editor.desktop.myProject.buttons.skipStep": "Skip this step"
 }
