@@ -59,35 +59,74 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const handleProgramClick = () => navigateToStep(2);
   const handlePlanClick = () => navigateToStep(3);
 
-  // Simple step navigation with validation
-  const handleNextStep = () => {
-    // Validate required fields when moving from My Project (step 1) to Program (step 2)
+  // Simple step validation - each step validates itself
+  const validateCurrentStep = (): { isValid: boolean; missingFields: string[] } => {
+    const missingFields: string[] = [];
+    
     if (setupWizard.currentStep === 1) {
-      // Access store data directly
+      // Validate My Project step
       const plan = useEditorStore.getState().plan;
       const titlePage = plan?.settings?.titlePage;
       const projectProfile = setupWizard.projectProfile;
       
-      // Required fields
-      const title = titlePage?.title;
-      const companyName = titlePage?.companyName;
+      // General Info validation
+      if (!titlePage?.title?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.projectName') || 'Document Title');
+      if (!titlePage?.companyName?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.author') || 'Author/Organization');
       
-      // Try to get oneLiner and confidentiality from projectProfile first, fallback to titlePage
-      const oneLiner = projectProfile?.oneLiner || (titlePage as any)?.oneLiner;
-      const confidentiality = projectProfile?.confidentiality || (titlePage as any)?.confidentiality;
-      
-      // Validate ALL required fields
-      const missingFields = [];
-      
-      if (!title?.trim()) missingFields.push('Document Title');
-      if (!companyName?.trim()) missingFields.push('Author/Organization');
-      if (!oneLiner?.trim()) missingFields.push('One-liner Description');
-      if (!confidentiality) missingFields.push('Confidentiality Level');
-      
-      if (missingFields.length > 0) {
-        alert(`Please complete the following required fields before proceeding: ${missingFields.join(', ')}`);
-        return;
+      // Project Profile validation
+      if (!projectProfile || !projectProfile.country || projectProfile.country === '') {
+        missingFields.push(t('editor.desktop.setupWizard.fields.country') || 'Country');
       }
+      if (!projectProfile || !projectProfile.stage) {  // Accept 'idea' as valid
+        missingFields.push(t('editor.desktop.setupWizard.fields.stage') || 'Project Stage');
+      }
+    }
+    // Other steps can be validated similarly
+    
+    return { 
+      isValid: missingFields.length === 0, 
+      missingFields 
+    };
+  };
+
+  // Simple step navigation with validation
+  const handleNextStep = () => {
+    const validation = validateCurrentStep();
+    
+    if (!validation.isValid) {
+      // Show validation notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed bg-red-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm z-[10001]';
+      
+      // Position to the right of the Continue button
+      const continueButton = document.querySelector('button.bg-green-600');
+      if (continueButton) {
+        const rect = continueButton.getBoundingClientRect();
+        notification.style.left = `${rect.right + 10}px`;
+        notification.style.top = `${rect.top}px`;
+      }
+            
+      const title = t('editor.desktop.setupWizard.validation.projectName') || 'Please complete all requiered fields:';
+      const fieldList = validation.missingFields.map((field: string) => `- ${field}`).join('\n');
+            
+      notification.innerHTML = `
+        <div>
+          <div class="font-medium mb-1">${title}</div>
+          <div class="whitespace-pre-line text-sm">${fieldList}</div>
+        </div>
+      `;
+      
+      // Add to document body (outside modal)
+      document.body.appendChild(notification);
+            
+      // Auto-remove after 4 seconds
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 4000);
+            
+      return;
     }
     
     // Proceed to next step
@@ -374,34 +413,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                           </button>
                         ) : (
                           <button
-                            onClick={() => {
-                              // Validate required fields before continuing to program
-                              const plan = useEditorStore.getState().plan;
-                              const titlePage = plan?.settings?.titlePage;
-                              const projectProfile = setupWizard.projectProfile;
-                              
-                              const title = titlePage?.title;
-                              const companyName = titlePage?.companyName;
-                              
-                              // Try to get oneLiner and confidentiality from projectProfile first, fallback to titlePage
-                              const oneLiner = projectProfile?.oneLiner || (titlePage as any)?.oneLiner;
-                              const confidentiality = projectProfile?.confidentiality || (titlePage as any)?.confidentiality;
-                              
-                              const missingFields = [];
-                              
-                              if (!title?.trim()) missingFields.push('Document Title');
-                              if (!companyName?.trim()) missingFields.push('Author/Organization');
-                              if (!oneLiner?.trim()) missingFields.push('One-liner Description');
-                              if (!confidentiality) missingFields.push('Confidentiality Level');
-                              
-                              if (missingFields.length > 0) {
-                                alert(`Please complete the following required fields before proceeding: ${missingFields.join(', ')}`);
-                                return;
-                              }
-                              
-                              // Proceed to next step
-                              handleNextStep();
-                            }}
+                            onClick={handleNextStep}
                             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
                           >
                             Continue to Program

@@ -1591,7 +1591,7 @@
   "editor.desktop.setupWizard.buttons.previous": "Previous",
   "editor.desktop.setupWizard.buttons.complete": "Complete Setup",
   
-  "editor.desktop.setupWizard.validation.projectName": "Project name is required",
+  "editor.desktop.setupWizard.validation.projectName": "⚠️Please complete all required fields:",
   "editor.desktop.setupWizard.validation.author": "Author is required",
   "editor.desktop.setupWizard.validation.oneLiner": "One-liner description is required",
   "editor.desktop.setupWizard.validation.country": "Country is required",

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useEditorState } from '../../../../lib/hooks/useEditorState';
-import { useEditorActions } from '../../../../lib/hooks/useEditorActions';
-import { useI18n } from '../../../../../../shared/contexts/I18nContext';
+import { useI18n } from '@/shared/contexts/I18nContext';
+import { useEditorState } from '@/features/editor/lib/hooks/useEditorState';
+import { useEditorActions } from '@/features/editor/lib/hooks/useEditorActions';
 import { METADATA_SECTION_ID } from '@/features/editor/lib/constants';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
 import ProjectProfileStep from './subSteps/ProjectProfileStep';
@@ -30,6 +30,7 @@ const MyProject: React.FC<MyProjectProps> = ({
   const { plan } = useEditorState();
   const actions = useEditorActions((a) => ({
     updateSection: a.updateSection,
+    setProjectProfile: a.setProjectProfile,
   }));
   
   // Form state
@@ -63,17 +64,6 @@ const MyProject: React.FC<MyProjectProps> = ({
     }
   });
 
-  // Debug logging for form data and store updates
-  console.log('MyProject form data:', {
-    title: formData.title,
-    companyName: formData.companyName,
-    storeTitle: plan?.settings?.titlePage?.title,
-    confidentiality: formData.confidentiality,
-    confidentialityStatement: formData.confidentialityStatement
-  });
-  
-  // Store update debugging can be added later if needed
-
   const handleFieldChange = (field: string, value: any) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
@@ -87,7 +77,6 @@ const MyProject: React.FC<MyProjectProps> = ({
         };
         
         // Immediate update for all title page fields to trigger preview
-        // Using queueMicrotask to defer the store update to next tick
         queueMicrotask(() => {
           actions.updateSection(METADATA_SECTION_ID, { 
             title: newData.title,
@@ -107,8 +96,22 @@ const MyProject: React.FC<MyProjectProps> = ({
       setFormData(prev => {
         const newData = { ...prev, [field]: value };
         
+        // Update project profile for Project Profile fields
+        if (['country', 'stage', 'industryTags', 'oneLiner', 'teamSize', 'financialBaseline'].includes(field)) {
+          const projectProfile = {
+            projectName: newData.title,
+            author: newData.companyName,
+            confidentiality: newData.confidentiality,
+            oneLiner: newData.oneLiner,
+            stage: newData.stage,
+            country: newData.country,
+            industryTags: newData.industryTags,
+            financialBaseline: newData.financialBaseline
+          };
+          actions.setProjectProfile(projectProfile);
+        }
+        
         // Immediate update for all title page fields to trigger preview
-        // Using queueMicrotask to defer the store update to next tick
         queueMicrotask(() => {
           actions.updateSection(METADATA_SECTION_ID, { 
             title: newData.title,
@@ -126,13 +129,6 @@ const MyProject: React.FC<MyProjectProps> = ({
       });
     }
   };
-
-    // Simple handleSubmit without validation
-    const handleNextStep = () => {
-      if (onSubmit) {
-        onSubmit(formData);
-      }
-    };
 
   // Display mode - keep original simple behavior
   if (mode === 'display') {
@@ -155,10 +151,17 @@ const MyProject: React.FC<MyProjectProps> = ({
       }
     };
 
+    // Simple handleSubmit without validation
+    const handleNextStep = () => {
+      if (onSubmit) {
+        onSubmit(formData);
+      }
+    };
+
     return (
       <>
         <div className={`${className} flex gap-4 items-start`}>
-          {/* Navigation Sidebar - Further increased width to prevent text cutoff */}
+          {/* Navigation Sidebar */}
           <div className="w-64 flex-shrink-0">
             <div className="bg-slate-800 rounded-lg p-2 border border-slate-700">
               <nav className="space-y-2">
@@ -201,9 +204,9 @@ const MyProject: React.FC<MyProjectProps> = ({
             </div>
           </div>
           
-          {/* Main Content - Flexible width to accommodate sidebar */}
+          {/* Main Content */}
           <div className="flex-1 min-w-0">
-            <form onSubmit={(e) => { e.preventDefault(); handleNextStep(); }} className="space-y-4">
+            <div className="space-y-4">
               {/* Show only current section */}
               {currentSection === 1 && (
                 <GeneralInfoStep 
@@ -276,9 +279,7 @@ const MyProject: React.FC<MyProjectProps> = ({
                   </div>
                 </div>
               )}
-
-              
-            </form>
+            </div>
           </div>
         </div>
         {/* Only show preview when explicitly requested */}
