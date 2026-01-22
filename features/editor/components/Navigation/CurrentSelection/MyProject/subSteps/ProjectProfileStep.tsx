@@ -24,7 +24,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
   const totalSteps = 5;
   
   const getStepEmoji = (step: number) => {
-    const emojis = ['🌍', '🚀', '🏭', '👥', '📅'];
+    const emojis = ['🌍', '🏗️', '🏭', '👥', '📅'];
     return emojis[step - 1] || '❓';
   };
   
@@ -237,7 +237,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
             <div className="border border-slate-600 rounded-lg bg-slate-800/50">
               <div className="px-3 py-2">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">🚀</span>
+                  <span className="text-lg">🏗️</span>
                   <h4 className="text-white font-bold text-sm">
                     {t('editor.desktop.myProject.fields.projectStage') || 'Project Stage'}
                   </h4>

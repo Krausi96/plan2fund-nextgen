@@ -10,7 +10,6 @@ import LivePreviewBox from './LivePreviewBox';
 interface MyProjectProps {
   className?: string;
   mode?: 'display' | 'form';
-  onSubmit?: (data: any) => void;
   currentSection?: 1 | 2 | 3;
   onSectionChange?: (section: 1 | 2 | 3) => void;
   showPreview?: boolean;
@@ -20,7 +19,6 @@ interface MyProjectProps {
 const MyProject: React.FC<MyProjectProps> = ({ 
   className = '', 
   mode = 'display', 
-  onSubmit,
   currentSection = 1,
   onSectionChange,
   showPreview = false,
@@ -151,13 +149,6 @@ const MyProject: React.FC<MyProjectProps> = ({
       }
     };
 
-    // Simple handleSubmit without validation
-    const handleNextStep = () => {
-      if (onSubmit) {
-        onSubmit(formData);
-      }
-    };
-
     return (
       <>
         <div className={`${className} flex gap-4 items-start`}>
@@ -225,10 +216,6 @@ const MyProject: React.FC<MyProjectProps> = ({
               
               {currentSection === 3 && (
                 <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                    <span className="text-xl">✨</span> 
-                    {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
-                  </h3>
                   <div className="space-y-3">
                     <div>
                       <label className="block text-white font-medium mb-2">

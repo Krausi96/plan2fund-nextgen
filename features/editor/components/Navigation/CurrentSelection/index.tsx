@@ -56,8 +56,75 @@ function CurrentSelection({}: CurrentSelectionProps) {
     navigateToStep(1);
   };
 
-  const handleProgramClick = () => navigateToStep(2);
-  const handlePlanClick = () => navigateToStep(3);
+  const handleProgramClick = () => {
+    // Only allow navigation to Program if My Project is completed
+    const projectValidation = validateCurrentStep();
+    if (setupWizard.currentStep >= 1 && projectValidation.isValid) {
+      navigateToStep(2);
+    } else {
+      // Show validation error
+      const notification = document.createElement('div');
+      notification.className = 'fixed bg-red-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm z-[10001]';
+      
+      const continueButton = document.querySelector('button.bg-green-600');
+      if (continueButton) {
+        const rect = continueButton.getBoundingClientRect();
+        notification.style.left = `${rect.right + 10}px`;
+        notification.style.top = `${rect.top}px`;
+      }
+      
+      const title = t('editor.desktop.setupWizard.validation.projectName') || 'Please complete all requiered fields:';
+      const fieldList = projectValidation.missingFields.map((field: string) => `- ${field}`).join('\n');
+      
+      notification.innerHTML = `
+        <div>
+          <div class="font-medium mb-1">${title}</div>
+          <div class="whitespace-pre-line text-sm">${fieldList}</div>
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 4000);
+    }
+  };
+  
+  const handlePlanClick = () => {
+    // Only allow navigation to Plan if both My Project and Program are completed
+    const projectValidation = validateCurrentStep();
+    if (setupWizard.currentStep >= 2 && projectValidation.isValid && programSummary) {
+      navigateToStep(3);
+    } else {
+      // Show appropriate error message
+      const notification = document.createElement('div');
+      notification.className = 'fixed bg-red-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm z-[10001]';
+      
+      const continueButton = document.querySelector('button.bg-blue-600');
+      if (continueButton) {
+        const rect = continueButton.getBoundingClientRect();
+        notification.style.left = `${rect.right + 10}px`;
+        notification.style.top = `${rect.top}px`;
+      }
+      
+      const message = setupWizard.currentStep < 2 
+        ? 'Please complete Project setup first'
+        : 'Please select a program first';
+      
+      notification.innerHTML = `
+        <div class="font-medium">${message}</div>
+      `;
+      
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 4000);
+    }
+  };
 
   // Simple step validation - each step validates itself
   const validateCurrentStep = (): { isValid: boolean; missingFields: string[] } => {
@@ -155,6 +222,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
       step: 1,
       label: '💼 ' + (t('editor.desktop.myProject.title') || 'Mein Projekt'),
       isActive: setupWizard.currentStep === 1,
+      isAccessible: true, // Always accessible
       onClick: handleMyProjectClick,
       renderContent: () => !isConfiguratorOpen && <MyProject mode="display" />
     },
@@ -163,6 +231,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
       step: 2,
       label: '📚 ' + (t('editor.desktop.selection.programLabel') || 'Programm / Vorlage'),
       isActive: setupWizard.currentStep === 2,
+      isAccessible: setupWizard.currentStep >= 1 && validateCurrentStep().isValid, // Accessible after step 1 completion
       onClick: handleProgramClick,
       renderContent: () => !isConfiguratorOpen && (
         <div className="text-white font-medium truncate flex items-center gap-1 max-w-[140px]">
@@ -177,6 +246,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
       step: 3,
       label: '📋 ' + (t('editor.desktop.selection.productLabel') || 'Plan'),
       isActive: setupWizard.currentStep === 3,
+      isAccessible: setupWizard.currentStep >= 2 && validateCurrentStep().isValid && !!programSummary, // Accessible after step 2 completion and program selection
       onClick: handlePlanClick,
       renderContent: () => !isConfiguratorOpen && (
         <div className="flex items-center gap-1 max-w-[140px]">
@@ -189,26 +259,39 @@ function CurrentSelection({}: CurrentSelectionProps) {
   ];
 
   // Dynamic section renderer
-  const renderSectionCard = (section: typeof sections[0]) => (
-    <div 
-      key={section.key}
-      className={`flex flex-col items-start text-left cursor-pointer hover:bg-white/10 p-2 rounded transition-colors min-w-0 max-w-[160px] flex-shrink-0 ${
-        section.isActive ? 'bg-white/20' : ''
-      }`}
-      onClick={section.onClick}
-    >
-      <div className="flex items-center gap-2">
-        <span className="text-white/70 font-medium text-xs mb-1" title={section.label}>{section.label}</span>
-        {section.isActive && isConfiguratorOpen && (
-          <span className="relative">
-            <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
-            <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
+  const renderSectionCard = (section: typeof sections[0]) => {
+    const isAccessibleAndInactive = section.isAccessible && !section.isActive;
+    
+    return (
+      <div 
+        key={section.key}
+        className={`flex flex-col items-start text-left p-2 rounded transition-colors min-w-0 max-w-[160px] flex-shrink-0 ${
+          section.isActive 
+            ? 'bg-white/20' 
+            : section.isAccessible 
+              ? 'hover:bg-white/10' 
+              : 'opacity-50'
+        }`}
+        style={{
+          cursor: isAccessibleAndInactive ? 'pointer' : section.isActive ? 'default' : 'not-allowed',
+        }}
+        onClick={section.isAccessible ? section.onClick : undefined}
+      >
+        <div className="flex items-center gap-2">
+          <span className={`font-medium text-xs mb-1 ${section.isActive ? 'text-white' : section.isAccessible ? 'text-white/70' : 'text-white/40'}`} title={section.label}>
+            {section.label}
           </span>
-        )}
+          {section.isActive && isConfiguratorOpen && (
+            <span className="relative">
+              <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
+              <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
+            </span>
+          )}
+        </div>
+        {section.renderContent()}
       </div>
-      {section.renderContent()}
-    </div>
-  );
+    );
+  };
 
   // Compact header - always shows "Current Selection:" 
   const CompactInfoRow = () => (
@@ -348,7 +431,6 @@ function CurrentSelection({}: CurrentSelectionProps) {
                         <div className="w-full">
                           <MyProject 
                             mode="form" 
-                            onSubmit={handleNextStep}
                             currentSection={currentSection}
                             onSectionChange={setCurrentSection}
                             showPreview={showPreview}
@@ -397,7 +479,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                             className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
                           >
                             <ArrowLeft className="w-4 h-4" />
-                            Previous
+                            {t('editor.desktop.setupWizard.buttons.previous') || 'Previous'}
                           </button>
                         )}
                       </div>
@@ -408,7 +490,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                             onClick={() => setCurrentSection((currentSection + 1) as 1 | 2 | 3)}
                             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                           >
-                            Next
+                            {t('editor.desktop.setupWizard.buttons.next') || 'Next'}
                             <ArrowRight className="w-4 h-4" />
                           </button>
                         ) : (
@@ -416,7 +498,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                             onClick={handleNextStep}
                             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
                           >
-                            Continue to Program
+                            {t('editor.desktop.setupWizard.buttons.next') || 'Continue to Program'}
                             <ArrowRight className="w-4 h-4" />
                           </button>
                         )}
@@ -429,14 +511,14 @@ function CurrentSelection({}: CurrentSelectionProps) {
                         className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
                       >
                         <ArrowLeft className="w-4 h-4" />
-                        Back to Project
+                        {t('editor.desktop.setupWizard.buttons.previous') || 'Back to Project'}
                       </button>
                       
                       <button
                         onClick={handleNextStep}
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                       >
-                        Continue to Templates
+                        {t('editor.desktop.setupWizard.buttons.next') || 'Continue to Templates'}
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     </>
@@ -447,14 +529,14 @@ function CurrentSelection({}: CurrentSelectionProps) {
                         className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors"
                       >
                         <ArrowLeft className="w-4 h-4" />
-                        Back to Program
+                        {t('editor.desktop.setupWizard.buttons.previous') || 'Back to Program'}
                       </button>
                       
                       <button
                         onClick={handleComplete}
                         className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
                       >
-                        Complete Setup
+                        {t('editor.desktop.setupWizard.buttons.complete') || 'Complete Setup'}
                       </button>
                     </>
                   )}
