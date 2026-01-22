@@ -5,7 +5,6 @@ import ProgramSelection from './ProgramSelection/ProgramSelection';
 import ReadinessCheck from './ReadinessCheck/ReadinessCheck';
 import MyProject from './MyProject/MyProject';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-// import { useEditorState } from '@/features/editor/lib/hooks/useEditorState'; // Not used in current implementation
 import { useConfiguratorState, useEditorActions, useEditorStore } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
@@ -22,7 +21,6 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const { selectedProductMeta, programSummary } = useConfiguratorState();
   const isConfiguratorOpen = useEditorStore((state) => state.isConfiguratorOpen);
   const setupWizard = useEditorStore((state) => state.setupWizard);
-  // const { plan } = useEditorState(); // Not used in current implementation
   const actions = useEditorActions((a) => ({
     setIsConfiguratorOpen: a.setIsConfiguratorOpen,
     setSetupWizardStep: a.setSetupWizardStep,
@@ -33,13 +31,6 @@ function CurrentSelection({}: CurrentSelectionProps) {
   // Section navigation state for MyProject
   const [currentSection, setCurrentSection] = useState<1 | 2 | 3>(1);
   
-  // Reset interaction tracking when navigating away or closing
-  useEffect(() => {
-    if (setupWizard.currentStep !== 1 || currentSection !== 1) {
-      // Reset tracking when leaving MyProject or changing sections
-    }
-  }, [setupWizard.currentStep, currentSection]);
-
   // Simplified preview logic - show preview when My Project modal is open and on GeneralInfo section
   const showPreview = setupWizard.currentStep === 1 && 
                      currentSection === 1 && 
@@ -62,33 +53,8 @@ function CurrentSelection({}: CurrentSelectionProps) {
     if (setupWizard.currentStep >= 1 && projectValidation.isValid) {
       navigateToStep(2);
     } else {
-      // Show validation error
-      const notification = document.createElement('div');
-      notification.className = 'fixed bg-red-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm z-[10001]';
-      
-      const continueButton = document.querySelector('button.bg-green-600');
-      if (continueButton) {
-        const rect = continueButton.getBoundingClientRect();
-        notification.style.left = `${rect.right + 10}px`;
-        notification.style.top = `${rect.top}px`;
-      }
-      
-      const title = t('editor.desktop.setupWizard.validation.projectName') || 'Please complete all requiered fields:';
-      const fieldList = projectValidation.missingFields.map((field: string) => `- ${field}`).join('\n');
-      
-      notification.innerHTML = `
-        <div>
-          <div class="font-medium mb-1">${title}</div>
-          <div class="whitespace-pre-line text-sm">${fieldList}</div>
-        </div>
-      `;
-      
-      document.body.appendChild(notification);
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
-        }
-      }, 4000);
+      // Show validation error using unified utility
+      showNotification('validation', '', projectValidation.missingFields);
     }
   };
   
@@ -98,31 +64,12 @@ function CurrentSelection({}: CurrentSelectionProps) {
     if (setupWizard.currentStep >= 2 && projectValidation.isValid && programSummary) {
       navigateToStep(3);
     } else {
-      // Show appropriate error message
-      const notification = document.createElement('div');
-      notification.className = 'fixed bg-red-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm z-[10001]';
-      
-      const continueButton = document.querySelector('button.bg-blue-600');
-      if (continueButton) {
-        const rect = continueButton.getBoundingClientRect();
-        notification.style.left = `${rect.right + 10}px`;
-        notification.style.top = `${rect.top}px`;
-      }
-      
+      // Show appropriate error message using unified utility
       const message = setupWizard.currentStep < 2 
         ? 'Please complete Project setup first'
         : 'Please select a program first';
       
-      notification.innerHTML = `
-        <div class="font-medium">${message}</div>
-      `;
-      
-      document.body.appendChild(notification);
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
-        }
-      }, 4000);
+      showNotification('error', message, undefined, 'button.bg-blue-600');
     }
   };
 
@@ -149,50 +96,18 @@ function CurrentSelection({}: CurrentSelectionProps) {
       }
     }
     // Other steps can be validated similarly
-    
+      
     return { 
       isValid: missingFields.length === 0, 
       missingFields 
     };
   };
-
-  // Simple step navigation with validation
   const handleNextStep = () => {
     const validation = validateCurrentStep();
     
     if (!validation.isValid) {
-      // Show validation notification
-      const notification = document.createElement('div');
-      notification.className = 'fixed bg-red-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm z-[10001]';
-      
-      // Position to the right of the Continue button
-      const continueButton = document.querySelector('button.bg-green-600');
-      if (continueButton) {
-        const rect = continueButton.getBoundingClientRect();
-        notification.style.left = `${rect.right + 10}px`;
-        notification.style.top = `${rect.top}px`;
-      }
-            
-      const title = t('editor.desktop.setupWizard.validation.projectName') || 'Please complete all requiered fields:';
-      const fieldList = validation.missingFields.map((field: string) => `- ${field}`).join('\n');
-            
-      notification.innerHTML = `
-        <div>
-          <div class="font-medium mb-1">${title}</div>
-          <div class="whitespace-pre-line text-sm">${fieldList}</div>
-        </div>
-      `;
-      
-      // Add to document body (outside modal)
-      document.body.appendChild(notification);
-            
-      // Auto-remove after 4 seconds
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
-        }
-      }, 4000);
-            
+      // Show validation notification using unified utility
+      showNotification('validation', '', validation.missingFields);
       return;
     }
     
@@ -211,6 +126,39 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const handleComplete = () => {
     actions.completeSetupWizard();
     actions.setIsConfiguratorOpen(false);
+  };
+
+  // Unified notification utility - replaces 3 duplicate implementations
+  const showNotification = (type: 'error' | 'validation', message: string, missingFields?: string[], selector = 'button.bg-green-600') => {
+    const notification = document.createElement('div');
+    notification.className = 'fixed bg-red-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm z-[10001]';
+    
+    const targetButton = document.querySelector(selector);
+    if (targetButton) {
+      const rect = targetButton.getBoundingClientRect();
+      notification.style.left = `${rect.right + 10}px`;
+      notification.style.top = `${rect.top}px`;
+    }
+    
+    if (type === 'validation' && missingFields?.length) {
+      const title = t('editor.desktop.setupWizard.validation.projectName') || 'Please complete all requiered fields:';
+      const fieldList = missingFields.map(field => `- ${field}`).join('\n');
+      notification.innerHTML = `
+        <div>
+          <div class="font-medium mb-1">${title}</div>
+          <div class="whitespace-pre-line text-sm">${fieldList}</div>
+        </div>
+      `;
+    } else {
+      notification.innerHTML = `<div class="font-medium">${message}</div>`;
+    }
+    
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 4000);
   };
 
   const handleToggle = () => actions.setIsConfiguratorOpen(!isConfiguratorOpen);
@@ -260,7 +208,6 @@ function CurrentSelection({}: CurrentSelectionProps) {
 
   // Dynamic section renderer
   const renderSectionCard = (section: typeof sections[0]) => {
-    const isAccessibleAndInactive = section.isAccessible && !section.isActive;
     
     return (
       <div 
@@ -273,7 +220,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
               : 'opacity-50'
         }`}
         style={{
-          cursor: isAccessibleAndInactive ? 'pointer' : section.isActive ? 'default' : 'not-allowed',
+          cursor: section.key === 'project' || (section.isAccessible && !section.isActive) ? 'pointer' : section.isActive ? 'default' : 'not-allowed',
         }}
         onClick={section.isAccessible ? section.onClick : undefined}
       >
@@ -315,8 +262,8 @@ function CurrentSelection({}: CurrentSelectionProps) {
           </React.Fragment>
         ))}
         
-        {/* Readiness */}
-        <div className="flex flex-col items-start text-left min-w-0">
+        {/* Readiness - ensure full opacity */}
+        <div className="flex flex-col items-start text-left min-w-0 opacity-100">
           <div className="flex items-center gap-2">
             <span className="text-white/70 font-medium text-xs mb-1">📊 {t('editor.desktop.selection.readiness' as any) || 'Bereitschaft'}</span>
           </div>
