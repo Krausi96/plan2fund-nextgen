@@ -147,6 +147,11 @@ function CurrentSelection({}: CurrentSelectionProps) {
       if (!projectProfile || projectProfile.stage === undefined || projectProfile.stage === null) {  // Require explicit selection
         missingFields.push(t('editor.desktop.setupWizard.fields.stage') || 'Project Stage');
       }
+      
+      // Planning Context validation
+      if (projectProfile?.financialBaseline?.planningHorizon === undefined || projectProfile?.financialBaseline?.planningHorizon === null) {
+        missingFields.push(t('editor.desktop.setupWizard.fields.planningHorizon') || 'Planning Horizon');
+      }
     }
     // Other steps can be validated similarly
         
@@ -410,23 +415,30 @@ function CurrentSelection({}: CurrentSelectionProps) {
                         </h2>
                         <div className="border-b border-white/20 mb-2"></div>
                         
-                        {/* Row 2: Description + Dynamic header closer together */}
-                        <div className="flex items-center gap-8 mb-3">
-                          <p className="text-white/60 text-sm flex-shrink-0">
-                            {t('editor.desktop.myProject.subtitle') || 'Enter basic project data'}
-                          </p>
-                          <h2 className="text-xl font-bold text-white flex items-center gap-2 ml-4">
-                            <span className="text-xl">
-                              {currentSection === 1 && '📋'}
-                              {currentSection === 2 && '🏢'}
-                              {currentSection === 3 && '✨'}
-                            </span>
-                            <span>
-                              {currentSection === 1 && (t('editor.desktop.myProject.sections.generalInfo') || 'General Information')}
-                              {currentSection === 2 && (t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile')}
-                              {currentSection === 3 && (t('editor.desktop.myProject.sections.planningContext') || 'Planning Context')}
-                            </span>
-                          </h2>
+                        {/* Row 2: Simple flex layout with fixed proportions */}
+                        <div className="flex gap-4 mb-3">
+                          {/* Box 1: Description with fixed width */}
+                          <div className="w-64 flex-shrink-0">
+                            <p className="text-white/60 text-sm whitespace-nowrap">
+                              {t('editor.desktop.myProject.subtitle') || 'Enter basic project data'}
+                            </p>
+                          </div>
+                          
+                          {/* Box 2: Header taking remaining space */}
+                          <div className="flex-grow min-w-0">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-2 truncate">
+                              <span className="text-xl flex-shrink-0">
+                                {currentSection === 1 && '📋'}
+                                {currentSection === 2 && '🏢'}
+                                {currentSection === 3 && '✨'}
+                              </span>
+                              <span className="truncate">
+                                {currentSection === 1 && (t('editor.desktop.myProject.sections.generalInfo') || 'General Information')}
+                                {currentSection === 2 && (t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile')}
+                                {currentSection === 3 && (t('editor.desktop.myProject.sections.planningContext') || 'Planning Context')}
+                              </span>
+                            </h2>
+                          </div>
                         </div>
                         <div className="w-full">
                           <MyProject 
@@ -496,7 +508,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                         ) : (
                           <button
                             onClick={handleNextStep}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-900 transition-colors"
                           >
                             {t('editor.desktop.setupWizard.buttons.next') || 'Continue to Program'}
                             <ArrowRight className="w-4 h-4" />

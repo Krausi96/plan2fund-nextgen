@@ -35,16 +35,6 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
     return titles[step - 1] || `Step ${step}`;
   };
   
-  const getStepDescription = (step: number) => {
-    const descriptions = [
-      t('editor.desktop.myProject.descriptions.location'),
-      t('editor.desktop.myProject.descriptions.projectStage'),
-      t('editor.desktop.myProject.descriptions.industry'),
-      t('editor.desktop.myProject.descriptions.team')
-    ];
-    return descriptions[step - 1] || '';
-  };
-  
   const isStepRequired = (step: number) => {
     // Steps 1 and 2 are required
     return step <= 2;
@@ -140,7 +130,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-200 ${buttonClass}`}
                 >
                   <div className="relative">
-                    <span className="text-lg">{getStepEmoji(step)}</span>
+                    <span className="text-2xl">{getStepEmoji(step)}</span>
                     {isCompleted && (
                       <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-[8px]">✓</span>
@@ -150,7 +140,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                     )}
                   </div>
-                  <span className="text-xs font-bold text-center truncate w-full">
+                  <span className="text-sm font-semibold text-center truncate w-full">
                     {getStepTitle(step)}
                     {isRequired && <span className="text-red-400"> *</span>}
                   </span>
@@ -170,12 +160,10 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">🌍</span>
                   <h4 className="text-white font-bold text-sm">
-                    {t('editor.desktop.myProject.sections.location') || 'Location & Currency'}
+                    {t('editor.desktop.myProject.sections.location') || 'Location'}
                   </h4>
                   <span className="text-red-400 font-bold text-sm">*</span>
                 </div>
-                <p className="text-white/70 text-sm font-bold mb-3">{getStepDescription(currentStep)}</p>
-            
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
@@ -191,17 +179,17 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       required
                     >
                       <option value="">{t('editor.desktop.myProject.placeholders.selectCountry')}</option>
-                      <option value="Austria">Austria</option>
-                      <option value="Germany">Germany</option>
-                      <option value="France">France</option>
-                      <option value="Italy">Italy</option>
-                      <option value="Spain">Spain</option>
-                      <option value="Netherlands">Netherlands</option>
-                      <option value="Belgium">Belgium</option>
-                      <option value="Switzerland">Switzerland</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="USA">USA</option>
-                      <option value="Canada">Canada</option>
+                      <option value="Austria">{t('editor.desktop.myProject.countries.austria') || 'Austria'}</option>
+                      <option value="Germany">{t('editor.desktop.myProject.countries.germany') || 'Germany'}</option>
+                      <option value="France">{t('editor.desktop.myProject.countries.france') || 'France'}</option>
+                      <option value="Italy">{t('editor.desktop.myProject.countries.italy') || 'Italy'}</option>
+                      <option value="Spain">{t('editor.desktop.myProject.countries.spain') || 'Spain'}</option>
+                      <option value="Netherlands">{t('editor.desktop.myProject.countries.netherlands') || 'Netherlands'}</option>
+                      <option value="Belgium">{t('editor.desktop.myProject.countries.belgium') || 'Belgium'}</option>
+                      <option value="Switzerland">{t('editor.desktop.myProject.countries.switzerland') || 'Switzerland'}</option>
+                      <option value="United Kingdom">{t('editor.desktop.myProject.countries.unitedKingdom') || 'United Kingdom'}</option>
+                      <option value="USA">{t('editor.desktop.myProject.countries.usa') || 'USA'}</option>
+                      <option value="Canada">{t('editor.desktop.myProject.countries.canada') || 'Canada'}</option>
                     </select>
                   </div>
                   
@@ -236,13 +224,13 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   </h4>
                   <span className="text-red-400 font-bold text-sm">*</span>
                 </div>
-                <p className="text-white/70 text-sm font-bold mb-3">{getStepDescription(currentStep)}</p>
-            
                 <div className="space-y-3">
+                  <p className="text-white/70 text-sm">{t('editor.desktop.myProject.descriptions.projectStage') || 'Choose your current project stage'}</p>
                   {[
                     { value: 'idea', label: t('editor.desktop.myProject.stages.idea'), icon: '💡' },
                     { value: 'MVP', label: t('editor.desktop.myProject.stages.mvp'), icon: '🧪' },
-                    { value: 'revenue', label: t('editor.desktop.myProject.stages.revenue'), icon: '📈' }
+                    { value: 'revenue', label: t('editor.desktop.myProject.stages.revenue'), icon: '📈' },
+                    { value: 'growth', label: t('editor.desktop.myProject.stages.growth'), icon: '💥' },
                   ].map((stage) => (
                     <button
                       key={stage.value}
@@ -254,14 +242,11 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                           : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
                       }`}
                     >
-                      <span className="text-lg">{stage.icon}</span>
+                      <span className="text-sm">{stage.icon}</span>
                       <div>
-                        <div className="font-medium">{stage.label}</div>
-                        {formData.stage === stage.value && (
-                          <span className="text-sm opacity-90">
-                            {t('editor.desktop.myProject.buttons.selected')}
-                          </span>
-                        )}
+                        <div className="font-medium text-sm text-white">{stage.label}</div>
+                        {formData.stage === stage.value 
+                        }
                       </div>
                     </button>
                   ))}
@@ -277,23 +262,19 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🏭</span>
-                    <h4 className="text-white font-medium text-sm">
+                    <h4 className="text-white font-medium text-sm text-white">
                       {t('editor.desktop.myProject.fields.industry') || 'Industry'}
                     </h4>
                   </div>
                   <span className="text-white/70 text-xs">(Optional)</span>
                 </div>
-                <p className="text-white/70 text-sm font-bold mb-3">{getStepDescription(currentStep)}</p>
-            
                 <div className="space-y-4">
+                  <p className="text-white/70 text-sm">{t('editor.desktop.myProject.descriptions.industry') || 'Describe your industry and focus areas'}</p>
                   
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">
-                      {t('editor.desktop.myProject.fields.industryFocus') || 'Industry Focus Areas'} (Multi-select)
-                    </label>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {[
-                        { value: 'digital', label: t('editor.desktop.myProject.industries.digital') },
+                      {[{ value: 'digital', label: t('editor.desktop.myProject.industries.digital') },
                         { value: 'sustainability', label: t('editor.desktop.myProject.industries.sustainability') },
                         { value: 'health', label: t('editor.desktop.myProject.industries.health') },
                         { value: 'manufacturing', label: t('editor.desktop.myProject.industries.manufacturing') },
@@ -312,7 +293,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                                 : [...current, focus.value];
                               handleFieldChange('industryFocus', newValue.length > 0 ? newValue : undefined);
                             }}
-                            className={`w-full text-left px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                            className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
                               isSelected
                                 ? 'bg-blue-600 border-blue-600 text-white font-medium'
                                 : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
@@ -332,6 +313,22 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                         );
                       })}
                     </div>
+                    
+                    {/* Custom industry input when 'other' is selected */}
+                    {formData.industryFocus?.includes('other') && (
+                      <div className="mt-4 pt-4 border-t border-slate-600">
+                        <label className="block text-white text-sm font-medium mb-2">
+                          {t('editor.desktop.myProject.fields.customIndustry') || 'Specify your industry'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.customIndustry || ''}
+                          onChange={(e) => handleFieldChange('customIndustry', e.target.value)}
+                          placeholder={t('editor.desktop.myProject.placeholders.customIndustry') || 'Enter your industry'}
+                          className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -345,21 +342,19 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">👥</span>
-                    <h4 className="text-white font-medium text-sm">
+                    <h4 className="text-white font-medium text-sm text-white">
                       {t('editor.desktop.myProject.fields.team') || 'Team Information'}
                     </h4>
                   </div>
                   <span className="text-white/70 text-xs">(Optional)</span>
                 </div>
-                <p className="text-white/70 text-sm font-bold mb-3">{getStepDescription(currentStep)}</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <p className="text-white/70 text-sm">{t('editor.desktop.myProject.descriptions.team') || 'Provide team size and information'}</p>
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <label className="block text-white text-sm font-medium">
                         {t('editor.desktop.myProject.fields.teamSize') || 'Team Size'}
                       </label>
-                      <span className="text-red-400 text-[8px]">*</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <input
@@ -368,15 +363,12 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                         max="100"
                         value={formData.teamSize || 1}
                         onChange={(e) => handleFieldChange('teamSize', parseInt(e.target.value))}
-                        className="flex-1 h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                        className="flex-1 h-2 mt-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
                       />
                       <span className="text-white text-sm w-12 text-center">
                         {formData.teamSize || 1}
                       </span>
                     </div>
-                    <p className="text-white/50 text-xs mt-1">
-                      {t('editor.desktop.myProject.placeholders.teamSize')}
-                    </p>
                   </div>
                 </div>
               </div>
@@ -387,7 +379,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
         
         {/* Skip Option for Optional Steps */}
         {!isStepRequired(currentStep) && (
-          <div className="mt-6 pt-4 border-t border-slate-700">
+          <div className="mt-6 pt-4 border-t border-slate-700 flex justify-end">
             <button
               onClick={() => {
                 markStepAsCompleted(currentStep);

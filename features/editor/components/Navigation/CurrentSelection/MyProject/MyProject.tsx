@@ -59,7 +59,7 @@ const MyProject: React.FC<MyProjectProps> = ({
       fundingNeeded: 0,
       currency: 'EUR',
       startDate: new Date().toISOString().split('T')[0],
-      planningHorizon: 12 as 12 | 24 | 36
+      planningHorizon: 0 as 0 | 6 | 12 | 18 | 24 | 30 | 36 | 42 | 48
     }
   });
 

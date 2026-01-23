@@ -21,14 +21,14 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
   const totalSteps = 2;
   
   const getStepEmoji = (step: number) => {
-    const emojis = ['📅', '🎯'];
+    const emojis = ['📅', '🚩'];
     return emojis[step - 1] || '❓';
   };
   
   const getStepTitle = (step: number) => {
     const titles = [
       t('editor.desktop.myProject.sections.planningTimeline' as any) || 'Planning Timeline',
-      t('editor.desktop.myProject.sections.businessObjective' as any) || 'Business Objective'
+      t('editor.desktop.myProject.sections.businessObjective' as any) || 'Main Project Objective'
     ];
     return titles[step - 1] || `Step ${step}`;
   };
@@ -41,8 +41,8 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
     return descriptions[step - 1] || '';
   };
   
-  const isStepRequired = (step: number) => {
-    return true; // Both steps are required
+  const isStepRequired = () => {
+    return false; // Only step 1 is required
   };
   
   const isStepCompleted = (step: number) => {
@@ -50,9 +50,9 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
     
     switch(step) {
       case 1: // Planning Timeline
-        return formData.financialBaseline?.planningHorizon;
+        return formData.financialBaseline?.planningHorizon !== undefined && formData.financialBaseline?.planningHorizon !== null;
       case 2: // Business Objective
-        return formData.mainObjective;
+        return true; // Optional step
       default:
         return false;
     }
@@ -103,14 +103,14 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
 
   return (
     <Card className="bg-slate-800 border-slate-700">
-      <CardContent className="p-4">
+      <CardContent className="p-0.5">
         {/* Emoji Navigation Bar */}
         <div className="mb-6 p-3 bg-slate-700/30 rounded-lg border border-slate-600">
           <div className="flex justify-between gap-2">
             {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
               const isCompleted = isStepCompleted(step);
               const isCurrent = step === currentStep;
-              const isRequired = isStepRequired(step);
+              const isRequired = isStepRequired();
               
               let buttonClass = '';
               if (isCompleted) {
@@ -128,7 +128,7 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                   className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-200 ${buttonClass}`}
                 >
                   <div className="relative">
-                    <span className="text-lg">{getStepEmoji(step)}</span>
+                    <span className="text-2xl">{getStepEmoji(step)}</span>
                     {isCompleted && (
                       <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-[8px]">✓</span>
@@ -138,7 +138,7 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                       <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                     )}
                   </div>
-                  <span className="text-xs font-bold text-center truncate w-full">
+                  <span className="text-sm font-semibold text-center truncate w-full">
                     {getStepTitle(step)}
                     {isRequired && <span className="text-red-400"> *</span>}
                   </span>
@@ -165,15 +165,20 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                 <p className="text-white/70 text-sm font-bold mb-3">{getStepDescription(currentStep)}</p>
                 
                 <div className="w-full">
-                  <select
-                    value={formData.financialBaseline?.planningHorizon || 12}
-                    onChange={(e) => handleFieldChange('financialBaseline.planningHorizon', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
-                  >
-                    <option value={12}>{t('editor.desktop.myProject.months.12' as any) || '12 months'}</option>
-                    <option value={24}>{t('editor.desktop.myProject.months.24' as any) || '24 months'}</option>
-                    <option value={36}>{t('editor.desktop.myProject.months.36' as any) || '36 months'}</option>
-                  </select>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="48"
+                      step="6"
+                      value={formData.financialBaseline?.planningHorizon ?? 0}
+                      onChange={(e) => handleFieldChange('financialBaseline.planningHorizon', parseInt(e.target.value))}
+                      className="flex-1 h-1.5 mt-1 bg-slate-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
+                    />
+                    <span className="text-white text-sm font-bold w-20 text-right">
+                      {formData.financialBaseline?.planningHorizon ?? 0} {t(`editor.desktop.myProject.months.${(formData.financialBaseline?.planningHorizon ?? 0) === 1 ? 'singular' : 'plural'}` as any)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -184,11 +189,10 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
             <div className="border border-slate-600 rounded-lg bg-slate-800/50">
               <div className="px-3 py-2">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">🎯</span>
+                  <span className="text-lg">🚩</span>
                   <h4 className="text-white font-bold text-sm">
                     {t('editor.desktop.myProject.fields.mainObjective' as any) || 'Main Business Objective'}
                   </h4>
-                  <span className="text-red-400 font-bold text-sm">*</span>
                 </div>
                 <p className="text-white/70 text-sm font-bold mb-3">{getStepDescription(currentStep)}</p>
                 
@@ -204,10 +208,10 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                           : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
                       }`}
                     >
-                      <span className="text-lg">
+                      <span className="text-sm">
                         {formData.mainObjective === objective.value ? '●' : '○'}
                       </span>
-                      <span className="font-medium">{objective.label}</span>
+                      <span className="font-medium text-sm text-white">{objective.label}</span>
                     </button>
                   ))}
                 </div>
