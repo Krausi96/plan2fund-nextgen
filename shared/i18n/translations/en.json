@@ -1698,5 +1698,10 @@
   
   "editor.desktop.program.header": "Document Setup",
   "editor.desktop.program.subtitle": "Choose how your document structure and requirements are defined.",
-  "editor.desktop.program.removeConnect": "Connect Program"
+  "editor.desktop.program.removeConnect": "Connect Program",
+  "editor.desktop.program.selectProgramHint": "Choose a funding program to define your document structure",
+  "editor.desktop.program.uploadTemplateHint": "Upload your own template to define document structure",
+  "editor.desktop.program.uploadTemplate": "Upload Template",
+  "editor.desktop.program.freeSelected": "Free structure selected",
+  "editor.desktop.program.proceedToNext": "Proceed to the next section to define your document structure manually"
 }

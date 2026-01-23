@@ -1742,5 +1742,10 @@
   
   "editor.desktop.program.header": "Dokumenten-Konfiguration",
   "editor.desktop.program.subtitle": "Wähle die Struktur und Anforderungen deines Dokuments aus.",
-  "editor.desktop.program.removeConnect": "Programm verbinden"
+  "editor.desktop.program.removeConnect": "Programm verbinden",
+  "editor.desktop.program.selectProgramHint": "Wähle ein Förderprogramm, um deine Dokumentenstruktur zu definieren",
+  "editor.desktop.program.uploadTemplateHint": "Lade dein eigenes Template hoch, um die Dokumentenstruktur zu definieren",
+  "editor.desktop.program.uploadTemplate": "Template hochladen",
+  "editor.desktop.program.freeSelected": "Freie Struktur ausgewählt",
+  "editor.desktop.program.proceedToNext": "Gehe zum nächsten Abschnitt, um deine Dokumentenstruktur manuell zu definieren"
 }

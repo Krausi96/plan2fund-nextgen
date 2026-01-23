@@ -35,6 +35,7 @@ export default function ProgramSelection({
   const [manualValue, setManualValue] = useState('');
   const [manualError, setManualError] = useState<string | null>(null);
   const [showManualInput, setShowManualInput] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
   const [manualInputPosition, setManualInputPosition] = useState<{ top: number; left: number; width: number } | null>(null);
 
   const manualInputRef = useRef<HTMLDivElement | null>(null);
@@ -123,21 +124,16 @@ export default function ProgramSelection({
       </div>
       
       {/* Document Structure Definition - Moved from PreviewWorkspace */}
-      <div className="bg-slate-800/30 rounded-lg p-4 mb-4 border border-white/10">
-        <div className="space-y-3">
-          <p className="text-white/70 text-xs italic">
-            {(() => {
-              const key = 'editor.desktop.preview.emptyState.instruction';
-              const translated = t(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? 'Then you define how your documents are structured:' : translated;
-            })()}
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+      <div className="bg-slate-800/30 rounded-lg p-4 mb-4 border border-white/10">        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Option A: Select Program */}
-          <div className="group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border border-white/10 hover:border-blue-400/40 hover:bg-slate-700/70 transition-all duration-200">
+          <div 
+            className={`group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border transition-all duration-200 cursor-pointer ${{
+              'border-blue-400/40 bg-slate-700/70': selectedOption === 'program',
+              'border-white/10 hover:border-blue-400/40 hover:bg-slate-700/70': selectedOption !== 'program'
+            }}`}
+            onClick={() => setSelectedOption('program')}
+          >
             <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 mb-2 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 text-lg">
               📄
             </div>
@@ -160,7 +156,13 @@ export default function ProgramSelection({
           </div>
           
           {/* Option B: Use Own Template */}
-          <div className="group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border border-white/10 hover:border-purple-400/40 hover:bg-slate-700/70 transition-all duration-200">
+          <div 
+            className={`group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border transition-all duration-200 cursor-pointer ${{
+              'border-purple-400/40 bg-slate-700/70': selectedOption === 'template',
+              'border-white/10 hover:border-purple-400/40 hover:bg-slate-700/70': selectedOption !== 'template'
+            }}`}
+            onClick={() => setSelectedOption('template')}
+          >
             <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 mb-2 rounded-md bg-purple-500/20 border border-purple-400/40 text-purple-300 text-lg">
               🧩
             </div>
@@ -183,7 +185,13 @@ export default function ProgramSelection({
           </div>
           
           {/* Option C: Start Free (Custom) */}
-          <div className="group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border border-white/10 hover:border-green-400/40 hover:bg-slate-700/70 transition-all duration-200">
+          <div 
+            className={`group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border transition-all duration-200 cursor-pointer ${{
+              'border-green-400/40 bg-slate-700/70': selectedOption === 'free',
+              'border-white/10 hover:border-green-400/40 hover:bg-slate-700/70': selectedOption !== 'free'
+            }}`}
+            onClick={() => setSelectedOption('free')}
+          >
             <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 mb-2 rounded-md bg-green-500/20 border border-green-400/40 text-green-300 text-lg">
               📋
             </div>
@@ -207,10 +215,113 @@ export default function ProgramSelection({
         </div>
       </div>
       
+      {/* Conditional Content Based on Selection */}
+      {selectedOption === 'program' && (
+        <div className="space-y-4 mt-4">
+          <div className="bg-blue-600/20 border border-blue-400/30 rounded-lg p-3">
+            <p className="text-xs text-white/90 text-center">
+              {t('editor.desktop.program.selectProgramHint' as any) || 'Choose a funding program to define your document structure'}
+            </p>
+          </div>
+          
+          <div className="w-full flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={onOpenProgramFinder}
+              className="inline-flex items-center justify-center px-3 py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-xs flex-1 min-w-0"
+            >
+              {connectCopy?.openFinder || t('editor.desktop.config.connectProgram.openFinder' as any) || 'Open ProgramFinder'}
+            </button>
+            <button
+              ref={manualTriggerRef}
+              aria-expanded={showManualInput}
+              aria-controls="manual-program-connect"
+              onClick={() => setShowManualInput((prev) => !prev)}
+              className="inline-flex items-center justify-center px-3 py-2 h-auto border border-white/30 hover:border-white/50 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-xs flex-1 min-w-0"
+            >
+              {connectCopy?.pasteLink || t('editor.desktop.config.connectProgram.pasteLink' as any) || 'Paste Link'}
+            </button>
+          </div>
+          
+          {showManualInput && typeof window !== 'undefined' && manualInputPosition && createPortal(
+            <div
+              id="manual-program-connect"
+              ref={manualInputRef}
+              className={`fixed rounded-2xl border border-blue-500/40 bg-slate-950/95 p-2.5 shadow-2xl backdrop-blur-xl transition-all duration-200 z-[10002] pointer-events-auto opacity-100 translate-y-0`}
+              style={{
+                top: `${manualInputPosition.top}px`,
+                left: `${manualInputPosition.left}px`,
+                width: `${manualInputPosition.width}px`
+              }}
+            >
+              <div className="space-y-1 text-white">
+                <label className="text-[9px] font-semibold text-white/70 block">
+                  {connectCopy?.inputLabel || t('editor.desktop.config.connectProgram.inputLabel' as any) || 'Program Link or ID'}
+                </label>
+                <div className="flex flex-col gap-1.5 sm:flex-row">
+                  <input
+                    value={manualValue}
+                    onChange={(event) => setManualValue(event.target.value)}
+                    placeholder={connectCopy?.placeholder || t('editor.desktop.config.connectProgram.placeholder' as any) || 'Enter program link or ID...'}
+                    className="flex-1 rounded border border-white/30 bg-white/10 px-2.5 py-1.5 h-8 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="sm:w-auto text-xs h-8 px-2.5 bg-blue-600 hover:bg-blue-500 text-white"
+                    onClick={handleManualConnect}
+                    disabled={programLoading}
+                  >
+                    {programLoading ? '...' : (connectCopy?.submit || t('editor.desktop.config.connectProgram.submit' as any) || 'Connect')}
+                  </Button>
+                </div>
+                <p className="text-[9px] text-white/60">{connectCopy?.example || t('editor.desktop.config.connectProgram.example' as any) || 'e.g., AWS-2024-001 or https://...'}</p>
+                {(manualError || programError) && (
+                  <p className="text-[9px] text-red-400">{manualError || programError}</p>
+                )}
+              </div>
+            </div>,
+            document.body
+          )}
+        </div>
+      )}
+      
+      {selectedOption === 'template' && (
+        <div className="space-y-4 mt-4">
+          <div className="bg-purple-600/20 border border-purple-400/30 rounded-lg p-3">
+            <p className="text-xs text-white/90 text-center mb-3">
+              {t('editor.desktop.program.uploadTemplateHint' as any) || 'Upload your own template to define document structure'}
+            </p>
+            <div className="flex justify-center">
+              <button className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors text-sm">
+                <span className="mr-2">📁</span>
+                {t('editor.desktop.program.uploadTemplate' as any) || 'Upload Template'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {selectedOption === 'free' && (
+        <div className="space-y-4 mt-4">
+          <div className="bg-green-600/20 border border-green-400/30 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-green-300 text-sm flex-shrink-0">✓</span>
+              <p className="text-xs text-white/90 leading-relaxed font-medium">
+                {t('editor.desktop.program.freeSelected' as any) || 'Free structure selected'}
+              </p>
+            </div>
+            <p className="text-[10px] text-white/80 text-center">
+              {t('editor.desktop.program.proceedToNext' as any) || 'Proceed to the next section to define your document structure manually'}
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* Optional Step Message - REMOVED */}
       
-      {programSummary ? (
-        <div className="space-y-2">
+      {/* Show program summary when connected */}
+      {programSummary && (
+        <div className="space-y-2 mt-4">
           {/* Connected Program Display */}
           <div className="w-full rounded-lg border border-blue-300 bg-blue-100/60 px-2.5 py-2">
             <div className="flex items-start justify-between gap-2 w-full">
@@ -252,65 +363,6 @@ export default function ProgramSelection({
               </p>
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="w-full flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={onOpenProgramFinder}
-            className="inline-flex items-center justify-center px-3 py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-xs flex-1 min-w-0"
-          >
-            {connectCopy?.openFinder || t('editor.desktop.config.connectProgram.openFinder' as any) || 'Open ProgramFinder'}
-          </button>
-          <button
-            ref={manualTriggerRef}
-            aria-expanded={showManualInput}
-            aria-controls="manual-program-connect"
-            onClick={() => setShowManualInput((prev) => !prev)}
-            className="inline-flex items-center justify-center px-3 py-2 h-auto border border-white/30 hover:border-white/50 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-xs flex-1 min-w-0"
-          >
-            {connectCopy?.pasteLink || t('editor.desktop.config.connectProgram.pasteLink' as any) || 'Paste Link'}
-          </button>
-
-          {showManualInput && typeof window !== 'undefined' && manualInputPosition && createPortal(
-            <div
-              id="manual-program-connect"
-              ref={manualInputRef}
-              className={`fixed rounded-2xl border border-blue-500/40 bg-slate-950/95 p-2.5 shadow-2xl backdrop-blur-xl transition-all duration-200 z-[10002] pointer-events-auto opacity-100 translate-y-0`}
-              style={{
-                top: `${manualInputPosition.top}px`,
-                left: `${manualInputPosition.left}px`,
-                width: `${manualInputPosition.width}px`
-              }}
-            >
-              <div className="space-y-1 text-white">
-                <label className="text-[9px] font-semibold text-white/70 block">
-                  {connectCopy?.inputLabel || t('editor.desktop.config.connectProgram.inputLabel' as any) || 'Program Link or ID'}
-                </label>
-                <div className="flex flex-col gap-1.5 sm:flex-row">
-                  <input
-                    value={manualValue}
-                    onChange={(event) => setManualValue(event.target.value)}
-                    placeholder={connectCopy?.placeholder || t('editor.desktop.config.connectProgram.placeholder' as any) || 'Enter program link or ID...'}
-                    className="flex-1 rounded border border-white/30 bg-white/10 px-2.5 py-1.5 h-8 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="sm:w-auto text-xs h-8 px-2.5 bg-blue-600 hover:bg-blue-500 text-white"
-                    onClick={handleManualConnect}
-                    disabled={programLoading}
-                  >
-                    {programLoading ? '...' : (connectCopy?.submit || t('editor.desktop.config.connectProgram.submit' as any) || 'Connect')}
-                  </Button>
-                </div>
-                <p className="text-[9px] text-white/60">{connectCopy?.example || t('editor.desktop.config.connectProgram.example' as any) || 'e.g., AWS-2024-001 or https://...'}</p>
-                {(manualError || programError) && (
-                  <p className="text-[9px] text-red-400">{manualError || programError}</p>
-                )}
-              </div>
-            </div>,
-            document.body
-          )}
         </div>
       )}
     </div>
