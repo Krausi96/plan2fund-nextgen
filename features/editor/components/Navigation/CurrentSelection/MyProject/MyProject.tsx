@@ -44,7 +44,7 @@ const MyProject: React.FC<MyProjectProps> = ({
     // Other form fields
     author: plan?.settings?.titlePage?.companyName || '',
     confidentiality: 'confidential' as 'public' | 'confidential' | 'private',
-    stage: 'idea' as 'idea' | 'MVP' | 'revenue',
+    stage: '' as 'idea' | 'MVP' | 'revenue',
     country: '',
     industryTags: [] as string[],
     oneLiner: '',

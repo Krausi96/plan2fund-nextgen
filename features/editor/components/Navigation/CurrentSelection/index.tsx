@@ -129,27 +129,27 @@ function CurrentSelection({}: CurrentSelectionProps) {
   // Simple step validation - each step validates itself
   const validateCurrentStep = (): { isValid: boolean; missingFields: string[] } => {
     const missingFields: string[] = [];
-    
+      
     if (setupWizard.currentStep === 1) {
       // Validate My Project step
       const plan = useEditorStore.getState().plan;
       const titlePage = plan?.settings?.titlePage;
       const projectProfile = setupWizard.projectProfile;
-      
+        
       // General Info validation
       if (!titlePage?.title?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.projectName') || 'Document Title');
       if (!titlePage?.companyName?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.author') || 'Author/Organization');
-      
+        
       // Project Profile validation
       if (!projectProfile || !projectProfile.country || projectProfile.country === '') {
         missingFields.push(t('editor.desktop.setupWizard.fields.country') || 'Country');
       }
-      if (!projectProfile || !projectProfile.stage) {  // Accept 'idea' as valid
+      if (!projectProfile || projectProfile.stage === undefined || projectProfile.stage === null) {  // Require explicit selection
         missingFields.push(t('editor.desktop.setupWizard.fields.stage') || 'Project Stage');
       }
     }
     // Other steps can be validated similarly
-    
+        
     return { 
       isValid: missingFields.length === 0, 
       missingFields 

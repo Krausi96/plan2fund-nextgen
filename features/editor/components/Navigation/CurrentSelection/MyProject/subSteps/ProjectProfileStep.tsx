@@ -1,6 +1,3 @@
-/**
- * ProjectProfileStep - Enhanced Project Profile section with reco-inspired UI
- */
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { useI18n } from '@/shared/contexts/I18nContext';
