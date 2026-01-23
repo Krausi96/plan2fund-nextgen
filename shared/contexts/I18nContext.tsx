@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import enTranslations from '../i18n/translations/en.json';
 import deTranslations from '../i18n/translations/de.json';
 
@@ -20,6 +20,7 @@ const translations = {
 
 const DEFAULT_LOCALE = 'en';
 const STORAGE_KEY = 'plan2fund-locale';
+const USER_SELECTED_KEY = 'plan2fund-user-selected';
 
 // Safe localStorage access
 const getStoredLocale = (): string | null => {
@@ -41,44 +42,62 @@ const setStoredLocale = (locale: string): void => {
   }
 };
 
+const getUserSelected = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(USER_SELECTED_KEY) === 'true';
+  } catch (error) {
+    console.warn('Failed to read user selection from localStorage:', error);
+    return false;
+  }
+};
+
+const setUserSelected = (selected: boolean): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(USER_SELECTED_KEY, selected.toString());
+  } catch (error) {
+    console.warn('Failed to save user selection to localStorage:', error);
+  }
+};
+
 // Validate locale exists in translations
 const isValidLocale = (locale: string): locale is keyof typeof translations => {
   return locale in translations;
 };
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  // Initialize with default, will be updated on client-side
+  // Initialize with English as default, will be updated on client-side
   const [locale, setLocaleState] = useState<string>(DEFAULT_LOCALE);
-
-  // Hydrate locale from localStorage on client-side only
+  const hasUserSelected = useRef<boolean>(getUserSelected());
+  
+  // Load stored user preference on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
+    
     const storedLocale = getStoredLocale();
-    if (storedLocale && isValidLocale(storedLocale)) {
+    if (storedLocale && isValidLocale(storedLocale) && storedLocale !== locale) {
       setLocaleState(storedLocale);
-    } else {
-      // Detect browser language
-      try {
-        const browserLang = navigator.language.split('-')[0];
-        if (isValidLocale(browserLang)) {
-          setLocaleState(browserLang);
-          setStoredLocale(browserLang);
-        }
-      } catch (error) {
-        console.warn('Failed to detect browser language:', error);
-      }
     }
   }, []);
 
-  const setLocale = (newLocale: string) => {
-    if (!isValidLocale(newLocale)) {
-      console.warn(`Invalid locale: ${newLocale}. Falling back to ${DEFAULT_LOCALE}`);
-      newLocale = DEFAULT_LOCALE;
+  // Override setLocale to track user selections
+  const setUserLocale = (newLocale: string) => {
+    // Clear any conflicting stored locale
+    const storedLocale = getStoredLocale();
+    if (storedLocale && storedLocale !== newLocale) {
+      localStorage.removeItem(STORAGE_KEY);
     }
+    
+    hasUserSelected.current = true; // Mark that user made a selection (synchronous)
+    setUserSelected(true); // Persist to localStorage
+    
+    // Update state and storage
     setLocaleState(newLocale);
     setStoredLocale(newLocale);
   };
+
+  const setLocale = setUserLocale;
 
   const t = (key: keyof Translations): string => {
     // Ensure we have a valid locale

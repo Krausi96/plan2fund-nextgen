@@ -383,50 +383,6 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
             </div>
           )}
 
-          {/* Step 4: Team Section - Only show if current step */}
-          {currentStep === 4 && (
-            <div className="border border-slate-600 rounded-lg bg-slate-800/50">
-              <div className="px-3 py-2">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">👥</span>
-                    <h4 className="text-white font-medium text-sm">
-                      {t('editor.desktop.myProject.fields.team') || 'Team Information'}
-                    </h4>
-                  </div>
-                  <span className="text-white/70 text-xs">(Optional)</span>
-                </div>
-                <p className="text-white/70 text-sm font-bold mb-3">{getStepDescription(currentStep)}</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <label className="block text-white text-sm font-medium">
-                        {t('editor.desktop.myProject.fields.teamSize') || 'Team Size'}
-                      </label>
-                      <span className="text-red-400 text-[8px]">*</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="range"
-                        min="1"
-                        max="100"
-                        value={formData.teamSize || 1}
-                        onChange={(e) => handleFieldChange('teamSize', parseInt(e.target.value))}
-                        className="flex-1 h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                      />
-                      <span className="text-white text-sm font-medium w-8 text-center">
-                        {formData.teamSize || 1}
-                      </span>
-                    </div>
-                    <p className="text-white/50 text-xs mt-1">
-                      {t('editor.desktop.myProject.hints.teamSize')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
         
         {/* Skip Option for Optional Steps */}

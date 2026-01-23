@@ -14,12 +14,15 @@ export default function LanguageSwitcher({ compact }: Props) {
 
   useEffect(() => {
     setIsClient(true);
-  }, [])
+  }, []);
 
   const handleLanguageChange = (newLocale: string) => {
     setLocale(newLocale);
     setIsOpen(false);
-    // No reload needed - React will re-render components with new translations
+  }
+
+  const toggleDropdown = () => {
+    setIsOpen(prev => !prev);
   }
 
   const languageOptions = [
@@ -40,6 +43,13 @@ export default function LanguageSwitcher({ compact }: Props) {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Don't close if clicking within the dropdown portal
+      const dropdownElement = document.querySelector('[data-language-dropdown]');
+      if (dropdownElement && dropdownElement.contains(event.target as Node)) {
+        return; // Click was inside dropdown, don't close
+      }
+      
+      // Close if clicking outside the main button
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
@@ -56,7 +66,7 @@ export default function LanguageSwitcher({ compact }: Props) {
       <button
         type="button"
         aria-label="Language"
-        onClick={() => setIsOpen(prev => !prev)}
+        onClick={toggleDropdown}
         className={`appearance-none bg-white font-semibold tracking-wide uppercase border-2 border-blue-600 text-blue-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-700 px-5 flex items-center justify-between gap-2 w-full ${basePadding} !text-blue-700`}
       >
         <span>{`${getFlag(getCurrentLanguage().code)} ${getCurrentLanguage().short}`}</span>
@@ -79,6 +89,7 @@ export default function LanguageSwitcher({ compact }: Props) {
       {/* Render dropdown via portal to avoid z-index conflicts */}
       {typeof window !== 'undefined' && isClient && isOpen && createPortal(
         <div 
+          data-language-dropdown="true"
           className="fixed bg-white border-2 border-blue-600 rounded-xl shadow-lg z-[10001] min-w-[120px]"
           style={{
             top: `${dropdownRef.current?.getBoundingClientRect().bottom || 0}px`,
