@@ -231,7 +231,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
       step: 2,
       label: '📚 ' + (t('editor.desktop.selection.programLabel') || 'Programm / Vorlage'),
       isActive: setupWizard.currentStep === 2,
-      isAccessible: setupWizard.currentStep >= 1 && validateCurrentStep().isValid, // Accessible after step 1 completion
+      isAccessible: setupWizard.currentStep >= 2, // Accessible after step 1 completion
       onClick: handleProgramClick,
       renderContent: () => !isConfiguratorOpen && (
         <div className="text-white font-medium truncate flex items-center gap-1 max-w-[140px]">
@@ -246,7 +246,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
       step: 3,
       label: '📋 ' + (t('editor.desktop.selection.productLabel') || 'Plan'),
       isActive: setupWizard.currentStep === 3,
-      isAccessible: setupWizard.currentStep >= 2 && validateCurrentStep().isValid && !!programSummary, // Accessible after step 2 completion and program selection
+      isAccessible: setupWizard.currentStep >= 3 && !!programSummary, // Accessible after step 2 completion and program selection
       onClick: handlePlanClick,
       renderContent: () => !isConfiguratorOpen && (
         <div className="flex items-center gap-1 max-w-[140px]">
