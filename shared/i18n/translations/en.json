@@ -1608,8 +1608,11 @@
   "editor.desktop.myProject.fields.industryFocus": "Industry Focus Areas",
   "editor.desktop.myProject.fields.team": "Team Information",
   "editor.desktop.myProject.fields.teamSize": "Team Size",
+  "editor.desktop.myProject.fields.mainObjective": "Main Business Objective",
   "editor.desktop.myProject.sections.location": "Project Location",
-    "editor.desktop.myProject.sections.timeline": "Project Timeline",
+  "editor.desktop.myProject.sections.timeline": "Project Timeline",
+  "editor.desktop.myProject.sections.planningTimeline": "Planning Timeline",
+  "editor.desktop.myProject.sections.businessObjective": "Business Objective",
   "editor.desktop.myProject.fields.oneLiner": "One-liner Description",
   "editor.desktop.myProject.fields.confidentiality": "Confidentiality Level",
   "editor.desktop.myProject.placeholders.industryTags": "Tech, SaaS, FinTech",
@@ -1650,6 +1653,10 @@
   "editor.desktop.myProject.descriptions.industry": "Describe your industry and focus areas",
   "editor.desktop.myProject.descriptions.team": "Provide team size and information",
   "editor.desktop.myProject.descriptions.timeline": "Set your planning horizon",
+  "editor.desktop.myProject.descriptions.planningTimeline": "Define your project timeline and planning horizon",
+  "editor.desktop.myProject.descriptions.businessObjective": "Select your primary business goal",
+  "editor.desktop.myProject.descriptions.planningHorizon": "Select your planning timeframe",
+  "editor.desktop.myProject.descriptions.mainObjective": "What is your primary business goal?",
   
   "editor.desktop.myProject.industries.digital": "Digital & Software",
   "editor.desktop.myProject.industries.sustainability": "Climate & Sustainability",
@@ -1664,6 +1671,12 @@
   "editor.desktop.myProject.months.12": "12 months",
   "editor.desktop.myProject.months.24": "24 months",
   "editor.desktop.myProject.months.36": "36 months",
+  
+  "editor.desktop.myProject.objectives.launch": "Launch a new product / company",
+  "editor.desktop.myProject.objectives.grow": "Grow an existing business",
+  "editor.desktop.myProject.objectives.improve": "Improve or restructure operations",
+  "editor.desktop.myProject.objectives.explore": "Explore a new market / idea",
+  "editor.desktop.myProject.objectives.internal": "Internal planning / strategy",
   
   "editor.desktop.myProject.buttons.selected": "Selected",
   "editor.desktop.myProject.buttons.skipStep": "Skip this step"

@@ -1653,8 +1653,11 @@
   "editor.desktop.myProject.fields.industryFocus": "Branchenschwerpunkte",
   "editor.desktop.myProject.fields.team": "Team-Informationen",
   "editor.desktop.myProject.fields.teamSize": "Teamgröße",
+  "editor.desktop.myProject.fields.mainObjective": "Hauptgeschäftsziel",
   "editor.desktop.myProject.sections.location": "Projektstandort",
-    "editor.desktop.myProject.sections.timeline": "Projekt-Zeitplan",
+  "editor.desktop.myProject.sections.timeline": "Projekt-Zeitplan",
+  "editor.desktop.myProject.sections.planningTimeline": "Planungszeitraum",
+  "editor.desktop.myProject.sections.businessObjective": "Geschäftsziel",
   "editor.desktop.myProject.fields.oneLiner": "Ein-Zeilen-Beschreibung",
   "editor.desktop.myProject.fields.confidentiality": "Vertraulichkeitsstufe",
   "editor.desktop.myProject.placeholders.industryTags": "Technologie, SaaS, FinTech",
@@ -1695,6 +1698,10 @@
   "editor.desktop.myProject.descriptions.industry": "Beschreiben Sie Ihre Branche und Schwerpunkte",
   "editor.desktop.myProject.descriptions.team": "Geben Sie Teamgröße und Informationen an",
   "editor.desktop.myProject.descriptions.timeline": "Legen Sie Ihren Planungshorizont fest",
+  "editor.desktop.myProject.descriptions.planningTimeline": "Definieren Sie Ihren Projektzeitplan und Planungshorizont",
+  "editor.desktop.myProject.descriptions.businessObjective": "Wählen Sie Ihr primäres Geschäftsziel aus",
+  "editor.desktop.myProject.descriptions.planningHorizon": "Wählen Sie Ihren Planungszeitraum aus",
+  "editor.desktop.myProject.descriptions.mainObjective": "Was ist Ihr primäres Geschäftsziel?",
   
   "editor.desktop.myProject.industries.digital": "Digital & Software",
   "editor.desktop.myProject.industries.sustainability": "Klima & Nachhaltigkeit",
@@ -1708,6 +1715,12 @@
   "editor.desktop.myProject.months.12": "12 Monate",
   "editor.desktop.myProject.months.24": "24 Monate",
   "editor.desktop.myProject.months.36": "36 Monate",
+  
+  "editor.desktop.myProject.objectives.launch": "Ein neues Produkt / Unternehmen starten",
+  "editor.desktop.myProject.objectives.grow": "Ein bestehendes Unternehmen wachsen lassen",
+  "editor.desktop.myProject.objectives.improve": "Betrieb optimieren oder restrukturieren",
+  "editor.desktop.myProject.objectives.explore": "Neuen Markt / neue Idee erkunden",
+  "editor.desktop.myProject.objectives.internal": "Interne Planung / Strategie",
   
   "editor.desktop.myProject.buttons.skipStep": "Diesen Schritt überspringen"
 }
