@@ -260,6 +260,8 @@ function CurrentSelection({}: CurrentSelectionProps) {
 
   // Dynamic section renderer
   const renderSectionCard = (section: typeof sections[0]) => {
+    const isAccessibleAndInactive = section.isAccessible && !section.isActive;
+    
     return (
       <div 
         key={section.key}
@@ -267,9 +269,12 @@ function CurrentSelection({}: CurrentSelectionProps) {
           section.isActive 
             ? 'bg-white/20' 
             : section.isAccessible 
-              ? 'hover:bg-white/10 cursor-pointer' 
-              : 'opacity-50 cursor-not-allowed'
+              ? 'hover:bg-white/10' 
+              : 'opacity-50'
         }`}
+        style={{
+          cursor: isAccessibleAndInactive ? 'pointer' : section.isActive ? 'default' : 'not-allowed',
+        }}
         onClick={section.isAccessible ? section.onClick : undefined}
       >
         <div className="flex items-center gap-2">
