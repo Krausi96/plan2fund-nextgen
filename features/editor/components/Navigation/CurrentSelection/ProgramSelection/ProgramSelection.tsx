@@ -7,7 +7,6 @@ import {
   type ConnectCopy,
   useConfiguratorState,
 } from '@/features/editor/lib';
-import { InfoTooltip } from '@/shared/components/editor/InfoTooltip';
 
 type ProgramSelectionProps = {
   connectCopy?: ConnectCopy;
@@ -113,17 +112,14 @@ export default function ProgramSelection({
 
   return (
     <div className="relative mb-6 pb-6">
-      <div className="flex items-center gap-1.5 mb-4">
-        <span className="text-sm font-bold text-white/90 uppercase">
-          {t('editor.desktop.config.connectProgram.title' as any) || 'Connect Program'}
-        </span>
-        <span className="text-[10px] px-1.5 py-0.5 bg-yellow-600/30 text-yellow-300 rounded uppercase font-semibold">
-          {t('editor.desktop.config.step2.optional' as any) || 'Optional'}
-        </span>
-        <InfoTooltip
-          title={t('editor.desktop.config.connectProgram.title' as any) || 'Connect Program'}
-          content={t('editor.desktop.config.connectProgram.info' as any) || 'Connecting a funding program automatically loads the specific requirements, sections, and documents for that program. ProgramFinder helps you find matching programs based on your answers. Alternatively, you can paste a direct program link (e.g., from AWS, FFG, or EU calls).'}
-        />
+      {/* New Header and Description */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-white mb-2">
+          {t('editor.desktop.program.header' as any) || 'Document Setup'}
+        </h2>
+        <p className="text-white/70 text-sm">
+          {t('editor.desktop.program.subtitle' as any) || 'Choose how your document structure and requirements are defined.'}
+        </p>
       </div>
       
       {/* Document Structure Definition - Moved from PreviewWorkspace */}
@@ -211,17 +207,8 @@ export default function ProgramSelection({
         </div>
       </div>
       
-      {/* Optional Step Message */}
-      {!programSummary && (
-        <div className="bg-blue-600/20 border border-blue-400/30 rounded-lg p-2 mb-2">
-          <div className="flex items-start gap-2">
-            <span className="text-blue-300 text-xs flex-shrink-0">ℹ️</span>
-            <p className="text-[10px] text-white/90 leading-relaxed">
-              {t('editor.desktop.config.step2.optionalInfo' as any) || 'Program connection is optional. You can proceed to Step 3 to edit sections/documents now, or connect a program to add program-specific content.'}
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Optional Step Message - REMOVED */}
+      
       {programSummary ? (
         <div className="space-y-2">
           {/* Connected Program Display */}

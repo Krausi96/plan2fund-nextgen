@@ -1694,5 +1694,9 @@
   "editor.desktop.myProject.objectives.internal": "Internal planning / strategy",
   
   "editor.desktop.myProject.buttons.selected": "Selected",
-  "editor.desktop.myProject.buttons.skipStep": "Skip this step"
+  "editor.desktop.myProject.buttons.skipStep": "Skip this step",
+  
+  "editor.desktop.program.header": "Document Setup",
+  "editor.desktop.program.subtitle": "Choose how your document structure and requirements are defined.",
+  "editor.desktop.program.removeConnect": "Connect Program"
 }

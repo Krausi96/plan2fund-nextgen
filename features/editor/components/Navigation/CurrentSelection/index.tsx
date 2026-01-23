@@ -455,12 +455,6 @@ function CurrentSelection({}: CurrentSelectionProps) {
                     {/* Step 2: Program Selection */}
                     {setupWizard.currentStep === 2 && (
                       <div className="space-y-6">
-                        <div>
-                          <h3 className="text-xl font-bold text-white mb-2 text-left">Step 2: Target Selection</h3>
-                          <p className="text-white/80 text-sm mb-4">
-                            Select your funding type to determine document structure
-                          </p>
-                        </div>
                         <ProgramSelection />
                       </div>
                     )}
