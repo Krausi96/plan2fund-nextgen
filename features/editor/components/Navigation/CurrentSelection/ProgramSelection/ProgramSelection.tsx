@@ -128,16 +128,16 @@ export default function ProgramSelection({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Option A: Select Program */}
           <div 
-            className={`group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border transition-all duration-200 cursor-pointer ${{
-              'border-blue-400/40 bg-slate-700/70': selectedOption === 'program',
-              'border-white/10 hover:border-blue-400/40 hover:bg-slate-700/70': selectedOption !== 'program'
+            className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${{
+              'border-blue-400 bg-slate-700/70': selectedOption === 'program',
+              'border-slate-600 hover:border-blue-400 hover:bg-slate-700/60': selectedOption !== 'program'
             }}`}
             onClick={() => setSelectedOption('program')}
           >
-            <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 mb-2 rounded-md bg-blue-500/20 border border-blue-400/40 text-blue-300 text-lg">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-blue-500/30 border-2 border-blue-400 text-blue-300 text-xl group-hover:scale-110 transition-transform duration-200">
               📄
             </div>
-            <h3 className="text-white font-semibold text-sm mb-1 text-center">
+            <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-blue-200 transition-colors duration-200">
               {(() => {
                 const key = 'editor.desktop.preview.emptyState.optionA';
                 const translated = t(key as any) as string;
@@ -145,7 +145,7 @@ export default function ProgramSelection({
                 return isMissing ? 'Select Program' : translated;
               })()}
             </h3>
-            <p className="text-white/70 text-xs text-center leading-relaxed">
+            <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
               {(() => {
                 const key = 'editor.desktop.preview.emptyState.optionADescription';
                 const translated = t(key as any) as string;
@@ -157,16 +157,16 @@ export default function ProgramSelection({
           
           {/* Option B: Use Own Template */}
           <div 
-            className={`group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border transition-all duration-200 cursor-pointer ${{
-              'border-purple-400/40 bg-slate-700/70': selectedOption === 'template',
-              'border-white/10 hover:border-purple-400/40 hover:bg-slate-700/70': selectedOption !== 'template'
+            className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${{
+              'border-purple-400 bg-slate-700/70': selectedOption === 'template',
+              'border-slate-600 hover:border-purple-400 hover:bg-slate-700/60': selectedOption !== 'template'
             }}`}
             onClick={() => setSelectedOption('template')}
           >
-            <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 mb-2 rounded-md bg-purple-500/20 border border-purple-400/40 text-purple-300 text-lg">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-purple-500/30 border-2 border-purple-400 text-purple-300 text-xl group-hover:scale-110 transition-transform duration-200">
               🧩
             </div>
-            <h3 className="text-white font-semibold text-sm mb-1 text-center">
+            <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-purple-200 transition-colors duration-200">
               {(() => {
                 const key = 'editor.desktop.preview.emptyState.optionB';
                 const translated = t(key as any) as string;
@@ -174,7 +174,7 @@ export default function ProgramSelection({
                 return isMissing ? 'Use Own Template' : translated;
               })()}
             </h3>
-            <p className="text-white/70 text-xs text-center leading-relaxed">
+            <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
               {(() => {
                 const key = 'editor.desktop.preview.emptyState.optionBDescription';
                 const translated = t(key as any) as string;
@@ -186,16 +186,16 @@ export default function ProgramSelection({
           
           {/* Option C: Start Free (Custom) */}
           <div 
-            className={`group relative flex flex-col items-center p-3 bg-slate-700/50 rounded-lg border transition-all duration-200 cursor-pointer ${{
-              'border-green-400/40 bg-slate-700/70': selectedOption === 'free',
-              'border-white/10 hover:border-green-400/40 hover:bg-slate-700/70': selectedOption !== 'free'
+            className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${{
+              'border-green-400 bg-slate-700/70': selectedOption === 'free',
+              'border-slate-600 hover:border-green-400 hover:bg-slate-700/60': selectedOption !== 'free'
             }}`}
             onClick={() => setSelectedOption('free')}
           >
-            <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 mb-2 rounded-md bg-green-500/20 border border-green-400/40 text-green-300 text-lg">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-green-500/30 border-2 border-green-400 text-green-300 text-xl group-hover:scale-110 transition-transform duration-200">
               📋
             </div>
-            <h3 className="text-white font-semibold text-sm mb-1 text-center">
+            <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-green-200 transition-colors duration-200">
               {(() => {
                 const key = 'editor.desktop.preview.emptyState.optionC';
                 const translated = t(key as any) as string;
@@ -203,7 +203,7 @@ export default function ProgramSelection({
                 return isMissing ? 'Start Free (Custom)' : translated;
               })()}
             </h3>
-            <p className="text-white/70 text-xs text-center leading-relaxed">
+            <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
               {(() => {
                 const key = 'editor.desktop.preview.emptyState.optionCDescription';
                 const translated = t(key as any) as string;
