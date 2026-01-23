@@ -5,6 +5,7 @@ import { useEditorActions } from '@/features/editor/lib/hooks/useEditorActions';
 import { METADATA_SECTION_ID } from '@/features/editor/lib/constants';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
 import ProjectProfileStep from './subSteps/ProjectProfileStep';
+import PlanningContextStep from './subSteps/PlanningContextStep';
 import LivePreviewBox from './LivePreviewBox';
 
 interface MyProjectProps {
@@ -215,56 +216,10 @@ const MyProject: React.FC<MyProjectProps> = ({
               )}
               
               {currentSection === 3 && (
-                <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-white font-medium mb-2">
-                        {t('editor.desktop.myProject.fields.oneLiner') || 'One-liner Description'}
-                      </label>
-                      <textarea
-                        value={formData.oneLiner}
-                        onChange={(e) => handleFieldChange('oneLiner', e.target.value)}
-                        placeholder="Brief description of your project vision"
-                        rows={3}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-white font-medium mb-2">
-                        {t('editor.desktop.myProject.fields.confidentiality') || 'Confidentiality Level'}
-                      </label>
-                      <select
-                        value={formData.confidentiality}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          handleFieldChange('confidentiality', value);
-                          // Use translated values that match the current UI language
-                          let statement = '';
-                          switch(value) {
-                            case 'public':
-                              statement = t('editor.desktop.setupWizard.options.public');
-                              break;
-                            case 'confidential':
-                              statement = t('editor.desktop.setupWizard.options.confidential');
-                              break;
-                            case 'private':
-                              statement = t('editor.desktop.setupWizard.options.private');
-                              break;
-                            default:
-                              statement = value.charAt(0).toUpperCase() + value.slice(1);
-                          }
-                          handleFieldChange('confidentialityStatement', statement);
-                        }}
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="public">{t('editor.desktop.setupWizard.options.public') || 'Public'}</option>
-                        <option value="confidential">{t('editor.desktop.setupWizard.options.confidential') || 'Confidential'}</option>
-                        <option value="private">{t('editor.desktop.setupWizard.options.private') || 'Private'}</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
+                <PlanningContextStep 
+                  formData={formData} 
+                  onChange={handleFieldChange}
+                />
               )}
             </div>
           </div>
