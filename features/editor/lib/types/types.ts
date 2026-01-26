@@ -269,15 +269,19 @@ export interface ProjectProfile {
   projectName: string;
   author: string;
   confidentiality: 'public' | 'confidential' | 'private';
+  confidentialityStatement?: string;
   oneLiner: string;
   stage: 'idea' | 'MVP' | 'revenue';
   country: string;
   industryTags: string[]; // max 3
+  mainObjective?: string;
+  teamSize?: number;
+  customIndustry?: string;
   financialBaseline: {
     fundingNeeded: number;
     currency: string;
     startDate: string;
-    planningHorizon: 12 | 24 | 36; // months
+    planningHorizon: 0 | 6 | 12 | 18 | 24 | 30 | 36 | 42 | 48; // months
   };
 }
 

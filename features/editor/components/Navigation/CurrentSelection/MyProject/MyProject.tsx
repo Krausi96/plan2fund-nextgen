@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorState } from '@/features/editor/lib/hooks/useEditorState';
-import { useEditorActions } from '@/features/editor/lib/hooks/useEditorActions';
+import { useEditorActions, useEditorStore } from '@/features/editor/lib';
 import { METADATA_SECTION_ID } from '@/features/editor/lib/constants';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
 import ProjectProfileStep from './subSteps/ProjectProfileStep';
@@ -32,23 +32,29 @@ const MyProject: React.FC<MyProjectProps> = ({
     setProjectProfile: a.setProjectProfile,
   }));
   
-  // Form state
-  const [formData, setFormData] = useState({
+  // Get project profile from store
+  const projectProfile = useEditorStore(state => state.setupWizard.projectProfile);
+  
+  // Initialize formData with proper precedence: plan settings > projectProfile > defaults
+  const initialFormData = {
     // Title Page fields
-    title: plan?.settings?.titlePage?.title || '',
+    title: plan?.settings?.titlePage?.title || projectProfile?.projectName || '',
     subtitle: plan?.settings?.titlePage?.subtitle || '',
-    companyName: plan?.settings?.titlePage?.companyName || '',
+    companyName: plan?.settings?.titlePage?.companyName || projectProfile?.author || '',
     legalForm: plan?.settings?.titlePage?.legalForm || '',
     date: plan?.settings?.titlePage?.date || new Date().toISOString().split('T')[0],
     logoUrl: plan?.settings?.titlePage?.logoUrl || '',
-    confidentialityStatement: plan?.settings?.titlePage?.confidentialityStatement || '',
+    confidentialityStatement: plan?.settings?.titlePage?.confidentialityStatement || projectProfile?.confidentialityStatement || '',
     // Other form fields
-    author: plan?.settings?.titlePage?.companyName || '',
-    confidentiality: 'confidential' as 'public' | 'confidential' | 'private',
-    stage: '' as 'idea' | 'MVP' | 'revenue',
-    country: '',
-    industryTags: [] as string[],
-    oneLiner: '',
+    author: plan?.settings?.titlePage?.companyName || projectProfile?.author || '',
+    confidentiality: projectProfile?.confidentiality || 'confidential' as 'public' | 'confidential' | 'private',
+    stage: projectProfile?.stage || '' as 'idea' | 'MVP' | 'revenue',
+    country: projectProfile?.country || '',
+    industryFocus: projectProfile?.industryTags || [] as string[],
+    oneLiner: projectProfile?.oneLiner || '',
+    mainObjective: projectProfile?.mainObjective || '',
+    teamSize: projectProfile?.teamSize || 0,
+    customIndustry: projectProfile?.customIndustry || '',
     contactInfo: {
       email: plan?.settings?.titlePage?.contactInfo?.email || '',
       phone: plan?.settings?.titlePage?.contactInfo?.phone || '',
@@ -56,12 +62,43 @@ const MyProject: React.FC<MyProjectProps> = ({
       address: plan?.settings?.titlePage?.contactInfo?.address || '',
     },
     financialBaseline: {
-      fundingNeeded: 0,
-      currency: 'EUR',
-      startDate: new Date().toISOString().split('T')[0],
-      planningHorizon: 0 as 0 | 6 | 12 | 18 | 24 | 30 | 36 | 42 | 48
+      fundingNeeded: projectProfile?.financialBaseline?.fundingNeeded || 0,
+      currency: projectProfile?.financialBaseline?.currency || 'EUR',
+      startDate: projectProfile?.financialBaseline?.startDate || new Date().toISOString().split('T')[0],
+      planningHorizon: projectProfile?.financialBaseline?.planningHorizon || 0 as 0 | 6 | 12 | 18 | 24 | 30 | 36 | 42 | 48
     }
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
+
+  // Initialize form data from store on component mount only
+  useEffect(() => {
+    if (projectProfile) {
+      setFormData(prev => ({
+        ...initialFormData,
+        ...prev,
+        title: plan?.settings?.titlePage?.title || projectProfile.projectName || prev.title,
+        companyName: plan?.settings?.titlePage?.companyName || projectProfile.author || prev.companyName,
+        author: plan?.settings?.titlePage?.companyName || projectProfile.author || prev.author,
+        confidentiality: projectProfile.confidentiality || prev.confidentiality,
+        confidentialityStatement: plan?.settings?.titlePage?.confidentialityStatement || projectProfile.confidentialityStatement || prev.confidentialityStatement,
+        stage: projectProfile.stage || prev.stage,
+        country: projectProfile.country || prev.country,
+        industryFocus: projectProfile.industryTags || prev.industryFocus,
+        oneLiner: projectProfile.oneLiner || prev.oneLiner,
+        mainObjective: projectProfile.mainObjective || prev.mainObjective,
+        teamSize: projectProfile.teamSize || prev.teamSize,
+        customIndustry: projectProfile.customIndustry || prev.customIndustry,
+        financialBaseline: {
+          ...prev.financialBaseline,
+          fundingNeeded: projectProfile.financialBaseline?.fundingNeeded || prev.financialBaseline.fundingNeeded,
+          currency: projectProfile.financialBaseline?.currency || prev.financialBaseline.currency,
+          startDate: projectProfile.financialBaseline?.startDate || prev.financialBaseline.startDate,
+          planningHorizon: projectProfile.financialBaseline?.planningHorizon || prev.financialBaseline.planningHorizon
+        }
+      }));
+    }
+  }, []); // Empty dependency array - run only once on mount
 
   const handleFieldChange = (field: string, value: any) => {
     if (field.includes('.')) {
@@ -96,15 +133,19 @@ const MyProject: React.FC<MyProjectProps> = ({
         const newData = { ...prev, [field]: value };
         
         // Update project profile for Project Profile fields
-        if (['country', 'stage', 'industryTags', 'oneLiner', 'teamSize', 'financialBaseline'].includes(field)) {
+        if (['country', 'stage', 'industryFocus', 'oneLiner', 'teamSize', 'mainObjective', 'customIndustry', 'financialBaseline', 'confidentiality', 'confidentialityStatement'].includes(field)) {
           const projectProfile = {
             projectName: newData.title,
             author: newData.companyName,
             confidentiality: newData.confidentiality,
+            confidentialityStatement: newData.confidentialityStatement,
             oneLiner: newData.oneLiner,
             stage: newData.stage,
             country: newData.country,
-            industryTags: newData.industryTags,
+            industryTags: (newData as any).industryFocus,
+            mainObjective: newData.mainObjective,
+            teamSize: newData.teamSize,
+            customIndustry: newData.customIndustry,
             financialBaseline: newData.financialBaseline
           };
           actions.setProjectProfile(projectProfile);

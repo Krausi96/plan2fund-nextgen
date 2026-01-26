@@ -126,31 +126,35 @@ function CurrentSelection({}: CurrentSelectionProps) {
     }
   };
 
-  // Simple step validation - each step validates itself
+  // Unified validation for required project fields
   const validateCurrentStep = (): { isValid: boolean; missingFields: string[] } => {
     const missingFields: string[] = [];
       
     if (setupWizard.currentStep === 1) {
-      // Validate My Project step
+      // Validate unified My Project step
       const plan = useEditorStore.getState().plan;
       const titlePage = plan?.settings?.titlePage;
       const projectProfile = setupWizard.projectProfile;
         
-      // General Info validation
-      if (!titlePage?.title?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.projectName') || 'Document Title');
-      if (!titlePage?.companyName?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.author') || 'Author/Organization');
+      // Author (unified field)
+      if (!titlePage?.companyName?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.author') || 'Author');
         
-      // Project Profile validation
+      // Project title (unified field)
+      if (!titlePage?.title?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.projectName') || 'Project Title');
+        
+      // Project Location (🌍)
       if (!projectProfile || !projectProfile.country || projectProfile.country === '') {
-        missingFields.push(t('editor.desktop.setupWizard.fields.country') || 'Country');
+        missingFields.push(t('editor.desktop.setupWizard.fields.country') || 'Project Location');
       }
-      if (!projectProfile || projectProfile.stage === undefined || projectProfile.stage === null) {  // Require explicit selection
+      
+      // Project Stage (🏗️) ← This is what the validation checks
+      if (!projectProfile || projectProfile.stage === undefined || projectProfile.stage === null) {
         missingFields.push(t('editor.desktop.setupWizard.fields.stage') || 'Project Stage');
       }
       
-      // Planning Context validation
+      // Planning Timeline (📅)
       if (projectProfile?.financialBaseline?.planningHorizon === undefined || projectProfile?.financialBaseline?.planningHorizon === null) {
-        missingFields.push(t('editor.desktop.setupWizard.fields.planningHorizon') || 'Planning Horizon');
+        missingFields.push(t('editor.desktop.setupWizard.fields.planningHorizon') || 'Planning Timeline');
       }
     }
     // Other steps can be validated similarly
