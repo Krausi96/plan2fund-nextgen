@@ -30,20 +30,10 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
             📄
           </div>
           <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-blue-200 transition-colors duration-200">
-            {(() => {
-              const key = 'editor.desktop.preview.emptyState.optionA';
-              const translated = t(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? 'Select Program' : translated;
-            })()}
+            {t('editor.desktop.program.optionA.title' as any) || 'Select Program'}
           </h3>
           <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
-            {(() => {
-              const key = 'editor.desktop.preview.emptyState.optionADescription';
-              const translated = t(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? 'Choose a funding, bank or investor program. The program determines which documents and structure are needed. 📋 Sets up document requirements.' : translated;
-            })()}
+            {t('editor.desktop.program.optionA.description' as any) || 'Choose a funding, bank or investor program. The program determines which documents and structure are needed. 📋 Sets up document requirements.'}
           </p>
         </div>
         
@@ -60,20 +50,10 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
             🧩
           </div>
           <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-purple-200 transition-colors duration-200">
-            {(() => {
-              const key = 'editor.desktop.preview.emptyState.optionB';
-              const translated = t(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? 'Use Own Template' : translated;
-            })()}
+            {t('editor.desktop.program.optionB.title' as any) || 'Use Own Template'}
           </h3>
           <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
-            {(() => {
-              const key = 'editor.desktop.preview.emptyState.optionBDescription';
-              const translated = t(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? 'Upload your own template (e.g. DOCX/PDF). The structure of the template will be adopted.' : translated;
-            })()}
+            {t('editor.desktop.program.optionB.description' as any) || 'Upload your own template (e.g. DOCX/PDF). The structure of the template will be adopted.'}
           </p>
         </div>
         
@@ -90,20 +70,10 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
             📋
           </div>
           <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-green-200 transition-colors duration-200">
-            {(() => {
-              const key = 'editor.desktop.preview.emptyState.optionC';
-              const translated = t(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? 'Start Free (Custom)' : translated;
-            })()}
+            {t('editor.desktop.program.optionC.title' as any) || 'Start Free (Custom)'}
           </h3>
           <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
-            {(() => {
-              const key = 'editor.desktop.preview.emptyState.optionCDescription';
-              const translated = t(key as any) as string;
-              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? 'Start with a neutral standard structure. You can add programs or templates later.' : translated;
-            })()}
+            {t('editor.desktop.program.optionC.description' as any) || 'Start with a neutral standard structure. You can add programs or templates later.'}
           </p>
         </div>
       </div>
@@ -258,12 +228,15 @@ export default function ProgramSelection({
           {selectedOption && (
             <div className="bg-slate-800/30 rounded-xl border border-white/10 p-6">
               <h3 className="text-white font-bold text-lg mb-4">
-                {selectedOption === 'program' && 'Select Program'}
+                {selectedOption === 'program' && (t('editor.desktop.program.selectProgramTitle' as any) || 'Select Program')}
                 {selectedOption === 'template' && (
                   <div>
+                    <h4 className="text-white font-bold text-lg mb-4">
+                      {t('editor.desktop.program.useOwnTemplateTitle' as any) || 'Use Own Template'}
+                    </h4>
                     <div className="mb-4">
                       <label className="block text-white text-sm font-medium mb-2">
-                        Upload Template File
+                        {t('editor.desktop.program.template.uploadTitle' as any) || 'Upload Template File'}
                       </label>
                       <div 
                         className="border-2 border-dashed border-white/30 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer relative"
@@ -286,10 +259,10 @@ export default function ProgramSelection({
                           <span className="text-2xl">📁</span>
                         </div>
                         <p className="text-white/70 text-sm mb-2">
-                          Drop your DOCX or PDF file here, or click to browse
+                          {t('editor.desktop.program.template.dropHint' as any) || 'Drop your DOCX or PDF file here, or click to browse'}
                         </p>
                         <p className="text-white/50 text-xs">
-                          Supports .docx and .pdf files
+                          {t('editor.desktop.program.template.supportedFormats' as any) || 'Supports .docx and .pdf files'}
                         </p>
                         <input
                           type="file"
@@ -307,13 +280,12 @@ export default function ProgramSelection({
                     </div>
                     <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-3">
                       <p className="text-xs text-blue-200 leading-relaxed">
-                        Your template structure will be analyzed and converted into editable sections. 
-                        Supported formats: DOCX, PDF
+                        {t('editor.desktop.program.template.analysisInfo' as any) || 'Your template structure will be analyzed and converted into editable sections. Supported formats: DOCX, PDF'}
                       </p>
                     </div>
                   </div>
                 )}
-                {selectedOption === 'free' && 'Start Free (Custom)'}
+                {selectedOption === 'free' && (t('editor.desktop.program.startFreeTitle' as any) || 'Start Free (Custom)')}
               </h3>
               
               {/* Horizontal Program Tabs (for Program option) */}

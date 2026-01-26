@@ -242,7 +242,7 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
               onChange={(e) => setSelectedType(e.target.value)}
               className="w-full rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
             >
-              <option value="all">All Types</option>
+              <option value="all">{t('editor.desktop.program.finder.allTypes' as any) || 'All Types'}</option>
               {types.map(type => (
                 <option key={type} value={type}>
                   {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -261,7 +261,7 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
               onChange={(e) => setSelectedFocus(e.target.value)}
               className="w-full rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
             >
-              <option value="all">All Focus Areas</option>
+              <option value="all">{t('editor.desktop.program.finder.allFocusAreas' as any) || 'All Focus Areas'}</option>
               {focusAreas.map(area => (
                 <option key={area} value={area}>{area}</option>
               ))}
@@ -323,7 +323,7 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
                 </div>
                 
                 <button className="w-full px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded transition-colors mt-2">
-                  Select Program
+                  {t('editor.desktop.program.finder.selectProgram' as any) || 'Select Program'}
                 </button>
               </div>
             ))}
