@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
-import { ProgramOption } from './components/options/ProgramOption';
-import { TemplateOption } from './components/options/TemplateOption';
-import { FreeOption } from './components/options/FreeOption';
+
 import { BlueprintPanel } from './components/panels/BlueprintPanel';
 import { ProgramFinder } from './components/finder/ProgramFinder';
 import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup } from '@/features/editor/lib';
@@ -114,21 +112,15 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
 }
 
 interface ProgramSelectionProps {
-  connectCopy?: any;
   onConnectProgram?: (value: any) => void;
-  onOpenProgramFinder?: () => void;
 }
 
 export default function ProgramSelection({
-  connectCopy,
-  onConnectProgram,
-  onOpenProgramFinder
+  onConnectProgram
 }: ProgramSelectionProps) {
   const configuratorState = useConfiguratorState();
   const handleConnectProgram = onConnectProgram ?? configuratorState.actions.setProgramSummary;
   const programSummary = configuratorState.programSummary;
-  const programError = configuratorState.programError;
-  const programLoading = configuratorState.programLoading;
   
   // Access editor store for document setup management
   const setProgramProfile = useEditorStore((state) => state.setProgramProfile);
@@ -138,7 +130,7 @@ export default function ProgramSelection({
   
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
-  const [showProgramFinder, setShowProgramFinder] = useState(false);
+  const [activeTab, setActiveTab] = useState<'search' | 'paste' | 'wizard'>('search');
 
   // Handle legacy program migration on component mount
   useEffect(() => {
@@ -169,12 +161,8 @@ export default function ProgramSelection({
     }
   }, [programSummary, setProgramProfile, setDocumentStructure, setSetupStatus, setSetupDiagnostics]);
 
-  const handleOpenProgramFinder = () => {
-    setShowProgramFinder(true);
-  };
-
   const handleCloseProgramFinder = () => {
-    setShowProgramFinder(false);
+    setActiveTab('search');
   };
 
   const handleProgramSelect = (program: any) => {
@@ -239,28 +227,6 @@ export default function ProgramSelection({
     handleCloseProgramFinder();
   };
 
-  // Render selected option content
-  const renderOptionContent = () => {
-    switch (selectedOption) {
-      case 'program':
-        return (
-          <ProgramOption
-            connectCopy={connectCopy}
-            programLoading={programLoading}
-            programError={programError}
-            onConnectProgram={handleConnectProgram}
-            onOpenProgramFinder={handleOpenProgramFinder}
-          />
-        );
-      case 'template':
-        return <TemplateOption />;
-      case 'free':
-        return <FreeOption />;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="relative mb-6 pb-6">
       {/* Header */}
@@ -293,158 +259,149 @@ export default function ProgramSelection({
             <div className="bg-slate-800/30 rounded-xl border border-white/10 p-6">
               <h3 className="text-white font-bold text-lg mb-4">
                 {selectedOption === 'program' && 'Select Program'}
-                {selectedOption === 'template' && 'Use Own Template'}
+                {selectedOption === 'template' && (
+                  <div>
+                    <div className="mb-4">
+                      <label className="block text-white text-sm font-medium mb-2">
+                        Upload Template File
+                      </label>
+                      <div 
+                        className="border-2 border-dashed border-white/30 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer relative"
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const files = Array.from(e.dataTransfer.files);
+                          const file = files[0];
+                          if (file && (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.type === 'application/pdf')) {
+                            console.log('File dropped:', file.name);
+                            // TODO: Implement file processing
+                          }
+                        }}
+                      >
+                        <div className="text-white/70 mb-2">
+                          <span className="text-2xl">📁</span>
+                        </div>
+                        <p className="text-white/70 text-sm mb-2">
+                          Drop your DOCX or PDF file here, or click to browse
+                        </p>
+                        <p className="text-white/50 text-xs">
+                          Supports .docx and .pdf files
+                        </p>
+                        <input
+                          type="file"
+                          accept=".docx,.pdf"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              console.log('File selected:', file.name);
+                              // TODO: Implement file processing
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-3">
+                      <p className="text-xs text-blue-200 leading-relaxed">
+                        Your template structure will be analyzed and converted into editable sections. 
+                        Supported formats: DOCX, PDF
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {selectedOption === 'free' && 'Start Free (Custom)'}
               </h3>
               
-              {/* Horizontal Program Input (for Program option) */}
+              {/* Horizontal Program Tabs (for Program option) */}
               {selectedOption === 'program' && (
                 <div className="mb-6">
-                  <div className="flex flex-wrap gap-3 mb-4">
+                  <div className="flex flex-wrap gap-3">
                     <button
-                      onClick={onOpenProgramFinder}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm"
+                      onClick={() => setActiveTab('search')}
+                      className={`inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-colors text-sm ${activeTab === 'search' ? 'bg-blue-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
                     >
                       <span>🔍</span>
                       {t('editor.desktop.program.searchPrograms' as any) || 'Search Programs'}
                     </button>
                     <button
-                      onClick={() => {}} // Will implement paste URL functionality
-                      className="inline-flex items-center gap-2 px-4 py-2 border border-white/30 hover:border-white/50 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-sm"
+                      onClick={() => setActiveTab('paste')}
+                      className={`inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-colors text-sm ${activeTab === 'paste' ? 'bg-blue-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
                     >
                       <span>🔗</span>
                       {t('editor.desktop.program.pasteUrl' as any) || 'Paste URL'}
                     </button>
                     <button
-                      onClick={() => {}} // Will implement reco wizard
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors text-sm"
+                      onClick={() => setActiveTab('wizard')}
+                      className={`inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-colors text-sm ${activeTab === 'wizard' ? 'bg-purple-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
                     >
                       <span>🧠</span>
                       {t('editor.desktop.program.recoWizard' as any) || 'Reco Wizard'}
                     </button>
                   </div>
-                  <p className="text-white/70 text-sm">
-                    {t('editor.desktop.program.horizontalInputHint' as any) || 'Choose how to specify your funding program'}
-                  </p>
-                </div>
-              )}
-              
-              {renderOptionContent()}
-            </div>
-          )}
-          
-          {/* Program Summary Display */}
-          {programSummary && (
-            <div className="space-y-4 mt-6">
-              {/* Connected Program Display */}
-              <div className="w-full rounded-lg border border-blue-300 bg-blue-100/60 px-4 py-3">
-                <div className="flex items-start justify-between gap-3 w-full">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-blue-900 leading-tight">{programSummary.name}</p>
-                    {programSummary.amountRange && (
-                      <p className="text-xs text-blue-800 mt-1">{programSummary.amountRange}</p>
+                  
+                  {/* Dynamic Content Below Tabs - SAME CONTAINER */}
+                  <div className="mt-6 border-t border-white/10 pt-6">
+                    {activeTab === 'search' && (
+                      <div>
+                        <h4 className="text-white font-medium mb-4">
+                          {t('editor.desktop.program.finder.title' as any) || 'Find Funding Programs'}
+                        </h4>
+                        <ProgramFinder 
+                          onProgramSelect={handleProgramSelect}
+                          onClose={handleCloseProgramFinder}
+                        />
+                      </div>
                     )}
-                    {/* Blueprint Information */}
-                    {programSummary.source && (
-                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                            <span className="text-white text-sm font-bold">📋</span>
-                          </div>
-                          <h4 className="text-blue-800 font-bold text-sm">Document Setup</h4>
-                          <span className="ml-auto px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium capitalize">
-                            {programSummary.source}
-                          </span>
+                    
+                    {activeTab === 'paste' && (
+                      <div>
+                        <h4 className="text-white font-medium mb-4">
+                          {t('editor.desktop.program.pasteUrl' as any) || 'Paste Program URL'}
+                        </h4>
+                        <div className="bg-slate-800/50 rounded-lg p-4 border border-white/10">
+                          <p className="text-white/70 text-sm mb-3">
+                            {t('editor.desktop.program.pasteUrlDescription' as any) || 'Enter the official program URL to automatically load requirements'}
+                          </p>
+                          <input
+                            type="url"
+                            placeholder="https://www.aws.at/funding/..."
+                            className="w-full rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 mb-3"
+                          />
+                          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors">
+                            {t('editor.desktop.program.loadProgram' as any) || 'Load Program'}
+                          </button>
                         </div>
-                        
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-white p-2 rounded border border-blue-100">
-                            <div className="flex items-center gap-2">
-                              <span className="text-blue-500">📄</span>
-                              <div>
-                                <div className="text-xs text-blue-600 font-medium">Required Documents</div>
-                                <div className="text-sm font-bold text-blue-800">{programSummary.requiredDocuments?.length || 0}</div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-white p-2 rounded border border-blue-100">
-                            <div className="flex items-center gap-2">
-                              <span className="text-blue-500">📑</span>
-                              <div>
-                                <div className="text-xs text-blue-600 font-medium">Required Sections</div>
-                                <div className="text-sm font-bold text-blue-800">{programSummary.requiredSections?.length || 0}</div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-white p-2 rounded border border-blue-100">
-                            <div className="flex items-center gap-2">
-                              <span className="text-blue-500">⚖️</span>
-                              <div>
-                                <div className="text-xs text-blue-600 font-medium">Compliance Level</div>
-                                <div className="text-sm font-bold text-blue-800 capitalize">{programSummary.complianceStrictness || 'medium'}</div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-white p-2 rounded border border-blue-100">
-                            <div className="flex items-center gap-2">
-                              <span className="text-blue-500">⚙️</span>
-                              <div>
-                                <div className="text-xs text-blue-600 font-medium">Validation Rules</div>
-                                <div className="text-sm font-bold text-blue-800">{programSummary.validationRules?.length || 0}</div>
-                              </div>
-                            </div>
-                          </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'wizard' && (
+                      <div>
+                        <h4 className="text-white font-medium mb-4">
+                          {t('editor.desktop.program.recoWizard' as any) || 'Recommendation Wizard'}
+                        </h4>
+                        <div className="bg-slate-800/50 rounded-lg p-4 border border-white/10">
+                          <p className="text-white/70 text-sm mb-3">
+                            {t('editor.desktop.program.wizardDescription' as any) || 'Answer a few questions to get personalized program recommendations'}
+                          </p>
+                          <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors">
+                            {t('editor.desktop.program.startWizard' as any) || 'Start Wizard'}
+                          </button>
                         </div>
-                        
-                        {/* Program Focus Areas */}
-                        {programSummary.programFocus && programSummary.programFocus.length > 0 && (
-                          <div className="mt-3 pt-2 border-t border-blue-100">
-                            <div className="text-xs text-blue-600 font-medium mb-1">Focus Areas:</div>
-                            <div className="flex flex-wrap gap-1">
-                              {programSummary.programFocus.map((focus: string, idx: number) => (
-                                <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                                  {focus}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
-                  <button
-                    className="text-blue-800 hover:text-blue-900 text-lg h-6 px-1 flex-shrink-0"
-                    onClick={() => handleConnectProgram(null)}
-                  >
-                    ×
-                  </button>
                 </div>
-              </div>
+              )}
               
-              {/* Confirmation Banner */}
-              <div className="bg-green-600/20 border border-green-400/30 rounded-lg p-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-green-300 text-sm flex-shrink-0">✓</span>
-                  <p className="text-xs text-white/90 leading-relaxed font-medium">
-                    {t('editor.desktop.config.step2.complete' as any) || 'Program connected successfully'}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Next Step Message */}
-              <div className="bg-blue-600/20 border border-blue-400/30 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <span className="text-blue-300 text-xs flex-shrink-0">→</span>
-                  <p className="text-[10px] text-white/90 leading-relaxed">
-                    {t('editor.desktop.config.step3.hint' as any) || 'Proceed to Step 3 to manage sections and documents for your plan.'}
-                  </p>
-                </div>
-              </div>
+
             </div>
           )}
+          
+          
         </div>
         
         {/* Blueprint Panel Column (30%) */}
@@ -457,13 +414,7 @@ export default function ProgramSelection({
         </div>
       </div>
       
-      {/* Program Finder Modal */}
-      {showProgramFinder && (
-        <ProgramFinder 
-          onProgramSelect={handleProgramSelect}
-          onClose={handleCloseProgramFinder}
-        />
-      )}
+
     </div>
   );
 }
