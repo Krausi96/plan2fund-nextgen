@@ -86,6 +86,9 @@ export default function ProgramFinder({
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentStep, setCurrentStep] = useState(0);
   
+  // DEBUG: Log editorMode for troubleshooting
+  console.log('ProgramFinder - editorMode:', editorMode);
+  
   const answersForApi = useMemo(() => {
     const sanitizedAnswers = { ...answers };
     delete sanitizedAnswers.funding_intent;
@@ -323,6 +326,13 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
             )}
           </div>
         )}
+        
+        {/* DEBUG: Show current mode */}
+        <div className="text-center mb-2">
+          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${editorMode ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+            Mode: {editorMode ? 'EDITOR' : 'RECO'}
+          </span>
+        </div>
         
         {/* Questions Section - True Wizard mode (no scrolling) */}
         <div className="flex flex-col gap-2">
