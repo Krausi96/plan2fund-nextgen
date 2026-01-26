@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { normalizeProgramInput, generateProgramBlueprint } from '@/features/editor/lib';
+import { normalizeProgramInput, generateProgramBlueprint, normalizeFundingProgram } from '@/features/editor/lib';
+import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 
 interface ProgramOptionProps {
   connectCopy?: any;
@@ -25,6 +26,12 @@ export function ProgramOption({
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualInputPosition, setManualInputPosition] = useState<{ top: number; left: number; width: number } | null>(null);
   
+  // Access editor store for document setup management
+  const setProgramProfile = useEditorStore((state) => state.setProgramProfile);
+  const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
+  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
+  const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
+  
   const manualInputRef = useRef<HTMLDivElement | null>(null);
   const manualTriggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -36,24 +43,67 @@ export function ProgramOption({
       return;
     }
     
-    // Create enhanced program summary with blueprint data
+    // Create program data structure for blueprint generation
     const programData = {
       id: normalized,
       name: `Program: ${normalized}`,
       type: 'grant',
-      // Add default blueprint fields
-      source: 'program',
-      requiredDocuments: ['business-plan'],
-      requiredSections: ['executive-summary', 'company-description', 'market-analysis', 'financial-plan'],
-      requirementSchemas: [],
-      validationRules: [],
-      formattingRules: [],
-      complianceStrictness: 'medium'
+      organization: 'Manual Entry',
+      // Add program characteristics
+      funding_types: ['grant'],
+      focus_areas: ['general_business'],
+      use_of_funds: ['general_business_purposes'],
+      co_financing_required: false,
+      deliverables: ['business_plan'],
+      requirements: ['executive_summary', 'financial_plan'],
+      evidence_required: []
     };
     
-    const blueprint = generateProgramBlueprint(programData);
-    onConnectProgram(blueprint);
-    setShowManualInput(false);
+    // Generate document structure using new pipeline
+    try {
+      // Step 1: Normalize to FundingProgram
+      const fundingProgram = normalizeFundingProgram(programData);
+      
+      // Step 2: Generate DocumentStructure (placeholder for now)
+      const documentStructure = {
+        structureId: `structure_${Date.now()}`,
+        version: '1.0',
+        source: 'program' as const,
+        documents: [],
+        sections: [],
+        requirements: [],
+        validationRules: [],
+        aiGuidance: [],
+        renderingRules: {},
+        conflicts: [],
+        warnings: [],
+        confidenceScore: 60,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: 'manual_entry'
+      };
+      
+      // Step 3: Update store with document setup data
+      setProgramProfile(fundingProgram);
+      setDocumentStructure(documentStructure);
+      setSetupStatus('draft');
+      setSetupDiagnostics({
+        warnings: ['Program data entered manually - limited information available'],
+        missingFields: ['Detailed requirements', 'Specific deadlines', 'Exact funding amounts'],
+        confidence: 60
+      });
+      
+      // Step 4: Create legacy-compatible ProgramSummary for backward compatibility
+      const programSummary = generateProgramBlueprint(programData);
+      onConnectProgram(programSummary);
+      
+      setShowManualInput(false);
+      setManualValue('');
+      
+    } catch (error) {
+      console.error('Failed to generate blueprint:', error);
+      setManualError('Failed to process program information. Please try again.');
+    }
   };
 
   // Manual input positioning

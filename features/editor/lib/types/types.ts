@@ -24,6 +24,9 @@
  * ============================================================================
  */
 
+// Import types from setup.types.ts
+import type { FundingProgram, DocumentStructure } from './Program-Types';
+
 export type ProductType = 'submission' | 'review' | 'strategy';
 
 export type ProductOption = {
@@ -149,7 +152,7 @@ export interface ProgramSummary {
   type?: string;
   amountRange?: string;
   deadline?: string;
-  // Blueprint enhancement fields
+  // Document setup enhancement fields
   source?: 'program' | 'template' | 'standard';
   requiredDocuments?: string[];
   requiredSections?: string[];
@@ -166,18 +169,20 @@ export interface ProgramSummary {
   typicalTimeline?: string;
   competitiveness?: string;
   categorizedRequirements?: Record<string, any>;
-  // Blueprint tracking (new fields)
-  blueprint?: DocumentBlueprint;
-  blueprintStatus?: 'none' | 'draft' | 'confirmed' | 'locked';
-  blueprintVersion?: string;
-  blueprintSource?: 'program' | 'template' | 'standard';
-  blueprintDiagnostics?: {
+  // Document setup tracking (new fields)
+  documentStructure?: DocumentStructure;
+  setupStatus?: 'none' | 'draft' | 'confirmed' | 'locked';
+  setupVersion?: string;
+  setupSource?: 'program' | 'template' | 'standard';
+  setupDiagnostics?: {
     warnings: string[];
     missingFields: string[];
     confidence: number;
   };
   [key: string]: any;
 }
+
+// ProgramProfile functionality moved to setup.types.ts as FundingProgram
 
 // ============================================================================
 // AI & CONVERSATION TYPES
@@ -365,8 +370,7 @@ export interface DocumentBlueprint {
   createdBy: string;
 }
 
-// DocumentBlueprint interface remains (needed for blueprint structure)
-// ProgramProfile functionality now integrated into extended ProgramSummary
+// DocumentStructure interface moved to setup.types.ts
 
 // ============================================================================
 // SETUP WIZARD TYPES
@@ -408,16 +412,16 @@ export type DocumentTemplateId = 'business-plan' | 'pitch-deck' | 'executive-sum
 export interface SetupWizardState {
   currentStep: 1 | 2 | 3;
   projectProfile: ProjectProfile | null;
-  programProfile: ProgramSummary | null;  // Now uses extended ProgramSummary
+  programProfile: FundingProgram | null;  // Normalized funding program data for document setup
   documentTemplateId: DocumentTemplateId | null;
   isComplete: boolean;
   
-  // Blueprint tracking (now in extended ProgramSummary)
-  blueprint: DocumentBlueprint | null;
-  blueprintStatus: 'none' | 'draft' | 'confirmed' | 'locked';
-  blueprintVersion: string;
-  blueprintSource: 'program' | 'template' | 'standard';
-  blueprintDiagnostics: {
+  // Document setup tracking (wizard-owned state)
+  documentStructure: DocumentStructure | null;
+  setupStatus: 'none' | 'draft' | 'confirmed' | 'locked';
+  setupVersion: string;
+  setupSource: 'program' | 'template' | 'standard';
+  setupDiagnostics: {
     warnings: string[];
     missingFields: string[];
     confidence: number;

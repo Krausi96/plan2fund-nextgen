@@ -67,10 +67,18 @@ export type {
   ToggleHandlers,
   ConnectCopy,
   ProjectProfile,
-  // ProgramProfile removed - functionality now in extended ProgramSummary
   DocumentTemplateId,
   SetupWizardState,
 } from './types/types';
+
+// Document Setup types
+export type {
+  FundingProgram,
+  DocumentStructure,
+  SetupDiagnostics,
+  SetupStatus,
+  SetupSource,
+} from './types/Program-Types';
 
 // ============================================================================
 // STORE - Zustand store + types
@@ -175,6 +183,15 @@ export {
   generateProgramBlueprint,
   syncTemplateStateFromPlan,
 } from './utils';
+
+// Document Setup utilities
+export {
+  normalizeFundingProgram,
+  normalizeProgramSetup,
+  migrateLegacySetup,
+  normalizeToProgramProfile,
+  generateBlueprintFromProfile,
+} from './utils/Program.utils';
 
 // ============================================================================
 // AI CLIENT - Section AI functionality

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useConfiguratorState } from '@/features/editor/lib';
-import { ProgramOption } from './ProgramOption';
-import { TemplateOption } from './TemplateOption';
-import { FreeOption } from './FreeOption';
-import { BlueprintPanel } from './BlueprintPanel';
-import { ProgramFinder } from './ProgramFinder';
+import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
+import { ProgramOption } from './components/options/ProgramOption';
+import { TemplateOption } from './components/options/TemplateOption';
+import { FreeOption } from './components/options/FreeOption';
+import { BlueprintPanel } from './components/panels/BlueprintPanel';
+import { ProgramFinder } from './components/finder/ProgramFinder';
+import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup } from '@/features/editor/lib';
 
 interface OptionSelectorProps {
   selectedOption: 'program' | 'template' | 'free' | null;
@@ -43,7 +44,7 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
               const key = 'editor.desktop.preview.emptyState.optionADescription';
               const translated = t(key as any) as string;
               const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-              return isMissing ? 'Choose a funding, bank or investor program. The program determines which documents and structure are needed. 📋 Generates document blueprint.' : translated;
+              return isMissing ? 'Choose a funding, bank or investor program. The program determines which documents and structure are needed. 📋 Sets up document requirements.' : translated;
             })()}
           </p>
         </div>
@@ -129,9 +130,44 @@ export default function ProgramSelection({
   const programError = configuratorState.programError;
   const programLoading = configuratorState.programLoading;
   
+  // Access editor store for document setup management
+  const setProgramProfile = useEditorStore((state) => state.setProgramProfile);
+  const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
+  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
+  const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
+  
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
   const [showProgramFinder, setShowProgramFinder] = useState(false);
+
+  // Handle legacy program migration on component mount
+  useEffect(() => {
+    if (programSummary && !programSummary.documentStructure) {
+      console.log('🔄 Migrating legacy program to document setup system...');
+      try {
+        const migrationResult = migrateLegacySetup(programSummary);
+        
+        if (migrationResult.fundingProgram) {
+          setProgramProfile(migrationResult.fundingProgram);
+        }
+        
+        if (migrationResult.structure) {
+          setDocumentStructure(migrationResult.structure);
+          setSetupStatus(migrationResult.status);
+          setSetupDiagnostics(migrationResult.diagnostics);
+        }
+        
+        console.log('✅ Legacy program migration completed:', {
+          programId: programSummary.id,
+          confidence: migrationResult.diagnostics.confidence,
+          warnings: migrationResult.diagnostics.warnings.length
+        });
+        
+      } catch (error) {
+        console.error('❌ Failed to migrate legacy program:', error);
+      }
+    }
+  }, [programSummary, setProgramProfile, setDocumentStructure, setSetupStatus, setSetupDiagnostics]);
 
   const handleOpenProgramFinder = () => {
     setShowProgramFinder(true);
@@ -142,27 +178,63 @@ export default function ProgramSelection({
   };
 
   const handleProgramSelect = (program: any) => {
-    // Create blueprint from selected program
-    const blueprint = {
-      source: 'program',
-      programId: program.id,
-      programName: program.name,
-      requiredDocuments: program.deliverables || ['business-plan'],
-      requiredSections: program.requirements || [
-        'executive-summary',
-        'company-description',
-        'market-analysis',
-        'financial-plan'
-      ],
-      complianceStrictness: 'medium',
-      programFocus: program.focusAreas || [],
-      status: 'draft'
-    };
-    
-    // Store in setup wizard state
-    // TODO: Implement proper state update
-    console.log('Selected program:', program);
-    console.log('Generated blueprint:', blueprint);
+    try {
+      // Generate document structure using new pipeline
+      // Step 1: Normalize program data to FundingProgram
+      const fundingProgram = normalizeFundingProgram(program);
+      
+      // Step 2: Generate DocumentStructure (placeholder for now)
+      const documentStructure = {
+        structureId: `structure_${Date.now()}`,
+        version: '1.0',
+        source: 'program' as const,
+        documents: [],
+        sections: [],
+        requirements: [],
+        validationRules: [],
+        aiGuidance: [],
+        renderingRules: {},
+        conflicts: [],
+        warnings: [],
+        confidenceScore: program.confidenceScore || 90,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: 'program_selection'
+      };
+      
+      // Step 3: Update wizard state with document setup data
+      setProgramProfile(fundingProgram);
+      setDocumentStructure(documentStructure);
+      setSetupStatus('draft');
+      setSetupDiagnostics({
+        warnings: program.confidenceScore < 80 ? ['Limited program information available'] : [],
+        missingFields: [],
+        confidence: program.confidenceScore || 90
+      });
+      
+      // Step 4: Create legacy-compatible ProgramSummary for backward compatibility
+      const programSummary = generateProgramBlueprint(program);
+      handleConnectProgram(programSummary);
+      
+      console.log('✅ Program selected and document structure generated:', {
+        programId: program.id,
+        programName: program.name,
+        structureId: documentStructure.structureId,
+        confidence: program.confidenceScore || 90
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to generate document structure from program:', error);
+      // Fallback to basic program connection
+      const fallbackSummary = {
+        id: program.id,
+        name: program.name,
+        type: program.type || 'grant',
+        organization: program.organization,
+        setupStatus: 'none' as const
+      };
+      handleConnectProgram(fallbackSummary);
+    }
     
     handleCloseProgramFinder();
   };
@@ -198,7 +270,7 @@ export default function ProgramSelection({
             {t('editor.desktop.program.header' as any) || 'Document Setup'}
           </h2>
           <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full font-medium">
-            📋 Blueprint Enhanced
+            📋 Document Setup
           </span>
         </div>
         <p className="text-white/70 text-sm">
@@ -279,7 +351,7 @@ export default function ProgramSelection({
                           <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
                             <span className="text-white text-sm font-bold">📋</span>
                           </div>
-                          <h4 className="text-blue-800 font-bold text-sm">Document Blueprint</h4>
+                          <h4 className="text-blue-800 font-bold text-sm">Document Setup</h4>
                           <span className="ml-auto px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium capitalize">
                             {programSummary.source}
                           </span>
@@ -378,9 +450,9 @@ export default function ProgramSelection({
         {/* Blueprint Panel Column (30%) */}
         <div className="lg:w-5/12">
           <BlueprintPanel 
-            onGenerate={() => console.log('Generate blueprint')} 
-            onEdit={() => console.log('Edit blueprint')} 
-            onClear={() => console.log('Clear blueprint')} 
+            onGenerate={() => console.log('Generate document structure')} 
+            onEdit={() => console.log('Edit document structure')} 
+            onClear={() => console.log('Clear document structure')} 
           />
         </div>
       </div>
