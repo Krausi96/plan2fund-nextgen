@@ -25,7 +25,7 @@ export default function QuestionRenderer({
   const isAnswered = value !== undefined && value !== null && value !== '';
 
   return (
-    <div className="bg-white rounded-lg border-2 border-blue-200 shadow-md p-6">
+    <div className="bg-white rounded-lg border-2 border-blue-200 shadow-md p-6 h-full flex flex-col">
       {/* Question Header */}
       <div className="mb-4">
         <div className="flex items-start gap-2 mb-3">
@@ -54,7 +54,7 @@ export default function QuestionRenderer({
 
       {/* Question Options */}
       {question.type === 'single-select' && (
-        <div className="space-y-2">
+        <div className="space-y-2 flex-1 overflow-hidden">
           {question.options.map((option: any) => {
             const isSelected = value === option.value;
             const showRegionInput = question.hasOptionalRegion && isSelected && question.hasOptionalRegion(option.value);
@@ -176,7 +176,7 @@ export default function QuestionRenderer({
       )}
 
       {question.type === 'multi-select' && (
-        <div className="space-y-2">
+        <div className="space-y-2 flex-1 overflow-hidden">
           {question.options.map((option: any) => {
             const isSelected = Array.isArray(value) && value.includes(option.value);
             const subCategories = question.subCategories && isSelected && option.value in question.subCategories 
@@ -307,7 +307,7 @@ export default function QuestionRenderer({
       )}
 
       {question.type === 'range' && (
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-hidden">
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-600">

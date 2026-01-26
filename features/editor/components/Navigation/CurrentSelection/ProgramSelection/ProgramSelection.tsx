@@ -4,6 +4,7 @@ import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
 
 import { BlueprintPanel } from './components/panels/BlueprintPanel';
 import { ProgramFinder } from './components/finder/ProgramFinder';
+import SharedProgramFinder from '@/features/reco/components/ProgramFinder';
 import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup } from '@/features/editor/lib';
 
 interface OptionSelectorProps {
@@ -101,6 +102,7 @@ export default function ProgramSelection({
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'paste' | 'wizard'>('search');
+  const [showWizard, setShowWizard] = useState(false);
 
   // Handle legacy program migration on component mount
   useEffect(() => {
@@ -355,14 +357,36 @@ export default function ProgramSelection({
                         <h4 className="text-white font-medium mb-4">
                           {t('editor.desktop.program.recoWizard' as any) || 'Recommendation Wizard'}
                         </h4>
-                        <div className="bg-slate-800/50 rounded-lg p-4 border border-white/10">
-                          <p className="text-white/70 text-sm mb-3">
-                            {t('editor.desktop.program.wizardDescription' as any) || 'Answer a few questions to get personalized program recommendations'}
-                          </p>
-                          <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors">
-                            {t('editor.desktop.program.startWizard' as any) || 'Start Wizard'}
-                          </button>
-                        </div>
+                        {!showWizard ? (
+                          <div className="bg-slate-800/50 rounded-lg p-4 border border-white/10">
+                            <p className="text-white/70 text-sm mb-3">
+                              {t('editor.desktop.program.wizardDescription' as any) || 'Answer a few questions to get personalized program recommendations'}
+                            </p>
+                            <button 
+                              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                              onClick={() => {
+                                setShowWizard(true);
+                              }}
+                            >
+                              {t('editor.desktop.program.startWizard' as any) || 'Start Wizard'}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="-mx-4">
+                            <SharedProgramFinder 
+                              wizardMode={true}
+                              editorMode={true}
+                              onProgramSelect={(programId: string, route: string) => {
+                                // Fetch program details and convert to editor format
+                                console.log('Program selected in editor:', { programId, route });
+                                // TODO: Implement program fetching and conversion
+                                // For now, close the wizard view
+                                setShowWizard(false);
+                                setActiveTab('search');
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

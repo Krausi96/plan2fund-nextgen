@@ -1924,5 +1924,11 @@
   "editor.desktop.program.uploadTemplateHint": "Lade dein eigenes Template hoch, um die Dokumentenstruktur zu definieren",
   "editor.desktop.program.uploadTemplate": "Template hochladen",
   "editor.desktop.program.freeSelected": "Freie Struktur ausgewählt",
-  "editor.desktop.program.proceedToNext": "Gehe zum nächsten Abschnitt, um deine Dokumentenstruktur manuell zu definieren"
+  "editor.desktop.program.proceedToNext": "Gehe zum nächsten Abschnitt, um deine Dokumentenstruktur manuell zu definieren",
+  "reco.ui.requiredAnswersMissing": "Erforderliche Antworten fehlen",
+  "reco.ui.minQuestionsTooltip": "Bitte beantworten Sie mindestens {count} Fragen",
+  "reco.ui.requiredQuestionsTooltip": "Bitte beantworten Sie alle erforderlichen Fragen",
+  "reco.ui.generateFundingPrograms": "Förderprogramme generieren",
+  "reco.ui.generating": "Generiere...",
+  "reco.ui.remainingQuestions": "{count} weitere Fragen"
 }

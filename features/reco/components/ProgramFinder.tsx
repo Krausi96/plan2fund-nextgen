@@ -29,7 +29,8 @@ function deriveCompanyInfo(organisationStage: string | undefined): { company_typ
 }
 
 export default function ProgramFinder({ 
-  onProgramSelect
+  onProgramSelect,
+  editorMode = false
 }: ProgramFinderProps) {
   const router = useRouter();
   const { t } = useI18n();
@@ -83,6 +84,7 @@ export default function ProgramFinder({
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false);
   const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [currentStep, setCurrentStep] = useState(0);
   
   const answersForApi = useMemo(() => {
     const sanitizedAnswers = { ...answers };
@@ -154,7 +156,6 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
   });
   const hasRequiredAnswers = missingRequiredAnswers.length === 0;
   const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS && hasRequiredAnswers;
-  const remainingQuestions = Math.max(0, MIN_QUESTIONS_FOR_RESULTS - answeredCount);
   
   const handleAnswer = useCallback((questionId: string, value: any) => {
     setAnswers((prevAnswers) => {
@@ -193,7 +194,102 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
 
       return newAnswers;
     });
-  }, [router]);
+
+    // Auto-advance logic for single-select in wizard mode
+    const question = visibleQuestions.find(q => q.id === questionId);
+    if (question?.type === 'single-select' && value) {
+      setTimeout(() => {
+        setCurrentStep(prev => Math.min(prev + 1, visibleQuestions.length - 1));
+      }, 300);
+    }
+  }, [router, visibleQuestions]);
+
+  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, visibleQuestions.length - 1));
+  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
+
+  const generatePrograms = async () => {
+    if (!hasEnoughAnswers) {
+      if (!hasRequiredAnswers) {
+        const requiredList = missingRequiredLabels.join(', ');
+        alert((t('reco.errors.missingRequiredQuestions' as any) as string)?.replace('{list}', requiredList) || `Please complete the required questions first: ${requiredList}.`);
+        return;
+      }
+      alert((t('reco.errors.minQuestionsRequired' as any) as string)?.replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS)) || `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
+      return;
+    }
+    
+    setIsLoading(true);
+    setHasAttemptedGeneration(true);
+    
+    try {
+      const response = await fetch('/api/programs/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: answersForApi,
+          max_results: 20,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const missingFields: string[] = Array.isArray(errorData?.missing) ? errorData.missing : [];
+        const missingFieldLabels = missingFields
+          .map((fieldId) => {
+            const question = translatedQuestions.find((q) => q.id === fieldId);
+            return question?.label || fieldId;
+          })
+          .join(', ');
+
+        const message = missingFieldLabels
+          ? ((t('reco.errors.completeFields' as any) as string)?.replace('{fields}', missingFieldLabels) || `Please complete: ${missingFieldLabels}`)
+          : ((t('reco.errors.generationFailed' as any) as string) || 'Could not generate programs. Please try again.');
+        alert(message);
+        setEmptyResults();
+        setIsLoading(false);
+        return;
+      }
+      
+      const data = await response.json();
+      const programs = data.programs || [];
+      
+      if (programs.length === 0) {
+        alert((t('reco.errors.noProgramsFound' as any) as string) || 'No programs found. Please try again.');
+        setEmptyResults();
+        setIsLoading(false);
+        return;
+      }
+      
+      const results: EnhancedProgramResult[] = programs.map((p: any, index: number) => ({
+        id: p.id || `program_${index}`,
+        name: p.name,
+        description: p.metadata?.description || p.description || '',
+        url: p.url || p.source_url || null,
+        region: p.metadata?.region || p.region || null,
+        funding_types: p.funding_types || [],
+        funding_amount_min: p.metadata?.funding_amount_min ?? p.funding_amount_min ?? null,
+        funding_amount_max: p.metadata?.funding_amount_max ?? p.funding_amount_max ?? null,
+        currency: p.metadata?.currency || p.currency || 'EUR',
+        program_focus: p.metadata?.program_focus || p.program_focus || [],
+        company_type: p.company_type || null,
+        company_stage: p.company_stage || null,
+        categorized_requirements: p.categorized_requirements || {},
+      }));
+      
+      if (results.length > 0) {
+        setResults(results);
+      } else {
+        setEmptyResults();
+        alert((t('reco.errors.noProgramsFound' as any) as string) || 'No programs found.');
+      }
+    } catch (error: any) {
+      console.error('Error generating programs:', error);
+      alert((t('reco.errors.generationError' as any) as string) || `Error: ${error.message || 'Unknown error'}`);
+      setEmptyResults();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Filter out generic program names
   const visibleResults = useMemo(() => {
@@ -208,60 +304,111 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className={editorMode ? "bg-transparent" : "min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50"}>
       <div className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2 ${answeredCount > 0 ? 'pb-24' : ''}`}>
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
-              <Wand2 className="w-6 h-6 text-yellow-400" />
+        {/* Header - Hidden in editor mode */}
+        {!editorMode && (
+          <div className="mb-8 text-center">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+                <Wand2 className="w-6 h-6 text-yellow-400" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+                {t('reco.pageTitle')}
+              </h1>
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-              {t('reco.pageTitle')}
-            </h1>
+            <p className="text-gray-600 text-base sm:text-lg mb-8">
+              {t('reco.pageSubtitle')}
+            </p>
+            
+            {hasVisibleResults && (
+              <div className="mt-2 text-sm text-gray-600">
+                {visibleResults.length} program{visibleResults.length !== 1 ? 's' : ''} found
+              </div>
+            )}
           </div>
-          <p className="text-gray-600 text-base sm:text-lg mb-8">
-            {t('reco.pageSubtitle')}
-          </p>
-          
-          {hasVisibleResults && (
-            <div className="mt-2 text-sm text-gray-600">
-              {visibleResults.length} program{visibleResults.length !== 1 ? 's' : ''} found
-            </div>
-          )}
-        </div>
+        )}
         
-        {/* Questions Section - All questions in scrollable form */}
+        {/* Questions Section - True Wizard mode (no scrolling) */}
         <div className="flex flex-col gap-2">
-          <Card className="p-4 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg">
-            <div className="space-y-6">
+          <Card className="p-4 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg h-[500px] flex flex-col overflow-hidden">
+            <div className="space-y-6 h-full flex flex-col">
               {/* Progress indicator */}
               <div className="text-center">
                 <div className="flex items-center justify-center">
                   <div className="flex-1 max-w-4xl h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-blue-600 transition-all duration-300 rounded-full"
-                      style={{ width: `${(answeredCount / visibleQuestions.length) * 100}%` }}
+                      style={{ width: `${((currentStep + 1) / visibleQuestions.length) * 100}%` }}
                     />
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  {answeredCount} of {visibleQuestions.length} questions answered
+                  Step {currentStep + 1} of {visibleQuestions.length} — {answeredCount} answered
                 </p>
               </div>
               
-              {/* All Questions - Scrollable */}
-              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
-                {visibleQuestions.map((question, questionIndex) => (
+              {/* Single Question Display */}
+              <div className="flex-1 flex flex-col justify-center overflow-hidden">
+                {visibleQuestions[currentStep] && (
                   <QuestionRenderer
-                    key={question.id}
-                    question={question}
-                    questionIndex={questionIndex}
-                    value={answers[question.id]}
+                    key={visibleQuestions[currentStep].id}
+                    question={visibleQuestions[currentStep]}
+                    questionIndex={currentStep}
+                    value={answers[visibleQuestions[currentStep].id]}
                     answers={answers}
                     onAnswer={handleAnswer}
                   />
-                ))}
+                )}
+              </div>
+
+              {/* Navigation Buttons - Fixed at bottom of card in editor mode */}
+              <div className="flex items-center justify-between pt-4 border-t border-blue-100 mt-auto">
+                <button
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-blue-50 rounded-lg transition-colors"
+                >
+                  ← Previous
+                </button>
+
+                <div className="flex gap-2">
+                  {currentStep < visibleQuestions.length - 1 ? (
+                    <button
+                      onClick={nextStep}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-sm"
+                    >
+                      Next →
+                    </button>
+                  ) : editorMode ? (
+                    /* Generate Button fixed at bottom for editorMode */
+                    <button
+                      onClick={generatePrograms}
+                      disabled={isLoading || !hasEnoughAnswers}
+                      className={`px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400`}
+                    >
+                      {isLoading ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          {(t('reco.ui.generatingPrograms' as any) as string) || 'Generating...'}
+                        </>
+                      ) : !hasEnoughAnswers ? (
+                        <>
+                          <Wand2 className="w-5 h-5" />
+                          {(t('reco.ui.requiredAnswersMissing' as any) as string) || 'Answers Missing'}
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="w-5 h-5" />
+                          {(t('reco.ui.generateFundingPrograms' as any) as string) || 'Generate Programs'}
+                        </>
+                      )}
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </div>
           </Card>
@@ -385,124 +532,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
             </DialogContent>
           </Dialog>
 
-      {/* Sticky Bottom Bar - Generate Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl z-50 border-t-2 border-gray-200 hidden lg:block">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-center">
-              <button
-                onClick={async () => {
-                  if (!hasEnoughAnswers) {
-                    if (!hasRequiredAnswers) {
-                      const requiredList = missingRequiredLabels.join(', ');
-                      alert((t('reco.errors.missingRequiredQuestions' as any) as string)?.replace('{list}', requiredList) || `Please complete the required questions first: ${requiredList}.`);
-                      return;
-                    }
-                    alert((t('reco.errors.minQuestionsRequired' as any) as string)?.replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS)) || `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
-                    return;
-                  }
-                setIsLoading(true);
-                setHasAttemptedGeneration(true);
-                
-                try {
-                  const response = await fetch('/api/programs/recommend', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      answers: answersForApi,
-                      max_results: 20,
-                    }),
-                  });
-                  
-                  if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    const missingFields: string[] = Array.isArray(errorData?.missing) ? errorData.missing : [];
-                    const missingFieldLabels = missingFields
-                      .map((fieldId) => {
-                        const question = translatedQuestions.find((q) => q.id === fieldId);
-                        return question?.label || fieldId;
-                      })
-                      .join(', ');
 
-                    const message = missingFieldLabels
-                      ? ((t('reco.errors.completeFields' as any) as string)?.replace('{fields}', missingFieldLabels) || `Please complete: ${missingFieldLabels}`)
-                      : ((t('reco.errors.generationFailed' as any) as string) || 'Could not generate programs. Please try again.');
-                    alert(message);
-                    setEmptyResults();
-                    setIsLoading(false);
-                    return;
-                  }
-                  
-                  const data = await response.json();
-                  const programs = data.programs || [];
-                  
-                  if (programs.length === 0) {
-                    alert((t('reco.errors.noProgramsFound' as any) as string) || 'No programs found. Please try again.');
-                    setEmptyResults();
-                    setIsLoading(false);
-                    return;
-                  }
-                  
-                  const results: EnhancedProgramResult[] = programs.map((p: any, index: number) => ({
-                    id: p.id || `program_${index}`,
-                    name: p.name,
-                    description: p.metadata?.description || p.description || '',
-                    url: p.url || p.source_url || null,
-                    region: p.metadata?.region || p.region || null,
-                    funding_types: p.funding_types || [],
-                    funding_amount_min: p.metadata?.funding_amount_min ?? p.funding_amount_min ?? null,
-                    funding_amount_max: p.metadata?.funding_amount_max ?? p.funding_amount_max ?? null,
-                    currency: p.metadata?.currency || p.currency || 'EUR',
-                    program_focus: p.metadata?.program_focus || p.program_focus || [],
-                    company_type: p.company_type || null,
-                    company_stage: p.company_stage || null,
-                    categorized_requirements: p.categorized_requirements || {},
-                  }));
-                  
-                  if (results.length > 0) {
-                    setResults(results);
-                  } else {
-                    setEmptyResults();
-                    alert((t('reco.errors.noProgramsFound' as any) as string) || 'No programs found.');
-                  }
-                } catch (error: any) {
-                  console.error('Error generating programs:', error);
-                  alert((t('reco.errors.generationError' as any) as string) || `Error: ${error.message || 'Unknown error'}`);
-                  setEmptyResults();
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
-                disabled={isLoading || !hasEnoughAnswers}
-                className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400 min-w-[280px]"
-                title={!hasEnoughAnswers ? (hasRequiredAnswers
-                      ? ((t('reco.ui.minQuestionsTooltip' as any) as string)?.replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS)) || `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`)
-                      : ((t('reco.ui.requiredQuestionsTooltip' as any) as string) || 'Please complete all required questions')) : undefined}
-              >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {(t('reco.ui.generatingPrograms' as any) as string) || 'Generating Programs...'}
-                  </>
-                ) : !hasEnoughAnswers ? (
-                  <>
-                    <Wand2 className="w-5 h-5" />
-                    {hasRequiredAnswers
-                      ? ((t('reco.ui.remainingQuestions' as any) as string)?.replace('{count}', String(remainingQuestions)) || `${remainingQuestions} more questions`)
-                      : ((t('reco.ui.requiredAnswersMissing' as any) as string) || 'Required answers missing')}
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="w-5 h-5" />
-                    {(t('reco.ui.generateFundingPrograms' as any) as string) || 'Generate Funding Programs'}
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
     </div>
   );
 }

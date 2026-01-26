@@ -68,6 +68,8 @@ export type QuestionDefinition = SingleSelectQuestion | MultiSelectQuestion | Ra
 
 export interface ProgramFinderProps {
   onProgramSelect?: (programId: string, route: string) => void;
+  wizardMode?: boolean; // Enable step-by-step wizard mode
+  editorMode?: boolean; // Simplified layout for editor embedding
 }
 
 
