@@ -326,7 +326,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
         
         {/* Questions Section - True Wizard mode (no scrolling) */}
         <div className="flex flex-col gap-2">
-          <Card className="p-4 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg h-[600px] flex flex-col">
+          <Card className="p-4 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg h-[600px] flex flex-col relative">
             <div className="space-y-6 h-full flex flex-col">
               {/* Progress indicator */}
               <div className="text-center">
@@ -414,23 +414,23 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
         </div>
       </div>
 
-      {/* Loading Indicator */}
+      {/* Loading Indicator - Contained within card */}
       {isLoading && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="p-8 border-2 border-blue-200 bg-white shadow-2xl max-w-md w-full">
+        <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-xl">
+          <div className="bg-gray-800 border-2 border-indigo-500 rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl">
             <div className="flex flex-col items-center justify-center space-y-4">
-              <svg className="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-12 w-12 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <h3 className="text-xl font-bold text-gray-900">
+              <h3 className="text-xl font-bold text-gray-100">
                 {(t('reco.ui.generatingPrograms' as any) as string) || 'Generating Programs...'}
               </h3>
-              <p className="text-gray-600 text-sm text-center">
+              <p className="text-gray-300 text-sm text-center">
                 {(t('reco.ui.generatingProgramsDescription' as any) as string) || 'This may take a moment.'}
               </p>
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
