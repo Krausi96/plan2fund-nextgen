@@ -434,8 +434,8 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
         </div>
       )}
 
-      {/* Results Display - Contained within card */}
-      {((hasVisibleResults && !isLoading) || (!isLoading && hasAttemptedGeneration && !hasVisibleResults)) && (
+      {/* Results Display - Contained within card (editor mode only) */}
+      {editorMode && ((hasVisibleResults && !isLoading) || (!isLoading && hasAttemptedGeneration && !hasVisibleResults)) && (
         <div className="absolute inset-0 bg-gray-900/90 backdrop-blur-sm z-40 flex items-center justify-center rounded-xl p-4">
           <div className="bg-gray-800 border-2 border-indigo-500 rounded-xl w-full max-w-4xl max-h-[500px] overflow-y-auto shadow-2xl">
             <div className="p-6">
@@ -526,6 +526,100 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
         </div>
       )}
 
+
+      {/* Results Modal/Popup - Reco mode only */}
+      {!editorMode && (
+        <Dialog open={(hasVisibleResults && !isLoading) || (!isLoading && hasAttemptedGeneration && !hasVisibleResults)} onOpenChange={(open) => {
+          if (!open) {
+            setEmptyResults();
+            setHasAttemptedGeneration(false);
+          }
+        }}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-6 md:p-8">
+            <DialogHeader className="mb-6">
+              <DialogTitle className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                {(t('reco.results.title' as any) as string) || 'Found Funding Programs'}
+                <span className="ml-2 text-lg md:text-xl font-semibold text-gray-600">({visibleResults.length})</span>
+              </DialogTitle>
+              <DialogDescription className="text-base text-gray-600">
+                {(t('reco.results.description' as any) as string) || 'Here are the most suitable funding programs for you.'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-5 md:space-y-6 mt-2">
+              {visibleResults.length === 0 ? (
+                <div className="text-center py-10 px-4">
+                  <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 105.65 5.65a7.5 7.5 0 0010.6 10.6z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-900 text-lg font-semibold mb-2">
+                    {(t('reco.results.empty.title' as any) as string) || 'No matching programs yet'}
+                  </p>
+                  <p className="text-gray-600 text-sm mb-6">
+                    {(t('reco.results.empty.body' as any) as string) ||
+                      'We couldn\'t find specific programs for these answers. Adjust answers or connect a program you already know.'}
+                  </p>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmptyResults();
+                        setHasAttemptedGeneration(false);
+                      }}
+                      className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors"
+                    >
+                      {(t('reco.results.empty.retry' as any) as string) || 'Try again'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => router.push('/editor?product=submission&connect=manual')}
+                      className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      {(t('reco.results.empty.manual' as any) as string) || 'Add program in editor'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                visibleResults.map((program, index) => {
+                  const fundingTypes = (program as any).funding_types || (program.type ? [program.type] : ['grant']);
+                  
+                  return (
+                    <Card key={program.id || index} className="p-5 md:p-6 border-2 border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all bg-white">
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
+                            {program.name || `Program ${index + 1}`}
+                          </h3>
+                          {program.description && (
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              {program.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex-shrink-0">
+                          <button
+                            onClick={() => {
+                              if (onProgramSelect) {
+                                onProgramSelect(program.id, program.type || fundingTypes[0] || 'grant');
+                              } else {
+                                persistSelectedProgram(program);
+                              }
+                            }}
+                            className="w-full md:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm shadow-sm hover:shadow-md whitespace-nowrap"
+                          >
+                            {(t('reco.ui.select' as any) as string) || 'Select'}
+                          </button>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Sticky Bottom Bar - Generate Button (Reco mode only) */}
       {!editorMode && (
