@@ -156,6 +156,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
   });
   const hasRequiredAnswers = missingRequiredAnswers.length === 0;
   const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS && hasRequiredAnswers;
+  const remainingQuestions = Math.max(0, MIN_QUESTIONS_FOR_RESULTS - answeredCount);
   
   const handleAnswer = useCallback((questionId: string, value: any) => {
     setAnswers((prevAnswers) => {
@@ -195,13 +196,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
       return newAnswers;
     });
 
-    // Auto-advance logic for single-select in wizard mode
-    const question = visibleQuestions.find(q => q.id === questionId);
-    if (question?.type === 'single-select' && value) {
-      setTimeout(() => {
-        setCurrentStep(prev => Math.min(prev + 1, visibleQuestions.length - 1));
-      }, 300);
-    }
+    // Navigation is now explicit via Next button only
   }, [router, visibleQuestions]);
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, visibleQuestions.length - 1));
@@ -331,7 +326,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
         
         {/* Questions Section - True Wizard mode (no scrolling) */}
         <div className="flex flex-col gap-2">
-          <Card className="p-4 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg h-[500px] flex flex-col overflow-hidden">
+          <Card className="p-4 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg h-[600px] flex flex-col">
             <div className="space-y-6 h-full flex flex-col">
               {/* Progress indicator */}
               <div className="text-center">
@@ -345,11 +340,14 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
                   Step {currentStep + 1} of {visibleQuestions.length} — {answeredCount} answered
+                  {!answers[visibleQuestions[currentStep].id] && visibleQuestions[currentStep].required && (
+                    <span className="ml-2 text-orange-600 font-medium">• Answer required to continue</span>
+                  )}
                 </p>
               </div>
               
               {/* Single Question Display */}
-              <div className="flex-1 flex flex-col justify-center overflow-hidden">
+              <div className="flex-1 flex flex-col justify-start overflow-auto">
                 {visibleQuestions[currentStep] && (
                   <QuestionRenderer
                     key={visibleQuestions[currentStep].id}
@@ -376,7 +374,8 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
                   {currentStep < visibleQuestions.length - 1 ? (
                     <button
                       onClick={nextStep}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-sm"
+                      disabled={!answers[visibleQuestions[currentStep].id]}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 transition-colors font-semibold shadow-sm"
                     >
                       Next →
                     </button>
@@ -533,6 +532,43 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
           </Dialog>
 
 
+      {/* Sticky Bottom Bar - Generate Button (Reco mode only) */}
+      {!editorMode && (
+        <div className="sticky bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-lg z-50 p-4">
+          <div className="max-w-5xl mx-auto flex justify-center">
+            <button
+              onClick={generatePrograms}
+              disabled={isLoading || !hasEnoughAnswers}
+              className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400 min-w-[280px]"
+              title={!hasEnoughAnswers ? (hasRequiredAnswers
+                    ? ((t('reco.ui.minQuestionsTooltip' as any) as string)?.replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS)) || `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`)
+                    : ((t('reco.ui.requiredQuestionsTooltip' as any) as string) || 'Please complete all required questions')) : undefined}
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {(t('reco.ui.generatingPrograms' as any) as string) || 'Generating Programs...'}
+                </>
+              ) : !hasEnoughAnswers ? (
+                <>
+                  <Wand2 className="w-5 h-5" />
+                  {hasRequiredAnswers
+                    ? ((t('reco.ui.remainingQuestions' as any) as string)?.replace('{count}', String(remainingQuestions)) || `${remainingQuestions} more questions`)
+                    : ((t('reco.ui.requiredAnswersMissing' as any) as string) || 'Required answers missing')}
+                </>
+              ) : (
+                <>
+                  <Wand2 className="w-5 h-5" />
+                  {(t('reco.ui.generateFundingPrograms' as any) as string) || 'Generate Funding Programs'}
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
