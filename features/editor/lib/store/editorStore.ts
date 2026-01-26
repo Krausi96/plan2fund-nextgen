@@ -7,8 +7,9 @@ import type {
   ProgramSummary,
   SetupWizardState,
   ProjectProfile,
-  ProgramProfile,
-  DocumentTemplateId
+  // ProgramProfile removed - using extended ProgramSummary
+  DocumentTemplateId,
+  DocumentBlueprint
 } from '../types/types';
 import { MASTER_SECTIONS, MASTER_DOCUMENTS_BY_PRODUCT } from '../templates';
 import { METADATA_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '../constants';
@@ -61,8 +62,13 @@ export interface EditorActions {
   // Setup Wizard Actions
   setSetupWizardStep: (step: 1 | 2 | 3) => void;
   setProjectProfile: (profile: ProjectProfile | null) => void;
-  setProgramProfile: (profile: ProgramProfile | null) => void;
+  setProgramProfile: (profile: ProgramSummary | null) => void;
   setDocumentTemplateId: (templateId: DocumentTemplateId | null) => void;
+  setBlueprint: (blueprint: DocumentBlueprint | null) => void;
+  setBlueprintStatus: (status: 'none' | 'draft' | 'confirmed' | 'locked') => void;
+  setBlueprintVersion: (version: string) => void;
+  setBlueprintSource: (source: 'program' | 'template' | 'standard') => void;
+  setBlueprintDiagnostics: (diagnostics: { warnings: string[]; missingFields: string[]; confidence: number } | null) => void;
   completeSetupWizard: () => void;
   resetSetupWizard: () => void;
   setDisabledSectionIds: (ids: string[]) => void;
@@ -102,7 +108,12 @@ const initialState: EditorState = {
     projectProfile: null,
     programProfile: null,
     documentTemplateId: null,
-    isComplete: false
+    isComplete: false,
+    blueprint: null,
+    blueprintStatus: 'none',
+    blueprintVersion: '1.0',
+    blueprintSource: 'standard',
+    blueprintDiagnostics: null
   },
   disabledSectionIds: [],
   disabledDocumentIds: [],
@@ -351,13 +362,33 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   completeSetupWizard: () => set(state => ({
     setupWizard: { ...state.setupWizard, isComplete: true }
   })),
+  setBlueprint: (blueprint: DocumentBlueprint | null) => set(state => ({
+    setupWizard: { ...state.setupWizard, blueprint }
+  })),
+  setBlueprintStatus: (status: 'none' | 'draft' | 'confirmed' | 'locked') => set(state => ({
+    setupWizard: { ...state.setupWizard, blueprintStatus: status }
+  })),
+  setBlueprintVersion: (version: string) => set(state => ({
+    setupWizard: { ...state.setupWizard, blueprintVersion: version }
+  })),
+  setBlueprintSource: (source: 'program' | 'template' | 'standard') => set(state => ({
+    setupWizard: { ...state.setupWizard, blueprintSource: source }
+  })),
+  setBlueprintDiagnostics: (diagnostics: { warnings: string[]; missingFields: string[]; confidence: number } | null) => set(state => ({
+    setupWizard: { ...state.setupWizard, blueprintDiagnostics: diagnostics }
+  })),
   resetSetupWizard: () => set({
     setupWizard: {
       currentStep: 1,
       projectProfile: null,
       programProfile: null,
       documentTemplateId: null,
-      isComplete: false
+      isComplete: false,
+      blueprint: null,
+      blueprintStatus: 'none',
+      blueprintVersion: '1.0',
+      blueprintSource: 'standard',
+      blueprintDiagnostics: null
     }
   }),
   

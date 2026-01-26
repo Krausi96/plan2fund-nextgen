@@ -1,371 +1,397 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { Button } from '@/shared/components/ui/button';
-import { 
-  normalizeProgramInput, 
-  type ConnectCopy,
-  useConfiguratorState,
-} from '@/features/editor/lib';
+import { useConfiguratorState } from '@/features/editor/lib';
+import { ProgramOption } from './ProgramOption';
+import { TemplateOption } from './TemplateOption';
+import { FreeOption } from './FreeOption';
+import { BlueprintPanel } from './BlueprintPanel';
+import { ProgramFinder } from './ProgramFinder';
 
-type ProgramSelectionProps = {
-  connectCopy?: ConnectCopy;
-  onConnectProgram?: (value: string | null) => void;
+interface OptionSelectorProps {
+  selectedOption: 'program' | 'template' | 'free' | null;
+  onSelect: (option: 'program' | 'template' | 'free') => void;
+}
+
+function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
+  const { t } = useI18n();
+
+  return (
+    <div className="bg-slate-800/30 rounded-lg p-4 mb-4 border border-white/10">        
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Option A: Select Program */}
+        <div 
+          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
+            selectedOption === 'program' 
+              ? 'border-blue-400 bg-slate-700/70' 
+              : 'border-slate-600 hover:border-blue-400 hover:bg-slate-700/60'
+          }`}
+          onClick={() => onSelect('program')}
+        >
+          <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-blue-500/30 border-2 border-blue-400 text-blue-300 text-xl group-hover:scale-110 transition-transform duration-200">
+            📄
+          </div>
+          <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-blue-200 transition-colors duration-200">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.optionA';
+              const translated = t(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? 'Select Program' : translated;
+            })()}
+          </h3>
+          <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.optionADescription';
+              const translated = t(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? 'Choose a funding, bank or investor program. The program determines which documents and structure are needed. 📋 Generates document blueprint.' : translated;
+            })()}
+          </p>
+        </div>
+        
+        {/* Option B: Use Own Template */}
+        <div 
+          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
+            selectedOption === 'template' 
+              ? 'border-purple-400 bg-slate-700/70' 
+              : 'border-slate-600 hover:border-purple-400 hover:bg-slate-700/60'
+          }`}
+          onClick={() => onSelect('template')}
+        >
+          <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-purple-500/30 border-2 border-purple-400 text-purple-300 text-xl group-hover:scale-110 transition-transform duration-200">
+            🧩
+          </div>
+          <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-purple-200 transition-colors duration-200">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.optionB';
+              const translated = t(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? 'Use Own Template' : translated;
+            })()}
+          </h3>
+          <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.optionBDescription';
+              const translated = t(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? 'Upload your own template (e.g. DOCX/PDF). The structure of the template will be adopted.' : translated;
+            })()}
+          </p>
+        </div>
+        
+        {/* Option C: Start Free (Custom) */}
+        <div 
+          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
+            selectedOption === 'free' 
+              ? 'border-green-400 bg-slate-700/70' 
+              : 'border-slate-600 hover:border-green-400 hover:bg-slate-700/60'
+          }`}
+          onClick={() => onSelect('free')}
+        >
+          <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-green-500/30 border-2 border-green-400 text-green-300 text-xl group-hover:scale-110 transition-transform duration-200">
+            📋
+          </div>
+          <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-green-200 transition-colors duration-200">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.optionC';
+              const translated = t(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? 'Start Free (Custom)' : translated;
+            })()}
+          </h3>
+          <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
+            {(() => {
+              const key = 'editor.desktop.preview.emptyState.optionCDescription';
+              const translated = t(key as any) as string;
+              const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
+              return isMissing ? 'Start with a neutral standard structure. You can add programs or templates later.' : translated;
+            })()}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ProgramSelectionProps {
+  connectCopy?: any;
+  onConnectProgram?: (value: any) => void;
   onOpenProgramFinder?: () => void;
-};
+}
 
-/**
- * ProgramSelection component
- * Handles Step 2 of the configurator: Program connection with finder and manual input
- * Optimized: Uses only useConfiguratorState (now includes programError and programLoading)
- */
 export default function ProgramSelection({
   connectCopy,
   onConnectProgram,
   onOpenProgramFinder
 }: ProgramSelectionProps) {
   const configuratorState = useConfiguratorState();
-  
-  // Use provided handler or fallback to store action
   const handleConnectProgram = onConnectProgram ?? configuratorState.actions.setProgramSummary;
   const programSummary = configuratorState.programSummary;
   const programError = configuratorState.programError;
   const programLoading = configuratorState.programLoading;
+  
   const { t } = useI18n();
-  const [manualValue, setManualValue] = useState('');
-  const [manualError, setManualError] = useState<string | null>(null);
-  const [showManualInput, setShowManualInput] = useState(false);
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
-  const [manualInputPosition, setManualInputPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [showProgramFinder, setShowProgramFinder] = useState(false);
 
-  const manualInputRef = useRef<HTMLDivElement | null>(null);
-  const manualTriggerRef = useRef<HTMLButtonElement | null>(null);
-
-  const handleManualConnect = () => {
-    setManualError(null);
-    const normalized = normalizeProgramInput(manualValue);
-    if (!normalized) {
-      setManualError(connectCopy?.error || 'Invalid input');
-      return;
-    }
-    handleConnectProgram(normalized);
-    setShowManualInput(false);
-    // Don't auto-advance - let user manually navigate between steps
+  const handleOpenProgramFinder = () => {
+    setShowProgramFinder(true);
   };
 
-  // Manual input positioning
-  useEffect(() => {
-    if (!showManualInput) {
-      setManualInputPosition(null);
-      return;
-    }
-    const updatePosition = () => {
-      if (manualTriggerRef.current) {
-        const rect = manualTriggerRef.current.getBoundingClientRect();
-        // Ensure the dropdown doesn't go below the viewport
-        const maxTop = window.innerHeight - 350; // Leave more space for the dropdown
-        const top = Math.min(rect.bottom + 8, maxTop);
-        
-        // Ensure the dropdown doesn't go beyond the right edge of the viewport
-        const maxWidth = Math.min(rect.width, 420);
-        const maxLeft = window.innerWidth - maxWidth - 20;
-        const left = Math.min(Math.max(rect.left, 20), maxLeft); // Also ensure minimum left spacing
-        
-        // Ensure the dropdown doesn't go beyond the bottom of the viewport
-        const finalTop = Math.min(Math.max(top, 20), window.innerHeight - 350);
-        
-        // Ensure the dropdown doesn't go beyond the right edge of the viewport
-        const finalLeft = Math.min(Math.max(left, 20), window.innerWidth - maxWidth - 20);
-        
-        setManualInputPosition({
-          top: finalTop,
-          left: finalLeft,
-          width: maxWidth
-        });
-      }
+  const handleCloseProgramFinder = () => {
+    setShowProgramFinder(false);
+  };
+
+  const handleProgramSelect = (program: any) => {
+    // Create blueprint from selected program
+    const blueprint = {
+      source: 'program',
+      programId: program.id,
+      programName: program.name,
+      requiredDocuments: program.deliverables || ['business-plan'],
+      requiredSections: program.requirements || [
+        'executive-summary',
+        'company-description',
+        'market-analysis',
+        'financial-plan'
+      ],
+      complianceStrictness: 'medium',
+      programFocus: program.focusAreas || [],
+      status: 'draft'
     };
-    updatePosition();
     
-    const handleClickAway = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (
-        manualInputRef.current &&
-        !manualInputRef.current.contains(target) &&
-        manualTriggerRef.current &&
-        !manualTriggerRef.current.contains(target)
-      ) {
-        setShowManualInput(false);
-      }
-    };
-    const handleResize = () => {
-      // Small delay to ensure DOM is updated after resize
-      setTimeout(updatePosition, 100);
-    };
-    document.addEventListener('mousedown', handleClickAway);
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleResize, true);
-    return () => {
-      document.removeEventListener('mousedown', handleClickAway);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleResize, true);
-    };
-  }, [showManualInput]);
+    // Store in setup wizard state
+    // TODO: Implement proper state update
+    console.log('Selected program:', program);
+    console.log('Generated blueprint:', blueprint);
+    
+    handleCloseProgramFinder();
+  };
+
+  // Render selected option content
+  const renderOptionContent = () => {
+    switch (selectedOption) {
+      case 'program':
+        return (
+          <ProgramOption
+            connectCopy={connectCopy}
+            programLoading={programLoading}
+            programError={programError}
+            onConnectProgram={handleConnectProgram}
+            onOpenProgramFinder={handleOpenProgramFinder}
+          />
+        );
+      case 'template':
+        return <TemplateOption />;
+      case 'free':
+        return <FreeOption />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="relative mb-6 pb-6">
-      {/* New Header and Description */}
+      {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">
-          {t('editor.desktop.program.header' as any) || 'Document Setup'}
-        </h2>
+        <div className="flex items-center gap-2 mb-2">
+          <h2 className="text-2xl font-bold text-white">
+            {t('editor.desktop.program.header' as any) || 'Document Setup'}
+          </h2>
+          <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full font-medium">
+            📋 Blueprint Enhanced
+          </span>
+        </div>
         <p className="text-white/70 text-sm">
           {t('editor.desktop.program.subtitle' as any) || 'Choose how your document structure and requirements are defined.'}
         </p>
       </div>
       
-      {/* Document Structure Definition - Moved from PreviewWorkspace */}
-      <div className="bg-slate-800/30 rounded-lg p-4 mb-4 border border-white/10">        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* Option A: Select Program */}
-          <div 
-            className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${{
-              'border-blue-400 bg-slate-700/70': selectedOption === 'program',
-              'border-slate-600 hover:border-blue-400 hover:bg-slate-700/60': selectedOption !== 'program'
-            }}`}
-            onClick={() => setSelectedOption('program')}
-          >
-            <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-blue-500/30 border-2 border-blue-400 text-blue-300 text-xl group-hover:scale-110 transition-transform duration-200">
-              📄
+      {/* Option Selector */}
+      <OptionSelector 
+        selectedOption={selectedOption} 
+        onSelect={setSelectedOption} 
+      />
+      
+      {/* Two-Column Layout */}
+      <div className="flex flex-col lg:flex-row gap-6 mt-6">
+        {/* Main Content Column (70%) */}
+        <div className="lg:w-7/12">
+          {/* Selected Option Content */}
+          {selectedOption && (
+            <div className="bg-slate-800/30 rounded-xl border border-white/10 p-6">
+              <h3 className="text-white font-bold text-lg mb-4">
+                {selectedOption === 'program' && 'Select Program'}
+                {selectedOption === 'template' && 'Use Own Template'}
+                {selectedOption === 'free' && 'Start Free (Custom)'}
+              </h3>
+              
+              {/* Horizontal Program Input (for Program option) */}
+              {selectedOption === 'program' && (
+                <div className="mb-6">
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    <button
+                      onClick={onOpenProgramFinder}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm"
+                    >
+                      <span>🔍</span>
+                      {t('editor.desktop.program.searchPrograms' as any) || 'Search Programs'}
+                    </button>
+                    <button
+                      onClick={() => {}} // Will implement paste URL functionality
+                      className="inline-flex items-center gap-2 px-4 py-2 border border-white/30 hover:border-white/50 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-sm"
+                    >
+                      <span>🔗</span>
+                      {t('editor.desktop.program.pasteUrl' as any) || 'Paste URL'}
+                    </button>
+                    <button
+                      onClick={() => {}} // Will implement reco wizard
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors text-sm"
+                    >
+                      <span>🧠</span>
+                      {t('editor.desktop.program.recoWizard' as any) || 'Reco Wizard'}
+                    </button>
+                  </div>
+                  <p className="text-white/70 text-sm">
+                    {t('editor.desktop.program.horizontalInputHint' as any) || 'Choose how to specify your funding program'}
+                  </p>
+                </div>
+              )}
+              
+              {renderOptionContent()}
             </div>
-            <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-blue-200 transition-colors duration-200">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionA';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Select Program' : translated;
-              })()}
-            </h3>
-            <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionADescription';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Choose a funding, bank or investor program. The program determines which documents and structure are needed.' : translated;
-              })()}
-            </p>
-          </div>
+          )}
           
-          {/* Option B: Use Own Template */}
-          <div 
-            className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${{
-              'border-purple-400 bg-slate-700/70': selectedOption === 'template',
-              'border-slate-600 hover:border-purple-400 hover:bg-slate-700/60': selectedOption !== 'template'
-            }}`}
-            onClick={() => setSelectedOption('template')}
-          >
-            <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-purple-500/30 border-2 border-purple-400 text-purple-300 text-xl group-hover:scale-110 transition-transform duration-200">
-              🧩
+          {/* Program Summary Display */}
+          {programSummary && (
+            <div className="space-y-4 mt-6">
+              {/* Connected Program Display */}
+              <div className="w-full rounded-lg border border-blue-300 bg-blue-100/60 px-4 py-3">
+                <div className="flex items-start justify-between gap-3 w-full">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-blue-900 leading-tight">{programSummary.name}</p>
+                    {programSummary.amountRange && (
+                      <p className="text-xs text-blue-800 mt-1">{programSummary.amountRange}</p>
+                    )}
+                    {/* Blueprint Information */}
+                    {programSummary.source && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">📋</span>
+                          </div>
+                          <h4 className="text-blue-800 font-bold text-sm">Document Blueprint</h4>
+                          <span className="ml-auto px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium capitalize">
+                            {programSummary.source}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-white p-2 rounded border border-blue-100">
+                            <div className="flex items-center gap-2">
+                              <span className="text-blue-500">📄</span>
+                              <div>
+                                <div className="text-xs text-blue-600 font-medium">Required Documents</div>
+                                <div className="text-sm font-bold text-blue-800">{programSummary.requiredDocuments?.length || 0}</div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-white p-2 rounded border border-blue-100">
+                            <div className="flex items-center gap-2">
+                              <span className="text-blue-500">📑</span>
+                              <div>
+                                <div className="text-xs text-blue-600 font-medium">Required Sections</div>
+                                <div className="text-sm font-bold text-blue-800">{programSummary.requiredSections?.length || 0}</div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-white p-2 rounded border border-blue-100">
+                            <div className="flex items-center gap-2">
+                              <span className="text-blue-500">⚖️</span>
+                              <div>
+                                <div className="text-xs text-blue-600 font-medium">Compliance Level</div>
+                                <div className="text-sm font-bold text-blue-800 capitalize">{programSummary.complianceStrictness || 'medium'}</div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-white p-2 rounded border border-blue-100">
+                            <div className="flex items-center gap-2">
+                              <span className="text-blue-500">⚙️</span>
+                              <div>
+                                <div className="text-xs text-blue-600 font-medium">Validation Rules</div>
+                                <div className="text-sm font-bold text-blue-800">{programSummary.validationRules?.length || 0}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Program Focus Areas */}
+                        {programSummary.programFocus && programSummary.programFocus.length > 0 && (
+                          <div className="mt-3 pt-2 border-t border-blue-100">
+                            <div className="text-xs text-blue-600 font-medium mb-1">Focus Areas:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {programSummary.programFocus.map((focus: string, idx: number) => (
+                                <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                  {focus}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    className="text-blue-800 hover:text-blue-900 text-lg h-6 px-1 flex-shrink-0"
+                    onClick={() => handleConnectProgram(null)}
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              
+              {/* Confirmation Banner */}
+              <div className="bg-green-600/20 border border-green-400/30 rounded-lg p-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-300 text-sm flex-shrink-0">✓</span>
+                  <p className="text-xs text-white/90 leading-relaxed font-medium">
+                    {t('editor.desktop.config.step2.complete' as any) || 'Program connected successfully'}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Next Step Message */}
+              <div className="bg-blue-600/20 border border-blue-400/30 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-300 text-xs flex-shrink-0">→</span>
+                  <p className="text-[10px] text-white/90 leading-relaxed">
+                    {t('editor.desktop.config.step3.hint' as any) || 'Proceed to Step 3 to manage sections and documents for your plan.'}
+                  </p>
+                </div>
+              </div>
             </div>
-            <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-purple-200 transition-colors duration-200">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionB';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Use Own Template' : translated;
-              })()}
-            </h3>
-            <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionBDescription';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Upload your own template (e.g. DOCX/PDF). The structure of the template will be adopted.' : translated;
-              })()}
-            </p>
-          </div>
-          
-          {/* Option C: Start Free (Custom) */}
-          <div 
-            className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${{
-              'border-green-400 bg-slate-700/70': selectedOption === 'free',
-              'border-slate-600 hover:border-green-400 hover:bg-slate-700/60': selectedOption !== 'free'
-            }}`}
-            onClick={() => setSelectedOption('free')}
-          >
-            <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-green-500/30 border-2 border-green-400 text-green-300 text-xl group-hover:scale-110 transition-transform duration-200">
-              📋
-            </div>
-            <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-green-200 transition-colors duration-200">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionC';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Start Free (Custom)' : translated;
-              })()}
-            </h3>
-            <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
-              {(() => {
-                const key = 'editor.desktop.preview.emptyState.optionCDescription';
-                const translated = t(key as any) as string;
-                const isMissing = !translated || translated === key || translated === String(key) || translated.startsWith('editor.desktop.preview.emptyState');
-                return isMissing ? 'Start with a neutral standard structure. You can add programs or templates later.' : translated;
-              })()}
-            </p>
-          </div>
+          )}
+        </div>
+        
+        {/* Blueprint Panel Column (30%) */}
+        <div className="lg:w-5/12">
+          <BlueprintPanel 
+            onGenerate={() => console.log('Generate blueprint')} 
+            onEdit={() => console.log('Edit blueprint')} 
+            onClear={() => console.log('Clear blueprint')} 
+          />
         </div>
       </div>
       
-      {/* Conditional Content Based on Selection */}
-      {selectedOption === 'program' && (
-        <div className="space-y-4 mt-4">
-          <div className="bg-blue-600/20 border border-blue-400/30 rounded-lg p-3">
-            <p className="text-xs text-white/90 text-center">
-              {t('editor.desktop.program.selectProgramHint' as any) || 'Choose a funding program to define your document structure'}
-            </p>
-          </div>
-          
-          <div className="w-full flex flex-col sm:flex-row gap-2">
-            <button
-              onClick={onOpenProgramFinder}
-              className="inline-flex items-center justify-center px-3 py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-xs flex-1 min-w-0"
-            >
-              {connectCopy?.openFinder || t('editor.desktop.config.connectProgram.openFinder' as any) || 'Open ProgramFinder'}
-            </button>
-            <button
-              ref={manualTriggerRef}
-              aria-expanded={showManualInput}
-              aria-controls="manual-program-connect"
-              onClick={() => setShowManualInput((prev) => !prev)}
-              className="inline-flex items-center justify-center px-3 py-2 h-auto border border-white/30 hover:border-white/50 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-xs flex-1 min-w-0"
-            >
-              {connectCopy?.pasteLink || t('editor.desktop.config.connectProgram.pasteLink' as any) || 'Paste Link'}
-            </button>
-          </div>
-          
-          {showManualInput && typeof window !== 'undefined' && manualInputPosition && createPortal(
-            <div
-              id="manual-program-connect"
-              ref={manualInputRef}
-              className={`fixed rounded-2xl border border-blue-500/40 bg-slate-950/95 p-2.5 shadow-2xl backdrop-blur-xl transition-all duration-200 z-[10002] pointer-events-auto opacity-100 translate-y-0`}
-              style={{
-                top: `${manualInputPosition.top}px`,
-                left: `${manualInputPosition.left}px`,
-                width: `${manualInputPosition.width}px`
-              }}
-            >
-              <div className="space-y-1 text-white">
-                <label className="text-[9px] font-semibold text-white/70 block">
-                  {connectCopy?.inputLabel || t('editor.desktop.config.connectProgram.inputLabel' as any) || 'Program Link or ID'}
-                </label>
-                <div className="flex flex-col gap-1.5 sm:flex-row">
-                  <input
-                    value={manualValue}
-                    onChange={(event) => setManualValue(event.target.value)}
-                    placeholder={connectCopy?.placeholder || t('editor.desktop.config.connectProgram.placeholder' as any) || 'Enter program link or ID...'}
-                    className="flex-1 rounded border border-white/30 bg-white/10 px-2.5 py-1.5 h-8 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="sm:w-auto text-xs h-8 px-2.5 bg-blue-600 hover:bg-blue-500 text-white"
-                    onClick={handleManualConnect}
-                    disabled={programLoading}
-                  >
-                    {programLoading ? '...' : (connectCopy?.submit || t('editor.desktop.config.connectProgram.submit' as any) || 'Connect')}
-                  </Button>
-                </div>
-                <p className="text-[9px] text-white/60">{connectCopy?.example || t('editor.desktop.config.connectProgram.example' as any) || 'e.g., AWS-2024-001 or https://...'}</p>
-                {(manualError || programError) && (
-                  <p className="text-[9px] text-red-400">{manualError || programError}</p>
-                )}
-              </div>
-            </div>,
-            document.body
-          )}
-        </div>
-      )}
-      
-      {selectedOption === 'template' && (
-        <div className="space-y-4 mt-4">
-          <div className="bg-purple-600/20 border border-purple-400/30 rounded-lg p-3">
-            <p className="text-xs text-white/90 text-center mb-3">
-              {t('editor.desktop.program.uploadTemplateHint' as any) || 'Upload your own template to define document structure'}
-            </p>
-            <div className="flex justify-center">
-              <button className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors text-sm">
-                <span className="mr-2">📁</span>
-                {t('editor.desktop.program.uploadTemplate' as any) || 'Upload Template'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {selectedOption === 'free' && (
-        <div className="space-y-4 mt-4">
-          <div className="bg-green-600/20 border border-green-400/30 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-green-300 text-sm flex-shrink-0">✓</span>
-              <p className="text-xs text-white/90 leading-relaxed font-medium">
-                {t('editor.desktop.program.freeSelected' as any) || 'Free structure selected'}
-              </p>
-            </div>
-            <p className="text-[10px] text-white/80 text-center">
-              {t('editor.desktop.program.proceedToNext' as any) || 'Proceed to the next section to define your document structure manually'}
-            </p>
-          </div>
-        </div>
-      )}
-      
-      {/* Optional Step Message - REMOVED */}
-      
-      {/* Show program summary when connected */}
-      {programSummary && (
-        <div className="space-y-2 mt-4">
-          {/* Connected Program Display */}
-          <div className="w-full rounded-lg border border-blue-300 bg-blue-100/60 px-2.5 py-2">
-            <div className="flex items-start justify-between gap-2 w-full">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-blue-900 leading-tight">{programSummary.name}</p>
-                {programSummary.amountRange && (
-                  <p className="text-xs text-blue-800 mt-0.5">{programSummary.amountRange}</p>
-                )}
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-blue-800 hover:text-blue-900 text-xs h-5 px-1 flex-shrink-0"
-                onClick={() => {
-                  handleConnectProgram(null);
-                }}
-              >
-                ×
-              </Button>
-            </div>
-          </div>
-          
-          {/* Confirmation Banner */}
-          <div className="bg-green-600/20 border border-green-400/30 rounded-lg p-2">
-            <div className="flex items-center gap-2">
-              <span className="text-green-300 text-sm flex-shrink-0">✓</span>
-              <p className="text-xs text-white/90 leading-relaxed font-medium">
-                {t('editor.desktop.config.step2.complete' as any) || 'Program connected successfully'}
-              </p>
-            </div>
-          </div>
-          
-          {/* Next Step Message */}
-          <div className="bg-blue-600/20 border border-blue-400/30 rounded-lg p-2">
-            <div className="flex items-start gap-2">
-              <span className="text-blue-300 text-xs flex-shrink-0">→</span>
-              <p className="text-[10px] text-white/90 leading-relaxed">
-                {t('editor.desktop.config.step3.hint' as any) || 'Proceed to Step 3 to manage sections and documents for your plan.'}
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* Program Finder Modal */}
+      {showProgramFinder && (
+        <ProgramFinder 
+          onProgramSelect={handleProgramSelect}
+          onClose={handleCloseProgramFinder}
+        />
       )}
     </div>
   );
 }
-

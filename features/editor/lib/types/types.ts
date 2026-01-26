@@ -149,6 +149,33 @@ export interface ProgramSummary {
   type?: string;
   amountRange?: string;
   deadline?: string;
+  // Blueprint enhancement fields
+  source?: 'program' | 'template' | 'standard';
+  requiredDocuments?: string[];
+  requiredSections?: string[];
+  requirementSchemas?: any[];
+  validationRules?: any[];
+  formattingRules?: any[];
+  complianceStrictness?: 'low' | 'medium' | 'high';
+  programFocus?: string[];
+  fundingTypes?: string[];
+  useOfFunds?: string[];
+  coFinancingRequired?: boolean;
+  region?: string;
+  organization?: string;
+  typicalTimeline?: string;
+  competitiveness?: string;
+  categorizedRequirements?: Record<string, any>;
+  // Blueprint tracking (new fields)
+  blueprint?: DocumentBlueprint;
+  blueprintStatus?: 'none' | 'draft' | 'confirmed' | 'locked';
+  blueprintVersion?: string;
+  blueprintSource?: 'program' | 'template' | 'standard';
+  blueprintDiagnostics?: {
+    warnings: string[];
+    missingFields: string[];
+    confidence: number;
+  };
   [key: string]: any;
 }
 
@@ -258,6 +285,90 @@ export interface ToggleHandlers {
 }
 
 // ============================================================================
+// BLUEPRINT TYPES
+// ============================================================================
+
+/**
+ * DocumentBlueprint - Complete blueprint for document generation
+ * Generated from ProgramProfile through 8-stage pipeline
+ */
+export interface DocumentBlueprint {
+  id: string;
+  version: string;
+  source: 'program' | 'template' | 'standard';
+  
+  // Document structure
+  documents: Array<{
+    id: string;
+    name: string;
+    purpose: string;
+    required: boolean;
+    templateId?: string;
+  }>;
+  
+  // Section structure
+  sections: Array<{
+    id: string;
+    documentId: string;
+    title: string;
+    type: 'required' | 'optional' | 'conditional';
+    required: boolean;
+    programCritical: boolean;
+    aiPrompt?: string;
+    checklist?: string[];
+  }>;
+  
+  // Requirements
+  requirements: Array<{
+    id: string;
+    scope: 'section' | 'document' | 'global';
+    category: 'financial' | 'market' | 'team' | 'risk' | 'formatting' | 'evidence';
+    severity: 'blocker' | 'major' | 'minor';
+    rule: string;
+    target?: any;
+    evidenceType?: string;
+  }>;
+  
+  // Validation
+  validationRules: Array<{
+    id: string;
+    type: 'presence' | 'completeness' | 'numeric' | 'attachment' | 'formatting' | 'consistency';
+    scope: string;
+    condition?: string;
+    errorMessage: string;
+  }>;
+  
+  // AI Guidance
+  aiGuidance: Array<{
+    sectionId: string;
+    prompt: string;
+    checklist: string[];
+    examples?: string[];
+  }>;
+  
+  // Rendering rules
+  renderingRules: {
+    titlePage?: Record<string, any>;
+    tableOfContents?: Record<string, any>;
+    references?: Record<string, any>;
+    appendices?: Record<string, any>;
+  };
+  
+  // Diagnostics
+  conflicts: string[];
+  warnings: string[];
+  confidenceScore: number; // 0-100
+  
+  // Metadata
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}
+
+// DocumentBlueprint interface remains (needed for blueprint structure)
+// ProgramProfile functionality now integrated into extended ProgramSummary
+
+// ============================================================================
 // SETUP WIZARD TYPES
 // ============================================================================
 
@@ -286,20 +397,6 @@ export interface ProjectProfile {
 }
 
 /**
- * ProgramProfile - Output of Step 2 (Target Selection)
- * Determines document structure based on funding type and program
- */
-export interface ProgramProfile {
-  fundingType: 'bank' | 'grant' | 'investor' | 'custom';
-  programId?: string;
-  programName?: string;
-  // What this affects:
-  requiredSections: string[];
-  requiredAnnexes: string[];
-  scoringChecks: string[];
-}
-
-/**
  * DocumentTemplateId - Output of Step 3 (Document Type)
  * Final document template selection
  */
@@ -311,9 +408,20 @@ export type DocumentTemplateId = 'business-plan' | 'pitch-deck' | 'executive-sum
 export interface SetupWizardState {
   currentStep: 1 | 2 | 3;
   projectProfile: ProjectProfile | null;
-  programProfile: ProgramProfile | null;
+  programProfile: ProgramSummary | null;  // Now uses extended ProgramSummary
   documentTemplateId: DocumentTemplateId | null;
   isComplete: boolean;
+  
+  // Blueprint tracking (now in extended ProgramSummary)
+  blueprint: DocumentBlueprint | null;
+  blueprintStatus: 'none' | 'draft' | 'confirmed' | 'locked';
+  blueprintVersion: string;
+  blueprintSource: 'program' | 'template' | 'standard';
+  blueprintDiagnostics: {
+    warnings: string[];
+    missingFields: string[];
+    confidence: number;
+  } | null;
 }
 
 // Helper types for editor store

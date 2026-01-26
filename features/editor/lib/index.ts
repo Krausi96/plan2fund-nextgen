@@ -67,7 +67,7 @@ export type {
   ToggleHandlers,
   ConnectCopy,
   ProjectProfile,
-  ProgramProfile,
+  // ProgramProfile removed - functionality now in extended ProgramSummary
   DocumentTemplateId,
   SetupWizardState,
 } from './types/types';
@@ -172,6 +172,8 @@ export {
 export {
   shouldIgnoreClick,
   normalizeProgramInput,
+  generateProgramBlueprint,
+  syncTemplateStateFromPlan,
 } from './utils';
 
 // ============================================================================

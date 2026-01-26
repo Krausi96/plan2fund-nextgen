@@ -90,7 +90,7 @@ export function TitlePageRenderer({ planDocument, disabledSections, t, compact =
           {tp?.logoUrl ? (
             <img src={tp.logoUrl} alt="Company Logo" className="mx-auto h-24 object-contain mb-8" />
           ) : (
-            <div className="mx-auto h-24 w-24 rounded-xl flex items-center justify-center mb-8 border-2 border-dashed border-blue-400 bg-blue-50">
+            <div className="h-24 w-48 rounded-xl flex items-center justify-center mb-8 border-2 border-dashed border-blue-400 bg-blue-50">
               <div className="text-blue-600 text-sm font-medium text-center px-2">
                 {t.logoPlaceholder || (isGerman ? 'Firmenlogo' : 'Company Logo')}
               </div>
