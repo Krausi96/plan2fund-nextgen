@@ -38,6 +38,10 @@
   "reco.options.organisation_type.established_sme": "Etabliertes KMU",
   "reco.options.organisation_type.other": "Andere",
   "reco.placeholders.organisation_type_other": "Bitte geben Sie Ihren Organisationstyp an",
+  "reco.options.company_stage.idea": "Idee (Konzeptphase, noch kein Produkt)",
+  "reco.options.company_stage.MVP": "Prototyp / MVP (Produkt in Entwicklung)",
+  "reco.options.company_stage.revenue": "Erster Umsatz (erste zahlende Kunden)",
+  "reco.options.company_stage.growth": "Wachstum / Skalierung (etablierte Produkte, Umsatzskalierung)",
 
   "results.confidenceRecommendation": "Vertrauensempfehlung",
   "results.description": "Beschreibung",

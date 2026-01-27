@@ -27,10 +27,10 @@ function deriveCompanyInfo(organisationType: string | undefined, companyStage: s
   
   // Map company stage to company_stage
   const stageMap: Record<string, string> = {
-    'exploring_idea': 'pre_company',
-    'early_stage': 'inc_lt_6m',
-    'growing': 'inc_6_36m',
-    'established': 'inc_gt_36m'
+    'idea': 'pre_company',
+    'MVP': 'inc_lt_6m',
+    'revenue': 'inc_6_36m',
+    'growth': 'inc_gt_36m'
   };
   
   return {
