@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
 
 interface BlueprintPanelProps {
@@ -8,7 +8,8 @@ interface BlueprintPanelProps {
 }
 
 export function BlueprintPanel({ onGenerate, onEdit, onClear }: BlueprintPanelProps) {
-
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  
   const configuratorState = useConfiguratorState();
   const setupWizard = useEditorStore((state) => state.setupWizard);
   
@@ -115,6 +116,40 @@ export function BlueprintPanel({ onGenerate, onEdit, onClear }: BlueprintPanelPr
     return 'Just now';
   };
 
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  // Group sections by document
+  const getSectionsByDocument = () => {
+    if (!documentStructure?.sections) return {};
+    
+    const grouped: Record<string, any[]> = {};
+    documentStructure.sections.forEach(section => {
+      const docId = section.documentId || 'main_document';
+      if (!grouped[docId]) {
+        grouped[docId] = [];
+      }
+      grouped[docId].push(section);
+    });
+    return grouped;
+  };
+
+  // Mock unmapped headings (in a real implementation, this would come from analysis)
+  const getUnmappedHeadings = () => {
+    return [
+      { text: 'Appendix A: Financial Statements', confidence: 45 },
+      { text: 'Team Bios', confidence: 30 },
+      { text: 'Market Research Data', confidence: 65 }
+    ];
+  };
+
+  const sectionsByDoc = getSectionsByDocument();
+  const unmappedHeadings = getUnmappedHeadings();
+
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
       {/* Header */}
@@ -181,6 +216,156 @@ export function BlueprintPanel({ onGenerate, onEdit, onClear }: BlueprintPanelPr
             <div className="text-white/60 text-xs">rules</div>
           </div>
         </div>
+
+        {/* Tree Structure Preview */}
+        {documentStructure && (
+          <div className="bg-slate-700/50 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-white font-medium flex items-center gap-2">
+                <span>🌳</span>
+                Structure Tree
+              </h4>
+              <span className="text-white/60 text-xs">
+                {Object.keys(sectionsByDoc).length} documents
+              </span>
+            </div>
+            
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {documentStructure.documents.map(doc => (
+                <div key={doc.id} className="border-l-2 border-blue-400 pl-2">
+                  <div 
+                    className="flex items-center justify-between py-1 cursor-pointer hover:bg-white/5 rounded px-1"
+                    onClick={() => toggleSection(doc.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-blue-300">📄</span>
+                      <span className="text-white text-sm font-medium">{doc.name}</span>
+                      <span className="text-white/60 text-xs">
+                        ({sectionsByDoc[doc.id]?.length || 0} sections)
+                      </span>
+                    </div>
+                    <span className="text-white/60 text-xs">
+                      {doc.required ? 'Required' : 'Optional'}
+                    </span>
+                  </div>
+                  
+                  {expandedSections[doc.id] && sectionsByDoc[doc.id] && (
+                    <div className="ml-4 mt-1 space-y-1">
+                      {sectionsByDoc[doc.id].map(section => (
+                        <div key={section.id} className="flex items-center gap-2 py-1">
+                          <span className="text-green-400 text-xs">└─</span>
+                          <span className={`text-xs ${
+                            section.required ? 'text-white font-medium' : 'text-white/70'
+                          }`}>
+                            {section.title}
+                          </span>
+                          {section.programCritical && (
+                            <span className="px-1 py-0.5 bg-red-500/20 text-red-300 text-xs rounded">
+                              Critical
+                            </span>
+                          )}
+                          <span className={`ml-auto text-xs ${
+                            section.type === 'required' ? 'text-green-400' :
+                            section.type === 'optional' ? 'text-yellow-400' : 'text-purple-400'
+                          }`}>
+                            {section.type}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Mapping Confidence */}
+        <div className="bg-indigo-900/20 border border-indigo-700/30 rounded-lg p-3">
+          <h4 className="text-indigo-200 font-medium mb-3 flex items-center gap-2">
+            <span>🎯</span>
+            Mapping Confidence
+          </h4>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-indigo-300 text-sm">Overall Structure</span>
+              <div className="flex items-center gap-2">
+                <div className="w-16 bg-gray-700 rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full ${
+                      getConfidenceScore() >= 80 ? 'bg-green-500' :
+                      getConfidenceScore() >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`} 
+                    style={{ width: `${getConfidenceScore()}%` }}
+                  ></div>
+                </div>
+                <span className="text-white font-medium w-8 text-right">
+                  {getConfidenceScore()}%
+                </span>
+              </div>
+            </div>
+            
+            {documentStructure?.sections && (
+              <div className="pt-2 border-t border-indigo-700/30">
+                <div className="text-indigo-300 text-sm mb-2">Section Mapping</div>
+                <div className="grid grid-cols-2 gap-1 text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <span className="text-white/80">Mapped: {documentStructure.sections.filter(s => s.type !== 'unmapped').length}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                    <span className="text-white/80">Unmapped: {documentStructure.sections.filter(s => s.type === 'unmapped').length}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Unmapped Headings */}
+        {unmappedHeadings.length > 0 && (
+          <div className="bg-amber-900/20 border border-amber-700/30 rounded-lg p-3">
+            <h4 className="text-amber-200 font-medium mb-3 flex items-center gap-2">
+              <span>❓</span>
+              Unmapped Headings
+            </h4>
+            
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {unmappedHeadings.map((heading, index) => (
+                <div key={index} className="flex items-center justify-between bg-amber-800/20 rounded p-2">
+                  <div className="flex-1">
+                    <div className="text-amber-100 text-sm truncate" title={heading.text}>
+                      {heading.text}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-12 bg-gray-700 rounded-full h-1.5">
+                      <div 
+                        className={`h-1.5 rounded-full ${
+                          heading.confidence >= 60 ? 'bg-green-500' :
+                          heading.confidence >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`} 
+                        style={{ width: `${heading.confidence}%` }}
+                      ></div>
+                    </div>
+                    <span className={`text-xs font-medium w-8 text-right ${
+                      heading.confidence >= 60 ? 'text-green-300' :
+                      heading.confidence >= 40 ? 'text-yellow-300' : 'text-red-300'
+                    }`}>
+                      {heading.confidence}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-2 text-amber-300 text-xs">
+              These headings couldn't be automatically mapped to program requirements
+            </div>
+          </div>
+        )}
 
         {/* Confidence & Warnings */}
         <div className="bg-white/5 rounded-lg p-3">

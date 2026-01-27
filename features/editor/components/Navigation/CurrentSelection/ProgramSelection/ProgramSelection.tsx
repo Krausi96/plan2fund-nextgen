@@ -4,6 +4,8 @@ import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
 import { BlueprintPanel } from './components/panels/BlueprintPanel';
 import { ProgramFinder } from './components/finder/ProgramFinder';
 import EditorProgramFinder from '@/features/editor/components/Navigation/CurrentSelection/ProgramSelection/components/finder/ProgramFinder/EditorProgramFinder';
+import { TemplateOption } from './components/options/TemplateOption';
+import { FreeOption } from './components/options/FreeOption';
 import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup, generateDocumentStructureFromProfile, parseProgramFromUrl } from '@/features/editor/lib';
 
 interface OptionSelectorProps {
@@ -274,58 +276,25 @@ export default function ProgramSelection({
                     <h4 className="text-white font-bold text-lg mb-4">
                       {t('editor.desktop.program.useOwnTemplateTitle' as any) || 'Use Own Template'}
                     </h4>
-                    <div className="mb-4">
-                      <label className="block text-white text-sm font-medium mb-2">
-                        {t('editor.desktop.program.template.uploadTitle' as any) || 'Upload Template File'}
-                      </label>
-                      <div 
-                        className="border-2 border-dashed border-white/30 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer relative"
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          const files = Array.from(e.dataTransfer.files);
-                          const file = files[0];
-                          if (file && (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.type === 'application/pdf')) {
-                            console.log('File dropped:', file.name);
-                            // TODO: Implement file processing
-                          }
-                        }}
-                      >
-                        <div className="text-white/70 mb-2">
-                          <span className="text-2xl">📁</span>
-                        </div>
-                        <p className="text-white/70 text-sm mb-2">
-                          {t('editor.desktop.program.template.dropHint' as any) || 'Drop your DOCX or PDF file here, or click to browse'}
-                        </p>
-                        <p className="text-white/50 text-xs">
-                          {t('editor.desktop.program.template.supportedFormats' as any) || 'Supports .docx and .pdf files'}
-                        </p>
-                        <input
-                          type="file"
-                          accept=".docx,.pdf"
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              console.log('File selected:', file.name);
-                              // TODO: Implement file processing
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-3">
-                      <p className="text-xs text-blue-200 leading-relaxed">
-                        {t('editor.desktop.program.template.analysisInfo' as any) || 'Your template structure will be analyzed and converted into editable sections. Supported formats: DOCX, PDF'}
-                      </p>
-                    </div>
+                    <TemplateOption 
+                      onDocumentAnalyzed={(analysis) => {
+                        console.log('Template analysis complete:', analysis);
+                      }}
+                    />
                   </div>
                 )}
-                {selectedOption === 'free' && (t('editor.desktop.program.startFreeTitle' as any) || 'Start Free (Custom)')}
+                {selectedOption === 'free' && (
+                  <div>
+                    <h4 className="text-white font-bold text-lg mb-4">
+                      {t('editor.desktop.program.startFreeTitle' as any) || 'Start Free (Custom)'}
+                    </h4>
+                    <FreeOption 
+                      onStructureSelected={(structure) => {
+                        console.log('Free structure selected:', structure);
+                      }}
+                    />
+                  </div>
+                )}
               </h3>
               
               {/* Horizontal Program Tabs (for Program option) */}
