@@ -121,11 +121,30 @@ export default function QuestionRenderer({
                     <label className="text-xs font-medium text-gray-600 mb-1 block">
                       {t('reco.ui.pleaseSpecify') || 'Please specify:'}
                     </label>
+                    
+                    {/* Suggestions for organisation_type */}
+                    {question.id === 'organisation_type' && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {['Research institution', 'Public body'].map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onClick={() => onAnswer(`${question.id}_other`, suggestion)}
+                            className="px-3 py-1.5 text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg border border-blue-300 transition-colors"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    
                     <input
                       type="text"
                       placeholder={
                         question.id === 'organisation_stage' || question.id === 'company_type'
                           ? ((t('reco.ui.otherPlaceholderOrg' as any) as string) || 'e.g., Association, Cooperative, Foundation')
+                          : question.id === 'organisation_type'
+                          ? ((t('reco.placeholders.organisation_type_other' as any) as string) || 'Please specify your organisation type')
                           : ((t('reco.ui.otherPlaceholder' as any) as string) || 'Please specify...')
                       }
                       value={otherTextValue}
