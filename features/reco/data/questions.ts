@@ -36,6 +36,30 @@ export const CORE_QUESTIONS: QuestionDefinition[] = [
     isAdvanced: false,
   },
   {
+    id: 'has_registered_company',
+    label: 'Do you already have a registered company?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'yes', label: 'Yes' },
+      { value: 'no', label: 'No' },
+    ],
+    required: true,
+    priority: 2.1,
+    isAdvanced: false,
+  },
+  {
+    id: 'legal_form',
+    label: 'What is your legal form?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'gmbh', label: 'GmbH' },
+      { value: 'not_registered_yet', label: 'Not registered yet' },
+    ],
+    required: true,
+    priority: 2.2,
+    isAdvanced: false,
+  },
+  {
     id: 'revenue_status',
     label: 'What best describes your current situation regarding funding?',
     type: 'single-select' as const,

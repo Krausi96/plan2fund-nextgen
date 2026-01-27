@@ -83,6 +83,38 @@ export default function ProgramFinder({
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false);
   const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [currentStep, setCurrentStep] = useState(0);
+  
+  // Get filtered questions based on conditional logic
+  const getFilteredQuestions = useCallback((allQuestions: QuestionDefinition[], currentAnswers: Record<string, any>) => {
+    return allQuestions.filter(question => {
+      // Always show organisation_stage
+      if (question.id === 'organisation_stage') return true;
+      
+      // Show has_registered_company only if exploring_idea
+      if (question.id === 'has_registered_company') {
+        return currentAnswers.organisation_stage === 'exploring_idea';
+      }
+      
+      // Show legal_form based on conditions
+      if (question.id === 'legal_form') {
+        // If exploring_idea, show only if has_registered_company = yes
+        if (currentAnswers.organisation_stage === 'exploring_idea') {
+          return currentAnswers.has_registered_company === 'yes';
+        }
+        // For other stages, show legal_form
+        return currentAnswers.organisation_stage && currentAnswers.organisation_stage !== 'exploring_idea';
+      }
+      
+      // For all other questions, show by default
+      return true;
+    });
+  }, []);
+  
+  const filteredQuestions = useMemo(() => 
+    getFilteredQuestions(translatedQuestions, answers), 
+    [translatedQuestions, answers, getFilteredQuestions]
+  );
   
   const answersForApi = useMemo(() => {
     const sanitizedAnswers = { ...answers };
@@ -91,8 +123,8 @@ export default function ProgramFinder({
   }, [answers]);
   
   const visibleQuestions = useMemo(
-    () => translatedQuestions,
-    [translatedQuestions]
+    () => filteredQuestions,
+    [filteredQuestions]
   );
 
   const persistSelectedProgram = useCallback((program: EnhancedProgramResult) => {
@@ -178,6 +210,19 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
         } else {
           delete newAnswers.company_stage;
         }
+        
+        // Reset dependent answers when organisation_stage changes
+        delete newAnswers.has_registered_company;
+        delete newAnswers.legal_form;
+      }
+      
+      // Handle has_registered_company - auto-set legal_form
+      if (questionId === 'has_registered_company') {
+        if (value === 'no') {
+          newAnswers.legal_form = 'not_registered_yet';
+        } else {
+          delete newAnswers.legal_form;
+        }
       }
       
       // Handle planning_only - redirect immediately
@@ -196,6 +241,9 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
 
     // Navigation is now explicit via Next button only
   }, [router, visibleQuestions]);
+
+  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, filteredQuestions.length - 1));
+  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
   const generatePrograms = async () => {
     if (!hasEnoughAnswers) {
@@ -317,21 +365,73 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
           )}
         </div>
         
-        {/* Questions Section - Scrollable list */}
+        {/* Questions Section - Step by step wizard */}
         <div className="flex flex-col gap-6 max-w-4xl mx-auto">
           <Card className="p-6 bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg">
-            <div className="space-y-8">
-              {visibleQuestions.map((question, index) => (
-                <div key={question.id} className="border-b border-gray-200 pb-6 last:border-b-0">
-                  <QuestionRenderer
-                    question={question}
-                    questionIndex={index}
-                    value={answers[question.id]}
-                    answers={answers}
-                    onAnswer={handleAnswer}
-                  />
-                </div>
-              ))}
+            {/* Progress indicator */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Question {currentStep + 1} of {filteredQuestions.length}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {Math.round(((currentStep + 1) / filteredQuestions.length) * 100)}% complete
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${((currentStep + 1) / filteredQuestions.length) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            {/* Current question */}
+            <div className="mb-8">
+              <QuestionRenderer
+                question={filteredQuestions[currentStep]}
+                questionIndex={currentStep}
+                value={answers[filteredQuestions[currentStep].id]}
+                answers={answers}
+                onAnswer={handleAnswer}
+              />
+            </div>
+            
+            {/* Navigation buttons */}
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                ← Previous
+              </button>
+              
+              <div className="text-sm text-gray-600">
+                {currentStep + 1} / {filteredQuestions.length}
+              </div>
+              
+              {currentStep < filteredQuestions.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  disabled={!answers[filteredQuestions[currentStep].id]}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next →
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={generatePrograms}
+                  disabled={!hasEnoughAnswers || isLoading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  <Wand2 className="w-4 h-4" />
+                  Generate Programs
+                </button>
+              )}
             </div>
           </Card>
         </div>
