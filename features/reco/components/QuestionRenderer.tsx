@@ -161,7 +161,7 @@ export default function QuestionRenderer({
                               )}
                               
                               {/* Sub-options for Individual selection */}
-                              {showSubOptions && (
+                              {showSubOptions && option.value === 'individual' && (
                                 <div className="ml-4 space-y-2 border-l-2 border-blue-200 pl-3 pt-2 mt-2">
                                   <div className="space-y-2">
                                     {[
@@ -339,7 +339,7 @@ export default function QuestionRenderer({
                 )}
                 
                 {/* Sub-options for Individual selection */}
-                {showSubOptions && (
+                {showSubOptions && option.value === 'individual' && (
                   <div className="ml-4 space-y-2 border-l-2 border-blue-200 pl-3 pt-2 mt-2">
                     <div className="space-y-2">
                       {[
@@ -399,7 +399,7 @@ export default function QuestionRenderer({
                     />
                     
                     {/* Expandable dropdown for organisation_type other options */}
-                    {question.id === 'organisation_type' && (
+                    {question.id === 'organisation_type' && option.value === 'other' && (
                       <div className="mt-3 pt-2 border-t border-gray-200">
                         <button
                           type="button"

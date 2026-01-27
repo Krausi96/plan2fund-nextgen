@@ -31,7 +31,20 @@ export const CORE_QUESTIONS: QuestionDefinition[] = [
     priority: 2,
     hasOtherTextInput: true,
     isAdvanced: false,
-    hasSubOptions: (value: string) => value === 'individual',
+    hasSubOptions: (value: string) => value === 'individual' || value === 'other',
+    subOptions: {
+      individual: [
+        { value: 'no_company', label: 'No registered company yet' },
+        { value: 'has_company', label: 'Already have a registered company' }
+      ],
+      other: [
+        { value: 'association', label: 'Association' },
+        { value: 'foundation', label: 'Foundation' },
+        { value: 'cooperative', label: 'Cooperative' },
+        { value: 'public_body', label: 'Public Body' },
+        { value: 'research_institution', label: 'Research Institution' }
+      ]
+    }
   },
   {
     id: 'company_stage',

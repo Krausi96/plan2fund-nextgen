@@ -75,6 +75,10 @@ export default function ProgramFinder({
                               currentAnswers.organisation_type_sub === 'no_company';
     const isIdeaStage = currentAnswers.company_stage === 'idea';
     
+    // Check if organization type is one that should skip revenue
+    const skipRevenueOrgTypes = ['association', 'foundation', 'cooperative', 'public_body', 'research_institution'];
+    const shouldSkipRevenue = skipRevenueOrgTypes.includes(currentAnswers.organisation_type_other);
+    
     return allQuestions.filter(question => {
       // Always show organisation_type and company_stage
       if (question.id === 'organisation_type' || question.id === 'company_stage') return true;
@@ -90,7 +94,10 @@ export default function ProgramFinder({
       // Logic 2: If idea stage, hide revenue_status
       if (isIdeaStage && question.id === 'revenue_status') return false;
       
-      // Logic 3: New revenue status logic based on project stage (slider version)
+      // Logic 3: If organization type should skip revenue, hide revenue_status
+      if (shouldSkipRevenue && question.id === 'revenue_status') return false;
+      
+      // Logic 4: New revenue status logic based on project stage (slider version)
       if (question.id === 'revenue_status') {
         const companyStage = currentAnswers.company_stage as string | undefined;
         
@@ -104,6 +111,11 @@ export default function ProgramFinder({
           return false; // Hide the slider entirely
         }
         
+        // Organization types that skip revenue: Auto-set to 0 and hide slider
+        if (shouldSkipRevenue) {
+          return false; // Hide the slider entirely
+        }
+        
         // For all other stages: Show slider with full range
         return true;
       }
@@ -114,6 +126,15 @@ export default function ProgramFinder({
         if (currentAnswers.organisation_type === 'individual') {
           return currentAnswers.organisation_type_sub === 'has_company';
         }
+        
+        // If organisation_type_other is a revenue-skipping type, hide legal_form
+        const skipRevenueOrgTypes = ['association', 'foundation', 'cooperative', 'public_body', 'research_institution'];
+        if (currentAnswers.organisation_type === 'other' && 
+            currentAnswers.organisation_type_other && 
+            skipRevenueOrgTypes.includes(currentAnswers.organisation_type_other)) {
+          return false;
+        }
+        
         // For other organisation types, show legal_form
         return currentAnswers.organisation_type && currentAnswers.organisation_type !== 'individual';
       }
@@ -221,6 +242,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
       if (questionId === 'organisation_type' || questionId === 'organisation_type_other' || 
           questionId === 'organisation_type_sub' || questionId === 'company_stage') {
         const orgType = newAnswers.organisation_type as string | undefined;
+        const orgOther = newAnswers.organisation_type_other as string | undefined;
         const orgSub = newAnswers.organisation_type_sub as string | undefined;
         const compStage = newAnswers.company_stage as string | undefined;
         
@@ -236,7 +258,15 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
           newAnswers.revenue_status = 0; // Pre-Revenue (0 EUR)
         }
         
-        // Logic 3: Map numeric revenue value to categorical value for API
+        // Logic 3: Auto-set values for organization types that skip revenue
+        const skipRevenueOrgTypes = ['association', 'foundation', 'cooperative', 'public_body', 'research_institution'];
+        const shouldSkipRevenue = orgOther && skipRevenueOrgTypes.includes(orgOther);
+        if (shouldSkipRevenue) {
+          newAnswers.revenue_status = 0; // Pre-Revenue (0 EUR)
+          newAnswers.legal_form = 'research_institution'; // Set appropriate legal form
+        }
+        
+        // Logic 4: Map numeric revenue value to categorical value for API
         const revenueValue = newAnswers.revenue_status as number | undefined;
         if (revenueValue !== undefined) {
           let revenueCategory = 'pre_revenue';
@@ -260,7 +290,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
         }
         
         // Reset dependent answers when organisation_type or company_stage changes
-        if (questionId !== 'organisation_type_sub') {
+        if (questionId !== 'organisation_type_sub' && questionId !== 'organisation_type_other') {
           delete newAnswers.legal_form;
           delete newAnswers.revenue_status;
         }

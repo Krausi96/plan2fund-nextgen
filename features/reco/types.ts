@@ -48,6 +48,7 @@ export type SingleSelectQuestion = BaseQuestion & {
   hasOptionalTextField?: (value: string) => boolean;
   hasCoFinancingPercentage?: boolean;
   hasSubOptions?: (value: string) => boolean;
+  subOptions?: Record<string, Array<{ value: string; label: string }>>;
   hasGroups?: boolean;
   parentQuestion?: string;
   parentValue?: string;
