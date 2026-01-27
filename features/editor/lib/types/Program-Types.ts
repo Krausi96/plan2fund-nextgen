@@ -38,6 +38,28 @@ export interface FundingProgram {
   // Evidence requirements
   evidenceRequired: string[];
   
+  // Enhanced Application Requirements
+  applicationRequirements: {
+    documents: Array<{
+      document_name: string;
+      required: boolean;
+      format: string;
+      authority: string;
+      reuseable: boolean;
+    }>;
+    sections: Array<{
+      title: string;
+      required: boolean;
+      subsections: Array<{ title: string; required: boolean }>;
+    }>;
+    financialRequirements: {
+      financial_statements_required: string[];
+      years_required: number[];
+      co_financing_proof_required: boolean;
+      own_funds_proof_required: boolean;
+    };
+  };
+  
   // Raw data for traceability
   rawData: any;
 }

@@ -14,6 +14,17 @@ export function BlueprintPanel({ onGenerate, onEdit, onClear }: BlueprintPanelPr
   
   // Get document setup data from state
   const documentStructure = setupWizard.documentStructure || null;
+  
+  // Debug logging
+  React.useEffect(() => {
+    console.log('📊 BlueprintPanel state update:', {
+      hasDocumentStructure: !!documentStructure,
+      documentCount: documentStructure?.documents?.length || 0,
+      sectionCount: documentStructure?.sections?.length || 0,
+      setupStatus: setupWizard.setupStatus,
+      programProfile: !!setupWizard.programProfile
+    });
+  }, [documentStructure, setupWizard]);
   const programSummary = configuratorState.programSummary;
   const setupDiagnostics = setupWizard.setupDiagnostics;
   

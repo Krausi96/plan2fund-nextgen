@@ -191,6 +191,8 @@ export {
   migrateLegacySetup,
   normalizeToProgramProfile,
   generateBlueprintFromProfile,
+  generateDocumentStructureFromProfile,
+  parseProgramFromUrl,
 } from './utils/Program.utils';
 
 // ============================================================================

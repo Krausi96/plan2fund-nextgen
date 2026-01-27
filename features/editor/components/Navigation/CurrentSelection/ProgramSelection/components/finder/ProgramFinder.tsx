@@ -11,6 +11,26 @@ interface Program {
   focusAreas?: string[];
   description?: string;
   requirements?: string[];
+  application_requirements?: {
+    documents?: Array<{
+      document_name: string;
+      required: boolean;
+      format: string;
+      authority: string;
+      reuseable: boolean;
+    }>;
+    sections?: Array<{
+      title: string;
+      required: boolean;
+      subsections: Array<{ title: string; required: boolean }>;
+    }>;
+    financial_requirements?: {
+      financial_statements_required: string[];
+      years_required: number[];
+      co_financing_proof_required: boolean;
+      own_funds_proof_required: boolean;
+    };
+  };
 }
 
 interface ProgramFinderProps {
@@ -30,7 +50,77 @@ const PROGRAM_CATALOG: Program[] = [
     deadline: '2024-12-31',
     focusAreas: ['Cloud Computing', 'AI/ML', 'Sustainability', 'Digital Transformation'],
     description: 'Support for innovative cloud-based solutions and digital transformation projects',
-    requirements: ['Business plan', 'Technical documentation', 'Financial projections', 'Cloud architecture diagram']
+    requirements: ['Business plan', 'Technical documentation', 'Financial projections', 'Cloud architecture diagram'],
+    // Enhanced application requirements structure (same as CustomLLM output)
+    application_requirements: {
+      documents: [
+        {
+          document_name: 'Project Proposal',
+          required: true,
+          format: 'pdf',
+          authority: 'AWS',
+          reuseable: false
+        },
+        {
+          document_name: 'Budget Plan',
+          required: true,
+          format: 'excel',
+          authority: 'AWS',
+          reuseable: true
+        },
+        {
+          document_name: 'Technical Documentation',
+          required: true,
+          format: 'pdf',
+          authority: 'External Expert',
+          reuseable: false
+        }
+      ],
+      sections: [
+        {
+          title: 'Executive Summary',
+          required: true,
+          subsections: [
+            { title: 'Project Overview', required: true },
+            { title: 'Innovation Aspects', required: true },
+            { title: 'Expected Impact', required: true }
+          ]
+        },
+        {
+          title: 'Technical Description',
+          required: true,
+          subsections: [
+            { title: 'Technology Used', required: true },
+            { title: 'Development Plan', required: true },
+            { title: 'Milestones', required: true }
+          ]
+        },
+        {
+          title: 'Market Analysis',
+          required: true,
+          subsections: [
+            { title: 'Market Size', required: true },
+            { title: 'Competitive Landscape', required: true },
+            { title: 'Target Customers', required: true }
+          ]
+        },
+        {
+          title: 'Financial Plan',
+          required: true,
+          subsections: [
+            { title: 'Use of Funds', required: true },
+            { title: 'Financial Projections', required: true },
+            { title: 'Break-even Analysis', required: true }
+          ]
+        }
+      ],
+      financial_requirements: {
+        financial_statements_required: ['Profit & Loss', 'Cashflow Statement', 'Balance Sheet'],
+        years_required: [1, 3],
+        co_financing_proof_required: true,
+        own_funds_proof_required: true
+      }
+    }
   },
   {
     id: 'aws-startup-program',
@@ -193,20 +283,59 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
   }, [programs, searchTerm, selectedType, selectedFocus]);
 
   const handleProgramClick = (program: Program) => {
-    // Enrich program data with document setup structure
-    const enrichedProgram = {
-      ...program,
-      // Add document setup metadata
-      setupReady: true,
-      confidenceScore: 90, // High confidence for curated programs
-      processingTime: 'instant', // Curated programs process quickly
-      // Add mapping hints for document setup
-      suggestedStructure: program.type === 'equity' ? 'investment-memo' : 
-                         program.type === 'grant' ? 'grant-application' : 'business-plan',
-      keyRequirements: program.requirements?.slice(0, 3) || [] // Top 3 requirements
-    };
+    // Save program selection for seamless editor initialization
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('selectedProgram', JSON.stringify({
+          id: program.id,
+          name: program.name,
+          type: program.type,
+          organization: program.organization,
+          description: program.description,
+          application_requirements: program.application_requirements || {
+            documents: [],
+            sections: [],
+            financial_requirements: {
+              financial_statements_required: [],
+              years_required: [],
+              co_financing_proof_required: false,
+              own_funds_proof_required: false
+            }
+          }
+        }));
+      } catch (error) {
+        console.warn('Could not save program selection:', error);
+      }
+    }
+    // Process program through the same pipeline as mock examples
+    if (program.application_requirements) {
+      // Program has detailed application requirements - use advanced processing
+      const enrichedProgram = {
+        ...program,
+        // Add document setup metadata
+        setupReady: true,
+        confidenceScore: 95, // Very high confidence for detailed programs
+        processingTime: 'instant',
+        // Preserve application requirements for document structure generation
+        application_requirements: program.application_requirements
+      };
+      
+      onProgramSelect(enrichedProgram);
+    } else {
+      // Standard program - basic enrichment
+      const enrichedProgram = {
+        ...program,
+        setupReady: true,
+        confidenceScore: 80,
+        processingTime: 'quick',
+        suggestedStructure: program.type === 'equity' ? 'investment-memo' : 
+                           program.type === 'grant' ? 'grant-application' : 'business-plan',
+        keyRequirements: program.requirements?.slice(0, 3) || []
+      };
+      
+      onProgramSelect(enrichedProgram);
+    }
     
-    onProgramSelect(enrichedProgram);
     onClose();
   };
 

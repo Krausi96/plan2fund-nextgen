@@ -4,7 +4,7 @@ import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
 import { BlueprintPanel } from './components/panels/BlueprintPanel';
 import { ProgramFinder } from './components/finder/ProgramFinder';
 import EditorProgramFinder from '@/features/editor/components/Navigation/CurrentSelection/ProgramSelection/components/finder/ProgramFinder/EditorProgramFinder';
-import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup } from '@/features/editor/lib';
+import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup, generateDocumentStructureFromProfile, parseProgramFromUrl } from '@/features/editor/lib';
 
 interface OptionSelectorProps {
   selectedOption: 'program' | 'template' | 'free' | null;
@@ -102,8 +102,34 @@ export default function ProgramSelection({
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'paste' | 'wizard'>('search');
 
-  // Handle legacy program migration on component mount
+  // Handle legacy program migration and automatic initialization
   useEffect(() => {
+    // Check for program selected in Reco/myProject flow
+    const savedProgram = localStorage.getItem('selectedProgram');
+    if (savedProgram && !programSummary) {
+      try {
+        const programData = JSON.parse(savedProgram);
+        console.log('🔄 Initializing from saved program:', programData);
+        
+        // Create temporary program summary for initialization
+        const tempSummary = {
+          id: programData.id,
+          name: programData.name,
+          type: programData.type || 'grant',
+          organization: programData.organization || 'Unknown',
+          setupStatus: 'draft' as const,
+          // Include application requirements if available
+          application_requirements: programData.application_requirements
+        };
+        
+        handleConnectProgram(tempSummary);
+        localStorage.removeItem('selectedProgram'); // Clean up
+      } catch (error) {
+        console.error('❌ Failed to initialize from saved program:', error);
+      }
+    }
+    
+    // Handle legacy program migration
     if (programSummary && !programSummary.documentStructure) {
       console.log('🔄 Migrating legacy program to document setup system...');
       try {
@@ -129,36 +155,50 @@ export default function ProgramSelection({
         console.error('❌ Failed to migrate legacy program:', error);
       }
     }
-  }, [programSummary, setProgramProfile, setDocumentStructure, setSetupStatus, setSetupDiagnostics]);
+  }, [programSummary, setProgramProfile, setDocumentStructure, setSetupStatus, setSetupDiagnostics, handleConnectProgram]);
 
   const handleCloseProgramFinder = () => {
     setActiveTab('search');
   };
 
+  const handleUrlParse = async () => {
+    const urlInput = document.querySelector('input[type="url"]') as HTMLInputElement;
+    const url = urlInput?.value.trim();
+    
+    if (!url) {
+      alert('Please enter a valid URL');
+      return;
+    }
+    
+    try {
+      console.log('🌐 Parsing URL:', url);
+      
+      // Parse program information using external utility
+      const parsedProgram = await parseProgramFromUrl(url);
+      
+      if (parsedProgram) {
+        console.log('✅ URL parsing successful:', parsedProgram);
+        handleProgramSelect(parsedProgram);
+      } else {
+        alert('Could not extract program information from this URL. Please try a different funding program URL.');
+      }
+      
+    } catch (error) {
+      console.error('❌ URL parsing failed:', error);
+      alert('Failed to parse URL. Please check the URL format and try again.');
+    }
+  };
+
   const handleProgramSelect = (program: any) => {
+    console.log('🎯 Program selected:', program);
+    console.log('📋 Has application requirements:', !!program.application_requirements);
     try {
       // Generate document structure using new pipeline
       // Step 1: Normalize program data to FundingProgram
       const fundingProgram = normalizeFundingProgram(program);
       
-      // Step 2: Generate DocumentStructure (placeholder for now)
-      const documentStructure = {
-        structureId: `structure_${Date.now()}`,
-        version: '1.0',
-        source: 'program' as const,
-        documents: [],
-        sections: [],
-        requirements: [],
-        validationRules: [],
-        aiGuidance: [],
-        renderingRules: {},
-        conflicts: [],
-        warnings: [],
-        confidenceScore: program.confidenceScore || 90,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: 'program_selection'
-      };
+      // Step 2: Generate DocumentStructure from parsed application requirements
+      const documentStructure = generateDocumentStructureFromProfile(fundingProgram);
       
       // Step 3: Update wizard state with document setup data
       setProgramProfile(fundingProgram);
@@ -338,14 +378,19 @@ export default function ProgramSelection({
                           <p className="text-white/70 text-sm mb-3">
                             {t('editor.desktop.program.pasteUrlDescription' as any) || 'Enter the official program URL to automatically load requirements'}
                           </p>
-                          <input
-                            type="url"
-                            placeholder="https://www.aws.at/funding/..."
-                            className="w-full rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 mb-3"
-                          />
-                          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors">
-                            {t('editor.desktop.program.loadProgram' as any) || 'Load Program'}
-                          </button>
+                          <div className="flex gap-2">
+                            <input
+                              type="url"
+                              placeholder="https://www.aws.at/funding/..."
+                              className="flex-1 rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                            />
+                            <button 
+                              onClick={handleUrlParse}
+                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors whitespace-nowrap"
+                            >
+                              {t('editor.desktop.program.loadProgram' as any) || 'Load Program'}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -358,10 +403,10 @@ export default function ProgramSelection({
                         <div className="w-full">
                           <EditorProgramFinder 
                             onProgramSelect={(programId: string, route: string) => {
-                              // Fetch program details and convert to editor format
+                              // For mock example, we need to handle the program data properly
                               console.log('Program selected in editor:', { programId, route });
-                              // TODO: Implement program fetching and conversion
-                              // For now, close the wizard view
+                              // The mock example handles its own store updates
+                              // Just close the wizard view
                               setActiveTab('search');
                             }}
                             onClose={() => {

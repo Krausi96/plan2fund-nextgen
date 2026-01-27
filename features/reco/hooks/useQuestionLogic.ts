@@ -103,7 +103,7 @@ export function useQuestionTranslation() {
 
 // Hook for answer handling logic
 export function useAnswerHandling() {
-  const handleAnswer = useCallback((questionId: string, value: any, currentAnswers: Record<string, any>, setAnswers: (updater: (prev: Record<string, any>) => Record<string, any>) => void) => {
+  const handleAnswer = useCallback((questionId: string, value: any, _currentAnswers: Record<string, any>, setAnswers: (updater: (prev: Record<string, any>) => Record<string, any>) => void) => {
     setAnswers(prevAnswers => {
       const newAnswers = { ...prevAnswers };
 

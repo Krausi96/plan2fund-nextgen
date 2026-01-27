@@ -31,7 +31,26 @@ interface GeneratedProgram {
       reason?: string;
     };
   };
-  categorized_requirements?: Record<string, any>;
+  application_requirements?: {
+    documents?: Array<{
+      document_name: string;
+      required: boolean;
+      format: string;
+      authority: string;
+      reuseable: boolean;
+    }>;
+    sections?: Array<{
+      title: string;
+      required: boolean;
+      subsections: Array<{ title: string; required: boolean }>;
+    }>;
+    financial_requirements?: {
+      financial_statements_required: string[];
+      years_required: number[];
+      co_financing_proof_required: boolean;
+      own_funds_proof_required: boolean;
+    };
+  };
 }
 
 type LLMProvider = 'custom' | 'openai';
@@ -177,16 +196,40 @@ JSON STRUCTURE:
     "organization": "FFG",
     "typical_timeline": "2-3 months",
     "competitiveness": "medium",
-    "categorized_requirements": {
-      "documents": [{"value": "Business plan", "description": "...", "format": "pdf", "required": true, "requirements": []}],
-      "project": [{"value": "Project description", "description": "...", "required": true, "requirements": "...", "type": "project_details"}],
-      "financial": [{"value": "Financial projections", "description": "...", "required": true, "requirements": "...", "type": "repayment_terms"}],
-      "technical": [{"value": "Technical specifications", "description": "...", "required": false, "requirements": "...", "type": "trl_level"}]
+    "application_requirements": {
+      "documents": [
+        {
+          "document_name": "Business Plan",
+          "required": true,
+          "format": "pdf",
+          "authority": "Grant Authority",
+          "reuseable": false
+        }
+      ],
+      "sections": [
+        {
+          "title": "Company Overview",
+          "required": true,
+          "subsections": [
+            { "title": "Company Description", "required": true },
+            { "title": "Team", "required": true }
+          ]
+        }
+      ],
+      "financial_requirements": {
+        "financial_statements_required": ["P&L", "Cashflow", "Balance Sheet"],
+        "years_required": [1, 3, 5],
+        "co_financing_proof_required": true,
+        "own_funds_proof_required": true
+      }
     }
   }]
 }
 
-CATEGORIZED REQUIREMENTS: Extract into 4 categories (documents, project, financial, technical). If separate file → documents. If business plan section → project/financial/technical.`;
+APPLICATION REQUIREMENTS: Parse detailed structured requirements including:
+1. Documents: document_name, required, format, authority, reuseable
+2. Sections: hierarchical structure with subsections
+3. Financial Requirements: specific financial statement and proof requirements`;
 
       const diversitySection = fundingPreference.allowMix
       ? `\n\nReturn mix of funding types (grants, loans, equity)`
@@ -196,7 +239,12 @@ CATEGORIZED REQUIREMENTS: Extract into 4 categories (documents, project, financi
       ? `\n\nRETRY (Attempt ${attempt}): Be more lenient. Minimum ${Math.min(3, maxPrograms)} programs required.`
       : '';
 
-    const knowledgeBase = `\n\nKEY PROGRAMS:\n- Austria: AWS Seedfinancing, FFG Basisprogramm, FFG Bridge\n- Germany: KfW programs, ZIM, EXIST-Gründerstipendium\n- EU-wide: Horizon Europe, EIC Accelerator, COSME, LIFE`;
+    const knowledgeBase = `
+
+KEY PROGRAMS:
+- Austria: AWS Seedfinancing, FFG Basisprogramm, FFG Bridge
+- Germany: KfW programs, ZIM, EXIST-Gründerstipendium
+- EU-wide: Horizon Europe, EIC Accelerator, COSME, LIFE`;
 
     return baseInstructions + diversitySection + retrySection + knowledgeBase;
   };
@@ -429,7 +477,16 @@ CATEGORIZED REQUIREMENTS: Extract into 4 categories (documents, project, financi
               typical_timeline: program.typical_timeline || program.metadata?.typical_timeline || null,
               competitiveness: program.competitiveness || program.metadata?.competitiveness || null,
             },
-            categorized_requirements: program.categorized_requirements || {},
+            application_requirements: program.application_requirements || {
+              documents: [],
+              sections: [],
+              financial_requirements: {
+                financial_statements_required: [],
+                years_required: [],
+                co_financing_proof_required: false,
+                own_funds_proof_required: false
+              }
+            },
             source: 'llm_generated',
           };
         }),

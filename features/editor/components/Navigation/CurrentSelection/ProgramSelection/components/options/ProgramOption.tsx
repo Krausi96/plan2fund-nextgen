@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { normalizeProgramInput, generateProgramBlueprint, normalizeFundingProgram } from '@/features/editor/lib';
+import { normalizeProgramInput, generateProgramBlueprint, normalizeFundingProgram, generateDocumentStructureFromProfile } from '@/features/editor/lib';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 
 interface ProgramOptionProps {
@@ -56,32 +56,58 @@ export function ProgramOption({
       co_financing_required: false,
       deliverables: ['business_plan'],
       requirements: ['executive_summary', 'financial_plan'],
-      evidence_required: []
+      evidence_required: [],
+      // Save for seamless editor initialization
+      application_requirements: {
+        documents: [
+          {
+            document_name: 'Business Plan',
+            required: true,
+            format: 'pdf',
+            authority: 'Manual Entry',
+            reuseable: false
+          }
+        ],
+        sections: [
+          {
+            title: 'Executive Summary',
+            required: true,
+            subsections: [
+              { title: 'Project Overview', required: true }
+            ]
+          }
+        ],
+        financial_requirements: {
+          financial_statements_required: ['Basic Financials'],
+          years_required: [1],
+          co_financing_proof_required: false,
+          own_funds_proof_required: false
+        }
+      }
     };
+    
+    // Save program selection for seamless flow
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('selectedProgram', JSON.stringify({
+          id: programData.id,
+          name: programData.name,
+          type: programData.type,
+          organization: programData.organization,
+          application_requirements: programData.application_requirements
+        }));
+      } catch (error) {
+        console.warn('Could not save program selection:', error);
+      }
+    }
     
     // Generate document structure using new pipeline
     try {
       // Step 1: Normalize to FundingProgram
       const fundingProgram = normalizeFundingProgram(programData);
       
-      // Step 2: Generate DocumentStructure (placeholder for now)
-      const documentStructure = {
-        structureId: `structure_${Date.now()}`,
-        version: '1.0',
-        source: 'program' as const,
-        documents: [],
-        sections: [],
-        requirements: [],
-        validationRules: [],
-        aiGuidance: [],
-        renderingRules: {},
-        conflicts: [],
-        warnings: [],
-        confidenceScore: 60,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: 'manual_entry'
-      };
+      // Step 2: Generate DocumentStructure from parsed application requirements
+      const documentStructure = generateDocumentStructureFromProfile(fundingProgram);
       
       // Step 3: Update store with document setup data
       setProgramProfile(fundingProgram);
@@ -180,6 +206,7 @@ export function ProgramOption({
         >
           {connectCopy?.pasteLink || t('editor.desktop.config.connectProgram.pasteLink' as any) || 'Paste Link'}
         </button>
+
       </div>
       
       {showManualInput && typeof window !== 'undefined' && manualInputPosition && createPortal(

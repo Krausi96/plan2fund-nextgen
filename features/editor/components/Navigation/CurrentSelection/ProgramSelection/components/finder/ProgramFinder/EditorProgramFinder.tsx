@@ -10,6 +10,7 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import { EnhancedProgramResult } from '@/features/reco/types';
 import QuestionRenderer from '@/features/reco/components/QuestionRenderer';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
+// Removed unused imports
 import { 
   useQuestionFiltering, 
   useQuestionTranslation, 
@@ -143,7 +144,9 @@ export default function EditorProgramFinder({
     generatePrograms(answers, setResults, setEmptyResults, setIsLoading, setHasAttemptedGeneration, t as any);
   }, [generatePrograms, answers, setResults, setEmptyResults, setIsLoading, setHasAttemptedGeneration, t]);
   
-  // Reused program persistence logic from Reco
+  // Mock example handler - demonstrates CustomLLM output structure
+
+  // Reused program persistence logic from Reco - enhanced for seamless flow
   const persistSelectedProgram = useCallback((program: EnhancedProgramResult) => {
     if (typeof window === 'undefined') return;
     const programId = program.id || `program_${Date.now()}`;
@@ -155,11 +158,25 @@ export default function EditorProgramFinder({
         type: program.type || (program.funding_types?.[0]) || 'grant',
         url: (program as any).url || (program as any).source_url || null,
         description: program.description || (program as any).metadata?.description || '',
+        // Include application requirements for document setup
+        application_requirements: (program as any).application_requirements || {
+          documents: [],
+          sections: [],
+          financial_requirements: {
+            financial_statements_required: [],
+            years_required: [],
+            co_financing_proof_required: false,
+            own_funds_proof_required: false
+          }
+        }
       }));
+      
+      // Auto-redirect to editor after program selection
+      router.push('/editor?product=submission');
     } catch (error) {
       console.warn('Could not save program to localStorage:', error);
     }
-  }, []);
+  }, [router]);
 
   return (
     <div className="w-full relative">
