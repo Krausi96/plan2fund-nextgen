@@ -254,7 +254,7 @@ export const CORE_QUESTIONS: QuestionDefinition[] = [
       { value: 'working_capital', label: 'Working capital' },
       { value: 'other', label: 'Other' },
     ],
-    required: false,
+    required: true,
     priority: 8,
     hasOtherTextInput: true,
     isAdvanced: false,

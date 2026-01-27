@@ -37,6 +37,9 @@ export default function QuestionRenderer({
             <div className="flex items-center gap-2">
               <h3 className="text-xl font-semibold text-gray-900 break-words leading-relaxed">
                 {question.label}
+                {question.required && (
+                  <span className="ml-2 text-red-500 text-lg font-bold align-top">*</span>
+                )}
               </h3>
               {!question.required && (
                 <span className="text-sm text-gray-500 font-normal">(Optional)</span>
