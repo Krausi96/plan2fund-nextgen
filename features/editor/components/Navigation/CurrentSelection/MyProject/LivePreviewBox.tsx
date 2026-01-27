@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useEditorStore } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
@@ -15,7 +15,7 @@ interface Position {
 }
 
 const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
-  // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL
+  // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL - BEFORE ANY CONDITIONAL LOGIC
   
   // State hooks
   const [isMinimized, setIsMinimized] = useState(false);
@@ -30,7 +30,49 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
   const planDocument = useEditorStore(state => state.plan);
   const { t: i18nT } = useI18n();
   
-  // Early return if not showing
+  // Drag event handlers with useCallback to prevent re-creation
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (dragRef.current && e.target === dragRef.current) {
+      setIsDragging(true);
+      startPos.current = {
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      };
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, [position.x, position.y]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      const newX = e.clientX - startPos.current.x;
+      const newY = e.clientY - startPos.current.y;
+      setPosition({
+        x: newX,
+        y: newY
+      });
+    }
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  }, [isDragging]);
+
+  // Add/remove mouse event listeners
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging]);
+  
+  // Early return if not showing - AFTER all hooks
   if (!show) return null;
   
   // Constants and derived values (after hooks)
@@ -71,48 +113,6 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
     planDocument.settings.titlePage.companyName?.trim() ||
     planDocument.settings.titlePage.subtitle?.trim()
   );
-
-  // Drag event handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (dragRef.current && e.target === dragRef.current) {
-      setIsDragging(true);
-      startPos.current = {
-        x: e.clientX - position.x,
-        y: e.clientY - position.y
-      };
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      const newX = e.clientX - startPos.current.x;
-      const newY = e.clientY - startPos.current.y;
-      setPosition({
-        x: newX,
-        y: newY
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    if (isDragging) {
-      setIsDragging(false);
-    }
-  };
-
-  // Add/remove mouse event listeners
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging]);
 
   // Empty state
   if (!hasTitlePageData) {
