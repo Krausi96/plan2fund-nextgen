@@ -285,7 +285,7 @@ export default function EditorProgramFinder({
           <div className="p-4 max-w-2xl mx-auto w-full bg-slate-800/70 border border-slate-700 shadow-xl h-[600px] flex flex-col relative rounded-xl backdrop-blur-sm">
             {/* Loading Indicator - Inside card container */}
             {isLoading && (
-              <div className="absolute inset-x-0 top-0 bottom-16 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-t-xl">
+              <div className="absolute inset-x-0 top-0 inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-t-xl">
                 <div className="bg-slate-800 border-2 border-purple-500 rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl">
                   <div className="flex flex-col items-center justify-center space-y-4">
                     <svg className="animate-spin h-12 w-12 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
