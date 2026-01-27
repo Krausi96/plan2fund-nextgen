@@ -101,7 +101,6 @@ export default function ProgramFinder({
     const isNotRegisteredYet = currentAnswers.organisation_type === 'individual' && 
                               currentAnswers.organisation_type_sub === 'no_company';
     const isIdeaStage = currentAnswers.company_stage === 'idea';
-    const isPostIdeaStage = ['MVP', 'revenue', 'growth'].includes(currentAnswers.company_stage);
     
     return allQuestions.filter(question => {
       // Always show organisation_type and company_stage
@@ -118,12 +117,40 @@ export default function ProgramFinder({
       // Logic 2: If idea stage, hide revenue_status
       if (isIdeaStage && question.id === 'revenue_status') return false;
       
-      // Logic 3: If post-idea stage, hide pre_revenue option from revenue_status
-      if (isPostIdeaStage && question.id === 'revenue_status') {
-        // Filter out pre_revenue option for single-select questions
-        if (question.type === 'single-select' && question.options) {
-          question.options = question.options.filter((opt: any) => opt.value !== 'pre_revenue');
+      // Logic 3: New revenue status logic based on project stage
+      if (question.id === 'revenue_status') {
+        const companyStage = currentAnswers.company_stage as string | undefined;
+        
+        // Prototype / MVP stage: ALLOW pre_revenue OR revenue_generating (early_revenue)
+        if (companyStage === 'MVP') {
+          // Keep all options - show question
+          return true;
         }
+        
+        // First revenue stage: DISALLOW pre_revenue
+        else if (companyStage === 'revenue') {
+          if (question.type === 'single-select' && question.options) {
+            const filteredOptions = question.options.filter((opt: any) => opt.value !== 'pre_revenue');
+            // Hide question entirely if no valid options remain
+            if (filteredOptions.length === 0) return false;
+            question.options = filteredOptions;
+          }
+          return true;
+        }
+        
+        // Growth stage: DISALLOW pre_revenue
+        else if (companyStage === 'growth') {
+          if (question.type === 'single-select' && question.options) {
+            const filteredOptions = question.options.filter((opt: any) => opt.value !== 'pre_revenue');
+            // Hide question entirely if no valid options remain
+            if (filteredOptions.length === 0) return false;
+            question.options = filteredOptions;
+          }
+          return true;
+        }
+        
+        // For other stages, show by default
+        return true;
       }
       
       // Show legal_form based on conditions (when not hidden by above logic)
@@ -245,6 +272,16 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
         // Logic 2: Auto-set revenue_status for idea stage
         if (compStage === 'idea') {
           newAnswers.revenue_status = 'pre_revenue';
+        }
+        
+        // Logic 3: Auto-reset revenue_status when changing to stages that disallow pre_revenue
+        if ((compStage === 'revenue' || compStage === 'growth') && newAnswers.revenue_status === 'pre_revenue') {
+          delete newAnswers.revenue_status;
+        }
+        
+        // Logic 4: Auto-set revenue_status for MVP stage if not already set
+        if (compStage === 'MVP' && !newAnswers.revenue_status) {
+          // Don't auto-set - let user choose
         }
         
         // Auto-set legal_form based on sub-selection (when registered)

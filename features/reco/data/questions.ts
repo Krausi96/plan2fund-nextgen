@@ -90,18 +90,6 @@ export const CORE_QUESTIONS: QuestionDefinition[] = [
       { value: 'registered_sole', label: 'Protokollierter Einzelkaufmann (EKM) / Registered sole trader (EKM)', group: 'sole_traders' },
       { value: 'registered_company', label: 'Eingetragenes Unternehmen / Registered company', group: 'sole_traders' },
       
-      // Körperschaften, Genossenschaften & Non-Profit / Public Bodies, Cooperatives & Non-Profit
-      { value: 'association', label: 'Verein / Association', group: 'public_nonprofit' },
-      { value: 'foundation', label: 'Stiftung / Foundation', group: 'public_nonprofit' },
-      { value: 'private_foundation', label: 'Privatstiftung / Private foundation', group: 'public_nonprofit' },
-      { value: 'public_corporation', label: 'Körperschaft öffentlichen Rechts / Corporation under public law', group: 'public_nonprofit' },
-      { value: 'cooperative', label: 'Erwerbs- und Wirtschaftsgenossenschaft / Cooperative', group: 'public_nonprofit' },
-      { value: 'registered_cooperative', label: 'Eingetragene Genossenschaft / Registered cooperative', group: 'public_nonprofit' },
-      { value: 'sce', label: 'Europäische Genossenschaft (SCE) / European Cooperative Society (SCE)', group: 'public_nonprofit' },
-      { value: 'agricultural_community', label: 'Agrargemeinschaft / Agricultural community', group: 'public_nonprofit' },
-      { value: 'foreign_legal_form', label: 'Ausländische Rechtsform / Foreign legal form', group: 'public_nonprofit' },
-      { value: 'other', label: 'Sonstige / Other', group: 'public_nonprofit' },
-      
       // Special case
       { value: 'not_registered_yet', label: 'Not registered yet', group: 'special' },
     ],
