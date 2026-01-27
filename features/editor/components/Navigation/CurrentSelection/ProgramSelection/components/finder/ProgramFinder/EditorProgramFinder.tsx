@@ -3,13 +3,14 @@
  * Uses questions 3, 5, 7, 8, 9, 10 from reco (renumbered as 1-6)
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Wand2 } from 'lucide-react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { EnhancedProgramResult, QuestionDefinition } from '@/features/reco/types';
 import { ALL_QUESTIONS } from '@/features/reco/data/questions';
 import QuestionRenderer from '@/features/reco/components/QuestionRenderer';
+import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 
 // Inline deriveCompanyInfo function
 function deriveCompanyInfo(organisationStage: string | undefined): { company_type: string | null; company_stage: string | null } {
@@ -38,6 +39,9 @@ export default function EditorProgramFinder({
 }: EditorProgramFinderProps) {
   const router = useRouter();
   const { t } = useI18n();
+  
+  // Get project profile from editor store for prefilling
+  const projectProfile = useEditorStore(state => state.setupWizard.projectProfile);
   
   // Inject dark theme CSS overrides
   const darkThemeStyles = `
@@ -69,24 +73,105 @@ export default function EditorProgramFinder({
     .question-container .text-gray-700 {
       color: rgb(203 213 225) !important;
     }
+    /* Fix for "Other" sub-options and legal form text */
+    .question-container .bg-white.border-gray-300:not(.bg-blue-600) {
+      background-color: rgb(51 65 85 / 0.7) !important;
+      border-color: rgb(71 85 105) !important;
+      color: white !important;
+    }
+    .question-container .text-gray-600 {
+      color: rgb(203 213 225) !important;
+    }
+    .question-container input.border-gray-300 {
+      background-color: rgb(51 65 85) !important;
+      border-color: rgb(71 85 105) !important;
+      color: white !important;
+    }
+    .question-container input.border-gray-300::placeholder {
+      color: rgb(148 163 184) !important;
+    }
+    /* Fix for legal form group headers and options */
+    .question-container .bg-white.border-2.border-gray-300:not(.bg-blue-600) {
+      background-color: rgb(51 65 85) !important;
+      border-color: rgb(71 85 105) !important;
+    }
+    .question-container .font-medium.text-gray-800 {
+      color: white !important;
+    }
+    .question-container .text-gray-600.transition-transform {
+      color: rgb(203 213 225) !important;
+    }
+    .question-container .ml-4.space-y-2.border-l-2.border-gray-300 {
+      border-left-color: rgb(71 85 105) !important;
+    }
+    /* Fix for Public bodies text in Other options */
+    .question-container .text-sm:not(.text-white) {
+      color: white !important;
+    }
+    /* Fix for Public bodies button background */
+    .question-container .bg-gray-50.hover\:bg-gray-100 {
+      background-color: rgb(51 65 85) !important;
+    }
+    .question-container .hover\:bg-gray-100:hover {
+      background-color: rgb(71 85 105) !important;
+    }
+    .question-container .text-gray-700 {
+      color: white !important;
+    }
+    /* More specific targeting for the expandable button */
+    .question-container button.w-full.text-left.px-3.py-2.bg-gray-50.hover\:bg-gray-100 {
+      background-color: rgb(51 65 85) !important;
+      border-color: rgb(71 85 105) !important;
+    }
+    .question-container button.w-full.text-left.px-3.py-2.bg-gray-50.hover\:bg-gray-100:hover {
+      background-color: rgb(71 85 105) !important;
+    }
+    /* Even more aggressive targeting */
+    .question-container .bg-gray-50 {
+      background-color: rgb(51 65 85) !important;
+    }
+    .question-container .hover\:bg-gray-100:hover {
+      background-color: rgb(71 85 105) !important;
+    }
+    /* Target the specific button by its text content */
+    .question-container button span:text-sm.font-medium.text-gray-700 {
+      color: white !important;
+    }
+    /* Target by parent div structure */
+    .question-container div.mt-3.pt-2.border-t.border-gray-200 button {
+      background-color: rgb(51 65 85) !important;
+      border-color: rgb(71 85 105) !important;
+    }
+    .question-container div.mt-3.pt-2.border-t.border-gray-200 button:hover {
+      background-color: rgb(71 85 105) !important;
+    }
+    .question-container div.mt-3.pt-2.border-t.border-gray-200 button span.text-sm.font-medium.text-gray-700 {
+      color: white !important;
+    }
   `;
   
-  // Questions 3, 5, 7, 8, 9, 10 from reco (renumbered as 1-6 for editor)
+  // Get all questions from reco in the specified order
   const EDITOR_QUESTION_IDS = [
-    'revenue_status',      // 1
-    'location',           // 2  
-    'co_financing',       // 3
-    'use_of_funds',       // 4
-    'deadline_urgency',   // 5
-    'impact_focus'        // 6
+    'organisation_type',    // 1
+    'company_stage',        // 2
+    'legal_form',          // 3
+    'revenue_status',      // 4
+    'location',            // 5
+    'funding_amount',      // 6
+    'industry_focus',      // 7
+    'co_financing',        // 8
+    'use_of_funds',        // 9
+    'deadline_urgency',    // 10
+    'impact_focus'         // 11
   ];
   
   // Get translated questions for editor mode
   const translatedQuestions = useMemo<QuestionDefinition[]>(() => {
     return ALL_QUESTIONS
       .filter(q => EDITOR_QUESTION_IDS.includes(q.id))
+      .sort((a, b) => EDITOR_QUESTION_IDS.indexOf(a.id) - EDITOR_QUESTION_IDS.indexOf(b.id))
       .map((q, index) => {
-        // Renumber priorities for editor mode (1-6)
+        // Renumber priorities for editor mode (1-11)
         const editorQuestion = {
           ...q,
           priority: index + 1
@@ -141,6 +226,139 @@ export default function EditorProgramFinder({
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentStep, setCurrentStep] = useState(0);
   
+  // Get filtered questions based on conditional logic (same as Reco)
+  const getFilteredQuestions = useCallback((allQuestions: QuestionDefinition[], currentAnswers: Record<string, any>) => {
+    const isNotRegisteredYet = currentAnswers.organisation_type === 'individual' && 
+                              currentAnswers.organisation_type_sub === 'no_company';
+    const isIdeaStage = currentAnswers.company_stage === 'idea';
+    
+    // Check if organization type is one that should skip revenue
+    const skipRevenueOrgTypes = ['association', 'foundation', 'cooperative', 'public_body', 'research_institution'];
+    const shouldSkipRevenue = skipRevenueOrgTypes.includes(currentAnswers.organisation_type_other);
+    
+    return allQuestions.filter(question => {
+      // Always show organisation_type and company_stage
+      if (question.id === 'organisation_type' || question.id === 'company_stage') return true;
+      
+      // Hide organisation_type_sub - it's shown as sub-options in QuestionRenderer
+      if (question.id === 'organisation_type_sub') return false;
+      
+      // Logic 1: If not registered yet, hide legal_form and revenue_status
+      if (isNotRegisteredYet) {
+        if (question.id === 'legal_form' || question.id === 'revenue_status') return false;
+      }
+      
+      // Logic 2: If idea stage, hide revenue_status
+      if (isIdeaStage && question.id === 'revenue_status') return false;
+      
+      // Logic 3: If organization type should skip revenue, hide revenue_status
+      if (shouldSkipRevenue && question.id === 'revenue_status') return false;
+      
+      // Logic 4: New revenue status logic based on project stage (slider version)
+      if (question.id === 'revenue_status') {
+        const companyStage = currentAnswers.company_stage as string | undefined;
+        
+        // Idea stage: Auto-set to 0 (Pre-Revenue) and hide slider
+        if (companyStage === 'idea') {
+          return false; // Hide the slider entirely
+        }
+        
+        // Not registered yet: Auto-set to 0 (Pre-Revenue) and hide slider
+        if (isNotRegisteredYet) {
+          return false; // Hide the slider entirely
+        }
+        
+        // Organization types that skip revenue: Auto-set to 0 and hide slider
+        if (shouldSkipRevenue) {
+          return false; // Hide the slider entirely
+        }
+        
+        // For all other stages: Show slider with full range
+        return true;
+      }
+      
+      // Show legal_form based on conditions (when not hidden by above logic)
+      if (question.id === 'legal_form') {
+        // If organisation_type = individual, show only if sub-option = has_company
+        if (currentAnswers.organisation_type === 'individual') {
+          return currentAnswers.organisation_type_sub === 'has_company';
+        }
+        
+        // If organisation_type_other is a revenue-skipping type, hide legal_form
+        const skipRevenueOrgTypes = ['association', 'foundation', 'cooperative', 'public_body', 'research_institution'];
+        if (currentAnswers.organisation_type === 'other' && 
+            currentAnswers.organisation_type_other && 
+            skipRevenueOrgTypes.includes(currentAnswers.organisation_type_other)) {
+          return false;
+        }
+        
+        // For other organisation types, show legal_form
+        return currentAnswers.organisation_type && currentAnswers.organisation_type !== 'individual';
+      }
+      
+      // For all other questions, show by default
+      return true;
+    });
+  }, []);
+  
+  const filteredQuestions = useMemo(() => 
+    getFilteredQuestions(translatedQuestions, answers), 
+    [translatedQuestions, answers, getFilteredQuestions]
+  );
+  
+  // Prefill answers from MyProject data
+  useEffect(() => {
+    if (projectProfile && Object.keys(answers).length === 0) {
+      const prefilledAnswers: Record<string, any> = {};
+      
+      // Map MyProject fields to Reco questions
+      if (projectProfile.stage) {
+        prefilledAnswers.company_stage = projectProfile.stage;
+      }
+      
+      if (projectProfile.country) {
+        // Map country to location options
+        const countryMap: Record<string, string> = {
+          'Austria': 'austria',
+          'Germany': 'germany',
+          'France': 'eu',
+          'Italy': 'eu',
+          'Spain': 'eu',
+          'Netherlands': 'eu',
+          'Belgium': 'eu',
+          'Switzerland': 'international',
+          'United Kingdom': 'international',
+          'USA': 'international',
+          'Canada': 'international'
+        };
+        prefilledAnswers.location = countryMap[projectProfile.country] || 'international';
+      }
+      
+      if (projectProfile.industryTags && projectProfile.industryTags.length > 0) {
+        prefilledAnswers.industry_focus = projectProfile.industryTags;
+      }
+      
+      if (projectProfile.financialBaseline?.fundingNeeded) {
+        prefilledAnswers.funding_amount = projectProfile.financialBaseline.fundingNeeded;
+      }
+      
+      // Get region from localStorage (since it's not in ProjectProfile type)
+      const savedRegion = localStorage.getItem('myProject_region');
+      if (savedRegion) {
+        prefilledAnswers.location_region = savedRegion;
+      }
+      
+      // Try to infer organisation_type from stage
+      if (projectProfile.stage === 'idea' || projectProfile.stage === 'MVP') {
+        prefilledAnswers.organisation_type = 'startup';
+      } else if (projectProfile.stage === 'revenue') {
+        prefilledAnswers.organisation_type = 'established_sme';
+      }
+      
+      setAnswers(prefilledAnswers);
+    }
+  }, [projectProfile]);
+  
   const answersForApi = useMemo(() => {
     const sanitizedAnswers = { ...answers };
     delete sanitizedAnswers.funding_intent;
@@ -148,8 +366,8 @@ export default function EditorProgramFinder({
   }, [answers]);
   
   const visibleQuestions = useMemo(
-    () => translatedQuestions,
-    [translatedQuestions]
+    () => filteredQuestions,
+    [filteredQuestions]
   );
 
   const persistSelectedProgram = useCallback((program: EnhancedProgramResult) => {
@@ -255,7 +473,75 @@ export default function EditorProgramFinder({
   const hasVisibleResults = visibleResults.length > 0;
 
   const handleAnswer = (questionId: string, value: any) => {
-    setAnswers(prev => ({ ...prev, [questionId]: value }));
+    setAnswers(prevAnswers => {
+      const newAnswers = { ...prevAnswers };
+
+      if (value === undefined || value === null || value === '') {
+        delete newAnswers[questionId];
+      } else {
+        newAnswers[questionId] = value;
+      }
+
+      // Handle organisation_type and company_stage - derive company_type and company_stage
+      if (questionId === 'organisation_type' || questionId === 'organisation_type_other' || 
+          questionId === 'organisation_type_sub' || questionId === 'company_stage') {
+        const orgType = newAnswers.organisation_type as string | undefined;
+        const orgOther = newAnswers.organisation_type_other as string | undefined;
+        const orgSub = newAnswers.organisation_type_sub as string | undefined;
+        const compStage = newAnswers.company_stage as string | undefined;
+        
+        // Logic 1: Auto-set values when not registered yet
+        const isNotRegisteredYet = orgType === 'individual' && orgSub === 'no_company';
+        if (isNotRegisteredYet) {
+          newAnswers.legal_form = 'not_registered_yet';
+          newAnswers.revenue_status = 0; // Pre-Revenue (0 EUR)
+        }
+        
+        // Logic 2: Auto-set revenue_status for idea stage
+        if (compStage === 'idea') {
+          newAnswers.revenue_status = 0; // Pre-Revenue (0 EUR)
+        }
+        
+        // Logic 3: Auto-set values for organization types that skip revenue
+        const skipRevenueOrgTypes = ['association', 'foundation', 'cooperative', 'public_body', 'research_institution'];
+        const shouldSkipRevenue = orgOther && skipRevenueOrgTypes.includes(orgOther);
+        if (shouldSkipRevenue) {
+          newAnswers.revenue_status = 0; // Pre-Revenue (0 EUR)
+          newAnswers.legal_form = 'research_institution'; // Set appropriate legal form
+        }
+        
+        // Logic 4: Map numeric revenue value to categorical value for API
+        const revenueValue = newAnswers.revenue_status as number | undefined;
+        if (revenueValue !== undefined) {
+          let revenueCategory = 'pre_revenue';
+          if (revenueValue === 0) {
+            revenueCategory = 'pre_revenue';
+          } else if (revenueValue >= 1 && revenueValue <= 250000) {
+            revenueCategory = 'low_revenue';
+          } else if (revenueValue >= 250001 && revenueValue <= 1000000) {
+            revenueCategory = 'early_revenue';
+          } else if (revenueValue >= 1000001 && revenueValue <= 10000000) {
+            revenueCategory = 'growth_revenue';
+          } else if (revenueValue > 10000000) {
+            revenueCategory = 'established_revenue';
+          }
+          newAnswers.revenue_status_category = revenueCategory;
+        }
+        
+        // Auto-set legal_form based on sub-selection (when registered)
+        if (orgType === 'individual' && orgSub === 'has_company') {
+          delete newAnswers.legal_form;
+        }
+        
+        // Reset dependent answers when organisation_type or company_stage changes
+        if (questionId !== 'organisation_type_sub' && questionId !== 'organisation_type_other') {
+          delete newAnswers.legal_form;
+          delete newAnswers.revenue_status;
+        }
+      }
+      
+      return newAnswers;
+    });
   };
 
   const nextStep = () => {
@@ -274,7 +560,7 @@ export default function EditorProgramFinder({
     answers[key] !== undefined && answers[key] !== ''
   ).length;
 
-  const hasEnoughAnswers = answeredCount >= 3;
+  const hasEnoughAnswers = answeredCount >= 5;
 
   return (
     <div className="bg-transparent relative">

@@ -50,7 +50,15 @@ const MyProject: React.FC<MyProjectProps> = ({
     confidentiality: projectProfile?.confidentiality || 'confidential' as 'public' | 'confidential' | 'private',
     stage: projectProfile?.stage || '' as 'idea' | 'MVP' | 'revenue',
     country: projectProfile?.country || '',
+    // Region is stored separately in formData, not in ProjectProfile type
+    region: '',
     industryFocus: projectProfile?.industryTags || [] as string[],
+    // Industry sub-focus fields
+    digitalFocus: [] as string[],
+    sustainabilityFocus: [] as string[],
+    healthFocus: [] as string[],
+    manufacturingFocus: [] as string[],
+    exportFocus: [] as string[],
     oneLiner: projectProfile?.oneLiner || '',
     mainObjective: projectProfile?.mainObjective || '',
     teamSize: projectProfile?.teamSize || 0,
@@ -84,7 +92,15 @@ const MyProject: React.FC<MyProjectProps> = ({
         confidentialityStatement: plan?.settings?.titlePage?.confidentialityStatement || projectProfile.confidentialityStatement || prev.confidentialityStatement,
         stage: projectProfile.stage || prev.stage,
         country: projectProfile.country || prev.country,
+        // Region is stored in formData directly, initialize from localStorage or default
+        region: prev.region || localStorage.getItem('myProject_region') || '',
         industryFocus: projectProfile.industryTags || prev.industryFocus,
+        // Industry sub-focus fields
+        digitalFocus: prev.digitalFocus || [],
+        sustainabilityFocus: prev.sustainabilityFocus || [],
+        healthFocus: prev.healthFocus || [],
+        manufacturingFocus: prev.manufacturingFocus || [],
+        exportFocus: prev.exportFocus || [] as string[],
         oneLiner: projectProfile.oneLiner || prev.oneLiner,
         mainObjective: projectProfile.mainObjective || prev.mainObjective,
         teamSize: projectProfile.teamSize || prev.teamSize,
@@ -132,8 +148,13 @@ const MyProject: React.FC<MyProjectProps> = ({
       setFormData(prev => {
         const newData = { ...prev, [field]: value };
         
+        // Save region to localStorage for EditorProgramFinder access
+        if (field === 'region') {
+          localStorage.setItem('myProject_region', value);
+        }
+        
         // Update project profile for Project Profile fields
-        if (['country', 'stage', 'industryFocus', 'oneLiner', 'teamSize', 'mainObjective', 'customIndustry', 'financialBaseline', 'confidentiality', 'confidentialityStatement'].includes(field)) {
+        if (['country', 'stage', 'industryFocus', 'oneLiner', 'teamSize', 'mainObjective', 'customIndustry', 'financialBaseline', 'confidentiality', 'confidentialityStatement', 'region', 'digitalFocus', 'sustainabilityFocus', 'healthFocus', 'manufacturingFocus', 'exportFocus'].includes(field)) {
           const projectProfile = {
             projectName: newData.title,
             author: newData.companyName,

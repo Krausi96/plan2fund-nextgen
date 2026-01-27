@@ -165,32 +165,50 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   <span className="text-red-400 font-bold text-sm">*</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <label className="block text-white text-sm font-medium">
-                        {t('editor.desktop.myProject.fields.country') || 'Country'}
-                      </label>
-                      <span className="text-red-400 text-[8px]">*</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <label className="block text-white text-sm font-medium">
+                          {t('editor.desktop.myProject.fields.country') || 'Country'}
+                        </label>
+                        <span className="text-red-400 text-[8px]">*</span>
+                      </div>
+                      <select
+                        value={formData.country}
+                        onChange={(e) => handleCountryChange(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
+                        required
+                      >
+                        <option value="">{t('editor.desktop.myProject.placeholders.selectCountry')}</option>
+                        <option value="Austria">{t('editor.desktop.myProject.countries.austria') || 'Austria'}</option>
+                        <option value="Germany">{t('editor.desktop.myProject.countries.germany') || 'Germany'}</option>
+                        <option value="France">{t('editor.desktop.myProject.countries.france') || 'France'}</option>
+                        <option value="Italy">{t('editor.desktop.myProject.countries.italy') || 'Italy'}</option>
+                        <option value="Spain">{t('editor.desktop.myProject.countries.spain') || 'Spain'}</option>
+                        <option value="Netherlands">{t('editor.desktop.myProject.countries.netherlands') || 'Netherlands'}</option>
+                        <option value="Belgium">{t('editor.desktop.myProject.countries.belgium') || 'Belgium'}</option>
+                        <option value="Switzerland">{t('editor.desktop.myProject.countries.switzerland') || 'Switzerland'}</option>
+                        <option value="United Kingdom">{t('editor.desktop.myProject.countries.unitedKingdom') || 'United Kingdom'}</option>
+                        <option value="USA">{t('editor.desktop.myProject.countries.usa') || 'USA'}</option>
+                        <option value="Canada">{t('editor.desktop.myProject.countries.canada') || 'Canada'}</option>
+                      </select>
                     </div>
-                    <select
-                      value={formData.country}
-                      onChange={(e) => handleCountryChange(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
-                      required
-                    >
-                      <option value="">{t('editor.desktop.myProject.placeholders.selectCountry')}</option>
-                      <option value="Austria">{t('editor.desktop.myProject.countries.austria') || 'Austria'}</option>
-                      <option value="Germany">{t('editor.desktop.myProject.countries.germany') || 'Germany'}</option>
-                      <option value="France">{t('editor.desktop.myProject.countries.france') || 'France'}</option>
-                      <option value="Italy">{t('editor.desktop.myProject.countries.italy') || 'Italy'}</option>
-                      <option value="Spain">{t('editor.desktop.myProject.countries.spain') || 'Spain'}</option>
-                      <option value="Netherlands">{t('editor.desktop.myProject.countries.netherlands') || 'Netherlands'}</option>
-                      <option value="Belgium">{t('editor.desktop.myProject.countries.belgium') || 'Belgium'}</option>
-                      <option value="Switzerland">{t('editor.desktop.myProject.countries.switzerland') || 'Switzerland'}</option>
-                      <option value="United Kingdom">{t('editor.desktop.myProject.countries.unitedKingdom') || 'United Kingdom'}</option>
-                      <option value="USA">{t('editor.desktop.myProject.countries.usa') || 'USA'}</option>
-                      <option value="Canada">{t('editor.desktop.myProject.countries.canada') || 'Canada'}</option>
-                    </select>
+                    
+                    <div>
+                      <label className="block text-white text-sm font-medium mb-2">
+                        Region
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.region || ''}
+                        onChange={(e) => handleFieldChange('region', e.target.value)}
+                        placeholder="e.g., Vienna, Bavaria, or specific area"
+                        className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
+                      />
+                      <p className="text-white/50 text-xs mt-1">
+                        Optional: Specify region or state
+                      </p>
+                    </div>
                   </div>
                   
                   <div>
@@ -313,6 +331,242 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                         );
                       })}
                     </div>
+                    
+                    {/* Sub-categories for selected industries */}
+                    {formData.industryFocus?.includes('digital') && (
+                      <div className="mt-4 pt-4 border-t border-slate-600">
+                        <h4 className="text-white text-sm font-medium mb-3">Digital & Software Focus:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {[{ value: 'ai', label: 'AI & Machine Learning' },
+                            { value: 'fintech', label: 'FinTech' },
+                            { value: 'healthtech', label: 'HealthTech' },
+                            { value: 'edtech', label: 'EdTech' },
+                            { value: 'iot', label: 'IoT' },
+                            { value: 'blockchain', label: 'Blockchain' },
+                            { value: 'cybersecurity', label: 'Cybersecurity' },
+                            { value: 'cloud_computing', label: 'Cloud Computing' },
+                            { value: 'software_development', label: 'Software Development' }
+                          ].map((sub) => {
+                            const isSelected = formData.digitalFocus?.includes(sub.value) || false;
+                            return (
+                              <button
+                                key={sub.value}
+                                type="button"
+                                onClick={() => {
+                                  const current = formData.digitalFocus || [];
+                                  const newValue = isSelected 
+                                    ? current.filter((v: string) => v !== sub.value)
+                                    : [...current, sub.value];
+                                  handleFieldChange('digitalFocus', newValue.length > 0 ? newValue : undefined);
+                                }}
+                                className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                                  isSelected
+                                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
+                                    : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                }`}
+                              >
+                                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                  isSelected ? 'bg-white border-white' : 'border-gray-400'
+                                }`}>
+                                  {isSelected && (
+                                    <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </span>
+                                <span>{sub.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {formData.industryFocus?.includes('sustainability') && (
+                      <div className="mt-4 pt-4 border-t border-slate-600">
+                        <h4 className="text-white text-sm font-medium mb-3">Climate & Sustainability Focus:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {[{ value: 'greentech', label: 'GreenTech' },
+                            { value: 'cleantech', label: 'CleanTech' },
+                            { value: 'circular_economy', label: 'Circular Economy' },
+                            { value: 'renewable_energy', label: 'Renewable Energy' },
+                            { value: 'climate_tech', label: 'Climate Tech' },
+                            { value: 'waste_management', label: 'Waste Management' },
+                            { value: 'sustainable_agriculture', label: 'Sustainable Agriculture' }
+                          ].map((sub) => {
+                            const isSelected = formData.sustainabilityFocus?.includes(sub.value) || false;
+                            return (
+                              <button
+                                key={sub.value}
+                                type="button"
+                                onClick={() => {
+                                  const current = formData.sustainabilityFocus || [];
+                                  const newValue = isSelected 
+                                    ? current.filter((v: string) => v !== sub.value)
+                                    : [...current, sub.value];
+                                  handleFieldChange('sustainabilityFocus', newValue.length > 0 ? newValue : undefined);
+                                }}
+                                className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                                  isSelected
+                                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
+                                    : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                }`}
+                              >
+                                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                  isSelected ? 'bg-white border-white' : 'border-gray-400'
+                                }`}>
+                                  {isSelected && (
+                                    <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </span>
+                                <span>{sub.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {formData.industryFocus?.includes('health') && (
+                      <div className="mt-4 pt-4 border-t border-slate-600">
+                        <h4 className="text-white text-sm font-medium mb-3">Health & Life Sciences Focus:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {[{ value: 'biotech', label: 'Biotech' },
+                            { value: 'medtech', label: 'MedTech' },
+                            { value: 'pharma', label: 'Pharmaceuticals' },
+                            { value: 'digital_health', label: 'Digital Health' },
+                            { value: 'medical_devices', label: 'Medical Devices' },
+                            { value: 'diagnostics', label: 'Diagnostics' },
+                            { value: 'therapeutics', label: 'Therapeutics' }
+                          ].map((sub) => {
+                            const isSelected = formData.healthFocus?.includes(sub.value) || false;
+                            return (
+                              <button
+                                key={sub.value}
+                                type="button"
+                                onClick={() => {
+                                  const current = formData.healthFocus || [];
+                                  const newValue = isSelected 
+                                    ? current.filter((v: string) => v !== sub.value)
+                                    : [...current, sub.value];
+                                  handleFieldChange('healthFocus', newValue.length > 0 ? newValue : undefined);
+                                }}
+                                className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                                  isSelected
+                                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
+                                    : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                }`}
+                              >
+                                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                  isSelected ? 'bg-white border-white' : 'border-gray-400'
+                                }`}>
+                                  {isSelected && (
+                                    <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </span>
+                                <span>{sub.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {formData.industryFocus?.includes('manufacturing') && (
+                      <div className="mt-4 pt-4 border-t border-slate-600">
+                        <h4 className="text-white text-sm font-medium mb-3">Manufacturing & Hardware Focus:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {[{ value: 'industry_4_0', label: 'Industry 4.0' },
+                            { value: 'smart_manufacturing', label: 'Smart Manufacturing' },
+                            { value: 'robotics', label: 'Robotics' },
+                            { value: 'automation', label: 'Automation' },
+                            { value: 'additive_manufacturing', label: 'Additive Manufacturing (3D Printing)' },
+                            { value: 'advanced_materials', label: 'Advanced Materials' },
+                            { value: 'quality_control', label: 'Quality Control & Testing' }
+                          ].map((sub) => {
+                            const isSelected = formData.manufacturingFocus?.includes(sub.value) || false;
+                            return (
+                              <button
+                                key={sub.value}
+                                type="button"
+                                onClick={() => {
+                                  const current = formData.manufacturingFocus || [];
+                                  const newValue = isSelected 
+                                    ? current.filter((v: string) => v !== sub.value)
+                                    : [...current, sub.value];
+                                  handleFieldChange('manufacturingFocus', newValue.length > 0 ? newValue : undefined);
+                                }}
+                                className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                                  isSelected
+                                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
+                                    : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                }`}
+                              >
+                                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                  isSelected ? 'bg-white border-white' : 'border-gray-400'
+                                }`}>
+                                  {isSelected && (
+                                    <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </span>
+                                <span>{sub.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {formData.industryFocus?.includes('export') && (
+                      <div className="mt-4 pt-4 border-t border-slate-600">
+                        <h4 className="text-white text-sm font-medium mb-3">Internationalisation Focus:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {[{ value: 'export_eu', label: 'EU Export' },
+                            { value: 'export_global', label: 'Global Export' },
+                            { value: 'export_services', label: 'Export Services' },
+                            { value: 'export_products', label: 'Export Products' },
+                            { value: 'export_technology', label: 'Export Technology' }
+                          ].map((sub) => {
+                            const isSelected = formData.exportFocus?.includes(sub.value) || false;
+                            return (
+                              <button
+                                key={sub.value}
+                                type="button"
+                                onClick={() => {
+                                  const current = formData.exportFocus || [];
+                                  const newValue = isSelected 
+                                    ? current.filter((v: string) => v !== sub.value)
+                                    : [...current, sub.value];
+                                  handleFieldChange('exportFocus', newValue.length > 0 ? newValue : undefined);
+                                }}
+                                className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                                  isSelected
+                                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
+                                    : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                }`}
+                              >
+                                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                  isSelected ? 'bg-white border-white' : 'border-gray-400'
+                                }`}>
+                                  {isSelected && (
+                                    <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </span>
+                                <span>{sub.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Custom industry input when 'other' is selected */}
                     {formData.industryFocus?.includes('other') && (
