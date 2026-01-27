@@ -180,6 +180,11 @@ export default function EditorProgramFinder({
           border-color: rgb(147 51 234) !important; 
         }
         .question-container .text-gray-700 { color: rgb(203 213 225) !important; }
+        .question-container .text-gray-800 { color: rgb(226 232 240) !important; }
+        .question-container .text-gray-600 { color: rgb(190 204 217) !important; }
+        .question-container .text-sm { color: rgb(203 213 225) !important; }
+        .question-container button span { color: inherit !important; }
+        .question-container div > span:not(.font-bold) { color: rgb(203 213 225) !important; }
         .question-container input.border-gray-300 { 
           background-color: rgb(51 65 85) !important; 
           border-color: rgb(71 85 105) !important; 
@@ -191,7 +196,7 @@ export default function EditorProgramFinder({
       `}</style>
       <div className="max-w-2xl mx-auto px-4 py-2">
         <div className="flex flex-col gap-2">
-          <div className="p-4 max-w-2xl mx-auto w-full bg-slate-800/70 border border-slate-700 shadow-xl h-[600px] flex flex-col relative rounded-xl backdrop-blur-sm">
+          <div className="p-4 max-w-2xl mx-auto w-full bg-slate-800/70 border border-slate-700 shadow-xl min-h-[650px] flex flex-col relative rounded-xl backdrop-blur-sm">
             
             {/* Loading overlay */}
             {isLoading && (
@@ -312,7 +317,7 @@ export default function EditorProgramFinder({
               </div>
               
               {/* Single Question Display */}
-              <div className="flex-col justify-start overflow-auto">
+              <div className="flex-col justify-start overflow-auto flex-1 pb-4">
                 {visibleQuestions[currentStep] && (
                   <div className="question-container">
                     <QuestionRenderer
@@ -328,7 +333,7 @@ export default function EditorProgramFinder({
               </div>
 
               {/* Navigation Buttons */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-700 mt-auto">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-700 mt-auto flex-shrink-0">
                 <button
                   onClick={prevStep}
                   disabled={currentStep === 0}
