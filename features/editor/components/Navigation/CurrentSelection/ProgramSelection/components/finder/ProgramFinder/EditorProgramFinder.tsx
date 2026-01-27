@@ -167,7 +167,7 @@ export default function EditorProgramFinder({
         /* Dark theme for question renderer */
         .question-container .bg-white { background-color: transparent !important; }
         .question-container .border-2.border-blue-200 { border-width: 0 !important; box-shadow: none !important; }
-        .question-container .p-6 { padding: 0 !important; }
+        .question-container .p-6 { padding: 0.5rem !important; } /* Reduce from p-6 (1.5rem) to p-2 (0.5rem) */
         .question-container .text-gray-900 { color: white !important; }
         .question-container .text-xl.font-semibold { color: white !important; }
         .question-container .bg-white.border-gray-300 { 
@@ -194,6 +194,9 @@ export default function EditorProgramFinder({
         .question-container .bg-gray-50 { background-color: rgb(51 65 85) !important; }
         .question-container .hover\:bg-gray-100:hover { background-color: rgb(71 85 105) !important; }
         .question-container { width: 100% !important; overflow-x: hidden !important; box-sizing: border-box !important; }
+        /* Reduce button padding to prevent cutoff */
+        .question-container button.px-4 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+        .question-container button.px-3 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
       `}</style>
       <div className="w-full px-2 py-2">
         <div className="flex flex-col gap-2 w-full">
@@ -318,9 +321,9 @@ export default function EditorProgramFinder({
               </div>
               
               {/* Single Question Display */}
-              <div className="flex-col justify-start overflow-auto flex-1 pb-3 w-full px-2">
+              <div className="flex-col justify-start overflow-auto flex-1 pb-3 w-full px-1">
                 {visibleQuestions[currentStep] && (
-                  <div className="question-container w-full">
+                  <div className="question-container w-full max-w-full">
                     <QuestionRenderer
                       key={visibleQuestions[currentStep].id}
                       question={visibleQuestions[currentStep]}
