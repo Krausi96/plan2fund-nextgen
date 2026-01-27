@@ -92,25 +92,33 @@ export const CORE_QUESTIONS: QuestionDefinition[] = [
       
       // Special case
       { value: 'not_registered_yet', label: 'Not registered yet', group: 'special' },
+      { value: 'foreign_entity', label: 'reco.options.legal_form.foreign_entity', group: 'special' },
     ],
     required: true,
     priority: 2.2,
     isAdvanced: false,
     hasGroups: true,
+    hasOptionalTextField: (value: string) => value === 'foreign_entity',
   },
   {
     id: 'revenue_status',
-    label: 'What best describes your current situation regarding funding?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'pre_revenue', label: 'Pre-revenue (no sales yet)' },
-      { value: 'early_revenue', label: 'Early revenue (some sales, < €500k/year)' },
-      { value: 'established_revenue', label: 'Established revenue (€500k+/year)' },
-      { value: 'not_applicable', label: 'Not applicable (public sector, research institution, non-profit)' },
-    ],
+    label: 'Revenue Status (Annual Turnover)',
+    type: 'range' as const,
+    min: 0,
+    max: 10000000,
+    step: 1000,
+    unit: 'EUR',
     required: true,
     priority: 3,
+    editableValue: true,
     isAdvanced: false,
+    revenueRanges: [
+      { min: 0, max: 0, label: 'Pre-Revenue', value: 'pre_revenue' },
+      { min: 1, max: 250000, label: 'Low Revenue', value: 'low_revenue' },
+      { min: 250001, max: 1000000, label: 'Early Revenue', value: 'early_revenue' },
+      { min: 1000001, max: 10000000, label: 'Growth Revenue', value: 'growth_revenue' },
+      { min: 10000001, max: 100000000, label: 'Established Revenue', value: 'established_revenue' }
+    ],
   },
   {
     id: 'location',

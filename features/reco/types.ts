@@ -45,6 +45,7 @@ export type SingleSelectQuestion = BaseQuestion & {
   options: Array<{ value: string; label: string; group?: string }>;
   hasOtherTextInput?: boolean;
   hasOptionalRegion?: (value: string) => boolean;
+  hasOptionalTextField?: (value: string) => boolean;
   hasCoFinancingPercentage?: boolean;
   hasSubOptions?: (value: string) => boolean;
   hasGroups?: boolean;
@@ -72,6 +73,7 @@ export type RangeQuestion = BaseQuestion & {
   hasGroups?: boolean;
   parentQuestion?: string;
   parentValue?: string;
+  revenueRanges?: Array<{ min: number; max: number; label: string; value: string }>;
 };
 
 export type QuestionDefinition = SingleSelectQuestion | MultiSelectQuestion | RangeQuestion;

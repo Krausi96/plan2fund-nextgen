@@ -221,84 +221,29 @@ export default function QuestionRenderer({
                                     autoFocus
                                   />
                                   
-                                  {/* Expandable dropdown for organisation_type other options */}
-                                  {question.id === 'organisation_type' && (
-                                    <div className="mt-3 pt-2 border-t border-gray-200">
-                                      <button
-                                        type="button"
-                                        onClick={() => onAnswer(`${question.id}_expand_other`, !(answers[`${question.id}_expand_other`] ?? false))}
-                                        className="w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-lg transition-all duration-200 flex items-center justify-between"
-                                      >
-                                        <span className="text-sm font-medium text-gray-700">{(t('reco.ui.specifyOrganizationType' as any) as string) || 'Specify organization type'}</span>
-                                        <svg 
-                                          className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${(answers[`${question.id}_expand_other`] ?? false) ? 'rotate-180' : ''}`}
-                                          fill="none" 
-                                          stroke="currentColor" 
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                      </button>
-                                      
-                                      {(answers[`${question.id}_expand_other`] ?? false) && (
-                                        <div className="ml-4 mt-2 space-y-2 border-l-2 border-gray-300 pl-3">
-                                          {[{
-                                            value: 'association',
-                                            label: 'Association'
-                                          }, {
-                                            value: 'foundation',
-                                            label: 'Foundation'
-                                          }, {
-                                            value: 'private_foundation',
-                                            label: 'Private foundation'
-                                          }, {
-                                            value: 'public_corporation',
-                                            label: 'Corporation under public law'
-                                          }, {
-                                            value: 'cooperative',
-                                            label: 'Cooperative'
-                                          }, {
-                                            value: 'registered_cooperative',
-                                            label: 'Registered cooperative'
-                                          }, {
-                                            value: 'sce',
-                                            label: 'European Cooperative Society (SCE)'
-                                          }, {
-                                            value: 'agricultural_community',
-                                            label: 'Agricultural community'
-                                          }, {
-                                            value: 'foreign_legal_form',
-                                            label: 'Foreign legal form'
-                                          }].map((subOption) => {
-                                            const isSubSelected = answers[`${question.id}_other`] === subOption.value;
-                                            return (
-                                              <button
-                                                key={subOption.value}
-                                                type="button"
-                                                onClick={() => onAnswer(`${question.id}_other`, subOption.value)}
-                                                className={`w-full text-left px-3 py-2 border-2 rounded-lg transition-all duration-150 text-sm ${
-                                                  isSubSelected
-                                                    ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-sm'
-                                                    : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-                                                }`}
-                                              >
-                                                <div className="flex items-center gap-2">
-                                                  {isSubSelected && <span className="text-base font-bold">✓</span>}
-                                                  <span>{subOption.label}</span>
-                                                </div>
-                                              </button>
-                                            );
-                                          })}
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
+                                  
                                   
                                   {(question.id === 'organisation_stage' || question.id === 'company_type') && (
                                     <p className="text-xs text-gray-500 mt-1">
                                       {(t('reco.ui.otherExamples' as any) as string) || 'Examples: Association, Cooperative, Foundation, LLC, Inc., etc.'}
                                     </p>
                                   )}
+                                </div>
+                              )}
+                              
+                              {/* Optional text field for foreign entity */}
+                              {question.hasOptionalTextField && isSelected && question.hasOptionalTextField(option.value) && (
+                                <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2">
+                                  <input
+                                    type="text"
+                                    placeholder={
+                                      t('reco.ui.foreignEntityPlaceholder') || 
+                                      'For companies outside Austria: e.g. Germany, France etc. / Unternehmen außerhalb Österreichs: z.B. Deutschland, Frankreich etc.'
+                                    }
+                                    value={(answers[`${question.id}_foreign_details`] as string) || ''}
+                                    onChange={(e) => onAnswer(`${question.id}_foreign_details`, e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
                                 </div>
                               )}
                               
@@ -461,7 +406,7 @@ export default function QuestionRenderer({
                           onClick={() => onAnswer(`${question.id}_expand_other`, !(answers[`${question.id}_expand_other`] ?? false))}
                           className="w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-lg transition-all duration-200 flex items-center justify-between"
                         >
-                          <span className="text-sm font-medium text-gray-700">Specify organization type</span>
+                          <span className="text-sm font-medium text-gray-700">{(t('reco.ui.specifyOrganizationType' as any) as string) || 'Specify organization type'}</span>
                           <svg 
                             className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${(answers[`${question.id}_expand_other`] ?? false) ? 'rotate-180' : ''}`}
                             fill="none" 
@@ -501,9 +446,6 @@ export default function QuestionRenderer({
                             }, {
                               value: 'foreign_legal_form',
                               label: 'Foreign legal form'
-                            }, {
-                              value: 'other',
-                              label: 'Other'
                             }].map((subOption) => {
                               const isSubSelected = answers[`${question.id}_other`] === subOption.value;
                               return (

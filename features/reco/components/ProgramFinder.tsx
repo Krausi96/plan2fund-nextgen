@@ -12,33 +12,6 @@ import { EnhancedProgramResult, QuestionDefinition, ProgramFinderProps } from '.
 import { ALL_QUESTIONS } from '../data/questions';
 import QuestionRenderer from './QuestionRenderer';
 
-// Inline deriveCompanyInfo function
-function deriveCompanyInfo(organisationType: string | undefined, companyStage: string | undefined): { company_type: string | null; company_stage: string | null } {
-  if (!organisationType && !companyStage) return { company_type: null, company_stage: null };
-  
-  // Map organisation type to company_type
-  const typeMap: Record<string, string> = {
-    'individual': 'founder_idea',
-    'startup': 'startup',
-    'established_sme': 'sme',
-    'research_institution': 'research',
-    'public_body': 'public'
-  };
-  
-  // Map company stage to company_stage
-  const stageMap: Record<string, string> = {
-    'idea': 'pre_company',
-    'MVP': 'inc_lt_6m',
-    'revenue': 'inc_6_36m',
-    'growth': 'inc_gt_36m'
-  };
-  
-  return {
-    company_type: typeMap[organisationType!] || null,
-    company_stage: stageMap[companyStage!] || null
-  };
-}
-
 export default function ProgramFinder({ 
   onProgramSelect
 }: Omit<ProgramFinderProps, 'editorMode'>) {
@@ -117,39 +90,21 @@ export default function ProgramFinder({
       // Logic 2: If idea stage, hide revenue_status
       if (isIdeaStage && question.id === 'revenue_status') return false;
       
-      // Logic 3: New revenue status logic based on project stage
+      // Logic 3: New revenue status logic based on project stage (slider version)
       if (question.id === 'revenue_status') {
         const companyStage = currentAnswers.company_stage as string | undefined;
         
-        // Prototype / MVP stage: ALLOW pre_revenue OR revenue_generating (early_revenue)
-        if (companyStage === 'MVP') {
-          // Keep all options - show question
-          return true;
+        // Idea stage: Auto-set to 0 (Pre-Revenue) and hide slider
+        if (companyStage === 'idea') {
+          return false; // Hide the slider entirely
         }
         
-        // First revenue stage: DISALLOW pre_revenue
-        else if (companyStage === 'revenue') {
-          if (question.type === 'single-select' && question.options) {
-            const filteredOptions = question.options.filter((opt: any) => opt.value !== 'pre_revenue');
-            // Hide question entirely if no valid options remain
-            if (filteredOptions.length === 0) return false;
-            question.options = filteredOptions;
-          }
-          return true;
+        // Not registered yet: Auto-set to 0 (Pre-Revenue) and hide slider
+        if (isNotRegisteredYet) {
+          return false; // Hide the slider entirely
         }
         
-        // Growth stage: DISALLOW pre_revenue
-        else if (companyStage === 'growth') {
-          if (question.type === 'single-select' && question.options) {
-            const filteredOptions = question.options.filter((opt: any) => opt.value !== 'pre_revenue');
-            // Hide question entirely if no valid options remain
-            if (filteredOptions.length === 0) return false;
-            question.options = filteredOptions;
-          }
-          return true;
-        }
-        
-        // For other stages, show by default
+        // For all other stages: Show slider with full range
         return true;
       }
       
@@ -176,6 +131,13 @@ export default function ProgramFinder({
   const answersForApi = useMemo(() => {
     const sanitizedAnswers = { ...answers };
     delete sanitizedAnswers.funding_intent;
+    
+    // Use the mapped categorical value for revenue_status if available
+    if (sanitizedAnswers.revenue_status_category) {
+      sanitizedAnswers.revenue_status = sanitizedAnswers.revenue_status_category;
+      delete sanitizedAnswers.revenue_status_category;
+    }
+    
     return sanitizedAnswers;
   }, [answers]);
   
@@ -266,37 +228,35 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
         const isNotRegisteredYet = orgType === 'individual' && orgSub === 'no_company';
         if (isNotRegisteredYet) {
           newAnswers.legal_form = 'not_registered_yet';
-          newAnswers.revenue_status = 'pre_revenue';
+          newAnswers.revenue_status = 0; // Pre-Revenue (0 EUR)
         }
         
         // Logic 2: Auto-set revenue_status for idea stage
         if (compStage === 'idea') {
-          newAnswers.revenue_status = 'pre_revenue';
+          newAnswers.revenue_status = 0; // Pre-Revenue (0 EUR)
         }
         
-        // Logic 3: Auto-reset revenue_status when changing to stages that disallow pre_revenue
-        if ((compStage === 'revenue' || compStage === 'growth') && newAnswers.revenue_status === 'pre_revenue') {
-          delete newAnswers.revenue_status;
-        }
-        
-        // Logic 4: Auto-set revenue_status for MVP stage if not already set
-        if (compStage === 'MVP' && !newAnswers.revenue_status) {
-          // Don't auto-set - let user choose
+        // Logic 3: Map numeric revenue value to categorical value for API
+        const revenueValue = newAnswers.revenue_status as number | undefined;
+        if (revenueValue !== undefined) {
+          let revenueCategory = 'pre_revenue';
+          if (revenueValue === 0) {
+            revenueCategory = 'pre_revenue';
+          } else if (revenueValue >= 1 && revenueValue <= 250000) {
+            revenueCategory = 'low_revenue';
+          } else if (revenueValue >= 250001 && revenueValue <= 1000000) {
+            revenueCategory = 'early_revenue';
+          } else if (revenueValue >= 1000001 && revenueValue <= 10000000) {
+            revenueCategory = 'growth_revenue';
+          } else if (revenueValue > 10000000) {
+            revenueCategory = 'established_revenue';
+          }
+          newAnswers.revenue_status_category = revenueCategory;
         }
         
         // Auto-set legal_form based on sub-selection (when registered)
         if (orgType === 'individual' && orgSub === 'has_company') {
           delete newAnswers.legal_form;
-        }
-        
-        const { company_type, company_stage } = deriveCompanyInfo(orgType, compStage);
-        if (company_type) {
-          newAnswers.company_type = company_type;
-        }
-        if (company_stage) {
-          newAnswers.company_stage = company_stage;
-        } else {
-          delete newAnswers.company_stage;
         }
         
         // Reset dependent answers when organisation_type or company_stage changes
