@@ -121,23 +121,6 @@ export default function QuestionRenderer({
                     <label className="text-xs font-medium text-gray-600 mb-1 block">
                       {t('reco.ui.pleaseSpecify') || 'Please specify:'}
                     </label>
-                    
-                    {/* Suggestions for organisation_type */}
-                    {question.id === 'organisation_type' && (
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {['Research institution', 'Public body'].map((suggestion) => (
-                          <button
-                            key={suggestion}
-                            type="button"
-                            onClick={() => onAnswer(`${question.id}_other`, suggestion)}
-                            className="px-3 py-1.5 text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg border border-blue-300 transition-colors"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    
                     <input
                       type="text"
                       placeholder={
@@ -152,6 +135,23 @@ export default function QuestionRenderer({
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       autoFocus
                     />
+                    
+                    {/* Suggestions for organisation_type - appear below the input */}
+                    {question.id === 'organisation_type' && (
+                      <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-200">
+                        {['Research institution', 'Public body'].map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onClick={() => onAnswer(`${question.id}_other`, suggestion)}
+                            className="px-3 py-1.5 text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg border border-blue-300 transition-colors"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    
                     {(question.id === 'organisation_stage' || question.id === 'company_type') && (
                       <p className="text-xs text-gray-500 mt-1">
                         {(t('reco.ui.otherExamples' as any) as string) || 'Examples: Association, Cooperative, Foundation, LLC, Inc., etc.'}
