@@ -25,8 +25,6 @@ export const CORE_QUESTIONS: QuestionDefinition[] = [
       { value: 'individual', label: 'Individual / No company yet' },
       { value: 'startup', label: 'Startup / Company' },
       { value: 'established_sme', label: 'Established SME' },
-      { value: 'research_institution', label: 'Research institution' },
-      { value: 'public_body', label: 'Public body' },
       { value: 'other', label: 'Other' },
     ],
     required: true,

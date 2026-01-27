@@ -33,6 +33,11 @@
   "reco.options.organisation_stage.research_institution": "Forschungseinrichtung oder Universität",
   "reco.options.organisation_stage.public_body": "Öffentliche Einrichtung oder Gemeinde",
   "reco.options.organisation_stage.other": "Andere Organisation",
+  "reco.options.organisation_type.individual": "Einzelunternehmen / Noch kein Unternehmen",
+  "reco.options.organisation_type.startup": "Startup / Unternehmen",
+  "reco.options.organisation_type.established_sme": "Etabliertes KMU",
+  "reco.options.organisation_type.other": "Andere",
+  "reco.placeholders.organisation_type_other": "Bitte geben Sie Ihren Organisationstyp an",
 
   "results.confidenceRecommendation": "Vertrauensempfehlung",
   "results.description": "Beschreibung",
