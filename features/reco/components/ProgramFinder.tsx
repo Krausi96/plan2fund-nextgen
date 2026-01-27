@@ -13,19 +13,30 @@ import { ALL_QUESTIONS } from '../data/questions';
 import QuestionRenderer from './QuestionRenderer';
 
 // Inline deriveCompanyInfo function
-function deriveCompanyInfo(organisationStage: string | undefined): { company_type: string | null; company_stage: string | null } {
-  if (!organisationStage) return { company_type: null, company_stage: null };
+function deriveCompanyInfo(organisationType: string | undefined, companyStage: string | undefined): { company_type: string | null; company_stage: string | null } {
+  if (!organisationType && !companyStage) return { company_type: null, company_stage: null };
   
-  const stageMap: Record<string, { company_type: string; company_stage: string }> = {
-    'exploring_idea': { company_type: 'founder_idea', company_stage: 'pre_company' },
-    'early_stage_startup': { company_type: 'startup', company_stage: 'inc_lt_6m' },
-    'growing_startup': { company_type: 'startup', company_stage: 'inc_6_36m' },
-    'established_sme': { company_type: 'sme', company_stage: 'inc_gt_36m' },
-    'research_institution': { company_type: 'research', company_stage: 'research_org' },
-    'public_body': { company_type: 'public', company_stage: 'public_org' }
+  // Map organisation type to company_type
+  const typeMap: Record<string, string> = {
+    'individual': 'founder_idea',
+    'startup': 'startup',
+    'established_sme': 'sme',
+    'research_institution': 'research',
+    'public_body': 'public'
   };
   
-  return stageMap[organisationStage] || { company_type: null, company_stage: null };
+  // Map company stage to company_stage
+  const stageMap: Record<string, string> = {
+    'exploring_idea': 'pre_company',
+    'early_stage': 'inc_lt_6m',
+    'growing': 'inc_6_36m',
+    'established': 'inc_gt_36m'
+  };
+  
+  return {
+    company_type: typeMap[organisationType!] || null,
+    company_stage: stageMap[companyStage!] || null
+  };
 }
 
 export default function ProgramFinder({ 
@@ -88,22 +99,22 @@ export default function ProgramFinder({
   // Get filtered questions based on conditional logic
   const getFilteredQuestions = useCallback((allQuestions: QuestionDefinition[], currentAnswers: Record<string, any>) => {
     return allQuestions.filter(question => {
-      // Always show organisation_stage
-      if (question.id === 'organisation_stage') return true;
+      // Always show organisation_type and company_stage
+      if (question.id === 'organisation_type' || question.id === 'company_stage') return true;
       
-      // Show has_registered_company only if exploring_idea
+      // Show has_registered_company only if organisation_type = individual
       if (question.id === 'has_registered_company') {
-        return currentAnswers.organisation_stage === 'exploring_idea';
+        return currentAnswers.organisation_type === 'individual';
       }
       
       // Show legal_form based on conditions
       if (question.id === 'legal_form') {
-        // If exploring_idea, show only if has_registered_company = yes
-        if (currentAnswers.organisation_stage === 'exploring_idea') {
+        // If organisation_type = individual, show only if has_registered_company = yes
+        if (currentAnswers.organisation_type === 'individual') {
           return currentAnswers.has_registered_company === 'yes';
         }
-        // For other stages, show legal_form
-        return currentAnswers.organisation_stage && currentAnswers.organisation_stage !== 'exploring_idea';
+        // For other organisation types, show legal_form
+        return currentAnswers.organisation_type && currentAnswers.organisation_type !== 'individual';
       }
       
       // For all other questions, show by default
@@ -175,7 +186,7 @@ export default function ProgramFinder({
   
 // Minimum questions for results (core questions before showing programs)
 const MIN_QUESTIONS_FOR_RESULTS = 5;
-const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location', 'industry_focus', 'funding_amount', 'co_financing'] as const;
+const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_status', 'location', 'industry_focus', 'funding_amount', 'co_financing'] as const;
   const missingRequiredAnswers = REQUIRED_QUESTION_IDS.filter((questionId) => {
     const value = answers[questionId];
     return !value || (typeof value === 'string' && value.trim() === '') || (Array.isArray(value) && value.length === 0);
@@ -198,10 +209,12 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
         newAnswers[questionId] = value;
       }
 
-      // Handle organisation_stage - derive company_type and company_stage
-      if (questionId === 'organisation_stage' || questionId === 'organisation_stage_other') {
-        const orgStage = newAnswers.organisation_stage as string | undefined;
-        const { company_type, company_stage } = deriveCompanyInfo(orgStage);
+      // Handle organisation_type and company_stage - derive company_type and company_stage
+      if (questionId === 'organisation_type' || questionId === 'organisation_type_other' || 
+          questionId === 'company_stage') {
+        const orgType = newAnswers.organisation_type as string | undefined;
+        const compStage = newAnswers.company_stage as string | undefined;
+        const { company_type, company_stage } = deriveCompanyInfo(orgType, compStage);
         if (company_type) {
           newAnswers.company_type = company_type;
         }
@@ -211,7 +224,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_stage', 'revenue_status', 'location
           delete newAnswers.company_stage;
         }
         
-        // Reset dependent answers when organisation_stage changes
+        // Reset dependent answers when organisation_type or company_stage changes
         delete newAnswers.has_registered_company;
         delete newAnswers.legal_form;
       }
