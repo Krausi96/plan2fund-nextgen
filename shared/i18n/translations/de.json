@@ -37,6 +37,8 @@
   "reco.options.organisation_type.startup": "Startup / Unternehmen",
   "reco.options.organisation_type.established_sme": "Etabliertes KMU",
   "reco.options.organisation_type.other": "Andere",
+  "reco.options.organisation_type_sub.no_company": "Noch kein registriertes Unternehmen",
+  "reco.options.organisation_type_sub.has_company": "Bereits ein registriertes Unternehmen vorhanden",
   "reco.placeholders.organisation_type_other": "Bitte geben Sie Ihren Organisationstyp an",
   "reco.options.company_stage.idea": "Idee (Konzeptphase, noch kein Produkt)",
   "reco.options.company_stage.MVP": "Prototyp / MVP (Produkt in Entwicklung)",
@@ -1424,7 +1426,7 @@
   "reco.questions.project_scope": "Woran arbeiten Sie?",
   "reco.questions.impact": "Welche Wirkung möchten Sie erzielen?",
   "reco.questions.impact_focus": "Welche Wirkungsbereiche treffen zu?",
-  "reco.questions.company_stage": "Wie weit ist Ihre Organisation bereits?",
+  "reco.questions.company_stage": "In welcher Projektphase befidnest du dich?",
   "reco.questions.organisation_stage": "Was beschreibt Ihre Organisation und die aktuelle Projektphase am besten?",
   "reco.questions.use_of_funds": "Wie investieren Sie Unterstützung oder Fördermittel?",
   "reco.questions.project_duration": "Wie lange wird die geförderte Arbeit laufen?",
@@ -1473,13 +1475,7 @@
   "reco.options.impact_focus.research": "Forschung & Innovation",
   "reco.options.impact_focus.education": "Bildung / Fachkräfte",
   "reco.options.impact_focus.other": "Sonstiges",
-  "reco.options.company_stage.idea": "Idee / Konzept",
-  "reco.options.company_stage.pre_company": "Team, noch nicht gegründet",
-  "reco.options.company_stage.inc_lt_6m": "Kürzlich gegründet (< 6 Monate)",
-  "reco.options.company_stage.inc_6_36m": "Skalierungsphase (6–36 Monate)",
-  "reco.options.company_stage.inc_gt_36m": "Etabliert (36+ Monate)",
-  "reco.options.company_stage.research_org": "Forschungsorganisation / Universität",
-  "reco.options.company_stage.other": "Sonstiges",
+
   "reco.options.industry_focus.ai": "KI & Machine Learning",
   "reco.options.industry_focus.fintech": "FinTech",
   "reco.options.industry_focus.healthtech": "HealthTech",
@@ -1935,9 +1931,7 @@
   "editor.desktop.program.freeSelected": "Freie Struktur ausgewählt",
   "editor.desktop.program.proceedToNext": "Gehe zum nächsten Abschnitt, um deine Dokumentenstruktur manuell zu definieren",
   "reco.ui.requiredAnswersMissing": "Erforderliche Antworten fehlen",
-  "reco.ui.minQuestionsTooltip": "Bitte beantworten Sie mindestens {count} Fragen",
-  "reco.ui.requiredQuestionsTooltip": "Bitte beantworten Sie alle erforderlichen Fragen",
+
   "reco.ui.generateFundingPrograms": "Förderprogramme generieren",
-  "reco.ui.generating": "Generiere...",
-  "reco.ui.remainingQuestions": "{count} weitere Fragen"
+  "reco.ui.generating": "Generiere..."
 }

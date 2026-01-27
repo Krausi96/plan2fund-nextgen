@@ -22,7 +22,7 @@ export const CORE_QUESTIONS: QuestionDefinition[] = [
     label: 'What type of organisation are you?',
     type: 'single-select' as const,
     options: [
-      { value: 'individual', label: 'Individual / No company yet' },
+      { value: 'individual', label: 'Individual' },
       { value: 'startup', label: 'Startup / Company' },
       { value: 'established_sme', label: 'Established SME' },
       { value: 'other', label: 'Other' },
@@ -31,6 +31,7 @@ export const CORE_QUESTIONS: QuestionDefinition[] = [
     priority: 2,
     hasOtherTextInput: true,
     isAdvanced: false,
+    hasSubOptions: (value: string) => value === 'individual',
   },
   {
     id: 'company_stage',
@@ -47,16 +48,18 @@ export const CORE_QUESTIONS: QuestionDefinition[] = [
     isAdvanced: false,
   },
   {
-    id: 'has_registered_company',
+    id: 'organisation_type_sub',
     label: 'Do you already have a registered company?',
     type: 'single-select' as const,
     options: [
-      { value: 'yes', label: 'Yes' },
-      { value: 'no', label: 'No' },
+      { value: 'no_company', label: 'No registered company yet' },
+      { value: 'has_company', label: 'Already have a registered company' },
     ],
     required: true,
     priority: 2.1,
     isAdvanced: false,
+    parentQuestion: 'organisation_type',
+    parentValue: 'individual',
   },
   {
     id: 'legal_form',

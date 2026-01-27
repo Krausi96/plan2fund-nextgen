@@ -102,16 +102,14 @@ export default function ProgramFinder({
       // Always show organisation_type and company_stage
       if (question.id === 'organisation_type' || question.id === 'company_stage') return true;
       
-      // Show has_registered_company only if organisation_type = individual
-      if (question.id === 'has_registered_company') {
-        return currentAnswers.organisation_type === 'individual';
-      }
+      // Hide organisation_type_sub - it's shown as sub-options in QuestionRenderer
+      if (question.id === 'organisation_type_sub') return false;
       
       // Show legal_form based on conditions
       if (question.id === 'legal_form') {
-        // If organisation_type = individual, show only if has_registered_company = yes
+        // If organisation_type = individual, show only if sub-option = has_company
         if (currentAnswers.organisation_type === 'individual') {
-          return currentAnswers.has_registered_company === 'yes';
+          return currentAnswers.organisation_type_sub === 'has_company';
         }
         // For other organisation types, show legal_form
         return currentAnswers.organisation_type && currentAnswers.organisation_type !== 'individual';
@@ -211,9 +209,20 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
 
       // Handle organisation_type and company_stage - derive company_type and company_stage
       if (questionId === 'organisation_type' || questionId === 'organisation_type_other' || 
-          questionId === 'company_stage') {
+          questionId === 'organisation_type_sub' || questionId === 'company_stage') {
         const orgType = newAnswers.organisation_type as string | undefined;
+        const orgSub = newAnswers.organisation_type_sub as string | undefined;
         const compStage = newAnswers.company_stage as string | undefined;
+        
+        // Auto-set legal_form based on sub-selection
+        if (orgType === 'individual') {
+          if (orgSub === 'no_company') {
+            newAnswers.legal_form = 'not_registered_yet';
+          } else if (orgSub === 'has_company') {
+            delete newAnswers.legal_form;
+          }
+        }
+        
         const { company_type, company_stage } = deriveCompanyInfo(orgType, compStage);
         if (company_type) {
           newAnswers.company_type = company_type;
@@ -225,15 +234,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
         }
         
         // Reset dependent answers when organisation_type or company_stage changes
-        delete newAnswers.has_registered_company;
-        delete newAnswers.legal_form;
-      }
-      
-      // Handle has_registered_company - auto-set legal_form
-      if (questionId === 'has_registered_company') {
-        if (value === 'no') {
-          newAnswers.legal_form = 'not_registered_yet';
-        } else {
+        if (questionId !== 'organisation_type_sub') {
           delete newAnswers.legal_form;
         }
       }

@@ -46,6 +46,9 @@ export type SingleSelectQuestion = BaseQuestion & {
   hasOtherTextInput?: boolean;
   hasOptionalRegion?: (value: string) => boolean;
   hasCoFinancingPercentage?: boolean;
+  hasSubOptions?: (value: string) => boolean;
+  parentQuestion?: string;
+  parentValue?: string;
 };
 
 export type MultiSelectQuestion = BaseQuestion & {
@@ -53,6 +56,8 @@ export type MultiSelectQuestion = BaseQuestion & {
   options: Array<{ value: string; label: string }>;
   hasOtherTextInput?: boolean;
   subCategories?: Record<string, { value: string; label: string }[]>;
+  parentQuestion?: string;
+  parentValue?: string;
 };
 
 export type RangeQuestion = BaseQuestion & {
@@ -62,6 +67,8 @@ export type RangeQuestion = BaseQuestion & {
   step: number;
   unit: string;
   editableValue?: boolean;
+  parentQuestion?: string;
+  parentValue?: string;
 };
 
 export type QuestionDefinition = SingleSelectQuestion | MultiSelectQuestion | RangeQuestion;

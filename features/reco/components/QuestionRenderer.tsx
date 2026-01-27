@@ -61,6 +61,8 @@ export default function QuestionRenderer({
             const regionValue = showRegionInput ? (answers[`${question.id}_region`] || '') : '';
             const isOtherOption = option.value === 'other';
             const otherTextValue = isOtherOption && answers[question.id] === 'other' ? (answers[`${question.id}_other`] || '') : '';
+            const showSubOptions = question.hasSubOptions && question.hasSubOptions(option.value) && isSelected;
+            const subOptionValue = showSubOptions ? answers.organisation_type_sub : undefined;
             
             return (
               <div key={`${question.id}-${option.value}`} className="space-y-2">
@@ -112,6 +114,45 @@ export default function QuestionRenderer({
                     <p className="text-xs text-gray-500">
                       {t('reco.ui.regionLeaveEmpty') || 'Leave empty if not applicable'}
                     </p>
+                  </div>
+                )}
+                
+                {/* Sub-options for Individual selection */}
+                {showSubOptions && (
+                  <div className="ml-4 space-y-2 border-l-2 border-blue-200 pl-3 pt-2 mt-2">
+                    <div className="space-y-2">
+                      {[
+                        { value: 'no_company', label: 'No registered company yet' },
+                        { value: 'has_company', label: 'Already have a registered company' }
+                      ].map((subOption) => {
+                        const isSubSelected = subOptionValue === subOption.value;
+                        return (
+                          <button
+                            key={subOption.value}
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (isSubSelected) {
+                                onAnswer('organisation_type_sub', undefined);
+                              } else {
+                                onAnswer('organisation_type_sub', subOption.value);
+                              }
+                            }}
+                            className={`w-full text-left px-3 py-2 border-2 rounded-lg transition-all duration-150 text-sm ${
+                              isSubSelected
+                                ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-sm'
+                                : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              {isSubSelected && <span className="text-base font-bold">✓</span>}
+                              <span>{subOption.label}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
                 
