@@ -66,12 +66,49 @@ export const CORE_QUESTIONS: QuestionDefinition[] = [
     label: 'What is your legal form?',
     type: 'single-select' as const,
     options: [
-      { value: 'gmbh', label: 'GmbH' },
-      { value: 'not_registered_yet', label: 'Not registered yet' },
+      // Kapitalgesellschaften / Corporations
+      { value: 'gmbh', label: 'GmbH — Gesellschaft mit beschränkter Haftung', group: 'corporations' },
+      { value: 'ag', label: 'AG — Aktiengesellschaft', group: 'corporations' },
+      { value: 'se', label: 'SE — Societas Europaea (Europäische Gesellschaft)', group: 'corporations' },
+      { value: 'foreign_corp', label: 'Ausländische Kapitalgesellschaft / Foreign corporation', group: 'corporations' },
+      { value: 'savings_bank', label: 'Sparkasse / Savings bank', group: 'corporations' },
+      { value: 'mutual_insurance', label: 'Versicherungsverein auf Gegenseitigkeit (VVaG) / Mutual insurance association', group: 'corporations' },
+      
+      // Personengesellschaften & Hybridformen / Partnerships & Hybrid Forms
+      { value: 'og', label: 'OG — Offene Gesellschaft / General Partnership (OG)', group: 'partnerships' },
+      { value: 'kg', label: 'KG — Kommanditgesellschaft / Limited Partnership (KG)', group: 'partnerships' },
+      { value: 'gmbh_co_kg', label: 'GmbH & Co. KG', group: 'partnerships' },
+      { value: 'gesbr', label: 'GesbR — Gesellschaft nach bürgerlichem Recht / Civil-law partnership (GesbR)', group: 'partnerships' },
+      { value: 'eeig', label: 'EWIV — Europäische wirtschaftliche Interessensvereinigung / European Economic Interest Grouping (EEIG)', group: 'partnerships' },
+      { value: 'og_old', label: 'Offene Erwerbsgemeinschaft (vor 1.1.2007) / General partnership (founded before 1.1.2007)', group: 'partnerships' },
+      { value: 'ohg_old', label: 'Offene Handelsgesellschaft (vor 1.1.2007) / Open trading partnership (founded before 1.1.2007)', group: 'partnerships' },
+      { value: 'kg_old', label: 'Kommandit-Gesellschaft (vor 1.1.2007) / Limited partnership (founded before 1.1.2007)', group: 'partnerships' },
+      
+      // Einzelunternehmen / Sole Traders
+      { value: 'sole_trader', label: 'Einzelunternehmen / Sole trader', group: 'sole_traders' },
+      { value: 'unregistered_sole', label: 'Nicht protokollierter Einzelunternehmer / Unregistered sole trader', group: 'sole_traders' },
+      { value: 'registered_sole', label: 'Protokollierter Einzelkaufmann (EKM) / Registered sole trader (EKM)', group: 'sole_traders' },
+      { value: 'registered_company', label: 'Eingetragenes Unternehmen / Registered company', group: 'sole_traders' },
+      
+      // Körperschaften, Genossenschaften & Non-Profit / Public Bodies, Cooperatives & Non-Profit
+      { value: 'association', label: 'Verein / Association', group: 'public_nonprofit' },
+      { value: 'foundation', label: 'Stiftung / Foundation', group: 'public_nonprofit' },
+      { value: 'private_foundation', label: 'Privatstiftung / Private foundation', group: 'public_nonprofit' },
+      { value: 'public_corporation', label: 'Körperschaft öffentlichen Rechts / Corporation under public law', group: 'public_nonprofit' },
+      { value: 'cooperative', label: 'Erwerbs- und Wirtschaftsgenossenschaft / Cooperative', group: 'public_nonprofit' },
+      { value: 'registered_cooperative', label: 'Eingetragene Genossenschaft / Registered cooperative', group: 'public_nonprofit' },
+      { value: 'sce', label: 'Europäische Genossenschaft (SCE) / European Cooperative Society (SCE)', group: 'public_nonprofit' },
+      { value: 'agricultural_community', label: 'Agrargemeinschaft / Agricultural community', group: 'public_nonprofit' },
+      { value: 'foreign_legal_form', label: 'Ausländische Rechtsform / Foreign legal form', group: 'public_nonprofit' },
+      { value: 'other', label: 'Sonstige / Other', group: 'public_nonprofit' },
+      
+      // Special case
+      { value: 'not_registered_yet', label: 'Not registered yet', group: 'special' },
     ],
     required: true,
     priority: 2.2,
     isAdvanced: false,
+    hasGroups: true,
   },
   {
     id: 'revenue_status',

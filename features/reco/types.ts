@@ -42,20 +42,22 @@ export type BaseQuestion = {
 
 export type SingleSelectQuestion = BaseQuestion & {
   type: 'single-select';
-  options: Array<{ value: string; label: string }>;
+  options: Array<{ value: string; label: string; group?: string }>;
   hasOtherTextInput?: boolean;
   hasOptionalRegion?: (value: string) => boolean;
   hasCoFinancingPercentage?: boolean;
   hasSubOptions?: (value: string) => boolean;
+  hasGroups?: boolean;
   parentQuestion?: string;
   parentValue?: string;
 };
 
 export type MultiSelectQuestion = BaseQuestion & {
   type: 'multi-select';
-  options: Array<{ value: string; label: string }>;
+  options: Array<{ value: string; label: string; group?: string }>;
   hasOtherTextInput?: boolean;
   subCategories?: Record<string, { value: string; label: string }[]>;
+  hasGroups?: boolean;
   parentQuestion?: string;
   parentValue?: string;
 };
@@ -67,6 +69,7 @@ export type RangeQuestion = BaseQuestion & {
   step: number;
   unit: string;
   editableValue?: boolean;
+  hasGroups?: boolean;
   parentQuestion?: string;
   parentValue?: string;
 };

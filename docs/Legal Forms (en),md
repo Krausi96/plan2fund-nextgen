@@ -1,0 +1,58 @@
+export const LEGAL_FORMS_EN = [
+  {
+    id: "corporations",
+    label: "Corporations (Limited Liability)",
+    description: "Companies with separate legal personality and limited liability.",
+    options: [
+      { id: "gmbh", label: "Limited Liability Company (GmbH)" },
+      { id: "ag", label: "Public Corporation (AG)" },
+      { id: "se", label: "Societas Europaea (SE)" },
+      { id: "foreign_corp", label: "Foreign corporation" },
+      { id: "savings_bank", label: "Savings bank" },
+      { id: "mutual_insurance", label: "Mutual insurance association" }
+    ]
+  },
+  {
+    id: "partnerships",
+    label: "Partnerships & Hybrid Forms",
+    description: "Partnerships and mixed legal forms with personal and/or limited liability.",
+    options: [
+      { id: "og", label: "General Partnership (OG)" },
+      { id: "kg", label: "Limited Partnership (KG)" },
+      { id: "gmbh_co_kg", label: "GmbH & Co. KG" },
+      { id: "gesbr", label: "Civil-law partnership (GesbR)" },
+      { id: "eeig", label: "European Economic Interest Grouping (EEIG)" },
+      { id: "og_old", label: "General partnership (founded before 1.1.2007)" },
+      { id: "ohg_old", label: "Open trading partnership (founded before 1.1.2007)" },
+      { id: "kg_old", label: "Limited partnership (founded before 1.1.2007)" }
+    ]
+  },
+  {
+    id: "sole_traders",
+    label: "Sole Traders",
+    description: "Individuals operating a business in their own name.",
+    options: [
+      { id: "sole_trader", label: "Sole trader" },
+      { id: "unregistered_sole", label: "Unregistered sole trader" },
+      { id: "registered_sole", label: "Registered sole trader (EKM)" },
+      { id: "registered_company", label: "Registered company" }
+    ]
+  },
+  {
+    id: "public_nonprofit",
+    label: "Public Bodies, Cooperatives & Non-Profit",
+    description: "Public-law entities, cooperatives, foundations and non-profit organizations.",
+    options: [
+      { id: "association", label: "Association" },
+      { id: "foundation", label: "Foundation" },
+      { id: "private_foundation", label: "Private foundation" },
+      { id: "public_corporation", label: "Corporation under public law" },
+      { id: "cooperative", label: "Cooperative" },
+      { id: "registered_cooperative", label: "Registered cooperative" },
+      { id: "sce", label: "European Cooperative Society (SCE)" },
+      { id: "agricultural_community", label: "Agricultural community" },
+      { id: "foreign_legal_form", label: "Foreign legal form" },
+      { id: "other", label: "Other" }
+    ]
+  }
+];

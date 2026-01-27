@@ -23,6 +23,7 @@ export default function QuestionRenderer({
 }: QuestionRendererProps) {
   const { t } = useI18n();
   const isAnswered = value !== undefined && value !== null && value !== '';
+  const [expandedGroups, setExpandedGroups] = React.useState<Record<string, boolean>>({});
 
   return (
     <div className="bg-white rounded-lg border-2 border-blue-200 shadow-md p-6 h-full flex flex-col overflow-auto">
@@ -55,7 +56,225 @@ export default function QuestionRenderer({
       {/* Question Options */}
       {question.type === 'single-select' && (
         <div className="space-y-2 flex-1">
-          {question.options.map((option: any) => {
+          {question.hasGroups ? (
+            // Render collapsible grouped options
+            (() => {
+              
+              const groups: Record<string, any[]> = {};
+              question.options.forEach((option: any) => {
+                const group = option.group || 'ungrouped';
+                if (!groups[group]) groups[group] = [];
+                groups[group].push(option);
+              });
+              
+              const toggleGroup = (groupId: string) => {
+                setExpandedGroups(prev => ({
+                  ...prev,
+                  [groupId]: !prev[groupId]
+                }));
+              };
+              
+              return Object.entries(groups).map(([groupId, groupOptions]) => {
+                const isExpanded = expandedGroups[groupId] ?? false;
+                const groupLabel = t(`reco.groups.${groupId}` as any) as string || groupId;
+                
+                return (
+                  <div key={groupId} className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleGroup(groupId)}
+                      className="w-full text-left px-4 py-3 bg-white border-2 border-gray-300 hover:border-blue-400 rounded-lg transition-all duration-200 flex items-center justify-between"
+                    >
+                      <span className="font-medium text-gray-800">{groupLabel}</span>
+                      <svg 
+                        className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {isExpanded && (
+                      <div className="ml-4 space-y-2 border-l-2 border-gray-300 pl-3">
+                        {groupOptions.map((option: any) => {
+                          const isSelected = value === option.value;
+                          const showRegionInput = question.hasOptionalRegion && isSelected && question.hasOptionalRegion(option.value);
+                          const regionValue = showRegionInput ? (answers[`${question.id}_region`] || '') : '';
+                          const isOtherOption = option.value === 'other';
+                          const otherTextValue = isOtherOption && answers[question.id] === 'other' ? (answers[`${question.id}_other`] || '') : '';
+                          const showSubOptions = question.hasSubOptions && question.hasSubOptions(option.value) && isSelected;
+                          const subOptionValue = showSubOptions ? answers.organisation_type_sub : undefined;
+                          
+                          return (
+                            <div key={`${question.id}-${option.value}`} className="space-y-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (isSelected) {
+                                    onAnswer(question.id, undefined);
+                                    if (isOtherOption) onAnswer(`${question.id}_other`, undefined);
+                                    if (showRegionInput) onAnswer(`${question.id}_region`, undefined);
+                                  } else {
+                                    onAnswer(question.id, option.value);
+                                    if (showRegionInput && value !== option.value) onAnswer(`${question.id}_region`, undefined);
+                                    if (isOtherOption && value !== option.value) onAnswer(`${question.id}_other`, undefined);
+                                  }
+                                }}
+                                className={`w-full text-left px-4 py-3 border-2 rounded-lg transition-all duration-150 ${
+                                  isSelected
+                                    ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
+                                    : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {isSelected && <span className="text-lg font-bold">✓</span>}
+                                  <span className="text-sm">{option.label}</span>
+                                </div>
+                              </button>
+                              
+                              {/* Optional region input */}
+                              {showRegionInput && (
+                                <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
+                                  <label className="text-xs font-medium text-gray-600 mb-1 block">
+                                    {t('reco.ui.regionOptional') || 'Region (optional)'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder={
+                                      option.value === 'austria' ? (t('reco.ui.regionPlaceholderAustria') || 'e.g., Vienna, Tyrol, Salzburg') : 
+                                      option.value === 'germany' ? (t('reco.ui.regionPlaceholderGermany') || 'e.g., Bavaria, Berlin, Hamburg') : 
+                                      option.value === 'eu' ? (t('reco.ui.regionPlaceholderEU') || 'e.g., France, Italy, Spain, or specific region') :
+                                      (t('reco.ui.regionPlaceholderInternational') || 'e.g., USA, UK, Switzerland, or specific country/region')
+                                    }
+                                    value={regionValue}
+                                    onChange={(e) => onAnswer(`${question.id}_region`, e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                  <p className="text-xs text-gray-500">
+                                    {t('reco.ui.regionLeaveEmpty') || 'Leave empty if not applicable'}
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {/* Sub-options for Individual selection */}
+                              {showSubOptions && (
+                                <div className="ml-4 space-y-2 border-l-2 border-blue-200 pl-3 pt-2 mt-2">
+                                  <div className="space-y-2">
+                                    {[
+                                      { value: 'no_company', labelKey: 'reco.suboptions.no_registered_company' },
+                                      { value: 'has_company', labelKey: 'reco.suboptions.has_registered_company' }
+                                    ].map((subOption) => {
+                                      const isSubSelected = subOptionValue === subOption.value;
+                                      const translatedLabel = t(subOption.labelKey as any) as string;
+                                      return (
+                                        <button
+                                          key={subOption.value}
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            if (isSubSelected) {
+                                              onAnswer('organisation_type_sub', undefined);
+                                            } else {
+                                              onAnswer('organisation_type_sub', subOption.value);
+                                            }
+                                          }}
+                                          className={`w-full text-left px-3 py-2 border-2 rounded-lg transition-all duration-150 text-sm ${
+                                            isSubSelected
+                                              ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-sm'
+                                              : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            {isSubSelected && <span className="text-base font-bold">✓</span>}
+                                            <span>{translatedLabel}</span>
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* "Other" text input */}
+                              {isOtherOption && answers[question.id] === 'other' && question.hasOtherTextInput && (
+                                <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2">
+                                  <label className="text-xs font-medium text-gray-600 mb-1 block">
+                                    {t('reco.ui.pleaseSpecify') || 'Please specify:'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder={
+                                      question.id === 'organisation_stage' || question.id === 'company_type'
+                                        ? ((t('reco.ui.otherPlaceholderOrg' as any) as string) || 'e.g., Association, Cooperative, Foundation')
+                                        : question.id === 'organisation_type'
+                                        ? ((t('reco.placeholders.organisation_type_other' as any) as string) || 'Please specify your organisation type')
+                                        : ((t('reco.ui.otherPlaceholder' as any) as string) || 'Please specify...')
+                                    }
+                                    value={otherTextValue}
+                                    onChange={(e) => onAnswer(`${question.id}_other`, e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    autoFocus
+                                  />
+                                  
+                                  {/* Suggestions for organisation_type - appear below the input */}
+                                  {question.id === 'organisation_type' && (
+                                    <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-200">
+                                      {['Research institution', 'Public body'].map((suggestion) => (
+                                        <button
+                                          key={suggestion}
+                                          type="button"
+                                          onClick={() => onAnswer(`${question.id}_other`, suggestion)}
+                                          className="px-3 py-1.5 text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg border border-blue-300 transition-colors"
+                                        >
+                                          {suggestion}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                  
+                                  {(question.id === 'organisation_stage' || question.id === 'company_type') && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {(t('reco.ui.otherExamples' as any) as string) || 'Examples: Association, Cooperative, Foundation, LLC, Inc., etc.'}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Co-financing percentage input */}
+                              {question.hasCoFinancingPercentage && isSelected && option.value === 'co_yes' && (
+                                <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
+                                  <label className="text-xs font-medium text-gray-600 mb-1 block">
+                                    {t('reco.ui.coFinancingPercentage') || 'What percentage can you provide? (e.g., 20%, 30%, 50%)'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder={t('reco.ui.coFinancingPercentagePlaceholder') || 'e.g., 30%'}
+                                    value={(answers[`${question.id}_percentage`] as string) || ''}
+                                    onChange={(e) => onAnswer(`${question.id}_percentage`, e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                  <p className="text-xs text-gray-500">
+                                    {t('reco.ui.coFinancingPercentageHint') || 'Many programs require 20-50% co-financing'}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            })()
+          ) : (
+            // Render regular (ungrouped) options
+            question.options.map((option: any) => {
             const isSelected = value === option.value;
             const showRegionInput = question.hasOptionalRegion && isSelected && question.hasOptionalRegion(option.value);
             const regionValue = showRegionInput ? (answers[`${question.id}_region`] || '') : '';
@@ -221,9 +440,10 @@ export default function QuestionRenderer({
                 )}
               </div>
             );
-          })}
-          
-          {/* Skip Button */}
+          })
+        )
+      }
+         {/* Skip Button */}
           {!question.required && (
             <button
               onClick={() => onAnswer(question.id, undefined)}

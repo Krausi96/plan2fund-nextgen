@@ -1,0 +1,58 @@
+export const LEGAL_FORMS_DE = [
+  {
+    id: "corporations",
+    label: "Kapitalgesellschaften",
+    description: "Gesellschaften mit eigener Rechtspersönlichkeit und beschränkter Haftung.",
+    options: [
+      { id: "gmbh", label: "GmbH — Gesellschaft mit beschränkter Haftung" },
+      { id: "ag", label: "AG — Aktiengesellschaft" },
+      { id: "se", label: "SE — Societas Europaea (Europäische Gesellschaft)" },
+      { id: "foreign_corp", label: "Ausländische Kapitalgesellschaft" },
+      { id: "savings_bank", label: "Sparkasse" },
+      { id: "mutual_insurance", label: "Versicherungsverein auf Gegenseitigkeit (VVaG)" }
+    ]
+  },
+  {
+    id: "partnerships",
+    label: "Personengesellschaften & Hybridformen",
+    description: "Personenbezogene Gesellschaften und Mischformen mit persönlicher und/oder beschränkter Haftung.",
+    options: [
+      { id: "og", label: "OG — Offene Gesellschaft" },
+      { id: "kg", label: "KG — Kommanditgesellschaft" },
+      { id: "gmbh_co_kg", label: "GmbH & Co. KG" },
+      { id: "gesbr", label: "GesbR — Gesellschaft nach bürgerlichem Recht" },
+      { id: "eeig", label: "EWIV — Europäische wirtschaftliche Interessensvereinigung" },
+      { id: "og_old", label: "Offene Erwerbsgemeinschaft (vor 1.1.2007)" },
+      { id: "ohg_old", label: "Offene Handelsgesellschaft (vor 1.1.2007)" },
+      { id: "kg_old", label: "Kommandit-Gesellschaft (vor 1.1.2007)" }
+    ]
+  },
+  {
+    id: "sole_traders",
+    label: "Einzelunternehmen",
+    description: "Natürliche Personen, die ein Unternehmen auf eigene Rechnung führen.",
+    options: [
+      { id: "sole_trader", label: "Einzelunternehmen" },
+      { id: "unregistered_sole", label: "Nicht protokollierter Einzelunternehmer" },
+      { id: "registered_sole", label: "Protokollierter Einzelkaufmann (EKM)" },
+      { id: "registered_company", label: "Eingetragenes Unternehmen" }
+    ]
+  },
+  {
+    id: "public_nonprofit",
+    label: "Körperschaften, Genossenschaften & Non-Profit",
+    description: "Körperschaften öffentlichen Rechts, Genossenschaften, Stiftungen und Vereine.",
+    options: [
+      { id: "association", label: "Verein" },
+      { id: "foundation", label: "Stiftung" },
+      { id: "private_foundation", label: "Privatstiftung" },
+      { id: "public_corporation", label: "Körperschaft öffentlichen Rechts" },
+      { id: "cooperative", label: "Erwerbs- und Wirtschaftsgenossenschaft" },
+      { id: "registered_cooperative", label: "Eingetragene Genossenschaft" },
+      { id: "sce", label: "Europäische Genossenschaft (SCE)" },
+      { id: "agricultural_community", label: "Agrargemeinschaft" },
+      { id: "foreign_legal_form", label: "Ausländische Rechtsform" },
+      { id: "other", label: "Sonstige" }
+    ]
+  }
+];
