@@ -162,7 +162,7 @@ export default function EditorProgramFinder({
   }, []);
 
   return (
-    <div className="bg-transparent relative">
+    <div className="w-full relative">
       <style>{`
         /* Dark theme for question renderer */
         .question-container .bg-white { background-color: transparent !important; }
@@ -195,9 +195,9 @@ export default function EditorProgramFinder({
         .question-container .hover\:bg-gray-100:hover { background-color: rgb(71 85 105) !important; }
         .question-container { width: 100% !important; overflow-x: hidden !important; box-sizing: border-box !important; }
       `}</style>
-      <div className="w-full px-0 py-0">
-        <div className="flex flex-col gap-0 w-full">
-          <div className="p-2 w-full bg-slate-800/70 border border-slate-700 shadow-xl min-h-[650px] flex flex-col relative rounded-xl backdrop-blur-sm">
+      <div className="w-full px-2 py-2">
+        <div className="flex flex-col gap-2 w-full">
+          <div className="p-3 w-full bg-slate-800/70 border border-slate-700 shadow-xl min-h-[650px] flex flex-col relative rounded-xl backdrop-blur-sm">
             
             {/* Loading overlay */}
             {isLoading && (
@@ -318,7 +318,7 @@ export default function EditorProgramFinder({
               </div>
               
               {/* Single Question Display */}
-              <div className="flex-col justify-start overflow-auto flex-1 pb-2 w-full px-1">
+              <div className="flex-col justify-start overflow-auto flex-1 pb-3 w-full px-2">
                 {visibleQuestions[currentStep] && (
                   <div className="question-container w-full">
                     <QuestionRenderer

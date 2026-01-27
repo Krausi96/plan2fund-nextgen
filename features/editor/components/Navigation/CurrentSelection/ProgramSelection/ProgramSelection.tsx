@@ -355,7 +355,7 @@ export default function ProgramSelection({
                         <h4 className="text-white font-medium mb-4">
                           {t('editor.desktop.program.recoWizard' as any) || 'Recommendation Wizard'}
                         </h4>
-                        <div className="-mx-4">
+                        <div className="w-full">
                           <EditorProgramFinder 
                             onProgramSelect={(programId: string, route: string) => {
                               // Fetch program details and convert to editor format
