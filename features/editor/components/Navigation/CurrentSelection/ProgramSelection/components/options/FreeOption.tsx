@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 
 interface FreeOptionProps {
@@ -7,7 +6,6 @@ interface FreeOptionProps {
 }
 
 export function FreeOption({ onStructureSelected }: FreeOptionProps) {
-  const { t } = useI18n();
   const [selectedStructure, setSelectedStructure] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState<string>('');
   
@@ -138,18 +136,6 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-green-300 text-lg">✓</span>
-          <h3 className="text-white font-bold text-lg">
-            {t('editor.desktop.program.freeSelected' as any) || 'Free Structure Selected'}
-          </h3>
-        </div>
-        <p className="text-green-200 text-sm">
-          {t('editor.desktop.program.freeDescription' as any) || 'Choose your base document structure to start with a clean template. You can add program requirements later.'}
-        </p>
-      </div>
 
       {/* Base Structure Selection - MOVING FROM PRODUCT SELECTION */}
       <div className="bg-slate-800/50 rounded-xl border border-white/10 p-5">

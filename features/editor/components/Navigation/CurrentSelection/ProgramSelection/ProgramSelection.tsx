@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
-import { BlueprintPanel } from './components/panels/BlueprintPanel';
+import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
+import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
+import { StandardStructurePanel } from './components/panels/StandardStructurePanel';
 import { ProgramFinder } from './components/finder/ProgramFinder';
 import EditorProgramFinder from '@/features/editor/components/Navigation/CurrentSelection/ProgramSelection/components/finder/ProgramFinder/EditorProgramFinder';
 import { TemplateOption } from './components/options/TemplateOption';
@@ -396,13 +398,29 @@ export default function ProgramSelection({
           
         </div>
         
-        {/* Blueprint Panel Column (30%) */}
+        {/* Dynamic Panel Column (30%) */}
         <div className="lg:w-5/12">
-          <BlueprintPanel 
-            onGenerate={() => console.log('Generate document structure')} 
-            onEdit={() => console.log('Edit document structure')} 
-            onClear={() => console.log('Clear document structure')} 
-          />
+          {selectedOption === 'program' && (
+            <ProgramSummaryPanel 
+              onGenerate={() => console.log('Refresh program summary')} 
+              onEdit={() => console.log('Edit program summary')} 
+              onClear={() => console.log('Clear program summary')} 
+            />
+          )}
+          {selectedOption === 'template' && (
+            <TemplateStructurePanel 
+              onGenerate={() => console.log('Reanalyze template')} 
+              onEdit={() => console.log('Edit template structure')} 
+              onClear={() => console.log('Clear template analysis')} 
+            />
+          )}
+          {selectedOption === 'free' && (
+            <StandardStructurePanel 
+              onGenerate={() => console.log('Regenerate standard structure')} 
+              onEdit={() => console.log('Edit standard structure')} 
+              onClear={() => console.log('Clear standard structure')} 
+            />
+          )}
         </div>
       </div>
       
