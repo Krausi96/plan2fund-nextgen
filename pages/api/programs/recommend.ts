@@ -420,16 +420,7 @@ KEY PROGRAMS:
               // Preserve any additional metadata fields
               ...program.metadata
             },
-            application_requirements: program.application_requirements || {
-              documents: [],
-              sections: [],
-              financial_requirements: {
-                financial_statements_required: [],
-                years_required: [],
-                co_financing_proof_required: false,
-                own_funds_proof_required: false
-              }
-            },
+            application_requirements: program.application_requirements || null,  // Use actual LLM data or null
             source: 'llm_generated',
           };
         }),
