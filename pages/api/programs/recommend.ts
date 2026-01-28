@@ -393,15 +393,22 @@ KEY PROGRAMS:
             description: program.description || null,
             location: program.location || null,
             region: program.region || program.location || null,
-            company_type: program.company_type || null,
+            organisation_type: program.organisation_type || program.company_type || null,  // Support both field names
             company_stage: program.company_stage || null,
             funding_types: Array.isArray(program.funding_types) ? program.funding_types : [],
             funding_amount_min: program.funding_amount_min ?? null,
             funding_amount_max: program.funding_amount_max ?? null,
             currency: program.currency || 'EUR',
+            // Additional questionnaire fields
+            legal_form: program.legal_form || null,
+            co_financing_percentage: program.co_financing_percentage || null,
+            deadline_urgency: program.deadline_urgency || null,
+            organisation_type_other: program.organisation_type_other || null,
+            organisation_type_sub: program.organisation_type_sub || null,
+            revenue_status_category: program.revenue_status_category || null,
+            // Existing fields
             program_focus: Array.isArray(program.program_focus) ? program.program_focus : (program.metadata?.program_focus || []),
             co_financing_required: program.co_financing_required ?? program.metadata?.co_financing_required ?? null,
-            co_financing_percentage: program.co_financing_percentage ?? program.metadata?.co_financing_percentage ?? null,
             deadline: program.deadline || null,
             open_deadline: program.open_deadline ?? false,
             use_of_funds: Array.isArray(program.use_of_funds) ? program.use_of_funds : null,
@@ -410,6 +417,8 @@ KEY PROGRAMS:
               organization: program.organization || program.metadata?.organization || null,
               typical_timeline: program.typical_timeline || program.metadata?.typical_timeline || null,
               competitiveness: program.competitiveness || program.metadata?.competitiveness || null,
+              // Preserve any additional metadata fields
+              ...program.metadata
             },
             application_requirements: program.application_requirements || {
               documents: [],
