@@ -5,9 +5,10 @@ interface TemplateStructurePanelProps {
   onGenerate?: () => void;
   onEdit?: () => void;
   onClear?: () => void;
+  selectedOption?: 'program' | 'template' | 'free' | null;
 }
 
-export function TemplateStructurePanel({ onGenerate, onEdit, onClear }: TemplateStructurePanelProps) {
+export function TemplateStructurePanel({ onGenerate, onEdit, onClear, selectedOption }: TemplateStructurePanelProps) {
   const setupWizard = useEditorStore((state) => state.setupWizard);
   const documentStructure = setupWizard.documentStructure;
   
@@ -29,7 +30,19 @@ export function TemplateStructurePanel({ onGenerate, onEdit, onClear }: Template
 
 
   const sectionsByDoc = getSectionsByDocument();
-  const hasTemplateData = !!documentStructure;
+  // Only show template data when template option is selected AND we have template data
+  const hasTemplateData = selectedOption === 'template' && !!documentStructure?.source && documentStructure.source === 'template';
+  
+  // Collapsible state management
+  const [expandedDocuments, setExpandedDocuments] = React.useState<Record<string, boolean>>({});
+  
+  // Toggle document expansion
+  const toggleDocument = (docId: string) => {
+    setExpandedDocuments(prev => ({
+      ...prev,
+      [docId]: !prev[docId]
+    }));
+  };
 
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
@@ -66,92 +79,80 @@ export function TemplateStructurePanel({ onGenerate, onEdit, onClear }: Template
               <h4 className="text-purple-200 font-semibold text-base flex-1">Document Structure</h4>
             </div>
                       
-            <div className="space-y-3 ml-2">
-              {Object.entries(sectionsByDoc).map(([docId, sections]) => (
-                <div key={docId}>
-                  <div className="text-white font-medium mb-2 truncate" title={documentStructure?.documents?.find(d => d.id === docId)?.name || docId}>
-                    {documentStructure?.documents?.find(d => d.id === docId)?.name || docId}
-                  </div>
+            <div className="space-y-2 ml-2">
+              {Object.entries(sectionsByDoc).map(([docId, sections]) => {
+                const isExpanded = expandedDocuments[docId] ?? true; // Default to expanded
+                const docName = documentStructure?.documents?.find(d => d.id === docId)?.name || docId;
+                
+                return (
+                  <div key={docId}>
+                    {/* Document Header with Collapse Toggle */}
+                    <div 
+                      className="flex items-center gap-2 text-white font-medium mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
+                      onClick={() => toggleDocument(docId)}
+                    >
+                      <span className="truncate flex-1" title={docName}>
+                        {docName}
+                      </span>
+                      <span className="text-purple-300 transform transition-transform duration-200 ml-2">
+                        {isExpanded ? '▼' : '▶'}
+                      </span>
+                    </div>
                             
-                  {/* Nested Sections under Document */}
-                  <div className="ml-6 space-y-2 border-l-2 border-purple-500/30 pl-3">
-                    {/* Standard Document Structure */}
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>📕</span>
-                      <span>Title Page</span>
-                    </div>
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>📑</span>
-                      <span>Table of Contents</span>
-                    </div>
+                    {/* Collapsible Nested Sections */}
+                    <div 
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-purple-500/30 pl-3 ${isExpanded ? 'max-h-[1000px]' : 'max-h-0'}`}
+                    >
+                      <div className="space-y-2 py-1">
+                        {/* Standard Document Structure */}
+                        <div className="text-purple-200 text-sm flex items-center gap-2">
+                          <span>📕</span>
+                          <span>Title Page</span>
+                        </div>
+                        <div className="text-purple-200 text-sm flex items-center gap-2">
+                          <span>📑</span>
+                          <span>Table of Contents</span>
+                        </div>
                               
-                    {/* Document Sections */}
-                    {sections.slice(0, 5).map((section: any, idx: number) => (
-                      <div key={idx} className="text-purple-200 text-sm flex items-center gap-2 truncate" title={section.title}>
-                        <span>🧾</span>
-                        <span className="truncate flex-1">{section.title}</span>
-                        {section.required && (
-                          <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                        {/* Document Sections */}
+                        {sections.slice(0, 5).map((section: any, idx: number) => (
+                          <div key={idx} className="text-purple-200 text-sm flex items-center gap-2 truncate" title={section.title}>
+                            <span>🧾</span>
+                            <span className="truncate flex-1">{section.title}</span>
+                            {section.required && (
+                              <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                            )}
+                          </div>
+                        ))}
+                              
+                        {/* Additional Document Elements */}
+                        <div className="text-purple-200 text-sm flex items-center gap-2">
+                          <span>📚</span>
+                          <span>References</span>
+                        </div>
+                        <div className="text-purple-200 text-sm flex items-center gap-2">
+                          <span>📊</span>
+                          <span>Tables/Data</span>
+                        </div>
+                        <div className="text-purple-200 text-sm flex items-center gap-2">
+                          <span>🖼️</span>
+                          <span>Figures/Images</span>
+                        </div>
+                        <div className="text-purple-200 text-sm flex items-center gap-2">
+                          <span>📎</span>
+                          <span>Appendices</span>
+                        </div>
+                              
+                        {sections.length > 5 && (
+                          <div className="text-purple-300 text-sm italic">+{sections.length - 5} more sections</div>
                         )}
                       </div>
-                    ))}
-                              
-                    {/* Additional Document Elements */}
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>📚</span>
-                      <span>References</span>
                     </div>
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>📊</span>
-                      <span>Tables/Data</span>
-                    </div>
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>🖼️</span>
-                      <span>Figures/Images</span>
-                    </div>
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>📎</span>
-                      <span>Appendices</span>
-                    </div>
-                              
-                    {sections.length > 5 && (
-                      <div className="text-purple-300 text-sm italic">+{sections.length - 5} more sections</div>
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
                         
-              {Object.keys(sectionsByDoc).length === 0 && (
-                <div className="ml-2">
-                  <div className="text-white font-medium mb-2">Document</div>
-                  <div className="ml-6 space-y-2 border-l-2 border-purple-500/30 pl-3">
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>📕</span>
-                      <span>Title Page</span>
-                    </div>
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>📑</span>
-                      <span>Table of Contents</span>
-                    </div>
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>📚</span>
-                      <span>References</span>
-                    </div>
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>📊</span>
-                      <span>Tables/Data</span>
-                    </div>
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>🖼️</span>
-                      <span>Figures/Images</span>
-                    </div>
-                    <div className="text-purple-200 text-sm flex items-center gap-2">
-                      <span>📎</span>
-                      <span>Appendices</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+
             </div>
           </div>
             

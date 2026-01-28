@@ -38,9 +38,8 @@ interface ProgramFinderProps {
   onClose: () => void;
 }
 
-// Enhanced internal program catalog
+// Minimal program catalog for demonstration
 const PROGRAM_CATALOG: Program[] = [
-  // AWS Programs
   {
     id: 'aws-innovation-grant-2024',
     name: 'AWS Innovation Grant',
@@ -48,31 +47,16 @@ const PROGRAM_CATALOG: Program[] = [
     organization: 'Amazon Web Services',
     amountRange: '€10,000 - €100,000',
     deadline: '2024-12-31',
-    focusAreas: ['Cloud Computing', 'AI/ML', 'Sustainability', 'Digital Transformation'],
-    description: 'Support for innovative cloud-based solutions and digital transformation projects',
-    requirements: ['Business plan', 'Technical documentation', 'Financial projections', 'Cloud architecture diagram'],
-    // Enhanced application requirements structure (same as CustomLLM output)
+    focusAreas: ['Cloud Computing', 'AI/ML', 'Sustainability'],
+    description: 'Support for innovative cloud-based solutions',
+    requirements: ['executive-summary', 'company-description', 'market-analysis', 'financial-plan'],
     application_requirements: {
       documents: [
         {
-          document_name: 'Project Proposal',
+          document_name: 'Business Plan',
           required: true,
           format: 'pdf',
           authority: 'AWS',
-          reuseable: false
-        },
-        {
-          document_name: 'Budget Plan',
-          required: true,
-          format: 'excel',
-          authority: 'AWS',
-          reuseable: true
-        },
-        {
-          document_name: 'Technical Documentation',
-          required: true,
-          format: 'pdf',
-          authority: 'External Expert',
           reuseable: false
         }
       ],
@@ -82,152 +66,17 @@ const PROGRAM_CATALOG: Program[] = [
           required: true,
           subsections: [
             { title: 'Project Overview', required: true },
-            { title: 'Innovation Aspects', required: true },
-            { title: 'Expected Impact', required: true }
-          ]
-        },
-        {
-          title: 'Technical Description',
-          required: true,
-          subsections: [
-            { title: 'Technology Used', required: true },
-            { title: 'Development Plan', required: true },
-            { title: 'Milestones', required: true }
-          ]
-        },
-        {
-          title: 'Market Analysis',
-          required: true,
-          subsections: [
-            { title: 'Market Size', required: true },
-            { title: 'Competitive Landscape', required: true },
-            { title: 'Target Customers', required: true }
-          ]
-        },
-        {
-          title: 'Financial Plan',
-          required: true,
-          subsections: [
-            { title: 'Use of Funds', required: true },
-            { title: 'Financial Projections', required: true },
-            { title: 'Break-even Analysis', required: true }
+            { title: 'Innovation Aspects', required: true }
           ]
         }
       ],
       financial_requirements: {
-        financial_statements_required: ['Profit & Loss', 'Cashflow Statement', 'Balance Sheet'],
-        years_required: [1, 3],
+        financial_statements_required: ['Financial Projections'],
+        years_required: [3],
         co_financing_proof_required: true,
         own_funds_proof_required: true
       }
     }
-  },
-  {
-    id: 'aws-startup-program',
-    name: 'AWS Activate for Startups',
-    type: 'grant',
-    organization: 'Amazon Web Services',
-    amountRange: '€1,000 - €10,000',
-    deadline: 'Ongoing',
-    focusAreas: ['Cloud Computing', 'SaaS', 'Developer Tools'],
-    description: 'Credits and resources for early-stage startups building on AWS',
-    requirements: ['Startup registration', 'Business pitch deck', 'Technical overview']
-  },
-  
-  // EU Programs
-  {
-    id: 'horizon-europe-2024',
-    name: 'Horizon Europe',
-    type: 'grant',
-    organization: 'European Commission',
-    amountRange: '€50,000 - €2,000,000',
-    deadline: '2024-11-15',
-    focusAreas: ['Research', 'Innovation', 'Climate', 'Health', 'Digital'],
-    description: 'EU flagship research and innovation funding program',
-    requirements: ['Research proposal', 'Impact assessment', 'Budget breakdown', 'Consortium agreement']
-  },
-  {
-    id: 'eic-accelerator',
-    name: 'EIC Accelerator',
-    type: 'grant',
-    organization: 'European Innovation Council',
-    amountRange: '€0.5M - €17.5M',
-    deadline: 'Quarterly deadlines',
-    focusAreas: ['Deep Tech', 'Breakthrough Innovation', 'Scale-up'],
-    description: 'Funding for high-risk, high-impact deep tech innovations',
-    requirements: ['Innovation dossier', 'Market analysis', 'IP strategy', 'Financial plan']
-  },
-  
-  // German Programs
-  {
-    id: 'kfw-startup-loan',
-    name: 'KfW Startup Loan',
-    type: 'loan',
-    organization: 'KfW Bank',
-    amountRange: '€25,000 - €500,000',
-    deadline: 'Ongoing',
-    focusAreas: ['Technology', 'Green Tech', 'Healthcare', 'Manufacturing'],
-    description: 'Low-interest loans for German startups and scale-ups',
-    requirements: ['Business plan', 'Market analysis', 'Repayment plan', 'Financial projections']
-  },
-  {
-    id: 'bmwi-grants-tech',
-    name: 'BMWi Technology Grants',
-    type: 'grant',
-    organization: 'Federal Ministry for Economic Affairs',
-    amountRange: '€100,000 - €1,000,000',
-    deadline: 'Biannual',
-    focusAreas: ['Industrial Technology', 'Digitalization', 'Energy Efficiency'],
-    description: 'Government grants for technology development projects',
-    requirements: ['Technical concept', 'Economic viability study', 'Implementation timeline']
-  },
-  
-  // Austrian Programs
-  {
-    id: 'aws-innovation-grant-at',
-    name: 'AWS Innovation Grant Austria',
-    type: 'grant',
-    organization: 'Austrian Federal Economic Chamber',
-    amountRange: '€5,000 - €50,000',
-    deadline: '2024-10-31',
-    focusAreas: ['Innovation', 'Digitalization', 'SME Development'],
-    description: 'Support for Austrian SMEs implementing innovative projects',
-    requirements: ['Project description', 'Cost calculation', 'Implementation plan']
-  },
-  {
-    id: 'ffg-research-funding',
-    name: 'FFG Research Funding',
-    type: 'grant',
-    organization: 'Austrian Research Promotion Agency',
-    amountRange: '€20,000 - €500,000',
-    deadline: 'Rolling',
-    focusAreas: ['Research', 'Technology Transfer', 'Applied Research'],
-    description: 'Funding for research and development projects',
-    requirements: ['Research proposal', 'Academic credentials', 'Budget plan']
-  },
-  
-  // Venture Capital / Equity
-  {
-    id: 'seedcamp-pre-seed',
-    name: 'Seedcamp Pre-Seed',
-    type: 'equity',
-    organization: 'Seedcamp',
-    amountRange: '€0.25M - €2M',
-    deadline: 'Rolling applications',
-    focusAreas: ['Tech', 'SaaS', 'Marketplace', 'Fintech'],
-    description: 'Early-stage venture capital for European startups',
-    requirements: ['Pitch deck', 'Financial model', 'Market analysis', 'Team introduction']
-  },
-  {
-    id: 'atomico-growth',
-    name: 'Atomico Growth Fund',
-    type: 'equity',
-    organization: 'Atomico',
-    amountRange: '€5M - €50M',
-    deadline: 'By appointment',
-    focusAreas: ['Scale-up', 'European Champions', 'Tech', 'Enterprise Software'],
-    description: 'Growth capital for European tech companies scaling internationally',
-    requirements: ['Investment memorandum', 'Due diligence materials', 'Cap table', 'Revenue projections']
   }
 ];
 
@@ -283,7 +132,7 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
   }, [programs, searchTerm, selectedType, selectedFocus]);
 
   const handleProgramClick = (program: Program) => {
-    // Save program selection for seamless editor initialization
+    // Save program selection
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('selectedProgram', JSON.stringify({
@@ -307,35 +156,9 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
         console.warn('Could not save program selection:', error);
       }
     }
-    // Process program through the same pipeline as mock examples
-    if (program.application_requirements) {
-      // Program has detailed application requirements - use advanced processing
-      const enrichedProgram = {
-        ...program,
-        // Add document setup metadata
-        setupReady: true,
-        confidenceScore: 95, // Very high confidence for detailed programs
-        processingTime: 'instant',
-        // Preserve application requirements for document structure generation
-        application_requirements: program.application_requirements
-      };
-      
-      onProgramSelect(enrichedProgram);
-    } else {
-      // Standard program - basic enrichment
-      const enrichedProgram = {
-        ...program,
-        setupReady: true,
-        confidenceScore: 80,
-        processingTime: 'quick',
-        suggestedStructure: program.type === 'equity' ? 'investment-memo' : 
-                           program.type === 'grant' ? 'grant-application' : 'business-plan',
-        keyRequirements: program.requirements?.slice(0, 3) || []
-      };
-      
-      onProgramSelect(enrichedProgram);
-    }
     
+    // Pass program directly to handler
+    onProgramSelect(program);
     onClose();
   };
 

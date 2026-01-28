@@ -5,9 +5,10 @@ interface StandardStructurePanelProps {
   onGenerate?: () => void;
   onEdit?: () => void;
   onClear?: () => void;
+  selectedOption?: 'program' | 'template' | 'free' | null;
 }
 
-export function StandardStructurePanel({ onGenerate, onEdit, onClear }: StandardStructurePanelProps) {
+export function StandardStructurePanel({ onGenerate, onEdit, onClear, selectedOption }: StandardStructurePanelProps) {
   const setupWizard = useEditorStore((state) => state.setupWizard);
   const documentStructure = setupWizard.documentStructure;
 
@@ -21,7 +22,19 @@ export function StandardStructurePanel({ onGenerate, onEdit, onClear }: Standard
 
 
 
-  const hasStructureData = !!documentStructure;
+  // Only show structure data when free option is selected AND we have standard structure data
+  const hasStructureData = selectedOption === 'free' && !!documentStructure?.source && documentStructure.source === 'standard';
+  
+  // Collapsible state management
+  const [expandedDocuments, setExpandedDocuments] = React.useState<Record<string, boolean>>({});
+  
+  // Toggle document expansion
+  const toggleDocument = (docId: string) => {
+    setExpandedDocuments(prev => ({
+      ...prev,
+      [docId]: !prev[docId]
+    }));
+  };
 
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
@@ -58,97 +71,85 @@ export function StandardStructurePanel({ onGenerate, onEdit, onClear }: Standard
               <h4 className="text-green-200 font-semibold text-base flex-1">Document Structure</h4>
             </div>
                       
-            <div className="space-y-3 ml-2">
-              {getRequiredDocuments().map((doc: any, index: number) => (
-                <div key={index}>
-                  <div className="text-white font-medium mb-2 truncate" title={doc.name}>
-                    {doc.name}
-                  </div>
+            <div className="space-y-2 ml-2">
+              {getRequiredDocuments().map((doc: any, index: number) => {
+                const docId = doc.id || `doc-${index}`;
+                const isExpanded = expandedDocuments[docId] ?? true; // Default to expanded
+                
+                return (
+                  <div key={docId}>
+                    {/* Document Header with Collapse Toggle */}
+                    <div 
+                      className="flex items-center gap-2 text-white font-medium mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
+                      onClick={() => toggleDocument(docId)}
+                    >
+                      <span className="truncate flex-1" title={doc.name}>
+                        {doc.name}
+                      </span>
+                      <span className="text-green-300 transform transition-transform duration-200 ml-2">
+                        {isExpanded ? '▼' : '▶'}
+                      </span>
+                    </div>
                             
-                  {/* Nested Sections under Document */}
-                  <div className="ml-6 space-y-2 border-l-2 border-green-500/30 pl-3">
-                    {/* Standard Document Structure */}
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>📕</span>
-                      <span>Title Page</span>
-                    </div>
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>📑</span>
-                      <span>Table of Contents</span>
-                    </div>
-                              
-                    {/* Document Sections */}
-                    {getRequiredSections()
-                      .filter(section => section.documentId === doc.id)
-                      .slice(0, 5)
-                      .map((section: any, idx: number) => (
-                        <div key={idx} className="text-green-200 text-sm flex items-center gap-2 truncate" title={section.title}>
-                          <span>🧾</span>
-                          <span className="truncate flex-1">{section.title}</span>
-                          {section.required && (
-                            <span className="text-red-400 font-bold flex-shrink-0">*</span>
-                          )}
+                    {/* Collapsible Nested Sections */}
+                    <div 
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-green-500/30 pl-3 ${isExpanded ? 'max-h-[1000px]' : 'max-h-0'}`}
+                    >
+                      <div className="space-y-2 py-1">
+                        {/* Standard Document Structure */}
+                        <div className="text-green-200 text-sm flex items-center gap-2">
+                          <span>📕</span>
+                          <span>Title Page</span>
                         </div>
-                      ))}
+                        <div className="text-green-200 text-sm flex items-center gap-2">
+                          <span>📑</span>
+                          <span>Table of Contents</span>
+                        </div>
                               
-                    {/* Additional Document Elements */}
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>📚</span>
-                      <span>References</span>
-                    </div>
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>📊</span>
-                      <span>Tables/Data</span>
-                    </div>
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>🖼️</span>
-                      <span>Figures/Images</span>
-                    </div>
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>📎</span>
-                      <span>Appendices</span>
-                    </div>
+                        {/* Document Sections */}
+                        {getRequiredSections()
+                          .filter(section => section.documentId === doc.id)
+                          .slice(0, 5)
+                          .map((section: any, idx: number) => (
+                            <div key={idx} className="text-green-200 text-sm flex items-center gap-2 truncate" title={section.title}>
+                              <span>🧾</span>
+                              <span className="truncate flex-1">{section.title}</span>
+                              {section.required && (
+                                <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                              )}
+                            </div>
+                          ))}
                               
-                    {getRequiredSections().filter(s => s.documentId === doc.id).length > 5 && (
-                      <div className="text-green-300 text-sm italic">
-                        +{getRequiredSections().filter(s => s.documentId === doc.id).length - 5} more
+                        {/* Additional Document Elements */}
+                        <div className="text-green-200 text-sm flex items-center gap-2">
+                          <span>📚</span>
+                          <span>References</span>
+                        </div>
+                        <div className="text-green-200 text-sm flex items-center gap-2">
+                          <span>📊</span>
+                          <span>Tables/Data</span>
+                        </div>
+                        <div className="text-green-200 text-sm flex items-center gap-2">
+                          <span>🖼️</span>
+                          <span>Figures/Images</span>
+                        </div>
+                        <div className="text-green-200 text-sm flex items-center gap-2">
+                          <span>📎</span>
+                          <span>Appendices</span>
+                        </div>
+                              
+                        {getRequiredSections().filter(s => s.documentId === doc.id).length > 5 && (
+                          <div className="text-green-300 text-sm italic">
+                            +{getRequiredSections().filter(s => s.documentId === doc.id).length - 5} more
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
                         
-              {getRequiredDocuments().length === 0 && (
-                <div className="ml-2">
-                  <div className="text-white font-medium mb-2">Document</div>
-                  <div className="ml-6 space-y-2 border-l-2 border-green-500/30 pl-3">
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>📕</span>
-                      <span>Title Page</span>
-                    </div>
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>📑</span>
-                      <span>Table of Contents</span>
-                    </div>
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>📚</span>
-                      <span>References</span>
-                    </div>
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>📊</span>
-                      <span>Tables/Data</span>
-                    </div>
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>🖼️</span>
-                      <span>Figures/Images</span>
-                    </div>
-                    <div className="text-green-200 text-sm flex items-center gap-2">
-                      <span>📎</span>
-                      <span>Appendices</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+
             </div>
           </div>
             

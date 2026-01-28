@@ -1,7 +1,6 @@
 /**
- * Custom LLM Wrapper
- * Provides optional integration with self-hosted / fine-tuned models.
- * Falls back to OpenAI when custom endpoint is disabled or fails.
+ * Custom LLM Client
+ * Handles API calls to various LLM providers with fallback support.
  */
 
 export interface ChatMessage {
@@ -38,8 +37,8 @@ interface CustomLLMConfig {
   timeoutMs: number;
 }
 
-// Increased timeout for complex prompts with many funding types and detailed descriptions
-const DEFAULT_TIMEOUT = parseInt(process.env.CUSTOM_LLM_TIMEOUT || '90000', 10); // 90 seconds (configurable)
+// Default timeout configuration
+const DEFAULT_TIMEOUT = parseInt(process.env.CUSTOM_LLM_TIMEOUT || '90000', 10);
 
 function now(): number {
   if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
@@ -80,7 +79,7 @@ export class CustomLLMError extends Error {
 export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse> {
   const config = getConfig();
   if (!config) {
-    throw new CustomLLMError('Custom LLM not configured');
+    throw new CustomLLMError('LLM not configured');
   }
 
   const controller = new AbortController();
@@ -88,8 +87,8 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
   const started = now();
 
   try {
-    // Log request for debugging (without sensitive data)
-    console.log(`🔗 Calling Custom LLM: ${config.endpoint}, model: ${request.model || config.model}`);
+    // Log provider information
+    console.log(`🔗 Calling LLM: ${config.endpoint}, model: ${request.model || config.model}`);
     
     // Check if this is Hugging Face Inference API (old format - deprecated)
     // New router.huggingface.co uses OpenAI-compatible format
@@ -332,12 +331,12 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
     };
   } catch (error: any) {
     if (error.name === 'AbortError') {
-      throw new CustomLLMError('Custom LLM request timed out', 504);
+      throw new CustomLLMError('LLM request timed out', 504);
     }
     if (error instanceof CustomLLMError) {
       throw error;
     }
-    throw new CustomLLMError(error?.message || 'Custom LLM request failed');
+    throw new CustomLLMError(error?.message || 'LLM request failed');
   } finally {
     clearTimeout(timeout);
   }

@@ -84,21 +84,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let generated: GeneratedProgram[] = [];
   let llmError: string | null = null;
-  let llmRawResponse: string | null = null;
-  let fallbackUsed = false;
-  let llmStats: LLMStats | null = null;
+
 
   try {
     const generation = await generateProgramsWithLLM(answers, maxResults * 2);
     generated = generation.programs;
-    llmRawResponse = generation.raw;
-    llmStats = generation.stats ?? null;
 
+
+    // Production-ready logging
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[reco][recommend] LLM raw response preview:', (llmRawResponse || '').slice(0, 2000));
-      console.log('[reco][recommend] Programs parsed from LLM:', generated.length);
-    } else {
-      console.log('[reco][recommend] LLM returned', generated.length, 'programs; raw length:', llmRawResponse?.length || 0);
+      console.log(`[reco][recommend] Generated ${generated.length} programs`);
     }
   } catch (error: any) {
     llmError = error?.message || 'Unknown LLM error';
@@ -112,19 +107,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     success: true,
     programs: matching.slice(0, maxResults),
     count: matching.length,
-    debug: {
-      requiredMissing: missingFields.length,
-      llmProgramCount: generated.length,
-      afterFiltering: matching.length,
-      llmError,
-      llmRaw: llmRawResponse,
-      fallbackUsed,
-      llmProvider: llmStats?.provider,
-      llmPromptTokens: llmStats?.promptTokens,
-      llmCompletionTokens: llmStats?.completionTokens,
-      llmTotalTokens: llmStats?.totalTokens,
-      llmLatencyMs: llmStats?.latencyMs,
-    },
   });
 }
 
@@ -146,7 +128,7 @@ async function generateProgramsWithLLM(
     allowMix: answers.co_financing !== 'co_no',
   };
 
-  // Build LLM prompt inline (simplified - no separate file needed)
+  // Build LLM prompt for program recommendation
   const buildInstructions = (attempt: number = 1): string => {
     const baseInstructions = `You are an expert on European funding programs. Return up to ${maxPrograms} programs matching this profile:
 
@@ -277,9 +259,6 @@ KEY PROGRAMS:
           maxTokens: CUSTOM_MAX_TOKENS, // Trimmed to reduce latency/timeouts while keeping headroom
         });
         const latencyMs = response.latencyMs ?? Date.now() - started;
-        console.log(
-          `[reco][recommend] Custom LLM completed in ${latencyMs}ms (prompt tokens: ${response.usage?.promptTokens ?? 'n/a'}, completion tokens: ${response.usage?.completionTokens ?? 'n/a'})`
-        );
         return {
           responseText: response.output,
           rawResponse: response.output,
@@ -288,11 +267,9 @@ KEY PROGRAMS:
           latencyMs,
         };
       } catch (error: any) {
-        const latencyMs = Date.now() - started;
-        lastCustomError = error instanceof Error ? error : new Error(error?.message || 'Custom LLM failed');
-        console.warn(
-          `[reco][recommend] Custom LLM failed after ${latencyMs}ms, attempting OpenAI fallback: ${lastCustomError.message}`
-        );
+
+        lastCustomError = error instanceof Error ? error : new Error(error?.message || 'LLM failed');
+        console.warn(`[reco][recommend] LLM failed, using OpenAI fallback`);
       }
     }
 
@@ -306,11 +283,8 @@ KEY PROGRAMS:
         max_tokens: OPENAI_MAX_TOKENS, // Slightly reduced to avoid long generations that can stall
         temperature,
       });
-      const latencyMs = Date.now() - started;
       const responseText = completion.choices[0]?.message?.content || null;
-      console.log(
-        `[reco][recommend] OpenAI fallback completed in ${latencyMs}ms (prompt tokens: ${completion.usage?.prompt_tokens ?? 'n/a'}, completion tokens: ${completion.usage?.completion_tokens ?? 'n/a'})`
-      );
+      const latencyMs = Date.now() - started;
       return {
         responseText,
         rawResponse: responseText,
@@ -360,12 +334,12 @@ KEY PROGRAMS:
       };
 
       if (provider === 'openai' && isCustomLLMEnabled()) {
-        console.log('[reco][recommend] Custom LLM unavailable — using OpenAI fallback for this attempt');
+
       }
 
       if (!responseText) {
         if (attempt < maxAttempts) {
-          console.log(`[reco][recommend] Attempt ${attempt}: Empty response, retrying...`);
+          console.warn(`[reco][recommend] Attempt ${attempt}: Empty response, retrying...`);
           continue;
         }
         return { programs: [], raw: rawResponse, stats: lastStats };
@@ -391,8 +365,7 @@ KEY PROGRAMS:
       // Validate response: must have at least one VALID program
       if (filteredPrograms.length === 0) {
         if (attempt < maxAttempts) {
-          console.log(`[reco][recommend] Attempt ${attempt}: No valid programs (${programs.length} total, ${programs.length - filteredPrograms.length} generic), retrying...`);
-          console.log(`[reco][recommend] Raw response preview:`, rawResponse?.substring(0, 500));
+          console.warn(`[reco][recommend] Attempt ${attempt}: No valid programs, retrying...`);
           lastRawResponse = rawResponse;
           continue;
         } else {
@@ -411,7 +384,7 @@ KEY PROGRAMS:
 
       // Success - return programs
       if (attempt > 1) {
-        console.log(`[reco][recommend] Success on attempt ${attempt} after ${attempt - 1} failures`);
+
       }
 
       // Filter out generic/invalid programs
@@ -515,19 +488,12 @@ KEY PROGRAMS:
 function parseLLMResponse(responseText: string) {
   try {
     const sanitized = sanitizeLLMResponse(responseText);
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[reco][parseLLMResponse] Sanitized response length:', sanitized.length);
-      console.log('[reco][parseLLMResponse] First 500 chars:', sanitized.substring(0, 500));
-    }
+
     const parsed = JSON.parse(sanitized);
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[reco][parseLLMResponse] Parsed keys:', Object.keys(parsed));
-      console.log('[reco][parseLLMResponse] Programs array length:', Array.isArray(parsed?.programs) ? parsed.programs.length : 'not an array');
-    }
+
     return parsed;
   } catch (error) {
-    console.error('[reco][parseLLMResponse] Failed to parse LLM JSON:', error);
-    console.error('[reco][parseLLMResponse] Response text (first 1000 chars):', responseText.substring(0, 1000));
+    console.error('[reco][parseLLMResponse] Failed to parse LLM JSON:', (error as Error).message);
     return {};
   }
 }

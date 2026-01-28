@@ -196,6 +196,7 @@ export default function ProgramSelection({
   const handleProgramSelect = (program: any) => {
     console.log('🎯 Program selected:', program);
     console.log('📋 Has application requirements:', !!program.application_requirements);
+    console.log('📊 Current selectedOption:', selectedOption);
     try {
       // Generate document structure using new pipeline
       // Step 1: Normalize program data to FundingProgram
@@ -400,6 +401,7 @@ export default function ProgramSelection({
         
         {/* Dynamic Panel Column (30%) */}
         <div className="lg:w-5/12">
+          <div className="text-xs text-white/40 mb-2">DEBUG: selectedOption = {selectedOption}</div>
           {selectedOption === 'program' && (
             <ProgramSummaryPanel 
               onGenerate={() => console.log('Refresh program summary')} 
@@ -409,6 +411,7 @@ export default function ProgramSelection({
           )}
           {selectedOption === 'template' && (
             <TemplateStructurePanel 
+              selectedOption={selectedOption}
               onGenerate={() => console.log('Reanalyze template')} 
               onEdit={() => console.log('Edit template structure')} 
               onClear={() => console.log('Clear template analysis')} 
@@ -416,6 +419,7 @@ export default function ProgramSelection({
           )}
           {selectedOption === 'free' && (
             <StandardStructurePanel 
+              selectedOption={selectedOption}
               onGenerate={() => console.log('Regenerate standard structure')} 
               onEdit={() => console.log('Edit standard structure')} 
               onClear={() => console.log('Clear standard structure')} 
