@@ -35,7 +35,7 @@ export function ProgramOption({
   const manualInputRef = useRef<HTMLDivElement | null>(null);
   const manualTriggerRef = useRef<HTMLButtonElement | null>(null);
 
-  const handleManualConnect = () => {
+  const handleManualConnect = async () => {
     setManualError(null);
     const normalized = normalizeProgramInput(manualValue);
     if (!normalized) {
@@ -109,17 +109,78 @@ export function ProgramOption({
       // Step 2: Generate DocumentStructure from parsed application requirements
       const documentStructure = generateDocumentStructureFromProfile(fundingProgram);
       
-      // Step 3: Update store with document setup data
+      // Step 3: NEW - Generate enhanced blueprint with detailed requirements
+      try {
+        const blueprintResponse = await fetch('/api/programs/blueprint', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fundingProgram: fundingProgram,
+            userContext: {
+              organisation_type: 'startup', // Default for manual entry
+              company_stage: 'idea',
+              location: 'austria',
+              funding_amount: 50000,
+              industry_focus: ['technology'],
+              co_financing: 'co_yes'
+            }
+          })
+        });
+        
+        if (blueprintResponse.ok) {
+          const { blueprint } = await blueprintResponse.json();
+          console.log('[ProgramOption] Enhanced blueprint generated:', blueprint);
+          
+          // STORE BLUEPRINT DIRECTLY IN FUNDINGPROGRAM (as intended)
+          Object.assign(fundingProgram, {
+            blueprint: blueprint,
+            blueprintVersion: '1.0',
+            blueprintStatus: 'draft' as const,
+            blueprintSource: 'myproject' as const,
+            blueprintDiagnostics: {
+              warnings: [],
+              missingFields: [],
+              confidence: blueprint.diagnostics?.confidenceScore || 85
+            }
+          });
+          
+          // Also merge with document structure for immediate use
+          Object.assign(documentStructure, {
+            enhancedRequirements: blueprint.structuredRequirements || [],
+            financialDetails: blueprint.financial || {},
+            marketAnalysis: blueprint.market || {},
+            teamRequirements: blueprint.team || {},
+            riskAssessment: blueprint.risk || {},
+            formattingRules: blueprint.formatting || {},
+            aiGuidance: blueprint.aiGuidance || {},
+            diagnostics: blueprint.diagnostics || {}
+          });
+        }
+      } catch (blueprintError) {
+        console.warn('[ProgramOption] Blueprint generation failed, using basic structure:', blueprintError);
+        // Set basic blueprint status
+        Object.assign(fundingProgram, {
+          blueprintStatus: 'none' as const,
+          blueprintSource: 'myproject' as const,
+          blueprintDiagnostics: {
+            warnings: ['Enhanced blueprint generation failed'],
+            missingFields: ['Detailed requirements'],
+            confidence: 60
+          }
+        });
+      }
+      
+      // Step 4: Update store with complete data
       setProgramProfile(fundingProgram);
       setDocumentStructure(documentStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({
         warnings: ['Program data entered manually - limited information available'],
         missingFields: ['Detailed requirements', 'Specific deadlines', 'Exact funding amounts'],
-        confidence: 60
+        confidence: fundingProgram.blueprintDiagnostics?.confidence || 60
       });
       
-      // Step 4: Create legacy-compatible ProgramSummary for backward compatibility
+      // Step 5: Create legacy-compatible ProgramSummary for backward compatibility
       const programSummary = generateProgramBlueprint(programData);
       onConnectProgram(programSummary);
       

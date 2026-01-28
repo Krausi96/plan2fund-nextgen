@@ -289,88 +289,8 @@ export interface ToggleHandlers {
   totalCount: number;
 }
 
-// ============================================================================
-// BLUEPRINT TYPES
-// ============================================================================
-
-/**
- * DocumentBlueprint - Complete blueprint for document generation
- * Generated from ProgramProfile through 8-stage pipeline
- */
-export interface DocumentBlueprint {
-  id: string;
-  version: string;
-  source: 'program' | 'template' | 'standard';
-  
-  // Document structure
-  documents: Array<{
-    id: string;
-    name: string;
-    purpose: string;
-    required: boolean;
-    templateId?: string;
-  }>;
-  
-  // Section structure
-  sections: Array<{
-    id: string;
-    documentId: string;
-    title: string;
-    type: 'required' | 'optional' | 'conditional';
-    required: boolean;
-    programCritical: boolean;
-    aiPrompt?: string;
-    checklist?: string[];
-  }>;
-  
-  // Requirements
-  requirements: Array<{
-    id: string;
-    scope: 'section' | 'document' | 'global';
-    category: 'financial' | 'market' | 'team' | 'risk' | 'formatting' | 'evidence';
-    severity: 'blocker' | 'major' | 'minor';
-    rule: string;
-    target?: any;
-    evidenceType?: string;
-  }>;
-  
-  // Validation
-  validationRules: Array<{
-    id: string;
-    type: 'presence' | 'completeness' | 'numeric' | 'attachment' | 'formatting' | 'consistency';
-    scope: string;
-    condition?: string;
-    errorMessage: string;
-  }>;
-  
-  // AI Guidance
-  aiGuidance: Array<{
-    sectionId: string;
-    prompt: string;
-    checklist: string[];
-    examples?: string[];
-  }>;
-  
-  // Rendering rules
-  renderingRules: {
-    titlePage?: Record<string, any>;
-    tableOfContents?: Record<string, any>;
-    references?: Record<string, any>;
-    appendices?: Record<string, any>;
-  };
-  
-  // Diagnostics
-  conflicts: string[];
-  warnings: string[];
-  confidenceScore: number; // 0-100
-  
-  // Metadata
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-}
-
 // DocumentStructure interface moved to setup.types.ts
+// DocumentBlueprint interface REMOVED - redundant with FundingProgram.blueprint
 
 // ============================================================================
 // SETUP WIZARD TYPES

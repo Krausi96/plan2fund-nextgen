@@ -31,26 +31,8 @@ interface GeneratedProgram {
       reason?: string;
     };
   };
-  application_requirements?: {
-    documents?: Array<{
-      document_name: string;
-      required: boolean;
-      format: string;
-      authority: string;
-      reuseable: boolean;
-    }>;
-    sections?: Array<{
-      title: string;
-      required: boolean;
-      subsections: Array<{ title: string; required: boolean }>;
-    }>;
-    financial_requirements?: {
-      financial_statements_required: string[];
-      years_required: number[];
-      co_financing_proof_required: boolean;
-      own_funds_proof_required: boolean;
-    };
-  };
+  // Application requirements parsed in blueprintGenerator.ts
+  application_requirements?: any;
 }
 
 type LLMProvider = 'custom' | 'openai';
@@ -177,41 +159,11 @@ JSON STRUCTURE:
     "impact_focus": ["environmental","social"],
     "organization": "FFG",
     "typical_timeline": "2-3 months",
-    "competitiveness": "medium",
-    "application_requirements": {
-      "documents": [
-        {
-          "document_name": "Business Plan",
-          "required": true,
-          "format": "pdf",
-          "authority": "Grant Authority",
-          "reuseable": false
-        }
-      ],
-      "sections": [
-        {
-          "title": "Company Overview",
-          "required": true,
-          "subsections": [
-            { "title": "Company Description", "required": true },
-            { "title": "Team", "required": true }
-          ]
-        }
-      ],
-      "financial_requirements": {
-        "financial_statements_required": ["P&L", "Cashflow", "Balance Sheet"],
-        "years_required": [1, 3, 5],
-        "co_financing_proof_required": true,
-        "own_funds_proof_required": true
-      }
-    }
+    "competitiveness": "medium"
   }]
 }
 
-APPLICATION REQUIREMENTS: Parse detailed structured requirements including:
-1. Documents: document_name, required, format, authority, reuseable
-2. Sections: hierarchical structure with subsections
-3. Financial Requirements: specific financial statement and proof requirements`;
+Return programs matching user profile with basic information.`;
 
       const diversitySection = fundingPreference.allowMix
       ? `\n\nReturn mix of funding types (grants, loans, equity)`

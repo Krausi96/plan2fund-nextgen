@@ -60,6 +60,73 @@ export interface FundingProgram {
     };
   };
   
+  // ENHANCED BLUEPRINT DATA (NEW)
+  blueprint?: {
+    // Enhanced structured requirements
+    enhancedRequirements?: Array<{
+      category: 'financial' | 'market' | 'team' | 'risk' | 'formatting' | 'evidence';
+      scope: 'global' | 'document' | 'section';
+      severity: 'blocker' | 'major' | 'minor';
+      description: string;
+      evidenceType: string;
+      validationLogic: string;
+    }>;
+    
+    // Detailed category requirements
+    financialDetails?: {
+      modelsRequired: string[];
+      yearsRequired: number[];
+      coFinancingChecks: string[];
+      budgetStructure: string;
+    };
+    
+    marketAnalysis?: {
+      tamSamSom: boolean;
+      competitionDepth: string;
+      customerProof: string[];
+    };
+    
+    teamRequirements?: {
+      orgStructure: string;
+      cvRules: string[];
+      keyRoles: string[];
+    };
+    
+    riskAssessment?: {
+      categories: string[];
+      mitigation: string[];
+      regulatoryRisks: string[];
+    };
+    
+    formattingRules?: {
+      pageLimits: string;
+      language: string;
+      annexRules: string;
+    };
+    
+    aiGuidance?: {
+      perSectionChecklist: Array<{ section: string; items: string[] }>;
+      perSectionPrompts: Array<{ section: string; prompt: string }>;
+    };
+    
+    diagnostics?: {
+      confidenceScore: number;
+      conflicts: string[];
+      assumptions: string[];
+      missingDataFlags: string[];
+    };
+  };
+  
+  // Blueprint metadata
+  blueprintVersion?: string;
+  blueprintStatus?: 'none' | 'draft' | 'confirmed' | 'locked';
+  blueprintSource?: 'program' | 'template' | 'standard' | 'myproject';
+  blueprintDiagnostics?: {
+    warnings: string[];
+    missingFields: string[];
+    confidence: number;
+  };
+  
   // Raw data for traceability
   rawData: any;
 }

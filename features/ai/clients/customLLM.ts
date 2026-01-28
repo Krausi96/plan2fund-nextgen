@@ -14,6 +14,7 @@ export interface ChatRequest {
   temperature?: number;
   maxTokens?: number;
   responseFormat?: 'json' | 'text';
+  taskType?: 'program_recommendation' | 'blueprint_generation';
 }
 
 export interface ChatResponse {
@@ -88,7 +89,7 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
 
   try {
     // Log provider information
-    console.log(`🔗 Calling LLM: ${config.endpoint}, model: ${request.model || config.model}`);
+    console.log(`🔗 Calling LLM: ${config.endpoint}, model: ${request.model || config.model}, task: ${request.taskType || 'default'}`);
     
     // Check if this is Hugging Face Inference API (old format - deprecated)
     // New router.huggingface.co uses OpenAI-compatible format
