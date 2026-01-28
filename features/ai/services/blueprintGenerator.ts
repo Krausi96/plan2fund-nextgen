@@ -413,7 +413,7 @@ function parseBlueprintResponse(responseText: string): EnhancedBlueprint {
   }
 }
 
-function createFallbackBlueprint(program: ProgramInfo): EnhancedBlueprint {
+function createFallbackBlueprint(_program: ProgramInfo): EnhancedBlueprint {
   return {
     documents: [
       { name: "Business Plan", purpose: "Core project description", required: true },
