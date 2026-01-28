@@ -12,7 +12,8 @@ interface GeneratedProgram {
   url?: string | null;
   source?: string;
   location?: string | null;
-  company_type?: string | null;
+  organisation_type?: string | null;  // Standardized from company_type
+  company_stage?: string | null;    // Matches questionnaire values: idea, MVP, revenue, growth
   funding_types?: string[];
   metadata?: {
     funding_amount_min?: number | null;
@@ -45,7 +46,7 @@ interface LLMStats {
   latencyMs?: number;
 }
 
-const REQUIRED_FIELDS = ['location', 'company_type', 'funding_amount', 'company_stage'];
+const REQUIRED_FIELDS = ['location', 'organisation_type', 'funding_amount', 'company_stage'];
 const DEFAULT_MAX_RESULTS = 10;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -99,7 +100,7 @@ async function generateProgramsWithLLM(
   // Simplified profile (just key fields)
   const profile = [
     answers.location && `Location: ${answers.location}`,
-    answers.company_type && `Company type: ${answers.company_type}`,
+    answers.organisation_type && `Organisation type: ${answers.organisation_type}`,
     answers.company_stage && `Company stage: ${answers.company_stage}`,
     answers.funding_amount && `Funding need: €${answers.funding_amount}`,
     answers.industry_focus && `Industry: ${Array.isArray(answers.industry_focus) ? answers.industry_focus.join(', ') : answers.industry_focus}`,
@@ -148,18 +149,14 @@ JSON STRUCTURE:
     "currency": "EUR",
     "location": "Austria",
     "region": "Austria",
-    "company_type": "startup",
-    "company_stage": "inc_lt_6m",
-    "program_focus": ["digital","innovation"],
-    "co_financing_required": false,
-    "co_financing_percentage": null,
-    "deadline": "2024-12-31",
-    "open_deadline": false,
+    "organisation_type": "startup",
+    "company_stage": "idea",
+    "revenue_status": "pre_revenue",
+    "industry_focus": ["digital","innovation"],
+    "co_financing": "co_yes",
+    "funding_amount": 50000,
     "use_of_funds": ["product_development","hiring"],
     "impact_focus": ["environmental","social"],
-    "organization": "FFG",
-    "typical_timeline": "2-3 months",
-    "competitiveness": "medium"
   }]
 }
 
