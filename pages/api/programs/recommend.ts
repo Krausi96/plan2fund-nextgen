@@ -15,6 +15,13 @@ interface GeneratedProgram {
   organisation_type?: string | null;  // Standardized from company_type
   company_stage?: string | null;    // Matches questionnaire values: idea, MVP, revenue, growth
   funding_types?: string[];
+  // Additional questionnaire fields
+  legal_form?: string | null;       // Derived legal form based on organisation type
+  co_financing_percentage?: string | null;  // User-specified co-financing percentage
+  deadline_urgency?: string | null; // Timing requirements
+  organisation_type_other?: string | null;  // Custom organisation type
+  organisation_type_sub?: string | null;    // Sub-type for individuals
+  revenue_status_category?: string | null;  // Categorical revenue status
   metadata?: {
     funding_amount_min?: number | null;
     funding_amount_max?: number | null;
@@ -22,7 +29,6 @@ interface GeneratedProgram {
     location?: string | null;
     description?: string | null;
     region?: string | null;
-    company_stage?: string | null;
     deterministicScore?: number | null;
     deterministicConfidence?: string | null;
     deterministicEligibility?: string | null;
@@ -105,6 +111,9 @@ async function generateProgramsWithLLM(
     answers.funding_amount && `Funding need: €${answers.funding_amount}`,
     answers.industry_focus && `Industry: ${Array.isArray(answers.industry_focus) ? answers.industry_focus.join(', ') : answers.industry_focus}`,
     answers.co_financing && `Co-financing: ${answers.co_financing === 'co_no' ? 'ONLY grants/subsidies' : 'can accept loans/equity'}`,
+    answers.co_financing_percentage && `Co-financing %: ${answers.co_financing_percentage}`,
+    answers.legal_form && `Legal form: ${answers.legal_form}`,
+    answers.deadline_urgency && `Timeline: ${answers.deadline_urgency}`,
   ].filter(Boolean).join('\n');
   
   const fundingPreference = {
@@ -154,9 +163,12 @@ JSON STRUCTURE:
     "revenue_status": "pre_revenue",
     "industry_focus": ["digital","innovation"],
     "co_financing": "co_yes",
+    "co_financing_percentage": "30%",
     "funding_amount": 50000,
     "use_of_funds": ["product_development","hiring"],
     "impact_focus": ["environmental","social"],
+    "legal_form": "gmbh",
+    "deadline_urgency": "3_6_months",
   }]
 }
 
