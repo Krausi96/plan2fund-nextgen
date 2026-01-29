@@ -6,6 +6,7 @@
  */
 
 import { callCustomLLM, ChatRequest } from '../clients/customLLM';
+import { parseBlueprintResponse } from '../lib/llmUtils';
 
 // Export interfaces for external use
 export interface EnhancedBlueprint {
@@ -104,7 +105,7 @@ export async function generateEnhancedBlueprint(
     const response = await callCustomLLM(request);
     
     // Parse and validate the response
-    const parsed = parseBlueprintResponse(response.output);
+    const parsed = parseBlueprintResponseLocal(response.output);
     
     console.log(`[blueprint] Successfully generated blueprint for ${program.name}`);
     return parsed;
@@ -133,7 +134,7 @@ List all required documents with:
 - purpose (why it's needed)
 - required (true/false)
 
-SECTIONS  /Chapter:
+SECTIONS / Chapters:
 Hierarchical section structure with:
 - documentId (reference to parent document)
 - title (section heading)
@@ -236,35 +237,9 @@ RETURN VALID JSON ONLY with this exact structure:
 }`;
 }
 
-function parseBlueprintResponse(responseText: string): EnhancedBlueprint {
+function parseBlueprintResponseLocal(responseText: string): EnhancedBlueprint {
   try {
-    // Sanitize and parse JSON response
-    let cleaned = responseText.trim();
-    cleaned = cleaned.replace(/```json/gi, '').replace(/```/g, '');
-    
-    const firstCurly = cleaned.indexOf('{');
-    const lastCurly = cleaned.lastIndexOf('}');
-    
-    if (firstCurly >= 0 && lastCurly > firstCurly) {
-      cleaned = cleaned.slice(firstCurly, lastCurly + 1);
-    }
-    
-    const parsed = JSON.parse(cleaned);
-    
-    // Validate required structure
-    const requiredFields = [
-      'documents', 'sections', 'structuredRequirements', 'financial', 
-      'market', 'team', 'risk', 'formatting', 'aiGuidance', 'diagnostics'
-    ];
-    
-    for (const field of requiredFields) {
-      if (!parsed[field]) {
-        throw new Error(`Missing required field: ${field}`);
-      }
-    }
-    
-    return parsed as EnhancedBlueprint;
-    
+    return parseBlueprintResponse(responseText) as EnhancedBlueprint;
   } catch (error) {
     console.error('[blueprint] Failed to parse blueprint response:', error);
     throw new Error('Invalid blueprint response format');

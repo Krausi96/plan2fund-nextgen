@@ -1,9 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 type UserAnswers = Record<string, any>;
 
 interface GeneratedProgram {
@@ -449,52 +445,19 @@ KEY PROGRAMS:
   return { programs: [], raw: lastRawResponse, stats: lastStats };
 }
 
+// Import shared LLM utilities
+import { parseProgramResponse } from '../../../features/ai/lib/llmUtils';
+
 // Removed summarizeProfile and inferFundingPreference - simplified inline
 
 function parseLLMResponse(responseText: string) {
   try {
-    const sanitized = sanitizeLLMResponse(responseText);
-
-    const parsed = JSON.parse(sanitized);
-
-    return parsed;
+    return parseProgramResponse(responseText);
   } catch (error) {
     console.error('[reco][parseLLMResponse] Failed to parse LLM JSON:', (error as Error).message);
     return {};
   }
 }
 
-// ============================================================================
-// UTILITIES (consolidated from llmUtils.ts and scoring.ts)
-// ============================================================================
 
-/**
- * Sanitize LLM JSON response
- */
-function sanitizeLLMResponse(text: string): string {
-  let cleaned = text.trim();
-  cleaned = cleaned.replace(/```json/gi, '```');
-  cleaned = cleaned.replace(/```/g, '');
-  cleaned = cleaned.replace(/^Here is the JSON requested:\s*/i, '');
-  cleaned = cleaned.replace(/^Here is .*?JSON:\s*/i, '');
-  cleaned = cleaned.replace(/^Response:\s*/i, '');
-  const firstCurly = cleaned.indexOf('{');
-  const firstBracket = cleaned.indexOf('[');
-  const starts: number[] = [];
-  if (firstCurly >= 0) starts.push(firstCurly);
-  if (firstBracket >= 0) starts.push(firstBracket);
-  if (starts.length > 0) {
-    const start = Math.min(...starts);
-    const endCurly = cleaned.lastIndexOf('}');
-    const endBracket = cleaned.lastIndexOf(']');
-    const end = Math.max(endCurly, endBracket);
-    if (end >= start) {
-      cleaned = cleaned.slice(start, end + 1);
-    }
-  }
-  return cleaned.trim();
-}
-
-// Removed complex fallback code - LLM is primary, no catalog fallback needed
-// Types are now imported from @/features/reco/types
 
