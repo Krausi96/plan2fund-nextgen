@@ -19,6 +19,16 @@ import {
 import { DocumentSettings } from '@/shared/components/editor/DocumentSettings';
 import { DEFAULT_DOCUMENT_STYLE, type DocumentStyleConfig } from '@/shared/components/editor/DocumentStyles';
 
+// Define which sections are safe for inline editing
+// Define which sections are restricted from inline editing
+const RESTRICTED_SECTIONS = [
+  'title-page',
+  'ancillary', // Table of Contents
+  'financial-plan',
+  'references',
+  'appendices'
+];
+
 function PreviewPanel() {
   const { t: i18nT } = useI18n();
   const previewState = usePreviewState();
@@ -26,6 +36,7 @@ function PreviewPanel() {
   const disabledSections = useDisabledSectionsSet();
   const actions = useEditorActions((a) => ({
     setIsConfiguratorOpen: a.setIsConfiguratorOpen,
+    updateSection: a.updateSection, // Add updateSection action
   }));
   const setActiveSectionIdAction = useEditorStore(state => state.setActiveSectionId);
   // Readiness Check data
@@ -36,9 +47,15 @@ function PreviewPanel() {
   const [zoomLevel, setZoomLevel] = useState(1); // Scale factor
   const [documentStyle, setDocumentStyle] = useState<DocumentStyleConfig>(DEFAULT_DOCUMENT_STYLE);
   const [activeBottomTab, setActiveBottomTab] = useState<'readiness' | 'styling' | 'export'>('readiness');
+  const [editingSection, setEditingSection] = useState<string | null>(null); // Track which section is being edited
+  const [editContent, setEditContent] = useState<string>(''); // Temporary edit content
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
+  // Refs for scroll handling
+  const isScrollingToSection = useRef(false);
+  const isZooming = useRef(false);
   
   function setZoomCentered(nextZoom: number) {
     const scroller = scrollRef.current ?? document.getElementById("preview-scroll-container");
@@ -130,9 +147,44 @@ const previewMode: 'formatted' | 'print' = 'formatted';
     return allSections;
   }, [planDocument?.sections, selectedProduct]);
 
-  // Refs for scroll handling
-  const isScrollingToSection = useRef(false);
-  const isZooming = useRef(false);
+  // Focus edit input when editing starts
+  useEffect(() => {
+    if (editingSection && editInputRef.current) {
+      // Wait for render cycle to complete
+      setTimeout(() => {
+        editInputRef.current?.focus();
+        // Select all text for easy replacement
+        editInputRef.current?.select();
+      }, 50);
+    }
+  }, [editingSection]);
+  
+  // Handle save on Enter (Ctrl+Enter) or blur
+  const handleSaveEdit = (save: boolean = true) => {
+    if (editingSection && save) {
+      // Save changes to store
+      actions.updateSection(editingSection, { content: editContent });
+      
+      // Show success feedback
+      console.log(`Saved changes to section: ${editingSection}`);
+    }
+    
+    // Exit edit mode
+    setEditingSection(null);
+    setEditContent('');
+  };
+  
+  // Start editing a section
+  const startEditing = (sectionKey: string, currentContent: string) => {
+    // Check if section is editable
+    if (RESTRICTED_SECTIONS.includes(sectionKey)) {
+      console.warn(`Section ${sectionKey} is not editable`);
+      return;
+    }
+    
+    setEditingSection(sectionKey);
+    setEditContent(currentContent || '');
+  };
   
   // Ref for tracking zoom state
   useEffect(() => {
@@ -328,6 +380,13 @@ const previewMode: 'formatted' | 'print' = 'formatted';
                         planDocument={planDocument}
                         previewMode={previewMode}
                         t={t}
+                        // Inline editing props
+                        isEditing={editingSection === section.key}
+                        editContent={editContent}
+                        onStartEdit={startEditing}
+                        onSaveEdit={handleSaveEdit}
+                        onEditChange={setEditContent}
+                        editInputRef={editInputRef}
                       />
                     ))}
                     <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />

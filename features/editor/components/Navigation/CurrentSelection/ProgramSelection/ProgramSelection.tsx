@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
-import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
 import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
 import { StandardStructurePanel } from './components/panels/StandardStructurePanel';
+import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
 import { ProgramFinder } from './components/finder/ProgramFinder';
 import EditorProgramFinder from '@/features/editor/components/Navigation/CurrentSelection/ProgramSelection/components/finder/ProgramFinder/EditorProgramFinder';
 import { TemplateOption } from './components/options/TemplateOption';
@@ -250,9 +250,6 @@ export default function ProgramSelection({
           <h2 className="text-2xl font-bold text-white">
             {t('editor.desktop.program.header' as any) || 'Document Setup'}
           </h2>
-          <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full font-medium">
-            📋 Document Setup
-          </span>
         </div>
         <p className="text-white/70 text-sm">
           {t('editor.desktop.program.subtitle' as any) || 'Choose how your document structure and requirements are defined.'}
@@ -294,6 +291,9 @@ export default function ProgramSelection({
                     <FreeOption 
                       onStructureSelected={(structure) => {
                         console.log('Free structure selected:', structure);
+                      }}
+                      onProductSelected={(product) => {
+                        console.log('Product selected in free option:', product);
                       }}
                     />
                   </div>
@@ -401,12 +401,11 @@ export default function ProgramSelection({
         
         {/* Dynamic Panel Column (30%) */}
         <div className="lg:w-5/12">
-          <div className="text-xs text-white/40 mb-2">DEBUG: selectedOption = {selectedOption}</div>
-          {selectedOption === 'program' && (
+          {selectedOption === 'program' && programSummary && (
             <ProgramSummaryPanel 
-              onGenerate={() => console.log('Refresh program summary')} 
-              onEdit={() => console.log('Edit program summary')} 
-              onClear={() => console.log('Clear program summary')} 
+              onGenerate={() => console.log('Refresh program summary')}
+              onEdit={() => console.log('Edit program summary')}
+              onClear={() => console.log('Clear program summary')}
             />
           )}
           {selectedOption === 'template' && (

@@ -3,6 +3,7 @@ import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 
 interface FreeOptionProps {
   onStructureSelected?: (structure: string) => void;
+  onProductSelected?: (product: string) => void;
 }
 
 export function FreeOption({ onStructureSelected }: FreeOptionProps) {
@@ -13,6 +14,8 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
   const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
   const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
   const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
+  
+  // Removed unused selector: useSectionsAndDocumentsCounts()
 
   const handleStructureSelect = (structure: string) => {
     setSelectedStructure(structure);
@@ -107,6 +110,7 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
     createStandardBlueprint();
   };
 
+
   const structureOptions = [
     {
       id: 'business-plan',
@@ -190,6 +194,8 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
           ))}
         </div>
       </div>
+
+
 
       {/* Industry Preset (Optional) */}
       {selectedStructure && (

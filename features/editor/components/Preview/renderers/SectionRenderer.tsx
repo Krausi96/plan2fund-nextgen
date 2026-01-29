@@ -33,12 +33,44 @@ interface SectionRendererProps {
     page: string;
     figure: string;
   };
+  // Inline editing props
+  isEditing?: boolean;
+  editContent?: string;
+  onStartEdit?: (sectionKey: string, content: string) => void;
+  onSaveEdit?: (save: boolean) => void;
+  onEditChange?: (content: string) => void;
+  editInputRef?: React.RefObject<HTMLTextAreaElement | null>;
 }
 
-export function SectionRenderer({ section, sectionIndex, planDocument, previewMode, t }: SectionRendererProps) {
+export function SectionRenderer({ 
+  section, 
+  sectionIndex, 
+  planDocument, 
+  previewMode, 
+  t,
+  isEditing = false,
+  editContent = '',
+  onStartEdit,
+  onSaveEdit,
+  onEditChange,
+  editInputRef
+}: SectionRendererProps) {
   const hasContent = section.content && section.content.trim().length > 0;
   const displayTitle = section.fields?.displayTitle || section.title;
   const pageNumber = calculatePageNumber(sectionIndex, planDocument.settings.includeTitlePage ?? false, 0, section.key, planDocument.sections);
+  
+  // Check if this section is editable
+  const isEditableSection = [
+    'executive-summary',
+    'company-description',
+    'market-analysis',
+    'products-services',
+    'marketing-sales',
+    'team-organization',
+    'implementation-plan',
+    'risk-analysis',
+    'milestones-goals'
+  ].includes(section.key);
   
   return (
     <div 
@@ -49,17 +81,83 @@ export function SectionRenderer({ section, sectionIndex, planDocument, previewMo
       style={PAGE_STYLE}
     >
       <div className="flex h-full flex-col space-y-4">
-          <div className="border-b border-gray-200 pb-2 flex-shrink-0">
-            <h2 className="text-2xl font-semibold text-gray-900">{displayTitle}</h2>
-          </div>
+        <div className="border-b border-gray-200 pb-2 flex-shrink-0 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-gray-900">{displayTitle}</h2>
+          {/* Edit button for editable sections */}
+          {isEditableSection && !isEditing && (
+            <button
+              onClick={() => onStartEdit?.(section.key, section.content || '')}
+              className="px-3 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors flex items-center gap-1"
+              title="Edit this section"
+            >
+              <span>✏️</span>
+              Edit
+            </button>
+          )}
+          {/* Cancel button when editing */}
+          {isEditing && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onSaveEdit?.(true)}
+                className="px-3 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded-md transition-colors flex items-center gap-1"
+                title="Save changes (Ctrl+Enter)"
+              >
+                <span>💾</span>
+                Save
+              </button>
+              <button
+                onClick={() => onSaveEdit?.(false)}
+                className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors flex items-center gap-1"
+                title="Cancel editing (Escape)"
+              >
+                <span>❌</span>
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
           <div className={`prose max-w-none flex-1 overflow-y-auto min-h-0 ${previewMode === 'formatted' ? 'font-serif' : 'font-sans'}`}>
-            {hasContent ? (
+            {isEditing ? (
+              // Edit mode - textarea with full content
+              <textarea
+                ref={editInputRef}
+                value={editContent}
+                onChange={(e) => onEditChange?.(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.ctrlKey) {
+                    e.preventDefault();
+                    onSaveEdit?.(true);
+                  } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    onSaveEdit?.(false);
+                  }
+                }}
+                className="w-full h-full min-h-[300px] p-4 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none font-mono text-sm leading-relaxed"
+                placeholder="Edit section content... (Ctrl+Enter to save, Escape to cancel)"
+                autoFocus
+              />
+            ) : hasContent ? (
+              // View mode - sanitized content
               <div 
-                className="text-gray-800 leading-relaxed" 
+                className={`text-gray-800 leading-relaxed ${isEditableSection ? 'cursor-text hover:bg-blue-50 p-2 rounded -m-2 transition-colors' : ''}`}
                 dangerouslySetInnerHTML={{ __html: sanitizeContent(section.content || '') }} 
+                onClick={isEditableSection ? () => onStartEdit?.(section.key, section.content || '') : undefined}
               />
             ) : (
-              <div className="text-sm text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">No content available for this section</div>
+              // No content placeholder
+              <div className="text-sm text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">
+                No content available for this section
+                {isEditableSection && (
+                  <div className="mt-2">
+                    <button
+                      onClick={() => onStartEdit?.(section.key, '')}
+                      className="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md text-xs transition-colors"
+                    >
+                      Add content
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
           {section.tables && Object.keys(section.tables).length > 0 && (

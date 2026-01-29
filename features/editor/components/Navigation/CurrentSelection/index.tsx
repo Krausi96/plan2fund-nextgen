@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import ProductSelection from './ProductSelection/ProductSelection';
 import ProgramSelection from './ProgramSelection/ProgramSelection';
+import BlueprintInstantiationStep from './ProductCreation/BlueprintInstantiation/BlueprintInstantiation';
 import ReadinessCheck from './ReadinessCheck/ReadinessCheck';
 import MyProject from './MyProject/MyProject';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
@@ -463,17 +463,12 @@ function CurrentSelection({}: CurrentSelectionProps) {
                       </div>
                     )}
                     
-                    {/* Step 3: Product Selection */}
+                    {/* Step 3: Blueprint Instantiation */}
                     {setupWizard.currentStep === 3 && (
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-xl font-bold text-white mb-2 text-left">Step 3: Document Type</h3>
-                          <p className="text-white/80 text-sm mb-4">
-                            Choose your document template
-                          </p>
-                        </div>
-                        <ProductSelection />
-                      </div>
+                      <BlueprintInstantiationStep 
+                        onComplete={handleComplete}
+                        onBack={handlePrevStep}
+                      />
                     )}
                   </div>
                 </div>
