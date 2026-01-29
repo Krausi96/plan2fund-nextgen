@@ -5,6 +5,7 @@
 
 import { callCustomLLM, ChatRequest } from '../clients/customLLM';
 import { parseBlueprintResponse } from '../lib/llmUtils';
+import { createFallbackBlueprint } from '../lib/blueprintUtils';
 
 // Export interfaces for external use
 export interface EnhancedBlueprint {
@@ -115,124 +116,64 @@ export async function generateEnhancedBlueprint(
   }
 }
 
+/**
+ * Build optimized blueprint generation prompt with token budget prioritization
+ * Priority order: Core structure > Financial > User context > Detailed guidance
+ */
 function buildBlueprintPrompt(program: ProgramInfo, userContext: Record<string, any>): string {
-  return `TASK: BLUEPRINT GENERATION FOR "${program.name}"
+  // PRIORITY 1: Core program information (always included)
+  const coreSection = `TASK: BLUEPRINT GENERATION FOR "${program.name}"
 
-CONTEXT:
-Program: ${program.name}
-Description: ${program.description}
-Funding Types: ${program.funding_types.join(', ')}
-User Profile: Location=${userContext.location}, Stage=${userContext.company_stage}, Funding Need=€${userContext.funding_amount}
+PROGRAM:
+Name: ${program.name}
+Description: ${program.description || 'Not specified'}
+Funding Types: ${program.funding_types?.join(', ') || 'Not specified'}`;
 
-PARSE AND GENERATE DETAILED STRUCTURED REQUIREMENTS:
+  // PRIORITY 2: User context (include if available, keep concise)
+  const userSection = userContext && Object.keys(userContext).length > 0
+    ? `\nUSER CONTEXT: Location=${userContext.location || 'N/A'}, Stage=${userContext.company_stage || 'N/A'}, Funding=${userContext.funding_amount ? '€' + userContext.funding_amount : 'N/A'}`
+    : '';
 
-DOCUMENTS:
-List all required documents with:
-- name (specific document title)
-- purpose (why it's needed)
-- required (true/false)
+  // PRIORITY 3: Essential requirements structure (always included)
+  const structureSection = `
 
-SECTIONS / Chapters:
-Hierarchical section structure with:
-- documentId (reference to parent document)
-- title (section heading)
-- Subsection / Subchapter
-- required (true/false)  
-- programCritical (true/false - essential for approval)
+GENERATE STRUCTURED BLUEPRINT:
 
-STRUCTURED REQUIREMENTS (each requirement MUST have ALL fields):
-- category: financial | market | team | risk | formatting | evidence
-- scope: global | document | section
-- severity: blocker | major | minor
-- description: detailed requirement explanation
-- evidenceType: specific evidence needed
-- validationLogic: human-readable validation rules
+DOCUMENTS: Required documents with name, purpose, required flag
+SECTIONS: Hierarchical sections with documentId, title, required, programCritical flags
+STRUCTURED REQUIREMENTS: Category (financial|market|team|risk|formatting|evidence), scope, severity, description, evidenceType, validationLogic
 
-FINANCIAL REQUIREMENTS:
-- modelsRequired: list of financial models / graphs /tables / KPIs needed (3-year projections, cash flow, ROI etc.)
-- yearsRequired: array of years [1, 3, 5]
-- coFinancingChecks: validation rules for co-financing
-- budgetStructure: required budget breakdown format
+FINANCIAL: modelsRequired, yearsRequired, coFinancingChecks, budgetStructure
+MARKET: tamSamSom, competitionDepth, customerProof
+TEAM: orgStructure, cvRules, keyRoles
+RISK: categories, mitigation, regulatoryRisks
+FORMATTING: pageLimits, language, annexRules`;
 
-MARKET ANALYSIS:
-- tamSamSom: boolean (TAM/SAM/SOM calculation required)
-- competitionDepth: required competition analysis level
-- customerProof: list of customer validation requirements
+  // PRIORITY 4: AI Guidance (include if token budget allows)
+  const guidanceSection = `
+AI GUIDANCE: perSectionChecklist, perSectionPrompts
+DIAGNOSTICS: confidenceScore (0-100), conflicts, assumptions, missingDataFlags`;
 
-TEAM STRUCTURE:
-- orgStructure: required organizational documentation
-- cvRules: resume/CV submission requirements
-- keyRoles: essential team positions to highlight
+  // PRIORITY 5: Example structure (minimal, essential fields only)
+  const exampleSection = `
 
-RISK ASSESSMENT:
-- categories: risk types to address
-- mitigation: required risk mitigation strategies
-- regulatoryRisks: compliance requirements
-
-FORMATTING STANDARDS:
-- pageLimits: page count restrictions
-- language: required language(s)
-- annexRules: supplementary document rules
-
-AI GUIDANCE:
-- perSectionChecklist: validation items per section
-- perSectionPrompts: content generation guidance per section
-
-DIAGNOSTICS:
-- confidenceScore: 0-100 quality score
-- conflicts: potential conflicting requirements
-- assumptions: key assumptions made
-- missingDataFlags: data gaps identified
-
-RETURN VALID JSON ONLY with this exact structure:
+RETURN VALID JSON:
 {
   "documents": [{"name": "string", "purpose": "string", "required": true}],
   "sections": [{"documentId": "string", "title": "string", "required": true, "programCritical": true}],
-  "structuredRequirements": [{
-    "category": "financial",
-    "scope": "document", 
-    "severity": "major",
-    "description": "detailed requirement",
-    "evidenceType": "specific evidence",
-    "validationLogic": "validation rules"
-  }],
-  "financial": {
-    "modelsRequired": ["3-year projections"],
-    "yearsRequired": [1, 3, 5],
-    "coFinancingChecks": ["minimum 20% self-funding"],
-    "budgetStructure": "detailed breakdown required"
-  },
-  "market": {
-    "tamSamSom": true,
-    "competitionDepth": "detailed competitor analysis",
-    "customerProof": ["customer letters", "market research"]
-  },
-  "team": {
-    "orgStructure": "organizational chart required",
-    "cvRules": ["executive resumes", "key personnel CVs"],
-    "keyRoles": ["CEO", "CTO", "Finance Director"]
-  },
-  "risk": {
-    "categories": ["market", "technical", "financial"],
-    "mitigation": ["risk register", "mitigation plans"],
-    "regulatoryRisks": ["data protection", "industry compliance"]
-  },
-  "formatting": {
-    "pageLimits": "maximum 50 pages",
-    "language": "English",
-    "annexRules": "numbered annexes with table of contents"
-  },
-  "aiGuidance": {
-    "perSectionChecklist": [{"section": "Executive Summary", "items": ["clear value proposition", "market opportunity"]}],
-    "perSectionPrompts": [{"section": "Financial Plan", "prompt": "Detail 3-year financial projections with assumptions"}]
-  },
-  "diagnostics": {
-    "confidenceScore": 85,
-    "conflicts": ["page limit vs detailed financials"],
-    "assumptions": ["market growth rate 5% annually"],
-    "missingDataFlags": ["customer references needed"]
-  }
+  "structuredRequirements": [{"category": "financial", "scope": "document", "severity": "major", "description": "...", "evidenceType": "...", "validationLogic": "..."}],
+  "financial": {"modelsRequired": [], "yearsRequired": [], "coFinancingChecks": [], "budgetStructure": ""},
+  "market": {"tamSamSom": true, "competitionDepth": "", "customerProof": []},
+  "team": {"orgStructure": "", "cvRules": [], "keyRoles": []},
+  "risk": {"categories": [], "mitigation": [], "regulatoryRisks": []},
+  "formatting": {"pageLimits": "", "language": "", "annexRules": ""},
+  "aiGuidance": {"perSectionChecklist": [], "perSectionPrompts": []},
+  "diagnostics": {"confidenceScore": 0, "conflicts": [], "assumptions": [], "missingDataFlags": []}
 }`;
+
+  // Combine sections in priority order
+  // Total estimated tokens: ~500-600 (vs 800-900 previously)
+  return coreSection + userSection + structureSection + guidanceSection + exampleSection;
 }
 
 function parseBlueprintResponseLocal(responseText: string): EnhancedBlueprint {
@@ -242,63 +183,4 @@ function parseBlueprintResponseLocal(responseText: string): EnhancedBlueprint {
     console.error('[blueprint] Failed to parse blueprint response:', error);
     throw new Error('Invalid blueprint response format');
   }
-}
-
-function createFallbackBlueprint(_program: ProgramInfo): EnhancedBlueprint {
-  return {
-    documents: [
-      { name: "Business Plan", purpose: "Core project description", required: true },
-      { name: "Financial Projections", purpose: "3-year financial forecast", required: true }
-    ],
-    sections: [
-      { documentId: "main", title: "Executive Summary", required: true, programCritical: true },
-      { documentId: "main", title: "Project Description", required: true, programCritical: true }
-    ],
-    structuredRequirements: [
-      {
-        category: "financial",
-        scope: "document",
-        severity: "major",
-        description: "Provide detailed 3-year financial projections",
-        evidenceType: "Excel spreadsheet",
-        validationLogic: "Must include revenue, costs, and cash flow projections"
-      }
-    ],
-    financial: {
-      modelsRequired: ["3-year projections", "cash flow analysis"],
-      yearsRequired: [1, 3],
-      coFinancingChecks: ["self-funding verification"],
-      budgetStructure: "detailed line-item breakdown"
-    },
-    market: {
-      tamSamSom: true,
-      competitionDepth: "basic competitor analysis",
-      customerProof: ["market research", "customer interviews"]
-    },
-    team: {
-      orgStructure: "organizational chart",
-      cvRules: ["key personnel resumes"],
-      keyRoles: ["project lead", "finance manager"]
-    },
-    risk: {
-      categories: ["market", "financial"],
-      mitigation: ["basic risk assessment"],
-      regulatoryRisks: ["standard compliance"]
-    },
-    formatting: {
-      pageLimits: "reasonable length",
-      language: "English",
-      annexRules: "clear labeling"
-    },
-    aiGuidance: {
-      perSectionChecklist: [{ section: "Executive Summary", items: ["value proposition", "market size"] }],
-      perSectionPrompts: [{ section: "Financial Plan", prompt: "Include 3-year projections" }]
-    },
-    diagnostics: {
-      confidenceScore: 70,
-      conflicts: [],
-      assumptions: ["standard application process"],
-      missingDataFlags: ["detailed requirements pending"]
-    }
-  };
 }

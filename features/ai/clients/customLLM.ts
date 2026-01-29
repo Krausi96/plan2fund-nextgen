@@ -15,6 +15,7 @@ export interface ChatRequest {
   maxTokens?: number;
   responseFormat?: 'json' | 'text';
   taskType?: 'program_recommendation' | 'blueprint_generation';
+  responseSchema?: object; // Optional JSON schema for structured output
 }
 
 export interface ChatResponse {
@@ -40,6 +41,9 @@ interface CustomLLMConfig {
 
 // Default timeout configuration
 const DEFAULT_TIMEOUT = parseInt(process.env.CUSTOM_LLM_TIMEOUT || '90000', 10);
+
+// Note: Endpoint sanitization for production logs implemented inline (see line ~110)
+// Provider detection used instead of exposing full endpoint URLs
 
 function now(): number {
   if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
@@ -88,8 +92,17 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
   const started = now();
 
   try {
-    // Log provider information
-    console.log(`🔗 Calling LLM: ${config.endpoint}, model: ${request.model || config.model}, task: ${request.taskType || 'default'}`);
+    // Log provider information (sanitized in production)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`🔗 Calling LLM: ${config.endpoint}, model: ${request.model || config.model}, task: ${request.taskType || 'default'}`);
+    } else {
+      const provider = config.endpoint.includes('openai') ? 'OpenAI'
+        : config.endpoint.includes('generativelanguage') ? 'Gemini'
+        : config.endpoint.includes('openrouter') ? 'OpenRouter'
+        : config.endpoint.includes('groq') ? 'Groq'
+        : 'Custom LLM';
+      console.log(`🔗 Calling ${provider}, task: ${request.taskType || 'default'}`);
+    }
     
     // Check if this is Hugging Face Inference API (old format - deprecated)
     // New router.huggingface.co uses OpenAI-compatible format
@@ -157,8 +170,8 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
           maxOutputTokens: geminiMaxTokens, // Increased to handle thoughts overhead
           ...(request.responseFormat === 'json' ? { 
             responseMimeType: 'application/json',
-            // Add schema to force structured output and reduce thoughts overhead
-            responseSchema: {
+            // Use custom schema if provided, otherwise use default program schema
+            responseSchema: request.responseSchema || {
               type: 'object',
               properties: {
                 programs: {
