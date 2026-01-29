@@ -1,5 +1,9 @@
 # Complete File Responsibility Documentation
 
+> **See companion documents**:
+> - [`FUNDING_PROGRAM_DISCOVERY_FLOW.md`](./FUNDING_PROGRAM_DISCOVERY_FLOW.md) for step-by-step user flow
+> - [`DETAILED_FLOW_AND_SCHEMA_RESPONSIBILITY.md`](./DETAILED_FLOW_AND_SCHEMA_RESPONSIBILITY.md) for exact technical implementation details
+
 ## Funding Program Discovery System - File Architecture
 
 ### 1. QUESTIONNAIRE DEFINITION LAYER
