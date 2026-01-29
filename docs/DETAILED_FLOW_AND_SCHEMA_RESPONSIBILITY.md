@@ -2,7 +2,92 @@
 
 ## Complete Data Flow with Schema Responsibilities
 
+## 🎯 COMPONENT DISPLAY ARCHITECTURE
+
+### EXACT EDITOR COMPONENTS AND THEIR DISPLAYS
+
+#### 1. **ProgramFinder.tsx** (Reco Flow)
+- **Location**: `features/reco/components/ProgramFinder.tsx`
+- **Display**: Full-screen questionnaire wizard with step-by-step navigation
+- **Shows**:
+  - Progress bar (X/Y questions complete)
+  - Single question per screen with interactive options
+  - "Previous" and "Next" navigation buttons
+  - "Generate Programs" button when complete
+  - Loading spinner during LLM processing
+  - Results modal with program cards
+
+#### 2. **EditorProgramFinder.tsx** (Editor Integration)
+- **Location**: `features/editor/components/Navigation/CurrentSelection/ProgramSelection/components/finder/ProgramFinder/EditorProgramFinder.tsx`
+- **Display**: Embedded wizard within editor sidebar
+- **Shows**:
+  - Same questionnaire interface but styled for dark theme
+  - Prefilled answers from existing project profile
+  - Compact layout optimized for sidebar width
+  - Direct integration with editor store
+
+#### 3. **ProgramOption.tsx** (Selection Handler)
+- **Location**: `features/editor/components/Navigation/CurrentSelection/ProgramSelection/components/options/ProgramOption.tsx`
+- **Display**: Program selection interface with manual entry option
+- **Shows**:
+  - "Open ProgramFinder" button (triggers wizard)
+  - "Paste Link" button (manual program entry)
+  - Manual input modal for program IDs/links
+  - Loading states during blueprint generation
+
+#### 4. **ProgramSummaryPanel.tsx** (Selected Program Display)
+- **Location**: `features/editor/components/Navigation/CurrentSelection/ProgramSelection/components/panels/ProgramSummaryPanel.tsx`
+- **Display**: Right sidebar panel showing selected program details
+- **Shows**:
+  - Program name and organization
+  - Required documents tree structure (collapsible)
+  - Section hierarchy with icons (📕 Title Page, 📑 TOC, 🧾 Sections)
+  - Required indicators (*) for mandatory items
+  - Document structure visualization
+
+#### 5. **PreviewWorkspace.tsx** (Live Document Preview)
+- **Location**: `features/editor/components/Preview/PreviewWorkspace.tsx`
+- **Display**: Center preview pane showing live document rendering
+- **Shows**:
+  - Real-time rendered document pages
+  - Title page with project information
+  - Table of Contents (when product selected)
+  - Content sections as they're written
+  - Special sections: References, Appendices, Lists
+  - Zoom controls (50%-125%)
+  - Watermark overlay (DRAFT)
+  - Bottom tabbed bar: Readiness, Styling, Export
+  - Readiness tab: Status badges for selected product and program
+
+#### 6. **SectionEditor.tsx** (AI Writing Assistant)
+- **Location**: `features/editor/components/Editor/SectionEditor.tsx`
+- **Display**: Right AI assistant panel for section writing
+- **Shows**:
+  - Conversation-style chat interface
+  - Section-specific context and guidance
+  - AI-generated suggestions and improvements
+  - Real-time content updates in preview
+  - Loading indicators during AI processing
+
+#### 7. **TreeNavigator.tsx** (Document Structure)
+- **Location**: `features/editor/components/Navigation/TreeNavigator.tsx`
+- **Display**: Left sidebar navigation tree
+- **Shows**:
+  - Document outline with expandable sections
+  - Active section highlighting
+  - Drag-and-drop reordering capability
+  - Section completion status indicators
+
+---
+
 ### 1. PROGRAM DISCOVERY FLOW (Initial Recommendation)
+
+#### Input Sources:
+- **User**: Completes questionnaire via `ProgramFinder.tsx`
+- **Data**: Answers stored in component state
+- **Trigger**: "Generate Programs" button click
+
+#### Exact Data Transmission:
 
 #### Flow Path:
 ```
@@ -34,6 +119,12 @@ const response = await callCustomLLM({
    - `responseFormat: 'json'` (triggers schema enforcement)
    - `temperature: 0.2` (controls creativity)
    - `maxTokens: 6000` (response length limit)
+
+#### Output/Destination:
+- **API Response**: `/api/programs/recommend` returns `GeneratedProgram[]`
+- **Display**: Results shown in modal within `ProgramFinder.tsx`
+- **Storage**: Programs temporarily stored in component state
+- **Selection**: User clicks program card to trigger selection flow
 
 #### Schema Usage in Program Discovery:
 
@@ -73,6 +164,13 @@ responseSchema: {
 
 ### 2. PROGRAM SELECTION FLOW (Blueprint Generation)
 
+#### Input Sources:
+- **User**: Clicks program card in results modal
+- **Data**: Selected `GeneratedProgram` object + questionnaire answers
+- **Trigger**: Program card click handler
+
+#### Exact Integration Mechanism:
+
 #### Flow Path:
 ```
 ProgramOption.tsx → blueprint.ts API → blueprintGenerator.ts → customLLM.ts → LLM Provider
@@ -106,6 +204,26 @@ const handleProgramSelect = async (selectedProgram) => {
   router.push('/editor');
 };
 ```
+
+#### Blueprint Generation Output:
+- **API Response**: `/api/programs/blueprint` returns `EnhancedBlueprint`
+- **Structure Contains**:
+  - `documents`: Required document list with purposes
+  - `sections`: Hierarchical section structure
+  - `structuredRequirements`: Detailed requirement categories
+  - `financial`: Financial model requirements
+  - `market`: Market analysis requirements
+  - `team`: Team structure requirements
+  - `risk`: Risk assessment requirements
+  - `formatting`: Document formatting rules
+  - `aiGuidance`: Section-specific writing guidance
+  - `diagnostics`: Quality metrics and confidence scores
+
+#### Display in Editor:
+- **ProgramSummaryPanel.tsx**: Shows document structure tree
+- **PreviewWorkspace.tsx**: Renders live document with program requirements
+- **SectionEditor.tsx**: Provides AI assistance tailored to program requirements
+- **TreeNavigator.tsx**: Displays section hierarchy for navigation
 
 2. **blueprint.ts processes the request:**
 ```typescript
@@ -184,6 +302,17 @@ const BLUEPRINT_SCHEMA = {
   }
 };
 ```
+
+#### Component Integration Flow:
+1. **ProgramFinder.tsx** → User completes questionnaire
+2. **recommend.ts** → Processes answers and calls LLM
+3. **ProgramOption.tsx** → Handles program selection
+4. **blueprint.ts** → Generates detailed requirements
+5. **Editor Components** → Display structured requirements:
+   - `ProgramSummaryPanel.tsx` shows document tree
+   - `PreviewWorkspace.tsx` renders live document
+   - `SectionEditor.tsx` provides AI assistance
+   - `TreeNavigator.tsx` enables navigation
 
 ---
 
