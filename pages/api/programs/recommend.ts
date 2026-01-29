@@ -109,11 +109,16 @@ async function generateProgramsWithLLM(
     answers.organisation_type && `Organisation type: ${answers.organisation_type}`,
     answers.company_stage && `Company stage: ${answers.company_stage}`,
     answers.funding_amount && `Funding need: €${answers.funding_amount}`,
+    answers.revenue_status !== undefined && `Revenue: €${answers.revenue_status}`,
     answers.industry_focus && `Industry: ${Array.isArray(answers.industry_focus) ? answers.industry_focus.join(', ') : answers.industry_focus}`,
     answers.co_financing && `Co-financing: ${answers.co_financing === 'co_no' ? 'ONLY grants/subsidies' : 'can accept loans/equity'}`,
     answers.co_financing_percentage && `Co-financing %: ${answers.co_financing_percentage}`,
     answers.legal_form && `Legal form: ${answers.legal_form}`,
     answers.deadline_urgency && `Timeline: ${answers.deadline_urgency}`,
+    answers.use_of_funds && `Use of funds: ${Array.isArray(answers.use_of_funds) ? answers.use_of_funds.join(', ') : answers.use_of_funds}`,
+    answers.impact_focus && `Impact focus: ${Array.isArray(answers.impact_focus) ? answers.impact_focus.join(', ') : answers.impact_focus}`,
+    answers.organisation_type_other && `Org type (other): ${answers.organisation_type_other}`,
+    answers.organisation_type_sub && `Org sub-type: ${answers.organisation_type_sub}`,
   ].filter(Boolean).join('\n');
   
   const fundingPreference = {
