@@ -1,5 +1,7 @@
 # Funding Program Discovery End-to-End Flow
 
+> **See companion document**: [`FILE_RESPONSIBILITY_ARCHITECTURE.md`](./FILE_RESPONSIBILITY_ARCHITECTURE.md) for detailed file-by-file breakdown of exact responsibilities and interactions.
+
 ## Complete Data Flow: Questionnaire to Program Selection
 
 ### 1. Questionnaire Phase (questions.ts)
