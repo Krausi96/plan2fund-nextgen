@@ -144,7 +144,7 @@ export function useSectionEditorState(sectionId: string | null) {
     }
     
     // Regular section lookup
-    return plan.sections?.find(s => s.id === sectionId) || null;
+    return plan.sections?.find((s: any) => s.id === sectionId) || null;
   }, [plan, sectionId]);
   
   return {

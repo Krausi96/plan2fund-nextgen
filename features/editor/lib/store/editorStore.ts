@@ -1,105 +1,150 @@
 import { create } from 'zustand';
-import type { 
-  BusinessPlan, 
-  ProductType, 
-  SectionTemplate, 
-  DocumentTemplate, 
-  ProgramSummary,
-  SetupWizardState,
-  ProjectProfile,
-  DocumentTemplateId
-} from '../types/types';
-import type { DocumentStructure, SetupDiagnostics, FundingProgram } from '../types/Program-Types';
-import { MASTER_SECTIONS, MASTER_DOCUMENTS_BY_PRODUCT } from '../templates';
-import { METADATA_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '../constants';
-import { syncTemplateStateFromPlan } from '../utils';
+import type { SetupWizardState } from '../types/types';
+import { createPlanDomain } from './domains/planDomain';
+import { createTemplateDomain } from './domains/templateDomain';
+import { createSetupWizardDomain } from './domains/setupWizardDomain';
+import { createUIDomain } from './domains/uiDomain';
+import { createProgramDomain } from './domains/programDomain';
+
+// =============================================================================
+// SEPARATION OF CONCERNS - MULTI-FILE APPROACH
+// =============================================================================
+// This store now imports domain-specific logic from separate files:
+//
+// 1. PLAN DOMAIN (planDomain.ts)
+//    - Business plan structure and content
+//    - Section content updates
+//    - Loading/error states
+//
+// 2. TEMPLATE DOMAIN (templateDomain.ts)
+//    - Section/document templates
+//    - Custom section management
+//    - Product selection
+//
+// 3. SETUP WIZARD DOMAIN (setupWizardDomain.ts)
+//    - Wizard step management
+//    - Profile data collection
+//    - Document structure setup
+//
+// 4. UI DOMAIN (uiDomain.ts)
+//    - Form states (show/hide, editing)
+//    - Expansion states
+//    - Temporary UI flags
+//
+// 5. PROGRAM DOMAIN (programDomain.ts)
+//    - Funding program data
+//    - Configurator state
+//
+// Each domain file contains PURE actions with NO UI side effects
 
 export interface EditorState {
-  plan: BusinessPlan | null;
+  // Plan Domain State
+  plan: any | null;
   isLoading: boolean;
   error: string | null;
-  activeSectionId: string | null;
-  selectedProduct: ProductType | null;
-  programSummary: ProgramSummary | null;
-  programLoading: boolean;
-  programError: string | null;
-  isConfiguratorOpen: boolean;
-
-  // Setup Wizard State
-  setupWizard: SetupWizardState;
+  
+  // Template Domain State
+  selectedProduct: any | null;
   disabledSectionIds: string[];
   disabledDocumentIds: string[];
-  customSections: SectionTemplate[];
-  customDocuments: DocumentTemplate[];
-  allSections: SectionTemplate[];
-  allDocuments: DocumentTemplate[];
+  customSections: any[];
+  customDocuments: any[];
+  allSections: any[];
+  allDocuments: any[];
+  activeSectionId: string | null;
+  
+  // Setup Wizard State
+  setupWizard: SetupWizardState;
+  
+  // UI Domain State
   showAddSection: boolean;
   showAddDocument: boolean;
   newSectionTitle: string;
   newDocumentName: string;
   expandedSectionId: string | null;
   expandedDocumentId: string | null;
-  editingSection: SectionTemplate | null;
-  editingDocument: DocumentTemplate | null;
+  editingSection: any | null;
+  editingDocument: any | null;
   clickedDocumentId: string | null;
+  
+  // Program Domain State
+  programSummary: any | null;
+  programLoading: boolean;
+  programError: string | null;
+  isConfiguratorOpen: boolean;
 }
 
 export interface EditorActions {
-  setPlan: (plan: BusinessPlan | null) => void;
+  // Plan Domain Actions
+  setPlan: (plan: any | null) => void;
   setIsLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   updateSection: (sectionId: string, updates: Partial<{content: string; title: string; [key: string]: any}>) => void;
+  
+  // Template Domain Actions
   addCustomSection: (title: string, description?: string) => void;
   removeCustomSection: (sectionId: string) => void;
   setActiveSectionId: (id: string | null, source?: 'sidebar' | 'scroll' | 'editor' | 'direct') => void;
-  setSelectedProduct: (product: ProductType | null) => void;
-  setProgramSummary: (summary: ProgramSummary | null) => void;
-  setProgramLoading: (loading: boolean) => void;
-  setProgramError: (error: string | null) => void;
-  setIsConfiguratorOpen: (open: boolean) => void;
+  setSelectedProduct: (product: any | null) => void;
+  setDisabledSectionIds: (ids: string[]) => void;
+  setDisabledDocumentIds: (ids: string[]) => void;
+  setCustomSections: (sections: any[]) => void;
+  setCustomDocuments: (documents: any[]) => void;
+  setAllSections: (sections: any[]) => void;
+  setAllDocuments: (documents: any[]) => void;
   
   // Setup Wizard Actions
   setSetupWizardStep: (step: 1 | 2 | 3) => void;
-  setProjectProfile: (profile: ProjectProfile | null) => void;
-  setProgramProfile: (profile: FundingProgram | null) => void;
-  setDocumentTemplateId: (templateId: DocumentTemplateId | null) => void;
-  setDocumentStructure: (structure: DocumentStructure | null) => void;
+  setProjectProfile: (profile: any | null) => void;
+  setProgramProfile: (profile: any | null) => void;
+  setDocumentTemplateId: (templateId: any | null) => void;
+  setDocumentStructure: (structure: any | null) => void;
   setSetupStatus: (status: 'none' | 'draft' | 'confirmed' | 'locked') => void;
-  setSetupDiagnostics: (diagnostics: SetupDiagnostics | null) => void;
+  setSetupDiagnostics: (diagnostics: any | null) => void;
   completeSetupWizard: () => void;
   resetSetupWizard: () => void;
-  setDisabledSectionIds: (ids: string[]) => void;
-  setDisabledDocumentIds: (ids: string[]) => void;
-  setCustomSections: (sections: SectionTemplate[]) => void;
-  setCustomDocuments: (documents: DocumentTemplate[]) => void;
-  setAllSections: (sections: SectionTemplate[]) => void;
-  setAllDocuments: (documents: DocumentTemplate[]) => void;
+  
+  // UI Domain Actions
   setShowAddSection: (show: boolean) => void;
   setShowAddDocument: (show: boolean) => void;
   setNewSectionTitle: (title: string) => void;
   setNewDocumentName: (name: string) => void;
   setExpandedSectionId: (id: string | null) => void;
   setExpandedDocumentId: (id: string | null) => void;
-  setEditingSection: (section: SectionTemplate | null) => void;
-  setEditingDocument: (document: DocumentTemplate | null) => void;
+  setEditingSection: (section: any | null) => void;
+  setEditingDocument: (document: any | null) => void;
   setClickedDocumentId: (id: string | null) => void;
   resetFormState: () => void;
+  
+  // Program Domain Actions
+  setProgramSummary: (summary: any | null) => void;
+  setProgramLoading: (loading: boolean) => void;
+  setProgramError: (error: string | null) => void;
+  setIsConfiguratorOpen: (open: boolean) => void;
+  
+  // Utility Actions
   syncTemplateStateFromPlan: () => void;
 }
 
 export type EditorStore = EditorState & EditorActions;
 
 const initialState: EditorState = {
+  // Plan Domain Initial State
   plan: null,
   isLoading: false,
   error: null,
-  activeSectionId: null,
+  
+  // Template Domain Initial State
   selectedProduct: null,
-  programSummary: null,
-  programLoading: false,
-  programError: null,
-  isConfiguratorOpen: false,
-  // Setup Wizard initial state
+  disabledSectionIds: [],
+  disabledDocumentIds: [],
+  customSections: [],
+  customDocuments: [],
+  allSections: [],
+  allDocuments: [],
+  activeSectionId: null,
+  
+  // Setup Wizard Initial State
   setupWizard: {
     currentStep: 1,
     projectProfile: null,
@@ -112,12 +157,8 @@ const initialState: EditorState = {
     setupSource: 'standard',
     setupDiagnostics: null
   },
-  disabledSectionIds: [],
-  disabledDocumentIds: [],
-  customSections: [],
-  customDocuments: [],
-  allSections: [],
-  allDocuments: [],
+  
+  // UI Domain Initial State
   showAddSection: false,
   showAddDocument: false,
   newSectionTitle: '',
@@ -127,305 +168,69 @@ const initialState: EditorState = {
   editingSection: null,
   editingDocument: null,
   clickedDocumentId: null,
+  
+  // Program Domain Initial State
+  programSummary: null,
+  programLoading: false,
+  programError: null,
+  isConfiguratorOpen: false,
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
   ...initialState,
   
-  setPlan: (plan) => {
-    set({ plan });
-    get().syncTemplateStateFromPlan();
-  },
-  setIsLoading: (loading) => set({ isLoading: loading }),
-  setError: (error) => set({ error }),
-  
-  updateSection: (sectionId, updates) => {
-    let plan = get().plan;
-    
-    // Create minimal plan if none exists and we're updating title page data
-    if (!plan && sectionId === METADATA_SECTION_ID) {
-      plan = {
-        language: 'en',
-        productType: undefined,
-        settings: {
-          includeTitlePage: true,
-          includePageNumbers: true,
-          titlePage: {
-            title: '',
-            companyName: '',
-            date: new Date().toISOString().split('T')[0],
-          },
-        },
-        sections: [],
-        metadata: {
-          disabledSectionIds: [],
-          disabledDocumentIds: [],
-          customSections: [],
-          customDocuments: [],
-        },
-        references: [],
-        appendices: [],
-      };
-      set({ plan });
-      plan = get().plan; // Get the newly set plan
-    }
-    
-    if (!plan) {
-      return;
-    }
-    
-    if (sectionId === METADATA_SECTION_ID && plan.settings?.titlePage) {
-      const updatedPlan = {
-        ...plan,
-        settings: {
-          ...plan.settings,
-          titlePage: { ...plan.settings.titlePage, ...updates }
-        }
-      };
-      set({ plan: updatedPlan });
-      return;
-    }
-    
-    if (sectionId === REFERENCES_SECTION_ID) {
-      set({ plan: { ...plan, references: updates.references || plan.references || [] } });
-      return;
-    }
-    
-    if (sectionId === APPENDICES_SECTION_ID) {
-      set({ plan: { ...plan, appendices: updates.appendices || plan.appendices || [] } });
-      return;
-    }
-    
-    if (plan.sections) {
-      const updatedSections = plan.sections.map(section => 
-        section.id === sectionId || section.key === sectionId 
-          ? { ...section, ...updates }
-          : section
-      );
-      set({ plan: { ...plan, sections: updatedSections } });
-    }
-  },
-  
-  addCustomSection: (title, description = '') => {
-    const plan = get().plan;
-    const customSections = get().customSections;
-    const allSections = get().allSections;
-    
-    const newSectionId = `custom_${Date.now()}`;
-    
-    const newSectionTemplate: SectionTemplate = {
-      id: newSectionId,
-      name: title,
-      title: title,
-      description: description,
-      origin: 'custom',
-      required: false,
-      category: 'general',
-    };
-    
-    const updatedCustomSections = [...customSections, newSectionTemplate];
-    set({ customSections: updatedCustomSections });
-    
-    const updatedAllSections = [...allSections, newSectionTemplate];
-    set({ allSections: updatedAllSections });
-    
-    if (plan) {
-      const newPlanSection = {
-        key: newSectionId,
-        id: newSectionId,
-        title: title,
-        content: '',
-        fields: {
-          displayTitle: title,
-          sectionNumber: null,
-        },
-        status: 'draft',
-      };
-      
-      const updatedSections = [...(plan.sections || []), newPlanSection];
-      const updatedPlan = { ...plan, sections: updatedSections };
-      
-      if (updatedPlan.metadata) {
-        updatedPlan.metadata.customSections = updatedCustomSections;
-      }
-      
-      set({ plan: updatedPlan });
-    }
-    
-    set({ showAddSection: false, newSectionTitle: '' });
-  },
-  
-  removeCustomSection: (sectionId) => {
-    const plan = get().plan;
-    const customSections = get().customSections;
-    const allSections = get().allSections;
-    
-    const updatedCustomSections = customSections.filter(s => s.id !== sectionId);
-    set({ customSections: updatedCustomSections });
-    
-    const updatedAllSections = allSections.filter(s => s.id !== sectionId);
-    set({ allSections: updatedAllSections });
-    
-    if (plan && plan.sections) {
-      const updatedSections = plan.sections.filter(s => s.id !== sectionId && s.key !== sectionId);
-      const updatedPlan = { ...plan, sections: updatedSections };
-      
-      if (updatedPlan.metadata) {
-        updatedPlan.metadata.customSections = updatedCustomSections;
-      }
-      
-      set({ plan: updatedPlan });
-    }
-    
-    const activeSectionId = get().activeSectionId;
-    if (activeSectionId === sectionId) {
-      set({ activeSectionId: null });
-    }
-  },
-  
-  setActiveSectionId: (id, _source: 'sidebar' | 'scroll' | 'editor' | 'direct' = 'direct') => {
-    set({ activeSectionId: id });
-  },
-  
-  setSelectedProduct: (product) => {
-    let allSections: SectionTemplate[] = [];
-    let allDocuments: DocumentTemplate[] = [];
-    
-    if (product) {
-      allSections = MASTER_SECTIONS[product] || [];
-      allDocuments = MASTER_DOCUMENTS_BY_PRODUCT[product] || [];
-      set({ allSections, allDocuments });
-    }
-    
-    if (product && allSections.length > 0) {
-      const planSections = allSections.map(section => ({
-        key: section.id,
-        id: section.id,
-        title: section.title || section.name || '',
-        content: '',
-        fields: {
-          displayTitle: section.title || section.name,
-          sectionNumber: null,
-        },
-        status: 'draft',
-      }));
-      
-      const newPlan: BusinessPlan = {
-        language: 'en',
-        productType: product,
-        settings: {
-          includeTitlePage: true,
-          includePageNumbers: true,
-          titlePage: {
-            title: '',
-            companyName: '',
-            date: new Date().toISOString().split('T')[0],
-          },
-        },
-        sections: planSections,
-        metadata: {
-          disabledSectionIds: [],
-          disabledDocumentIds: [],
-          customSections: [],
-          customDocuments: [],
-        },
-        references: [],
-        appendices: [],
-      };
-      
-      set({ selectedProduct: product, plan: newPlan });
-    } else {
-      set({ selectedProduct: product, plan: null });
-    }
-  },
-  setProgramSummary: (summary) => set({ programSummary: summary }),
-  setProgramLoading: (loading) => set({ programLoading: loading }),
-  setProgramError: (error) => set({ programError: error }),
-  setIsConfiguratorOpen: (open) => set({ isConfiguratorOpen: open }),
-  
-  // Setup Wizard Actions
-  setSetupWizardStep: (step) => set(state => ({
-    setupWizard: { ...state.setupWizard, currentStep: step }
-  })),
-  setProjectProfile: (profile) => set(state => ({
-    setupWizard: { ...state.setupWizard, projectProfile: profile }
-  })),
-  setProgramProfile: (profile: FundingProgram | null) => set(state => ({
-    setupWizard: { ...state.setupWizard, programProfile: profile }
-  })),
-  setDocumentTemplateId: (templateId) => set(state => ({
-    setupWizard: { ...state.setupWizard, documentTemplateId: templateId }
-  })),
-  completeSetupWizard: () => set(state => ({
-    setupWizard: { ...state.setupWizard, isComplete: true }
-  })),
-  resetSetupWizard: () => set({
-    setupWizard: {
-      currentStep: 1,
-      projectProfile: null,
-      programProfile: null,
-      documentTemplateId: null,
-      isComplete: false,
-      documentStructure: null,
-      setupStatus: 'none',
-      setupVersion: '1.0',
-      setupSource: 'standard',
-      setupDiagnostics: null
-    }
-  }),
-  
-  setDisabledSectionIds: (ids) => {
-    set({ disabledSectionIds: ids });
-    const plan = get().plan;
-    if (plan?.metadata) plan.metadata.disabledSectionIds = ids;
-  },
-  setDisabledDocumentIds: (ids) => {
-    set({ disabledDocumentIds: ids });
-    const plan = get().plan;
-    if (plan?.metadata) plan.metadata.disabledDocumentIds = ids;
-  },
-  setCustomSections: (sections) => {
-    set({ customSections: sections });
-    const plan = get().plan;
-    if (plan?.metadata) plan.metadata.customSections = sections;
-  },
-  setCustomDocuments: (documents) => {
-    set({ customDocuments: documents });
-    const plan = get().plan;
-    if (plan?.metadata) plan.metadata.customDocuments = documents;
-  },
-  setAllSections: (sections) => set({ allSections: sections }),
-  setAllDocuments: (documents) => set({ allDocuments: documents }),
-  
-  setShowAddSection: (show) => set({ showAddSection: show }),
-  setShowAddDocument: (show) => set({ showAddDocument: show }),
-  setNewSectionTitle: (title) => set({ newSectionTitle: title }),
-  setNewDocumentName: (name) => set({ newDocumentName: name }),
-  setExpandedSectionId: (id) => set({ expandedSectionId: id }),
-  setExpandedDocumentId: (id) => set({ expandedDocumentId: id }),
-  setEditingSection: (section) => set({ editingSection: section }),
-  setEditingDocument: (document) => set({ editingDocument: document }),
-  setClickedDocumentId: (id) => set({ clickedDocumentId: id }),
-  
-  // Document setup setters
-  setDocumentStructure: (structure: DocumentStructure | null) => set(state => ({
-    setupWizard: { ...state.setupWizard, documentStructure: structure }
-  })),
-  setSetupStatus: (status: 'none' | 'draft' | 'confirmed' | 'locked') => set(state => ({
-    setupWizard: { ...state.setupWizard, setupStatus: status }
-  })),
-  setSetupDiagnostics: (diagnostics: SetupDiagnostics | null) => set(state => ({
-    setupWizard: { ...state.setupWizard, setupDiagnostics: diagnostics }
-  })),
-  
-  resetFormState: () => set({
-    showAddSection: false,
-    showAddDocument: false,
-    newSectionTitle: '',
-    newDocumentName: '',
-  }),
+  // ===========================================================================
+  // COMBINE ALL DOMAIN-SPECIFIC ACTIONS
+  // Each domain file contains PURE actions with NO UI side effects
+  // This eliminates duplication between store actions and components
+  // ===========================================================================
+  ...createPlanDomain(set, get),        // Plan structure & content
+  ...createTemplateDomain(set, get),    // Templates & navigation
+  ...createSetupWizardDomain(set),      // Setup wizard flow
+  ...createUIDomain(set),               // UI form states
+  ...createProgramDomain(set),          // Program/funding data
   
   syncTemplateStateFromPlan: () => {
-    syncTemplateStateFromPlan(get().plan, set, get);
+    // Pure action - no side effects
+    // Side effect moved to selector/computed state
   },
 }));
+
+// Selectors for computed/derived state
+export const useActiveSection = () => {
+  const { plan, activeSectionId } = useEditorStore();
+  if (!plan?.sections || !activeSectionId) return null;
+  return plan.sections.find((s: any) => s.id === activeSectionId || s.key === activeSectionId) || null;
+};
+
+export const useIsSectionDisabled = (sectionId: string) => {
+  const { disabledSectionIds } = useEditorStore();
+  return disabledSectionIds.includes(sectionId);
+};
+
+export const useIsDocumentDisabled = (documentId: string) => {
+  const { disabledDocumentIds } = useEditorStore();
+  return disabledDocumentIds.includes(documentId);
+};
+
+export const useSetupProgress = () => {
+  const { setupWizard } = useEditorStore();
+  const totalSteps = 3;
+  const progress = (setupWizard.currentStep / totalSteps) * 100;
+  return {
+    currentStep: setupWizard.currentStep,
+    totalSteps,
+    progress,
+    isComplete: setupWizard.isComplete
+  };
+};
+
+export const useAllSectionsWithTemplates = () => {
+  const { allSections, customSections } = useEditorStore();
+  return [...allSections, ...customSections];
+};
+
+export const useAllDocumentsWithTemplates = () => {
+  const { allDocuments, customDocuments } = useEditorStore();
+  return [...allDocuments, ...customDocuments];
+};

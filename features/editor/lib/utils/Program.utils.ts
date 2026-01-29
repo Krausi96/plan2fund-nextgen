@@ -9,6 +9,37 @@ import type { ProgramSummary } from '../types/types';
 import type { FundingProgram, DocumentStructure, SetupDiagnostics } from '../types/Program-Types';
 
 /**
+ * Normalize program input (URL or ID) to extract program ID.
+ * 
+ * Handles both direct program IDs and URLs containing program IDs.
+ * Used in ProgramSelection component to parse user input.
+ * 
+ * @param input - User input (could be ID or URL)
+ * @returns Normalized program ID or null if invalid
+ */
+export function normalizeProgramInput(input: string): string | null {
+  if (!input || !input.trim()) return null;
+  
+  const trimmed = input.trim();
+  
+  // If it's already a simple ID, return it
+  if (/^[a-zA-Z0-9_-]+$/.test(trimmed)) {
+    return trimmed;
+  }
+  
+  // Try to extract from URL
+  try {
+    const url = new URL(trimmed);
+    // Extract ID from pathname or return hostname
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    return pathParts[pathParts.length - 1] || url.hostname;
+  } catch {
+    // Not a valid URL, return trimmed input
+    return trimmed;
+  }
+}
+
+/**
  * Normalize raw program data into FundingProgram format
  * Processes funding program information for document setup
  */
@@ -121,15 +152,45 @@ export function normalizeProgramSetup(programSummary: ProgramSummary): ProgramSu
 }
 
 /**
- * Normalize raw program data to ProgramProfile format
- * Compatibility wrapper for normalizeFundingProgram
+ * Create minimal ProgramSummary from program data (backward compatibility)
+ * @deprecated Use normalizeFundingProgram() instead for new code
  */
-export function normalizeToProgramProfile(rawProgramData: any) {
-  return normalizeFundingProgram(rawProgramData);
+export function generateProgramBlueprint(programData: any): ProgramSummary {
+  // Simplified version for backward compatibility
+  const mockSummary: ProgramSummary = {
+    id: programData.id || `program_${Date.now()}`,
+    name: programData.name || 'Unnamed Program',
+    type: programData.type || programData.funding_types?.[0] || 'grant',
+    amountRange: programData.amountRange || 
+      (programData.funding_amount_min && programData.funding_amount_max 
+        ? `€${programData.funding_amount_min.toLocaleString()} - €${programData.funding_amount_max.toLocaleString()}`
+        : programData.amountRange),
+    deadline: programData.deadline || null,
+    
+    // Blueprint fields (minimal for compatibility)
+    source: 'program',
+    requiredDocuments: ['business-plan'],
+    requiredSections: ['executive-summary', 'company-description', 'market-analysis', 'financial-plan'],
+    requirementSchemas: [],
+    validationRules: [],
+    formattingRules: [],
+    complianceStrictness: 'medium',
+    programFocus: [],
+    fundingTypes: [],
+    useOfFunds: [],
+    coFinancingRequired: false,
+    region: undefined,
+    organization: undefined,
+    typicalTimeline: undefined,
+    competitiveness: undefined,
+    categorizedRequirements: {}
+  };
+  
+  return mockSummary;
 }
 
 /**
- * Generate DocumentBlueprint from ProgramProfile
+ * Generate DocumentStructure from FundingProgram
  * Creates complete document structure for generation
  */
 export function generateDocumentStructureFromProfile(profile: FundingProgram): DocumentStructure {
@@ -232,266 +293,21 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
   };
 }
 
-export function generateBlueprintFromProfile(profile: FundingProgram): any {
-  // Placeholder implementation - would generate full DocumentBlueprint
-  return {
-    id: `blueprint_${profile.id}`,
-    version: '1.0',
-    source: 'program' as const,
-    documents: [],
-    sections: [],
-    requirements: [],
-    validationRules: [],
-    aiGuidance: [],
-    renderingRules: {},
-    conflicts: [],
-    warnings: [],
-    confidenceScore: 85,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    createdBy: 'setup_utils'
-  };
-}
+// generateBlueprintFromProfile removed - unused placeholder function
 
 /**
- * Parse program information from URL
- * Extracts funding program details from official program websites
+ * Simplified URL validation - removed complex domain-specific parsing
+ * @deprecated Use direct program data input instead
  */
 export async function parseProgramFromUrl(url: string): Promise<any> {
   try {
-    // Extract domain and path information
-    const urlObj = new URL(url);
-    const domain = urlObj.hostname;
-    const path = urlObj.pathname;
-    
-    // Domain-based parsing logic
-    const domainLower = domain.toLowerCase();
-    
-    // AWS parsing
-    if (domainLower.includes('aws.') || domainLower.includes('amazon')) {
-      return parseAwsProgram(url, path);
-    }
-    
-    // Austrian programs
-    if (domainLower.includes('.at') || domainLower.includes('aws.at')) {
-      return parseAustrianProgram(url, domain, path);
-    }
-    
-    // EU programs
-    if (domainLower.includes('europa.eu') || domainLower.includes('ec.europa')) {
-      return parseEuProgram(url, path);
-    }
-    
-    // Generic parser as fallback
-    return parseGenericProgram(url, domain, path);
-    
+    new URL(url); // Basic URL validation
+    console.warn('⚠️ Complex URL parsing removed - use direct program input');
+    return null;
   } catch (error) {
-    console.error('❌ URL parsing failed:', error);
+    console.error('❌ Invalid URL:', error);
     return null;
   }
-}
-
-function parseAwsProgram(url: string, path: string): any {
-  const pathLower = path.toLowerCase();
-  
-  // Determine program type from URL path
-  let programName = 'AWS Funding Program';
-  let programType = 'grant';
-  
-  if (pathLower.includes('innovation') || pathLower.includes('seed')) {
-    programName = 'AWS Innovation Grant';
-    programType = 'grant';
-  } else if (pathLower.includes('activate') || pathLower.includes('startup')) {
-    programName = 'AWS Activate for Startups';
-    programType = 'grant';
-  } else if (pathLower.includes('credit') || pathLower.includes('loan')) {
-    programName = 'AWS Credit Program';
-    programType = 'loan';
-  }
-  
-  return {
-    id: `aws-${Date.now()}`,
-    name: programName,
-    type: programType,
-    organization: 'Amazon Web Services',
-    description: `Program information extracted from ${url}`,
-    source_url: url,
-    // Standard application requirements structure
-    application_requirements: {
-      documents: [
-        {
-          document_name: 'Business Plan',
-          required: true,
-          format: 'pdf',
-          authority: 'AWS',
-          reuseable: false
-        },
-        {
-          document_name: 'Financial Projections',
-          required: true,
-          format: 'excel',
-          authority: 'AWS',
-          reuseable: true
-        },
-        {
-          document_name: 'Technical Documentation',
-          required: true,
-          format: 'pdf',
-          authority: 'External Expert',
-          reuseable: false
-        }
-      ],
-      sections: [
-        {
-          title: 'Executive Summary',
-          required: true,
-          subsections: [
-            { title: 'Project Overview', required: true },
-            { title: 'Innovation Aspects', required: true }
-          ]
-        },
-        {
-          title: 'Technical Description',
-          required: true,
-          subsections: [
-            { title: 'Technology Used', required: true },
-            { title: 'Development Plan', required: true }
-          ]
-        }
-      ],
-      financial_requirements: {
-        financial_statements_required: ['Profit & Loss', 'Cashflow'],
-        years_required: [1, 3],
-        co_financing_proof_required: true,
-        own_funds_proof_required: true
-      }
-    }
-  };
-}
-
-function parseAustrianProgram(url: string, domain: string, _path: string): any {
-  return {
-    id: `at-${Date.now()}`,
-    name: 'Austrian Funding Program',
-    type: 'grant',
-    organization: domain,
-    description: `Austrian program information extracted from ${url}`,
-    source_url: url,
-    application_requirements: {
-      documents: [
-        {
-          document_name: 'Projektbeschreibung',
-          required: true,
-          format: 'pdf',
-          authority: 'Fördergeber',
-          reuseable: false
-        },
-        {
-          document_name: 'Finanzplan',
-          required: true,
-          format: 'excel',
-          authority: 'Fördergeber',
-          reuseable: true
-        }
-      ],
-      sections: [
-        {
-          title: 'Projektübersicht',
-          required: true,
-          subsections: [
-            { title: 'Ziele und Innovation', required: true }
-          ]
-        }
-      ],
-      financial_requirements: {
-        financial_statements_required: ['GuV', 'Liquiditätsplan'],
-        years_required: [1, 2],
-        co_financing_proof_required: true,
-        own_funds_proof_required: false
-      }
-    }
-  };
-}
-
-function parseEuProgram(url: string, _path: string): any {
-  return {
-    id: `eu-${Date.now()}`,
-    name: 'EU Funding Program',
-    type: 'grant',
-    organization: 'European Commission',
-    description: `EU program information extracted from ${url}`,
-    source_url: url,
-    application_requirements: {
-      documents: [
-        {
-          document_name: 'Project Proposal',
-          required: true,
-          format: 'pdf',
-          authority: 'EC',
-          reuseable: false
-        },
-        {
-          document_name: 'Budget Breakdown',
-          required: true,
-          format: 'excel',
-          authority: 'EC',
-          reuseable: false
-        }
-      ],
-      sections: [
-        {
-          title: 'Executive Summary',
-          required: true,
-          subsections: [
-            { title: 'Project Impact', required: true }
-          ]
-        }
-      ],
-      financial_requirements: {
-        financial_statements_required: ['Financial Statement', 'Work Plan'],
-        years_required: [2, 3],
-        co_financing_proof_required: true,
-        own_funds_proof_required: true
-      }
-    }
-  };
-}
-
-function parseGenericProgram(url: string, domain: string, _path: string): any {
-  return {
-    id: `generic-${Date.now()}`,
-    name: `${domain} Program`,
-    type: 'grant',
-    organization: domain,
-    description: `Program information extracted from ${url}`,
-    source_url: url,
-    application_requirements: {
-      documents: [
-        {
-          document_name: 'Application Form',
-          required: true,
-          format: 'pdf',
-          authority: 'Program Provider',
-          reuseable: false
-        }
-      ],
-      sections: [
-        {
-          title: 'Program Application',
-          required: true,
-          subsections: [
-            { title: 'Project Details', required: true }
-          ]
-        }
-      ],
-      financial_requirements: {
-        financial_statements_required: ['Financial Plan'],
-        years_required: [1],
-        co_financing_proof_required: false,
-        own_funds_proof_required: false
-      }
-    }
-  };
 }
 
 /**

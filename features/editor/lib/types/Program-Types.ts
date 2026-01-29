@@ -217,3 +217,43 @@ export interface SetupDiagnostics {
 
 export type SetupStatus = 'none' | 'draft' | 'confirmed' | 'locked';
 export type SetupSource = 'program' | 'template' | 'standard';
+
+/**
+ * ProgramSummary - Unified program data structure
+ * Used for displaying program information and document setup
+ */
+export interface ProgramSummary {
+  id: string;
+  name: string;
+  type?: string;
+  amountRange?: string;
+  deadline?: string;
+  // Document setup enhancement fields
+  source?: 'program' | 'template' | 'standard';
+  requiredDocuments?: string[];
+  requiredSections?: string[];
+  requirementSchemas?: any[];
+  validationRules?: any[];
+  formattingRules?: any[];
+  complianceStrictness?: 'low' | 'medium' | 'high';
+  programFocus?: string[];
+  fundingTypes?: string[];
+  useOfFunds?: string[];
+  coFinancingRequired?: boolean;
+  region?: string;
+  organization?: string;
+  typicalTimeline?: string;
+  competitiveness?: string;
+  categorizedRequirements?: Record<string, any>;
+  // Document setup tracking (new fields)
+  documentStructure?: DocumentStructure;
+  setupStatus?: 'none' | 'draft' | 'confirmed' | 'locked';
+  setupVersion?: string;
+  setupSource?: 'program' | 'template' | 'standard';
+  setupDiagnostics?: {
+    warnings: string[];
+    missingFields: string[];
+    confidence: number;
+  };
+  [key: string]: any;
+}

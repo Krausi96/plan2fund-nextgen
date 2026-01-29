@@ -179,20 +179,26 @@ export {
 
 export {
   shouldIgnoreClick,
-  normalizeProgramInput,
-  generateProgramBlueprint,
-  syncTemplateStateFromPlan,
 } from './utils';
+
+// Program utilities (now in Program.utils.ts)
+export {
+  normalizeProgramInput,
+} from './utils/Program.utils';
 
 // Document Setup utilities
 export {
   normalizeFundingProgram,
-  normalizeProgramSetup,
   migrateLegacySetup,
-  normalizeToProgramProfile,
-  generateBlueprintFromProfile,
   generateDocumentStructureFromProfile,
-  parseProgramFromUrl,
+  // Simplified/deprecated functions
+  parseProgramFromUrl, // @deprecated - use direct program input
+  generateProgramBlueprint, // @deprecated - use normalizeFundingProgram instead
+  // Removed functions (unused):
+  // normalizeProgramSetup - never used
+  // normalizeToProgramProfile - just wrapper for normalizeFundingProgram
+  // generateBlueprintFromProfile - unused placeholder
+  // syncTemplateStateFromPlan - use store actions instead
 } from './utils/Program.utils';
 
 // ============================================================================

@@ -24,8 +24,25 @@
  * ============================================================================
  */
 
-// Import types from setup.types.ts
-import type { FundingProgram, DocumentStructure } from './Program-Types';
+// Import all program-related types from Program-Types.ts (single source of truth)
+import type { 
+  FundingProgram, 
+  DocumentStructure, 
+  SetupDiagnostics, 
+  SetupStatus, 
+  SetupSource,
+  ProgramSummary
+} from './Program-Types';
+
+// Re-export for convenience
+export type { 
+  FundingProgram, 
+  DocumentStructure, 
+  SetupDiagnostics, 
+  SetupStatus, 
+  SetupSource,
+  ProgramSummary
+};
 
 export type ProductType = 'submission' | 'review' | 'strategy';
 
@@ -146,41 +163,7 @@ export type BusinessPlan = PlanDocument;
 // PROGRAM TYPES
 // ============================================================================
 
-export interface ProgramSummary {
-  id: string;
-  name: string;
-  type?: string;
-  amountRange?: string;
-  deadline?: string;
-  // Document setup enhancement fields
-  source?: 'program' | 'template' | 'standard';
-  requiredDocuments?: string[];
-  requiredSections?: string[];
-  requirementSchemas?: any[];
-  validationRules?: any[];
-  formattingRules?: any[];
-  complianceStrictness?: 'low' | 'medium' | 'high';
-  programFocus?: string[];
-  fundingTypes?: string[];
-  useOfFunds?: string[];
-  coFinancingRequired?: boolean;
-  region?: string;
-  organization?: string;
-  typicalTimeline?: string;
-  competitiveness?: string;
-  categorizedRequirements?: Record<string, any>;
-  // Document setup tracking (new fields)
-  documentStructure?: DocumentStructure;
-  setupStatus?: 'none' | 'draft' | 'confirmed' | 'locked';
-  setupVersion?: string;
-  setupSource?: 'program' | 'template' | 'standard';
-  setupDiagnostics?: {
-    warnings: string[];
-    missingFields: string[];
-    confidence: number;
-  };
-  [key: string]: any;
-}
+// ProgramSummary moved to Program-Types.ts for single source of truth
 
 // ProgramProfile functionality moved to setup.types.ts as FundingProgram
 
@@ -288,9 +271,6 @@ export interface ToggleHandlers {
   enabledCount: number;
   totalCount: number;
 }
-
-// DocumentStructure interface moved to setup.types.ts
-// DocumentBlueprint interface REMOVED - redundant with FundingProgram.blueprint
 
 // ============================================================================
 // SETUP WIZARD TYPES
