@@ -1,4 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { z } from 'zod';
+import { createHash } from 'crypto';
+
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
 
 type UserAnswers = Record<string, any>;
 
@@ -48,7 +54,98 @@ interface LLMStats {
   latencyMs?: number;
 }
 
-const REQUIRED_FIELDS = ['location', 'organisation_type', 'funding_amount', 'company_stage'];
+// ============================================================================
+// ZOD VALIDATION SCHEMA
+// ============================================================================
+
+/**
+ * Zod schema for validating user answers from questionnaire
+ * Ensures runtime type safety beyond TypeScript compile-time checks
+ */
+const UserAnswersSchema = z.object({
+  // Required fields (validated at runtime)
+  location: z.string().min(1, 'Location is required'),
+  organisation_type: z.string().min(1, 'Organisation type is required'),
+  funding_amount: z.number().positive('Funding amount must be positive'),
+  company_stage: z.enum(['idea', 'MVP', 'revenue', 'growth']),
+  
+  // Optional fields (with type validation)
+  revenue_status: z.union([z.number().min(0), z.literal(0)]).optional(),
+  revenue_status_category: z.string().optional(),
+  industry_focus: z.array(z.string()).min(1).optional(),
+  co_financing: z.enum(['co_yes', 'co_no', 'co_flexible']).optional(),
+  co_financing_percentage: z.string().optional(),
+  legal_form: z.string().optional(),
+  deadline_urgency: z.string().optional(),
+  use_of_funds: z.array(z.string()).optional(),
+  impact_focus: z.array(z.string()).optional(),
+  organisation_type_other: z.string().optional(),
+  organisation_type_sub: z.enum(['no_company', 'has_company']).optional(),
+  location_region: z.string().optional(),
+  funding_intent: z.string().optional(),
+}).strict(); // Reject unknown fields
+
+// ============================================================================
+// IN-MEMORY CACHE
+// ============================================================================
+
+/**
+ * In-memory cache for program recommendations
+ * Key: SHA-256 hash of normalized answers
+ * Value: { programs, timestamp }
+ * TTL: 1 hour (3600000ms)
+ */
+interface CachedPrograms {
+  programs: GeneratedProgram[];
+  timestamp: number;
+  stats?: LLMStats;
+}
+
+const programCache = new Map<string, CachedPrograms>();
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+
+/**
+ * Generate deterministic cache key from user answers
+ * Normalizes object by sorting keys before hashing
+ */
+function getCacheKey(answers: Record<string, any>): string {
+  // Sort keys for consistent hashing
+  const sortedKeys = Object.keys(answers).sort();
+  const normalized = sortedKeys.reduce((acc, key) => {
+    acc[key] = answers[key];
+    return acc;
+  }, {} as Record<string, any>);
+  
+  const jsonString = JSON.stringify(normalized);
+  return createHash('sha256').update(jsonString).digest('hex');
+}
+
+/**
+ * Clean expired cache entries (called periodically)
+ */
+function cleanExpiredCache(): void {
+  const now = Date.now();
+  let expiredCount = 0;
+  
+  for (const [key, value] of programCache.entries()) {
+    if (now - value.timestamp > CACHE_TTL) {
+      programCache.delete(key);
+      expiredCount++;
+    }
+  }
+  
+  if (expiredCount > 0 && process.env.NODE_ENV !== 'production') {
+    console.log(`[recommend][cache] Cleaned ${expiredCount} expired entries`);
+  }
+}
+
+// Clean cache every 10 minutes
+setInterval(cleanExpiredCache, 10 * 60 * 1000);
+
+// ============================================================================
+// API HANDLER
+// ============================================================================
+
 const DEFAULT_MAX_RESULTS = 10;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -56,43 +153,112 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const answers: UserAnswers = req.body?.answers || {};
-  const maxResults = Number(req.body?.max_results) || DEFAULT_MAX_RESULTS;
+  // ============================================================================
+  // STEP 1: Validate Input with Zod
+  // ============================================================================
+  
+  try {
+    const validatedAnswers = UserAnswersSchema.parse(req.body?.answers || {});
+    const answers = validatedAnswers as UserAnswers;
+    const maxResults = Number(req.body?.max_results) || DEFAULT_MAX_RESULTS;
+    
+    // ============================================================================
+    // STEP 2: Check Cache
+    // ============================================================================
+    
+    const cacheKey = getCacheKey(answers);
+    const cached = programCache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      const cacheAge = Math.floor((Date.now() - cached.timestamp) / 1000);
+      console.log(`[recommend][cache] HIT - key: ${cacheKey.substring(0, 12)}... age: ${cacheAge}s`);
+      
+      return res.status(200).json({
+        success: true,
+        programs: cached.programs.slice(0, maxResults),
+        count: cached.programs.length,
+        cached: true,
+        cacheAge,
+      });
+    }
+    
+    console.log(`[recommend][cache] MISS - key: ${cacheKey.substring(0, 12)}...`);
+    
+    // ============================================================================
+    // STEP 3: Generate Programs with LLM
+    // ============================================================================
+    
+    let generated: GeneratedProgram[] = [];
+    let llmStats: LLMStats | undefined;
 
-  const missingFields = REQUIRED_FIELDS.filter((field) => answers[field] === undefined || answers[field] === null || answers[field] === '');
-  if (missingFields.length > 0) {
-    return res.status(400).json({
-      error: 'Missing required answers',
-      missing: missingFields,
+    try {
+      const generation = await generateProgramsWithLLM(answers, maxResults * 2);
+      generated = generation.programs;
+      llmStats = generation.stats || undefined;
+
+      // Production-ready logging
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[recommend] Generated ${generated.length} programs via ${llmStats?.provider}`);
+      }
+    } catch (error: any) {
+      const llmError = error?.message || 'Unknown LLM error';
+      console.error('[recommend] generateProgramsWithLLM failed:', llmError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to generate programs',
+        details: llmError,
+      });
+    }
+
+    const matching = generated;
+    
+    // ============================================================================
+    // STEP 4: Store in Cache
+    // ============================================================================
+    
+    programCache.set(cacheKey, {
+      programs: matching,
+      timestamp: Date.now(),
+      stats: llmStats,
+    });
+    
+    console.log(`[recommend][cache] SET - key: ${cacheKey.substring(0, 12)}... (${matching.length} programs)`);
+
+    return res.status(200).json({
+      success: true,
+      programs: matching.slice(0, maxResults),
+      count: matching.length,
+      cached: false,
+    });
+    
+  } catch (error) {
+    // ============================================================================
+    // VALIDATION ERROR HANDLING
+    // ============================================================================
+    
+    if (error instanceof z.ZodError) {
+      const fieldErrors = error.issues.map(issue => ({
+        field: issue.path.join('.'),
+        message: issue.message,
+        received: issue.code === 'invalid_type' ? (issue as any).received : undefined,
+      }));
+      
+      console.error('[recommend] Validation failed:', fieldErrors);
+      
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid input data',
+        validation_errors: fieldErrors,
+      });
+    }
+    
+    // Unexpected error
+    console.error('[recommend] Unexpected error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error',
     });
   }
-
-  let generated: GeneratedProgram[] = [];
-  let llmError: string | null = null;
-
-
-  try {
-    const generation = await generateProgramsWithLLM(answers, maxResults * 2);
-    generated = generation.programs;
-
-
-    // Production-ready logging
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`[reco][recommend] Generated ${generated.length} programs`);
-    }
-  } catch (error: any) {
-    llmError = error?.message || 'Unknown LLM error';
-    console.error('generateProgramsWithLLM failed:', llmError);
-  }
-
-  // LLM already matches programs - no fallback needed (simplified)
-  const matching = generated;
-
-  return res.status(200).json({
-    success: true,
-    programs: matching.slice(0, maxResults),
-    count: matching.length,
-  });
 }
 
 async function generateProgramsWithLLM(
@@ -307,42 +473,8 @@ KEY PROGRAMS:
         return { programs: [], raw: rawResponse, stats: lastStats };
       }
 
-      const parsed = parseLLMResponse(responseText);
-      let programs = Array.isArray(parsed?.programs) ? parsed.programs : [];
-
-      // Filter out generic programs before validation
-      const filteredPrograms = programs.filter((program: any) => {
-        const name = (program.name || '').toLowerCase();
-        const isGeneric = 
-          name.includes('general category') ||
-          name.includes('general program') ||
-          name.includes('general grant') ||
-          name.includes('general loan') ||
-          name.includes('general funding') ||
-          name.includes('category of') ||
-          name.includes('represents a category');
-        return !isGeneric && program.name && program.name.length >= 5;
-      });
-
-      // Validate response: must have at least one VALID program
-      if (filteredPrograms.length === 0) {
-        if (attempt < maxAttempts) {
-          console.warn(`[reco][recommend] Attempt ${attempt}: No valid programs, retrying...`);
-          lastRawResponse = rawResponse;
-          continue;
-        } else {
-          // Last attempt failed - log for debugging
-          console.error(
-            `[reco][recommend] All ${maxAttempts} attempts failed. No valid programs (${programs.length} total, ${programs.length - filteredPrograms.length} generic).`
-          );
-          console.error(`[reco][recommend] Final raw response:`, rawResponse?.substring(0, 1000));
-          lastRawResponse = rawResponse;
-          return { programs: [], raw: rawResponse, stats: lastStats };
-        }
-      }
-
-      // Update programs to use valid ones
-      programs = filteredPrograms;
+      const parsed = parseProgramResponse(responseText);
+      const programs = parsed.programs; // Now returns { programs: [] } structure
 
       // Success - return programs
       if (attempt > 1) {
@@ -444,20 +576,12 @@ KEY PROGRAMS:
   // Should not reach here, but handle edge case
   return { programs: [], raw: lastRawResponse, stats: lastStats };
 }
-
+// Using shared parseProgramResponse directly
 // Import shared LLM utilities
 import { parseProgramResponse } from '../../../features/ai/lib/llmUtils';
 
-// Removed summarizeProfile and inferFundingPreference - simplified inline
 
-function parseLLMResponse(responseText: string) {
-  try {
-    return parseProgramResponse(responseText);
-  } catch (error) {
-    console.error('[reco][parseLLMResponse] Failed to parse LLM JSON:', (error as Error).message);
-    return {};
-  }
-}
+
 
 
 

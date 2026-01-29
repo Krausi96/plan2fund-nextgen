@@ -1,7 +1,5 @@
 /**
  * Blueprint Generator Service
- * Converts ProgramProfile to detailed structured requirements
- * Called AFTER program selection, works with existing program data
  * Core responsibility: Generate detailed application requirements from program + user context
  */
 

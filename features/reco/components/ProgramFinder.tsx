@@ -8,9 +8,15 @@ import { Wand2 } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { EnhancedProgramResult, QuestionDefinition, ProgramFinderProps } from '../types';
-import { ALL_QUESTIONS } from '../data/questions';
+import { EnhancedProgramResult, ProgramFinderProps } from '../types';
 import QuestionRenderer from './QuestionRenderer';
+import { 
+  useQuestionFiltering, 
+  useQuestionTranslation, 
+  useAnswerHandling, 
+  useProgramGeneration, 
+  useResultsFiltering 
+} from '../hooks/useQuestionLogic';
 
 export default function ProgramFinder({ 
   onProgramSelect
@@ -18,50 +24,13 @@ export default function ProgramFinder({
   const router = useRouter();
   const { t } = useI18n();
   
-  // Get translated questions
-  const translatedQuestions = useMemo<QuestionDefinition[]>(() => {
-    return ALL_QUESTIONS.map((q) => {
-      const translatedLabel = (t(`reco.questions.${q.id}` as any) as string) || q.label;
-      if (q.type === 'single-select' || q.type === 'multi-select') {
-        const translatedOptions = q.options.map((opt) => ({
-          ...opt,
-          label: (t(`reco.options.${q.id}.${opt.value}` as any) as string) || opt.label,
-        }));
-
-        if (q.type === 'multi-select' && q.subCategories) {
-          const translatedSubCategories = Object.fromEntries(
-            Object.entries(q.subCategories).map(([key, items]) => [
-              key,
-              items.map((subItem) => ({
-                ...subItem,
-                label:
-                  (t(`reco.options.${q.id}.${subItem.value}` as any) as string) ||
-                  subItem.label,
-              })),
-            ])
-          );
-
-          return {
-            ...q,
-            label: translatedLabel,
-            options: translatedOptions,
-            subCategories: translatedSubCategories,
-          };
-        }
-
-        return {
-          ...q,
-          label: translatedLabel,
-          options: translatedOptions,
-        };
-      }
-
-      return {
-        ...q,
-        label: translatedLabel,
-      };
-    });
-  }, [t]);
+  // Use shared hooks for business logic
+  const { translatedQuestions } = useQuestionTranslation();
+  const { getFilteredQuestions } = useQuestionFiltering();
+  const { handleAnswer: sharedHandleAnswer } = useAnswerHandling();
+  const { generatePrograms } = useProgramGeneration();
+  
+  // Component state
   const [results, setResults] = useState<EnhancedProgramResult[]>([]);
   const setEmptyResults = () => setResults([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,85 +38,29 @@ export default function ProgramFinder({
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentStep, setCurrentStep] = useState(0);
   
-  // Get filtered questions based on conditional logic
-  const getFilteredQuestions = useCallback((allQuestions: QuestionDefinition[], currentAnswers: Record<string, any>) => {
-    const isNotRegisteredYet = currentAnswers.organisation_type === 'individual' && 
-                              currentAnswers.organisation_type_sub === 'no_company';
-    const isIdeaStage = currentAnswers.company_stage === 'idea';
-    
-    // Check if organization type is one that should skip revenue
-    const skipRevenueOrgTypes = ['association', 'foundation', 'cooperative', 'public_body', 'research_institution'];
-    const shouldSkipRevenue = skipRevenueOrgTypes.includes(currentAnswers.organisation_type_other);
-    
-    return allQuestions.filter(question => {
-      // Always show organisation_type and company_stage
-      if (question.id === 'organisation_type' || question.id === 'company_stage') return true;
-      
-      // Hide organisation_type_sub - it's shown as sub-options in QuestionRenderer
-      if (question.id === 'organisation_type_sub') return false;
-      
-      // Logic 1: If not registered yet, hide legal_form and revenue_status
-      if (isNotRegisteredYet) {
-        if (question.id === 'legal_form' || question.id === 'revenue_status') return false;
-      }
-      
-      // Logic 2: If idea stage, hide revenue_status
-      if (isIdeaStage && question.id === 'revenue_status') return false;
-      
-      // Logic 3: If organization type should skip revenue, hide revenue_status
-      if (shouldSkipRevenue && question.id === 'revenue_status') return false;
-      
-      // Logic 4: New revenue status logic based on project stage (slider version)
-      if (question.id === 'revenue_status') {
-        const companyStage = currentAnswers.company_stage as string | undefined;
-        
-        // Idea stage: Auto-set to 0 (Pre-Revenue) and hide slider
-        if (companyStage === 'idea') {
-          return false; // Hide the slider entirely
-        }
-        
-        // Not registered yet: Auto-set to 0 (Pre-Revenue) and hide slider
-        if (isNotRegisteredYet) {
-          return false; // Hide the slider entirely
-        }
-        
-        // Organization types that skip revenue: Auto-set to 0 and hide slider
-        if (shouldSkipRevenue) {
-          return false; // Hide the slider entirely
-        }
-        
-        // For all other stages: Show slider with full range
-        return true;
-      }
-      
-      // Show legal_form based on conditions (when not hidden by above logic)
-      if (question.id === 'legal_form') {
-        // If organisation_type = individual, show only if sub-option = has_company
-        if (currentAnswers.organisation_type === 'individual') {
-          return currentAnswers.organisation_type_sub === 'has_company';
-        }
-        
-        // If organisation_type_other is a revenue-skipping type, hide legal_form
-        const skipRevenueOrgTypes = ['association', 'foundation', 'cooperative', 'public_body', 'research_institution'];
-        if (currentAnswers.organisation_type === 'other' && 
-            currentAnswers.organisation_type_other && 
-            skipRevenueOrgTypes.includes(currentAnswers.organisation_type_other)) {
-          return false;
-        }
-        
-        // For other organisation types, show legal_form
-        return currentAnswers.organisation_type && currentAnswers.organisation_type !== 'individual';
-      }
-      
-      // For all other questions, show by default
-      return true;
-    });
-  }, []);
+  // Use shared results filtering
+  const { visibleResults } = useResultsFiltering(results);
+  const hasVisibleResults = visibleResults.length > 0;
   
+  // Get filtered questions using shared hook
   const filteredQuestions = useMemo(() => 
     getFilteredQuestions(translatedQuestions, answers), 
     [translatedQuestions, answers, getFilteredQuestions]
   );
+  
+  // UI-specific: Wrap handleAnswer to include routing logic
+  const handleAnswer = useCallback((questionId: string, value: any) => {
+    sharedHandleAnswer(questionId, value, answers, setAnswers);
+    
+    // UI-specific: Handle planning_only redirect
+    if (questionId === 'funding_intent' && value === 'planning_only') {
+      router.push('/editor');
+    }
+  }, [sharedHandleAnswer, answers, router]);
+  
+  // Navigation logic
+  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, filteredQuestions.length - 1));
+  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
   
   const answersForApi = useMemo(() => {
     const sanitizedAnswers = { ...answers };
@@ -228,95 +141,8 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
   const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS && hasRequiredAnswers;
   const remainingQuestions = Math.max(0, MIN_QUESTIONS_FOR_RESULTS - answeredCount);
   
-  const handleAnswer = useCallback((questionId: string, value: any) => {
-    setAnswers((prevAnswers) => {
-      const newAnswers = { ...prevAnswers };
-
-      if (value === undefined || value === null || value === '') {
-        delete newAnswers[questionId];
-      } else {
-        newAnswers[questionId] = value;
-      }
-
-      // Handle organisation_type and company_stage - derive company_type and company_stage
-      if (questionId === 'organisation_type' || questionId === 'organisation_type_other' || 
-          questionId === 'organisation_type_sub' || questionId === 'company_stage') {
-        const orgType = newAnswers.organisation_type as string | undefined;
-        const orgOther = newAnswers.organisation_type_other as string | undefined;
-        const orgSub = newAnswers.organisation_type_sub as string | undefined;
-        const compStage = newAnswers.company_stage as string | undefined;
-        
-        // Logic 1: Auto-set values when not registered yet
-        const isNotRegisteredYet = orgType === 'individual' && orgSub === 'no_company';
-        if (isNotRegisteredYet) {
-          newAnswers.legal_form = 'not_registered_yet';
-          newAnswers.revenue_status = 0; // Pre-Revenue (0 EUR)
-        }
-        
-        // Logic 2: Auto-set revenue_status for idea stage
-        if (compStage === 'idea') {
-          newAnswers.revenue_status = 0; // Pre-Revenue (0 EUR)
-        }
-        
-        // Logic 3: Auto-set values for organization types that skip revenue
-        const skipRevenueOrgTypes = ['association', 'foundation', 'cooperative', 'public_body', 'research_institution'];
-        const shouldSkipRevenue = orgOther && skipRevenueOrgTypes.includes(orgOther);
-        if (shouldSkipRevenue) {
-          newAnswers.revenue_status = 0; // Pre-Revenue (0 EUR)
-          newAnswers.legal_form = 'research_institution'; // Set appropriate legal form
-        }
-        
-        // Logic 4: Map numeric revenue value to categorical value for API
-        const revenueValue = newAnswers.revenue_status as number | undefined;
-        if (revenueValue !== undefined) {
-          let revenueCategory = 'pre_revenue';
-          if (revenueValue === 0) {
-            revenueCategory = 'pre_revenue';
-          } else if (revenueValue >= 1 && revenueValue <= 250000) {
-            revenueCategory = 'low_revenue';
-          } else if (revenueValue >= 250001 && revenueValue <= 1000000) {
-            revenueCategory = 'early_revenue';
-          } else if (revenueValue >= 1000001 && revenueValue <= 10000000) {
-            revenueCategory = 'growth_revenue';
-          } else if (revenueValue > 10000000) {
-            revenueCategory = 'established_revenue';
-          }
-          newAnswers.revenue_status_category = revenueCategory;
-        }
-        
-        // Auto-set legal_form based on sub-selection (when registered)
-        if (orgType === 'individual' && orgSub === 'has_company') {
-          delete newAnswers.legal_form;
-        }
-        
-        // Reset dependent answers when organisation_type or company_stage changes
-        if (questionId !== 'organisation_type_sub' && questionId !== 'organisation_type_other') {
-          delete newAnswers.legal_form;
-          delete newAnswers.revenue_status;
-        }
-      }
-      
-      // Handle planning_only - redirect immediately
-      if (questionId === 'funding_intent' && value === 'planning_only') {
-        router.push('/editor');
-        return prevAnswers; // Don't update state if redirecting
-      }
-      
-      // LEGACY: Handle old company_type for backward compatibility
-      if (questionId === 'company_type' || questionId === 'company_type_other') {
-        delete newAnswers.company_stage;
-      }
-
-      return newAnswers;
-    });
-
-    // Navigation is now explicit via Next button only
-  }, [router, visibleQuestions]);
-
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, filteredQuestions.length - 1));
-  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
-
-  const generatePrograms = async () => {
+  // UI-specific: Wrap generatePrograms from hook
+  const handleGeneratePrograms = async () => {
     if (!hasEnoughAnswers) {
       if (!hasRequiredAnswers) {
         const requiredList = missingRequiredLabels.join(', ');
@@ -327,90 +153,9 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
       return;
     }
     
-    setIsLoading(true);
-    setHasAttemptedGeneration(true);
-    
-    try {
-      const response = await fetch('/api/programs/recommend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          answers: answersForApi,
-          max_results: 20,
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const missingFields: string[] = Array.isArray(errorData?.missing) ? errorData.missing : [];
-        const missingFieldLabels = missingFields
-          .map((fieldId) => {
-            const question = translatedQuestions.find((q) => q.id === fieldId);
-            return question?.label || fieldId;
-          })
-          .join(', ');
-
-        const message = missingFieldLabels
-          ? ((t('reco.errors.completeFields' as any) as string)?.replace('{fields}', missingFieldLabels) || `Please complete: ${missingFieldLabels}`)
-          : ((t('reco.errors.generationFailed' as any) as string) || 'Could not generate programs. Please try again.');
-        alert(message);
-        setEmptyResults();
-        setIsLoading(false);
-        return;
-      }
-      
-      const data = await response.json();
-      const programs = data.programs || [];
-      
-      if (programs.length === 0) {
-        alert((t('reco.errors.noProgramsFound' as any) as string) || 'No programs found. Please try again.');
-        setEmptyResults();
-        setIsLoading(false);
-        return;
-      }
-      
-      const results: EnhancedProgramResult[] = programs.map((p: any, index: number) => ({
-        id: p.id || `program_${index}`,
-        name: p.name,
-        description: p.metadata?.description || p.description || '',
-        url: p.url || p.source_url || null,
-        region: p.metadata?.region || p.region || null,
-        funding_types: p.funding_types || [],
-        funding_amount_min: p.metadata?.funding_amount_min ?? p.funding_amount_min ?? null,
-        funding_amount_max: p.metadata?.funding_amount_max ?? p.funding_amount_max ?? null,
-        currency: p.metadata?.currency || p.currency || 'EUR',
-        program_focus: p.metadata?.program_focus || p.program_focus || [],
-        company_type: p.company_type || null,
-        company_stage: p.company_stage || null,
-        categorized_requirements: p.categorized_requirements || {},
-      }));
-      
-      if (results.length > 0) {
-        setResults(results);
-      } else {
-        setEmptyResults();
-        alert((t('reco.errors.noProgramsFound' as any) as string) || 'No programs found.');
-      }
-    } catch (error: any) {
-      console.error('Error generating programs:', error);
-      alert((t('reco.errors.generationError' as any) as string) || `Error: ${error.message || 'Unknown error'}`);
-      setEmptyResults();
-    } finally {
-      setIsLoading(false);
-    }
+    // Use shared hook for program generation
+    await generatePrograms(answersForApi, setResults, setEmptyResults, setIsLoading, setHasAttemptedGeneration, t as any);
   };
-
-  // Filter out generic program names
-  const visibleResults = useMemo(() => {
-    return results.filter((program: any) => {
-      const name = (program?.name || '').toLowerCase();
-      return !name.startsWith('general ') && 
-             !name.includes('general grant option') && 
-             !name.includes('general loan option');
-    });
-  }, [results]);
-  const hasVisibleResults = visibleResults.length > 0;
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -495,7 +240,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
               ) : (
                 <button
                   type="button"
-                  onClick={generatePrograms}
+                  onClick={handleGeneratePrograms}
                   disabled={!hasEnoughAnswers || isLoading}
                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
@@ -604,7 +349,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
       <div className="sticky bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-lg z-50 p-4">
         <div className="max-w-5xl mx-auto flex justify-center">
           <button
-            onClick={generatePrograms}
+            onClick={handleGeneratePrograms}
             disabled={isLoading || !hasEnoughAnswers}
             className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400 min-w-[280px]"
             title={!hasEnoughAnswers ? (hasRequiredAnswers

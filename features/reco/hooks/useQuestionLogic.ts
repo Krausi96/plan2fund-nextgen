@@ -216,23 +216,8 @@ export function useProgramGeneration() {
         return;
       }
       
-      const results = programs.map((p: any, index: number) => ({
-        id: p.id || `program_${index}`,
-        name: p.name,
-        description: p.metadata?.description || p.description || '',
-        url: p.url || p.source_url || null,
-        region: p.metadata?.region || p.region || null,
-        funding_types: p.funding_types || [],
-        funding_amount_min: p.metadata?.funding_amount_min ?? p.funding_amount_min ?? null,
-        funding_amount_max: p.metadata?.funding_amount_max ?? p.funding_amount_max ?? null,
-        currency: p.metadata?.currency || p.currency || 'EUR',
-        program_focus: p.metadata?.program_focus || p.program_focus || [],
-        company_type: p.company_type || null,
-        company_stage: p.company_stage || null,
-        categorized_requirements: p.categorized_requirements || {},
-      }));
-      
-      setResults(results);
+      // API returns fully-formed program objects - no mapping needed
+      setResults(programs);
     } catch (error: any) {
       console.error('Error generating programs:', error);
       alert((t('reco.errors.generationError' as any) as string) || `Error: ${error.message || 'Unknown error'}`);

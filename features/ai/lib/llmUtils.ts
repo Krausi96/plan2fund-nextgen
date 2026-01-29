@@ -1,11 +1,9 @@
 /**
  * Shared LLM Utility Functions
- * Eliminates duplication between recommend.ts and blueprintGenerator.ts
  */
 
 /**
  * Sanitize LLM JSON response text
- * Removes markdown formatting and extracts pure JSON
  */
 export function sanitizeLLMResponse(text: string): string {
   let cleaned = text.trim();
@@ -58,11 +56,61 @@ export function parseLLMResponse<T>(
 
 /**
  * Specific parser for program recommendation responses
+ * Returns structured object with programs array and validation metadata
  */
-export function parseProgramResponse(responseText: string) {
-  return parseLLMResponse(responseText, (data: any) => {
-    return Array.isArray(data?.programs) ? data.programs : [];
-  });
+export function parseProgramResponse(responseText: string): { programs: any[] } {
+  // Validate input
+  if (!responseText || typeof responseText !== 'string' || responseText.trim().length === 0) {
+    console.error('[parseProgramResponse] Empty or invalid response text');
+    return { programs: [] };
+  }
+  
+  try {
+    const sanitized = sanitizeLLMResponse(responseText);
+    
+    // Additional validation after sanitization
+    if (!sanitized || sanitized.length === 0) {
+      console.error('[parseProgramResponse] Sanitization produced empty result');
+      return { programs: [] };
+    }
+    
+    const parsed = JSON.parse(sanitized);
+    
+    // Validate parsed structure
+    if (!parsed || typeof parsed !== 'object') {
+      console.error('[parseProgramResponse] Invalid JSON structure - expected object, got:', typeof parsed);
+      return { programs: [] };
+    }
+    
+    // Handle both { programs: [...] } and direct array formats
+    let programs: any[];
+    if (Array.isArray(parsed)) {
+      // Direct array format: [{ name: "...", ... }]
+      programs = parsed;
+    } else if (Array.isArray(parsed.programs)) {
+      // Standard format: { programs: [...] }
+      programs = parsed.programs;
+    } else {
+      console.error('[parseProgramResponse] Missing or invalid programs array in response');
+      return { programs: [] };
+    }
+    
+    // Validate programs array is not empty and contains objects
+    if (programs.length === 0) {
+      console.warn('[parseProgramResponse] Empty programs array returned by LLM');
+    } else if (!programs.every(p => p && typeof p === 'object')) {
+      console.error('[parseProgramResponse] Programs array contains non-object items');
+      return { programs: [] };
+    }
+    
+    return { programs };
+    
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[parseProgramResponse] JSON parse failed:', errorMsg);
+    console.error('[parseProgramResponse] Failed text (first 200 chars):', responseText.substring(0, 200));
+    return { programs: [] };
+  }
 }
 
 /**
