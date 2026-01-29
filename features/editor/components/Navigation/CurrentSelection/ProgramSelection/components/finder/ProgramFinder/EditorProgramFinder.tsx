@@ -155,10 +155,8 @@ export default function EditorProgramFinder({
     const saved = saveSelectedProgram({
       id: programId,
       name: program.name,
-      categorized_requirements: program.categorized_requirements || {},
       type: program.type || (program.funding_types?.[0]) || 'grant',
-      url: (program as any).url || (program as any).source_url || null,
-      description: program.description || (program as any).metadata?.description || '',
+      organization: (program as any).organization || (program as any).provider || null,
       // Include application requirements for document setup
       application_requirements: (program as any).application_requirements || {
         documents: [],

@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { createHash } from 'crypto';
 import { generateEnhancedBlueprint } from '../../../features/ai/services/blueprintGenerator';
 import type { EnhancedBlueprint } from '../../../features/ai/services/blueprintGenerator';
+import { checkBlueprintRateLimit, rateLimitHeaders, rateLimitExceededResponse } from '@/shared/lib/rateLimit';
 
 // ============================================================================
 // ZOD VALIDATION SCHEMA
@@ -93,6 +94,23 @@ setInterval(cleanExpiredBlueprintCache, 60 * 60 * 1000);
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // ============================================================================
+  // RATE LIMIT CHECK
+  // ============================================================================
+  
+  const rateLimitResult = checkBlueprintRateLimit(req);
+  
+  // Set rate limit headers on all responses
+  Object.entries(rateLimitHeaders(rateLimitResult)).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
+  
+  if (!rateLimitResult.allowed) {
+    console.warn(`[blueprint] Rate limit exceeded for IP`);
+    const response = rateLimitExceededResponse(rateLimitResult);
+    return res.status(429).json(response);
   }
 
   // ============================================================================

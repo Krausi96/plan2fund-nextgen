@@ -1,6 +1,28 @@
 import React from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 import type { PlanDocument, PlanSection } from '@/features/editor/lib';
 import { PAGE_STYLE, calculatePageNumber, formatTableLabel, shouldDisplayPageNumber } from '@/features/editor/lib';
+
+/**
+ * Sanitize HTML content to prevent XSS attacks
+ * All user-provided and LLM-generated content must be sanitized before rendering
+ */
+function sanitizeContent(content: string): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+  return DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'em', 'u', 's', 'strike',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li', 'blockquote',
+      'a', 'span', 'div',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'img', 'figure', 'figcaption'
+    ],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'id', 'src', 'alt', 'title']
+  });
+}
 
 interface SectionRendererProps {
   section: PlanSection;
@@ -32,7 +54,10 @@ export function SectionRenderer({ section, sectionIndex, planDocument, previewMo
           </div>
           <div className={`prose max-w-none flex-1 overflow-y-auto min-h-0 ${previewMode === 'formatted' ? 'font-serif' : 'font-sans'}`}>
             {hasContent ? (
-              <div className="text-gray-800 leading-relaxed" dangerouslySetInnerHTML={{ __html: section.content || '' }} />
+              <div 
+                className="text-gray-800 leading-relaxed" 
+                dangerouslySetInnerHTML={{ __html: sanitizeContent(section.content || '') }} 
+              />
             ) : (
               <div className="text-sm text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">No content available for this section</div>
             )}

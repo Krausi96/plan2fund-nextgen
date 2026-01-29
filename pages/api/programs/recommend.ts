@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { createHash } from 'crypto';
+import { checkRecommendRateLimit, rateLimitHeaders, rateLimitExceededResponse } from '@/shared/lib/rateLimit';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -151,6 +152,23 @@ const DEFAULT_MAX_RESULTS = 10;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // ============================================================================
+  // RATE LIMIT CHECK
+  // ============================================================================
+  
+  const rateLimitResult = checkRecommendRateLimit(req);
+  
+  // Set rate limit headers on all responses
+  Object.entries(rateLimitHeaders(rateLimitResult)).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
+  
+  if (!rateLimitResult.allowed) {
+    console.warn(`[recommend] Rate limit exceeded for IP`);
+    const response = rateLimitExceededResponse(rateLimitResult);
+    return res.status(429).json(response);
   }
 
   // ============================================================================
