@@ -1,9 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { z } from 'zod';
+import DOMPurify from 'isomorphic-dompurify';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { normalizeProgramInput, generateProgramBlueprint, normalizeFundingProgram, generateDocumentStructureFromProfile } from '@/features/editor/lib';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
+import { createFallbackBlueprint } from '@/features/ai/lib/blueprintUtils';
+import { saveSelectedProgram } from '@/features/reco/lib/programPersistence';
+
+// Zod schema for manual program input validation
+const ManualProgramInputSchema = z.object({
+  id: z.string().min(1, 'Program ID is required').max(200, 'Program ID too long'),
+  name: z.string().min(1, 'Program name is required').max(300, 'Program name too long'),
+  funding_amount: z.number().positive('Funding amount must be positive').optional(),
+  organization: z.string().optional(),
+});
+
+type ManualProgramInput = z.infer<typeof ManualProgramInputSchema>;
 
 interface ProgramOptionProps {
   connectCopy?: any;
@@ -37,9 +51,32 @@ export function ProgramOption({
 
   const handleManualConnect = async () => {
     setManualError(null);
-    const normalized = normalizeProgramInput(manualValue);
+    
+    // XSS Sanitization: Clean user input before processing
+    const sanitizedInput = DOMPurify.sanitize(manualValue.trim());
+    
+    const normalized = normalizeProgramInput(sanitizedInput);
     if (!normalized) {
       setManualError(connectCopy?.error || 'Invalid input');
+      return;
+    }
+    
+    // Validate manual program input with Zod
+    const programInput: ManualProgramInput = {
+      id: normalized,
+      name: `Program: ${DOMPurify.sanitize(normalized)}`,
+      organization: 'Manual Entry'
+    };
+    
+    try {
+      ManualProgramInputSchema.parse(programInput);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors = error.issues.map(issue => issue.message).join(', ');
+        setManualError(`Validation failed: ${fieldErrors}`);
+        return;
+      }
+      setManualError('Invalid program input');
       return;
     }
     
@@ -86,20 +123,14 @@ export function ProgramOption({
       }
     };
     
-    // Save program selection for seamless flow
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('selectedProgram', JSON.stringify({
-          id: programData.id,
-          name: programData.name,
-          type: programData.type,
-          organization: programData.organization,
-          application_requirements: programData.application_requirements
-        }));
-      } catch (error) {
-        console.warn('Could not save program selection:', error);
-      }
-    }
+    // Save program selection using shared persistence helper
+    saveSelectedProgram({
+      id: programData.id,
+      name: programData.name,
+      type: programData.type,
+      organization: programData.organization,
+      application_requirements: programData.application_requirements
+    });
     
     // Generate document structure using new pipeline
     try {
@@ -157,17 +188,44 @@ export function ProgramOption({
           });
         }
       } catch (blueprintError) {
-        console.warn('[ProgramOption] Blueprint generation failed, using basic structure:', blueprintError);
-        // Set basic blueprint status
+        console.warn('[ProgramOption] Blueprint generation failed, using fallback structure:', blueprintError);
+        
+        // Use shared fallback blueprint utility
+        const fallbackBlueprint = createFallbackBlueprint({
+          id: fundingProgram.id,
+          name: fundingProgram.name,
+          description: fundingProgram.rawData?.description,
+          funding_types: fundingProgram.fundingTypes
+        });
+        
+        // Store fallback blueprint
         Object.assign(fundingProgram, {
-          blueprintStatus: 'none' as const,
+          blueprint: fallbackBlueprint,
+          blueprintVersion: '1.0',
+          blueprintStatus: 'fallback' as const,
           blueprintSource: 'myproject' as const,
           blueprintDiagnostics: {
-            warnings: ['Enhanced blueprint generation failed'],
-            missingFields: ['Detailed requirements'],
-            confidence: 60
+            warnings: ['Enhanced blueprint generation failed - using fallback structure'],
+            missingFields: ['Detailed program requirements'],
+            confidence: fallbackBlueprint.diagnostics.confidenceScore
           }
         });
+        
+        // Merge fallback with document structure
+        Object.assign(documentStructure, {
+          enhancedRequirements: fallbackBlueprint.structuredRequirements || [],
+          financialDetails: fallbackBlueprint.financial || {},
+          marketAnalysis: fallbackBlueprint.market || {},
+          teamRequirements: fallbackBlueprint.team || {},
+          riskAssessment: fallbackBlueprint.risk || {},
+          formattingRules: fallbackBlueprint.formatting || {},
+          aiGuidance: fallbackBlueprint.aiGuidance || {},
+          diagnostics: fallbackBlueprint.diagnostics || {}
+        });
+        
+        // Show user-visible warning (non-blocking)
+        setManualError('Blueprint generated with basic structure. Some details may be limited.');
+        setTimeout(() => setManualError(null), 5000); // Clear after 5 seconds
       }
       
       // Step 4: Update store with complete data

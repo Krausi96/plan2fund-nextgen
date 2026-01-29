@@ -10,7 +10,9 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import { EnhancedProgramResult } from '@/features/reco/types';
 import QuestionRenderer from '@/features/reco/components/QuestionRenderer';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
-// Removed unused imports
+import { saveSelectedProgram } from '@/features/reco/lib/programPersistence';
+import { MIN_ANSWERED_QUESTIONS } from '@/features/reco/lib/config';
+import styles from './EditorProgramFinder.module.css';
 import { 
   useQuestionFiltering, 
   useQuestionTranslation, 
@@ -76,7 +78,7 @@ export default function EditorProgramFinder({
     answers[key] !== undefined && answers[key] !== ''
   ).length;
 
-  const hasEnoughAnswers = answeredCount >= 5;
+  const hasEnoughAnswers = answeredCount >= MIN_ANSWERED_QUESTIONS;
   
   // Prefill answers from MyProject data - exact copy with enhanced logic
   useEffect(() => {
@@ -146,75 +148,38 @@ export default function EditorProgramFinder({
   
   // Mock example handler - demonstrates CustomLLM output structure
 
-  // Reused program persistence logic from Reco - enhanced for seamless flow
+  // Use shared program persistence helper
   const persistSelectedProgram = useCallback((program: EnhancedProgramResult) => {
-    if (typeof window === 'undefined') return;
     const programId = program.id || `program_${Date.now()}`;
-    try {
-      localStorage.setItem('selectedProgram', JSON.stringify({
-        id: programId,
-        name: program.name,
-        categorized_requirements: program.categorized_requirements || {},
-        type: program.type || (program.funding_types?.[0]) || 'grant',
-        url: (program as any).url || (program as any).source_url || null,
-        description: program.description || (program as any).metadata?.description || '',
-        // Include application requirements for document setup
-        application_requirements: (program as any).application_requirements || {
-          documents: [],
-          sections: [],
-          financial_requirements: {
-            financial_statements_required: [],
-            years_required: [],
-            co_financing_proof_required: false,
-            own_funds_proof_required: false
-          }
+    
+    const saved = saveSelectedProgram({
+      id: programId,
+      name: program.name,
+      categorized_requirements: program.categorized_requirements || {},
+      type: program.type || (program.funding_types?.[0]) || 'grant',
+      url: (program as any).url || (program as any).source_url || null,
+      description: program.description || (program as any).metadata?.description || '',
+      // Include application requirements for document setup
+      application_requirements: (program as any).application_requirements || {
+        documents: [],
+        sections: [],
+        financial_requirements: {
+          financial_statements_required: [],
+          years_required: [],
+          co_financing_proof_required: false,
+          own_funds_proof_required: false
         }
-      }));
-      
+      }
+    });
+    
+    if (saved) {
       // Auto-redirect to editor after program selection
       router.push('/editor?product=submission');
-    } catch (error) {
-      console.warn('Could not save program to localStorage:', error);
     }
   }, [router]);
 
   return (
     <div className="w-full relative">
-      <style>{`
-        /* Dark theme for question renderer */
-        .question-container .bg-white { background-color: transparent !important; }
-        .question-container .border-2.border-blue-200 { border-width: 0 !important; box-shadow: none !important; }
-        .question-container .p-6 { padding: 0.5rem !important; } /* Reduce from p-6 (1.5rem) to p-2 (0.5rem) */
-        .question-container .text-gray-900 { color: white !important; }
-        .question-container .text-xl.font-semibold { color: white !important; }
-        .question-container .bg-white.border-gray-300 { 
-          background-color: rgb(51 65 85 / 0.5) !important; 
-          border-color: rgb(71 85 105) !important; 
-          color: rgb(241 245 249) !important; 
-        }
-        .question-container .bg-blue-600 { 
-          background-color: rgb(147 51 234) !important; 
-          border-color: rgb(147 51 234) !important; 
-        }
-        .question-container .text-gray-700 { color: rgb(203 213 225) !important; }
-        .question-container .text-gray-800 { color: rgb(226 232 240) !important; }
-        .question-container .text-gray-600 { color: rgb(190 204 217) !important; }
-        .question-container .text-sm { color: rgb(203 213 225) !important; }
-        .question-container button span { color: inherit !important; }
-        .question-container div > span:not(.font-bold) { color: rgb(203 213 225) !important; }
-        .question-container input.border-gray-300 { 
-          background-color: rgb(51 65 85) !important; 
-          border-color: rgb(71 85 105) !important; 
-          color: white !important; 
-        }
-        .question-container input.border-gray-300::placeholder { color: rgb(148 163 184) !important; }
-        .question-container .bg-gray-50 { background-color: rgb(51 65 85) !important; }
-        .question-container .hover\:bg-gray-100:hover { background-color: rgb(71 85 105) !important; }
-        .question-container { width: 100% !important; overflow-x: hidden !important; box-sizing: border-box !important; }
-        /* Reduce button padding to prevent cutoff */
-        .question-container button.px-4 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
-        .question-container button.px-3 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
-      `}</style>
       <div className="w-full px-2 py-2">
         <div className="flex flex-col gap-2 w-full">
           <div className="p-3 w-full bg-slate-800/70 border border-slate-700 shadow-xl min-h-[650px] flex flex-col relative rounded-xl backdrop-blur-sm">
@@ -340,7 +305,7 @@ export default function EditorProgramFinder({
               {/* Single Question Display */}
               <div className="flex-col justify-start overflow-auto flex-1 pb-3 w-full px-1">
                 {visibleQuestions[currentStep] && (
-                  <div className="question-container w-full max-w-full">
+                  <div className={styles.questionContainer}>
                     <QuestionRenderer
                       key={visibleQuestions[currentStep].id}
                       question={visibleQuestions[currentStep]}
