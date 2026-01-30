@@ -362,6 +362,7 @@ export default function TreeNavigator() {
               }`}
             >
               <span>+</span>
+              <span>🧾</span>
               <span>{t('editor.desktop.documents.addButton' as any) || 'Add Document'}</span>
             </button>
             
