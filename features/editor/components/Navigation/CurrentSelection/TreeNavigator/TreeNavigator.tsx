@@ -355,7 +355,7 @@ export default function TreeNavigator() {
             <button
               type="button"
               onClick={safeDocumentsBarActions.toggleAddDocument}
-              className={`w-full py-2 rounded transition-colors text-sm font-medium flex items-center justify-center gap-2 ${
+              className={`relative w-full px-3 py-2 rounded transition-colors text-sm font-medium flex items-center justify-center gap-2 ${
                 showAddDocument 
                   ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
                   : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
