@@ -74,5 +74,5 @@ export const createSetupWizardDomain = (set: any): SetupWizardActions => ({
       setupDiagnostics: null,
       inferredProductType: null
     }
-  }),
+  })
 });

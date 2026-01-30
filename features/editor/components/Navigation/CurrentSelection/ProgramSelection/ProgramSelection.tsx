@@ -23,10 +23,10 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Option A: Select Program */}
         <div 
-          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
+          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
             selectedOption === 'program' 
-              ? 'border-blue-400 bg-slate-700/70' 
-              : 'border-slate-600 hover:border-blue-400 hover:bg-slate-700/60'
+              ? 'border-blue-400 bg-blue-500/20 ring-2 ring-blue-400/50' 
+              : 'border-slate-600 opacity-60 hover:opacity-100 backdrop-blur-sm'
           }`}
           onClick={() => onSelect('program')}
         >
@@ -43,10 +43,10 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
         
         {/* Option B: Use Own Template */}
         <div 
-          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
+          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
             selectedOption === 'template' 
-              ? 'border-purple-400 bg-slate-700/70' 
-              : 'border-slate-600 hover:border-purple-400 hover:bg-slate-700/60'
+              ? 'border-purple-400 bg-purple-500/20 ring-2 ring-purple-400/50' 
+              : 'border-slate-600 opacity-60 hover:opacity-100 backdrop-blur-sm'
           }`}
           onClick={() => onSelect('template')}
         >
@@ -63,10 +63,10 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
         
         {/* Option C: Start Free (Custom) */}
         <div 
-          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
+          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
             selectedOption === 'free' 
-              ? 'border-green-400 bg-slate-700/70' 
-              : 'border-slate-600 hover:border-green-400 hover:bg-slate-700/60'
+              ? 'border-green-400 bg-green-500/20 ring-2 ring-green-400/50' 
+              : 'border-slate-600 opacity-60 hover:opacity-100 backdrop-blur-sm'
           }`}
           onClick={() => onSelect('free')}
         >
@@ -360,7 +360,21 @@ export default function ProgramSelection({
       {/* Option Selector */}
       <OptionSelector 
         selectedOption={selectedOption} 
-        onSelect={setSelectedOption} 
+        onSelect={(option) => {
+          // If switching to different option, clear all state first
+          if (selectedOption && selectedOption !== option) {
+            // Clear all related state
+            configuratorState.actions.setProgramSummary(null);
+            setProgramProfile(null);
+            setDocumentStructure(null);
+            setSetupStatus('none');
+            setSetupDiagnostics(null);
+            setInferredProductType(null);
+          }
+          
+          // Set new selection
+          setSelectedOption(option);
+        }} 
       />
       
       {/* Two-Column Layout */}
@@ -370,36 +384,6 @@ export default function ProgramSelection({
           {/* Selected Option Content */}
           {selectedOption && (
             <div className="bg-slate-800/30 rounded-xl border border-white/10 p-6">
-              <h3 className="text-white font-bold text-lg mb-4">
-                {selectedOption === 'program' && (t('editor.desktop.program.selectProgramTitle' as any) || 'Select Program')}
-                {selectedOption === 'template' && (
-                  <div>
-                    <h4 className="text-white font-bold text-lg mb-4">
-                      {t('editor.desktop.program.useOwnTemplateTitle' as any) || 'Use Own Template'}
-                    </h4>
-                    <TemplateOption 
-                      onDocumentAnalyzed={(analysis) => {
-                        console.log('Template analysis complete:', analysis);
-                      }}
-                    />
-                  </div>
-                )}
-                {selectedOption === 'free' && (
-                  <div>
-                    <h4 className="text-white font-bold text-lg mb-4">
-                      {t('editor.desktop.program.startFreeTitle' as any) || 'Start Free (Custom)'}
-                    </h4>
-                    <FreeOption 
-                      onStructureSelected={(structure) => {
-                        console.log('Free structure selected:', structure);
-                      }}
-                      onProductSelected={(product) => {
-                        console.log('Product selected in free option:', product);
-                      }}
-                    />
-                  </div>
-                )}
-              </h3>
               
               {/* Horizontal Program Tabs (for Program option) */}
               {selectedOption === 'program' && (
@@ -491,6 +475,27 @@ export default function ProgramSelection({
                     )}
                   </div>
                 </div>
+              )}
+              
+              {/* Template Content */}
+              {selectedOption === 'template' && (
+                <TemplateOption 
+                  onDocumentAnalyzed={(analysis) => {
+                    console.log('Template analysis complete:', analysis);
+                  }}
+                />
+              )}
+              
+              {/* Free Content */}
+              {selectedOption === 'free' && (
+                <FreeOption 
+                  onStructureSelected={(structure) => {
+                    console.log('Free structure selected:', structure);
+                  }}
+                  onProductSelected={(product) => {
+                    console.log('Product selected in free option:', product);
+                  }}
+                />
               )}
               
 

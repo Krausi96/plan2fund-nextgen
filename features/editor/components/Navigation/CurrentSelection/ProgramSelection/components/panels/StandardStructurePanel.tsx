@@ -39,30 +39,6 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
   // Handle case when no documents exist but we have product type
   const hasTemplateStructure = setupWizard.inferredProductType && getRequiredDocuments().length === 0;
 
-  // Helper function to convert structure ID to human-readable name
-  const getStructureDisplayName = () => {
-    if (!documentStructure?.structureId) return 'Custom structure';
-    
-    const structureId = documentStructure.structureId;
-    
-    // Extract structure type from ID (format: standard-{type}-{timestamp})
-    const match = structureId.match(/^standard-([^-]+)-\d+$/);
-    if (match) {
-      const type = match[1];
-      const structureNames: Record<string, string> = {
-        'business-plan': t('editor.desktop.program.document.businessPlan') + ' (Submission)',
-        'strategy': t('editor.desktop.program.document.strategyDocument')
-        // NOTE: pitch-deck removed as it's not a valid product type
-      };
-      return structureNames[type] || `${type.replace(/-/g, ' ')} Structure`;
-    }
-    
-    // Fallback for other formats
-    return structureId.replace(/^standard-/, '').replace(/-\d+$/, '').replace(/-/g, ' ');
-  };
-
-
-
   // Only show structure data when free option is selected AND we have standard structure data
   const hasStructureData = selectedOption === 'free' && !!documentStructure?.source && documentStructure.source === 'standard';
   
@@ -132,30 +108,16 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
 
       {/* Standard Content */}
       {hasStructureData && (
-        <div className="space-y-4 mb-4 flex-1">
+        <div className="space-y-3 mb-4 flex-1">
           
-          {/* Selected Structure Display */}
-          <div className="bg-slate-800/50 rounded-xl border border-green-400/30 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-500/30 flex items-center justify-center flex-shrink-0 border-2 border-green-400">
-                <span className="text-green-300 text-lg">✓</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-white font-semibold text-base mb-1 truncate" title={getStructureDisplayName()}>
-                  Selected: {getStructureDisplayName()}
-                </h3>
-                <p className="text-green-300 text-xs truncate">
-                  Standard document structure (Product Type: {setupWizard.inferredProductType || 'unknown'})
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Document Tree Structure */}
-          <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-green-300 text-lg">📁</span>
-              <h4 className="text-green-200 font-semibold text-base flex-1">Document Structure</h4>
+          {/* Document Tree Structure - WITH SELECTED INDICATOR */}
+          <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-green-300 text-base">📁</span>
+              <h4 className="text-green-200 font-semibold text-sm flex-1">Document Structure</h4>
+              <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full font-medium">
+                Selected
+              </span>
             </div>
                       
             <div className="space-y-2 ml-2">

@@ -82,6 +82,10 @@ export function useEditorActions<T>(selector: (actions: any) => T): T {
       setProjectProfile: state.setProjectProfile,
       setProgramProfile: state.setProgramProfile,
       setDocumentTemplateId: state.setDocumentTemplateId,
+      setDocumentStructure: state.setDocumentStructure,
+      setSetupStatus: state.setSetupStatus,
+      setSetupDiagnostics: state.setSetupDiagnostics,
+      setInferredProductType: state.setInferredProductType,
       completeSetupWizard: state.completeSetupWizard,
       resetSetupWizard: state.resetSetupWizard,
       // Removed: setTemplateLoading (not used - property removed from store)
