@@ -6,7 +6,8 @@ import {
   useEditorStore,
   getSectionTitle,
 } from '@/features/editor/lib';
-import { AddSectionForm, TreeNodeRenderer, type TreeNode } from './components';
+import { AddSectionForm, TreeNodeRenderer } from './components';
+import type { TreeNode } from '@/features/editor/lib/types/types';
 
 export default function TreeNavigator() {
   const { t } = useI18n();

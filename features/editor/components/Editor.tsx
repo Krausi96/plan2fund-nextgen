@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-
-import TreeNavigator from './Navigation/TreeNavigator';
+import TreeNavigator from './Navigation/CurrentSelection/TreeNavigator/TreeNavigator';
 import PreviewWorkspace from './Preview/PreviewWorkspace';
 import SectionEditor from './Editor/SectionEditor';
 import { 
