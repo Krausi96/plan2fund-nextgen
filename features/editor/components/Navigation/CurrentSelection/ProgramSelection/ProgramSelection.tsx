@@ -102,6 +102,7 @@ export default function ProgramSelection({
   const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
   const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
   const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
+  const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
   
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
@@ -503,25 +504,57 @@ export default function ProgramSelection({
         <div className="lg:w-5/12">
           {selectedOption === 'program' && (
             <ProgramSummaryPanel 
-              onGenerate={() => console.log('Refresh program summary')}
-              onEdit={() => console.log('Edit program summary')}
-              onClear={() => console.log('Clear program summary')}
+              onClear={() => {
+                console.log('🗑️ Clearing program summary - updating to empty state');
+                console.log('BEFORE CLEAR - programSummary:', configuratorState.programSummary);
+                console.log('BEFORE CLEAR - setupWizard.programProfile:', setupWizard.programProfile);
+                
+                // Clear ALL program-related data
+                configuratorState.actions.setProgramSummary(null);
+                setProgramProfile(null);
+                
+                // Also clear any document structure that might be related
+                setDocumentStructure(null);
+                setSetupStatus('none');
+                setSetupDiagnostics(null);
+                
+                // CRITICAL: Clear localStorage persistence to prevent auto-reinitialization
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('selectedProgram');
+                }
+                
+                console.log('AFTER CLEAR - programSummary:', configuratorState.programSummary);
+                console.log('AFTER CLEAR - setupWizard.programProfile:', setupWizard.programProfile);
+                
+                // Keep panel open and selection intact
+              }}
             />
           )}
           {selectedOption === 'template' && (
             <TemplateStructurePanel 
               selectedOption={selectedOption}
-              onGenerate={() => console.log('Reanalyze template')} 
-              onEdit={() => console.log('Edit template structure')} 
-              onClear={() => console.log('Clear template analysis')} 
+              onClearTemplate={() => {
+                console.log('🗑️ Clearing template structure - updating to empty state');
+                // Clear the document structure
+                setDocumentStructure(null);
+                setSetupStatus('none');
+                setSetupDiagnostics(null);
+                // Keep panel open and selection intact
+              }}
             />
           )}
           {selectedOption === 'free' && (
             <StandardStructurePanel 
               selectedOption={selectedOption}
-              onGenerate={() => console.log('Regenerate standard structure')} 
-              onEdit={() => console.log('Edit standard structure')} 
-              onClear={() => console.log('Clear standard structure')} 
+              onClearStructure={() => {
+                console.log('🗑️ Clearing standard structure - updating to empty state');
+                // Clear the document structure
+                setDocumentStructure(null);
+                setSetupStatus('none');
+                setSetupDiagnostics(null);
+                setInferredProductType(null);
+                // Keep panel open and selection intact
+              }}
             />
           )}
         </div>

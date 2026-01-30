@@ -2,13 +2,12 @@ import React, { useCallback } from 'react';
 import { useEditorStore } from '@/features/editor/lib';
 
 interface TemplateStructurePanelProps {
-  onGenerate?: () => void;
-  onEdit?: () => void;
-  onClear?: () => void;
   selectedOption?: 'program' | 'template' | 'free' | null;
+  // Add callback props for actual functionality
+  onClearTemplate?: () => void;
 }
 
-export function TemplateStructurePanel({ onGenerate, onEdit, onClear, selectedOption }: TemplateStructurePanelProps) {
+export function TemplateStructurePanel({ selectedOption, onClearTemplate }: TemplateStructurePanelProps) {
   const setupWizard = useEditorStore((state) => state.setupWizard);
   const documentStructure = setupWizard.documentStructure;
   
@@ -33,9 +32,6 @@ export function TemplateStructurePanel({ onGenerate, onEdit, onClear, selectedOp
   // Only show template data when template option is selected AND we have template data
   const hasTemplateData = selectedOption === 'template' && !!documentStructure?.source && documentStructure.source === 'template';
   
-  // Collapsible state management
-  const [expandedDocuments, setExpandedDocuments] = React.useState<Record<string, boolean>>({});
-  
   // Toggle document expansion
   const toggleDocument = (docId: string) => {
     setExpandedDocuments(prev => ({
@@ -44,15 +40,48 @@ export function TemplateStructurePanel({ onGenerate, onEdit, onClear, selectedOp
     }));
   };
 
+  // Actual clear functionality - UPDATE TO EMPTY STATE WITHOUT CLOSING
+  const handleClear = () => {
+    if (onClearTemplate) {
+      onClearTemplate();
+    } else {
+      // Default clear behavior - reset to empty state
+      console.log('🗑️ Clearing template structure - updating to empty state');
+      // Clear the document structure using direct store access
+      const store = useEditorStore.getState();
+      store.setDocumentStructure(null);
+      store.setSetupStatus('none');
+      store.setSetupDiagnostics(null);
+      // DO NOT clear selectedOption - keep panel open and selection intact
+    }
+  };
+  
+  // Collapsible state management
+  const [expandedDocuments, setExpandedDocuments] = React.useState<Record<string, boolean>>({});
+
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
-      {/* Improved Header */}
+      {/* Improved Header with Action Buttons */}
       <div className="mb-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-lg">🔍</span>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-lg">🔍</span>
+            </div>
+            <h3 className="text-white font-bold text-lg">Template Analysis</h3>
           </div>
-          <h3 className="text-white font-bold text-lg">Template Analysis</h3>
+          
+          {/* Action Buttons - Top Right (REFRESH REMOVED) */}
+          <div className="flex gap-1.5">
+            <button
+              onClick={handleClear}
+              disabled={!hasTemplateData}
+              className="w-8 h-8 bg-red-600/80 hover:bg-red-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded-lg transition-colors flex items-center justify-center"
+              title="Clear"
+            >
+              <span>🗑️</span>
+            </button>
+          </div>
         </div>
         
         {hasTemplateData ? (
@@ -176,35 +205,7 @@ export function TemplateStructurePanel({ onGenerate, onEdit, onClear, selectedOp
         </div>
       )}
 
-      {/* Actions */}
-      <div className="pt-4 border-t border-white/10">
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            onClick={onGenerate}
-            disabled={!hasTemplateData}
-            className="px-3 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            <span>🔄</span>
-            <span className="hidden sm:inline">Reanalyze</span>
-          </button>
-          <button
-            onClick={onEdit}
-            disabled={!hasTemplateData}
-            className="px-3 py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            <span>✏️</span>
-            <span className="hidden sm:inline">Edit</span>
-          </button>
-          <button
-            onClick={onClear}
-            disabled={!hasTemplateData}
-            className="px-3 py-2 bg-red-600/80 hover:bg-red-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            <span>🗑️</span>
-            <span className="hidden sm:inline">Clear</span>
-          </button>
-        </div>
-      </div>
+
     </div>
   );
 }

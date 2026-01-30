@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface FreeOptionProps {
   onStructureSelected?: (structure: string) => void;
@@ -9,6 +10,8 @@ interface FreeOptionProps {
 export function FreeOption({ onStructureSelected }: FreeOptionProps) {
   const [selectedStructure, setSelectedStructure] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState<string>('');
+  
+  const { t } = useI18n();
   
   // Access editor store for document setup management
   const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
@@ -24,68 +27,31 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
     
     // Create standard blueprint when structure is selected
     const createStandardBlueprint = () => {
-      // Map structure types to document templates
+      // Map structure types to document templates - CONNECTED TO MASTER TEMPLATES
       const structureMap = {
         'business-plan': {
-          documents: [
-            { id: 'main_document', name: 'Business Plan', purpose: 'Primary business plan document', required: true },
-            { id: 'financial_appendices', name: 'Financial Appendices', purpose: 'Detailed financial statements', required: false }
-          ],
-          baseSections: [
-            'Executive Summary',
-            'Company Description', 
-            'Market Analysis',
-            'Business Model',
-            'Financial Plan',
-            'Implementation Plan',
-            'Risk Analysis'
-          ]
+          productType: 'submission' as const,
+          // No hardcoded documents - will use template system
+          // No hardcoded sections - will use MASTER_SECTIONS[productType]
         },
         'strategy': {
-          documents: [
-            { id: 'strategy_doc', name: 'Strategy Document', purpose: 'Strategic planning document', required: true }
-          ],
-          baseSections: [
-            'Executive Summary',
-            'Strategic Overview',
-            'Market Opportunity',
-            'Competitive Analysis',
-            'Strategic Initiatives',
-            'Resource Requirements',
-            'Timeline & Milestones'
-          ]
-        },
-        'pitch-deck': {
-          documents: [
-            { id: 'pitch_deck', name: 'Pitch Deck', purpose: 'Investor presentation deck', required: true }
-          ],
-          baseSections: [
-            'Problem & Solution',
-            'Market Opportunity', 
-            'Business Model',
-            'Traction',
-            'Team',
-            'Financial Projections',
-            'Funding Ask'
-          ]
+          productType: 'strategy' as const
+          // No hardcoded documents - will use template system  
+          // No hardcoded sections - will use MASTER_SECTIONS[productType]
         }
       };
 
       const structureConfig = structureMap[structure as keyof typeof structureMap] || structureMap['business-plan'];
       
+      // Create document structure using actual template data
       const documentStructure = {
         structureId: `standard-${structure}-${Date.now()}`,
         version: '1.0',
         source: 'standard' as const,
-        documents: structureConfig.documents,
-        sections: structureConfig.baseSections.map((title, index) => ({
-          id: `section_${index}_${title.replace(/\s+/g, '_').toLowerCase()}`,
-          documentId: structureConfig.documents[0].id,
-          title: title,
-          type: index < 4 ? 'required' : 'optional' as 'required' | 'optional' | 'conditional',
-          required: index < 4,
-          programCritical: false
-        })),
+        // No hardcoded documents - BlueprintInstantiation will create proper documents
+        documents: [],
+        // No hardcoded sections - will be populated by template system in Step 3
+        sections: [],
         requirements: [],
         validationRules: [],
         aiGuidance: [],
@@ -107,9 +73,13 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
         confidence: selectedIndustry ? 85 : 70
       });
       
-      // Infer and store product type for Step 3 instantiation
-      const inferredType = structure === 'strategy' ? 'strategy' : 'submission';
+      // Infer and store product type for Step 3 instantiation - SYNCED WITH MASTER_TEMPLATES
+      const inferredType = structureConfig.productType;
       setInferredProductType(inferredType);
+      
+      // REMOVED auto-navigation - user should confirm choices first
+      // Navigation will happen when user clicks "Continue" or similar confirmation
+      // BlueprintInstantiation will use inferredProductType to get actual template sections
     };
 
     createStandardBlueprint();
@@ -119,28 +89,21 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
   const structureOptions = [
     {
       id: 'business-plan',
-      title: 'Business Plan',
-      subtitle: '(Standard)',
+      title: t('editor.desktop.program.document.businessPlan'),
+      subtitle: '(Submission)',
       description: 'Full comprehensive business plan with financial projections and detailed analysis',
       icon: '📋',
       features: ['Financial Statements', 'Market Analysis', 'Implementation Timeline', 'Risk Assessment']
     },
     {
       id: 'strategy',
-      title: 'Strategy Document', 
+      title: t('editor.desktop.program.document.strategyDocument'), 
       subtitle: '(Strategic Focus)',
       description: 'High-level strategic overview focusing on market positioning and growth initiatives',
       icon: '🎯',
       features: ['SWOT Analysis', 'Competitive Positioning', 'Strategic Roadmap', 'Resource Planning']
-    },
-    {
-      id: 'pitch-deck',
-      title: 'Pitch Deck Outline',
-      subtitle: '(Presentation)',
-      description: 'Structured presentation format optimized for investor pitches and funding discussions',
-      icon: '📊',
-      features: ['Problem/Solution', 'Market Traction', 'Business Model', 'Financial Projections']
     }
+    // REMOVED pitch-deck option - not a valid product type
   ];
 
   return (
@@ -152,10 +115,6 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
           <span>🏗️</span>
           Choose Base Structure
         </h3>
-        <p className="text-white/70 text-sm mb-4">
-          Select the foundation document type for your plan
-        </p>
-        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {structureOptions.map((option) => (
             <div
@@ -229,32 +188,6 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
             <p className="text-white/60 text-xs mt-2">
               Industry selection helps tailor section suggestions and examples
             </p>
-          </div>
-        </div>
-      )}
-
-      {/* Next Steps */}
-      {selectedStructure && (
-        <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <span className="text-blue-300 text-lg mt-0.5">ℹ️</span>
-            <div>
-              <h4 className="text-white font-medium mb-2">Next Steps</h4>
-              <ul className="text-blue-200 text-sm space-y-1">
-                <li className="flex items-center gap-2">
-                  <span className="text-blue-400">→</span>
-                  <span>Your {selectedStructure.replace('-', ' ')} structure is ready</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-blue-400">→</span>
-                  <span>You can customize sections in the next step</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-blue-400">→</span>
-                  <span>Add program requirements anytime using the overlay toggle</span>
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
       )}
