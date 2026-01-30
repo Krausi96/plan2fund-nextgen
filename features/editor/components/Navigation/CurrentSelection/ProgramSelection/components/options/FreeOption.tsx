@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import { useI18n } from '@/shared/contexts/I18nContext';
+import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
+import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/sectionUtils';
 
 interface FreeOptionProps {
   onStructureSelected?: (structure: string) => void;
@@ -44,14 +46,33 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
       const structureConfig = structureMap[structure as keyof typeof structureMap] || structureMap['business-plan'];
       
       // Create document structure using actual template data
-      const documentStructure = {
+      const baseStructure = {
         structureId: `standard-${structure}-${Date.now()}`,
         version: '1.0',
         source: 'standard' as const,
-        // No hardcoded documents - BlueprintInstantiation will create proper documents
-        documents: [],
-        // No hardcoded sections - will be populated by template system in Step 3
-        sections: [],
+        // Populate with actual template documents and sections
+        documents: [
+          {
+            id: 'main_document',
+            name: structureConfig.productType === 'submission' 
+              ? t('editor.desktop.program.document.businessPlan')
+              : t('editor.desktop.program.document.strategyDocument'),
+            purpose: 'Main document for the business plan',
+            required: true,
+            templateId: 'default_template'
+          }
+        ],
+        // Populate with actual template sections - CONVERT to document structure format
+        sections: MASTER_SECTIONS[structureConfig.productType]?.map(templateSection => ({
+          id: templateSection.id,
+          documentId: 'main_document',
+          title: templateSection.title || templateSection.name || '',
+          type: (templateSection.required ? 'required' : 'optional') as 'required' | 'optional' | 'conditional',
+          required: templateSection.required !== false,
+          programCritical: false,
+          aiPrompt: templateSection.aiPrompt || `Write detailed content for ${templateSection.title || templateSection.name}`,
+          checklist: templateSection.checklist || [`Address ${templateSection.title || templateSection.name} requirements`]
+        })) || [],
         requirements: [],
         validationRules: [],
         aiGuidance: [],
@@ -63,8 +84,19 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
         updatedAt: new Date().toISOString(),
         createdBy: 'standard-template'
       };
+      
+      // ENHANCE with special sections (Title Page, TOC, References, Appendices)
+      const documentStructure = enhanceWithSpecialSections(baseStructure, t);
+      
+      // DEBUG: Log the enhanced structure
+      console.log('📝 Enhanced document structure sections:', documentStructure?.sections?.map(s => ({
+        id: s.id,
+        title: s.title
+        // icon: s.icon // REMOVED: icon property may not exist on all section types
+      })));
 
       // Update store with standard structure
+      console.log('📝 Setting document structure with sections:', documentStructure?.sections?.length);
       setDocumentStructure(documentStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({

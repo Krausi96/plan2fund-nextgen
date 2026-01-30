@@ -36,7 +36,7 @@ export default function TreeNavigator() {
   const [newDocumentName, setNewDocumentName] = useState('');
   
   const { 
-    sections = [], 
+    // sections = [], // REMOVED: use document structure sections instead
     disabledSections = new Set(), 
     actions: sidebarActions, 
     activeId: activeSectionId = null,
@@ -75,10 +75,14 @@ export default function TreeNavigator() {
   };
   
   // Get additional state from store
-  const { expandedSectionId, expandedDocumentId } = useEditorStore((state) => ({
+  const { expandedSectionId, expandedDocumentId, documentStructure } = useEditorStore((state) => ({
     expandedSectionId: state.expandedSectionId,
     expandedDocumentId: state.expandedDocumentId,
+    documentStructure: state.setupWizard.documentStructure
   }));
+  
+  // Get sections from document structure
+  const sections = documentStructure?.sections || [];
   
   // State for tree expansion/collapse
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set()); // Collapsed by default
@@ -86,8 +90,9 @@ export default function TreeNavigator() {
 
   // Debug logging
   React.useEffect(() => {
+    console.log('🌳 TreeNavigator sections from documentStructure:', sections?.length, sections?.map(s => s.id));
     // Removed debug logs for production
-  }, [sidebarState, documentsState, sections, documents, selectedProductMeta, showAddDocument]);
+  }, [sidebarState, documentsState, sections, documents, selectedProductMeta, showAddDocument, documentStructure]);
 
   // Create hierarchical tree structure with documents as parents and sections as children
   const treeData = React.useMemo<TreeNode[]>(() => {
@@ -139,7 +144,12 @@ export default function TreeNavigator() {
           isRequired: section.required,
           isCustom: section.origin === 'custom',
           origin: section.origin || 'template',
-          icon: '🧾',
+          icon: section.id === 'metadata' ? '📕' : 
+                section.id === 'ancillary' ? '📑' : 
+                section.id === 'references' ? '📚' : 
+                section.id === 'tables_data' ? '📊' : 
+                section.id === 'figures_images' ? '🖼️' : 
+                section.id === 'appendices' ? '📎' : '🧾',
           children: [],
           level: 1,
         }));
@@ -182,8 +192,29 @@ export default function TreeNavigator() {
         isExpanded: expandedNodes.has(doc.id),
       };
       
-      // TODO: Add sections for this document if they exist
-      // This would require document-specific sections which aren't implemented yet
+      // Add sections for this document if they exist
+      // TODO: This would require document-specific sections which aren't implemented yet
+      // For now, we'll add a placeholder comment
+      // const documentSections = sections.filter(s => s.documentId === doc.id);
+      // if (documentSections.length > 0) {
+      //   documentNode.children = documentSections.map((section: any) => ({
+      //     id: section.id,
+      //     name: getSectionTitle(section.id, section.title || section.name || 'Untitled Section', t),
+      //     type: 'section',
+      //     parentId: doc.id,
+      //     isDisabled: disabledSections?.has?.(section.id) || false,
+      //     isActive: section.id === activeSectionId,
+      //     isRequired: section.required,
+      //     isCustom: section.origin === 'custom',
+      //     origin: section.origin || 'template',
+      //     icon: section.id === 'metadata' ? '📕' : 
+      //           section.id === 'ancillary' ? '📑' : 
+      //           section.id === 'references' ? '📚' : 
+      //           section.id === 'appendices' ? '📎' : '🧾',
+      //     children: [],
+      //     level: 1,
+      //   }));
+      // }
       
       // Add section add button as last child if document is expanded
       if (documentNode.isExpanded && !expandedSectionId && !isEditingSection) {
@@ -239,7 +270,9 @@ export default function TreeNavigator() {
       'references',
       'appendices', 
       'metadata',
-      'ancillary'
+      'ancillary',
+      'tables_data',
+      'figures_images'
     ].includes(node.id);
     
     // Handle special button nodes

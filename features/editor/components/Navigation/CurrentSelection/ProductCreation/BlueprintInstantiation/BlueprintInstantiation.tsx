@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore, inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/features/editor/lib';
+import { getSectionIcon } from '@/features/editor/lib/utils/sectionUtils';
 
 interface BlueprintInstantiationStepProps {
   onComplete?: () => void;
@@ -100,6 +101,7 @@ export default function BlueprintInstantiationStep({
 
   // Group sections by document
   const getSectionsByDocument = useCallback(() => {
+    console.log('🏗️ BlueprintInstantiation documentStructure sections:', documentStructure?.sections?.length, documentStructure?.sections?.map(s => s.id));
     if (!documentStructure?.sections) return {};
     
     const grouped: Record<string, any[]> = {};
@@ -118,12 +120,20 @@ export default function BlueprintInstantiationStep({
 
   // Get required sections for a document
   const getRequiredSections = (documentId: string) => {
-    return sectionsByDoc[documentId]?.filter(section => section.required) || [];
+    // If no sections are grouped by documentId, show all sections under the single document
+    if (Object.keys(sectionsByDoc).length === 0 && documentStructure?.sections?.length) {
+      return documentStructure.sections.filter(section => section.required !== false);
+    }
+    return sectionsByDoc[documentId]?.filter(section => section.required !== false) || [];
   };
 
   // Get optional sections for a document
   const getOptionalSections = (documentId: string) => {
-    return sectionsByDoc[documentId]?.filter(section => !section.required) || [];
+    // If no sections are grouped by documentId, show all sections under the single document
+    if (Object.keys(sectionsByDoc).length === 0 && documentStructure?.sections?.length) {
+      return documentStructure.sections.filter(section => section.required === false);
+    }
+    return sectionsByDoc[documentId]?.filter(section => section.required === false) || [];
   };
 
   // Add new document
@@ -209,7 +219,8 @@ export default function BlueprintInstantiationStep({
             
           <div className="space-y-3">
             {documentStructure?.documents?.map((doc) => {
-              const isExpanded = expandedDocuments[doc.id] ?? true;
+              // Auto-expand the document if there's only one document
+              const isExpanded = (documentStructure?.documents?.length === 1) || (expandedDocuments[doc.id] ?? true);
               const requiredSections = getRequiredSections(doc.id);
               const optionalSections = getOptionalSections(doc.id);
               
@@ -234,7 +245,9 @@ export default function BlueprintInstantiationStep({
                         {/* Required Sections */}
                         {requiredSections.map((section) => (
                           <div key={section.id} className="flex items-center gap-2 text-white/90 text-sm">
-                            <span className="text-red-400">🔒</span>
+                            <span className="text-red-400">
+                              {getSectionIcon(section.id)}
+                            </span>
                             <span className="flex-1 truncate" title={section.title}>{section.title}</span>
                             <span className="text-xs bg-red-500/20 text-red-300 px-2 py-0.5 rounded">{translations.requiredLabel || 'Required'}</span>
                           </div>
@@ -249,6 +262,9 @@ export default function BlueprintInstantiationStep({
                               onChange={() => handleToggleSection(section.id)}
                               className="w-4 h-4 rounded text-blue-500 bg-slate-600 border-slate-500 focus:ring-blue-500 focus:ring-offset-0"
                             />
+                            <span>
+                              {getSectionIcon(section.id)}
+                            </span>
                             <span className="flex-1 truncate" title={section.title}>{section.title}</span>
                             <button className="text-xs text-blue-400 hover:text-blue-300 underline">{translations.renameButton || 'Rename'}</button>
                           </div>

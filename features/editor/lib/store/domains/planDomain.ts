@@ -1,4 +1,5 @@
 import type { BusinessPlan } from '../../types/types';
+import { MASTER_SECTIONS, MASTER_DOCUMENTS_BY_PRODUCT } from '../../templates';
 import { METADATA_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '../../constants';
 
 export interface PlanState {
@@ -17,7 +18,12 @@ export interface PlanActions {
 export const createPlanDomain = (set: any, get: any): PlanActions => ({
   setPlan: (plan: BusinessPlan | null) => {
     set({ plan });
-    get().syncTemplateStateFromPlan();
+    // Sync template state to ensure allSections is populated
+    if (plan?.productType) {
+      const templateSections = MASTER_SECTIONS[plan.productType] || [];
+      const templateDocuments = MASTER_DOCUMENTS_BY_PRODUCT[plan.productType] || [];
+      set({ allSections: templateSections, allDocuments: templateDocuments });
+    }
   },
   
   setIsLoading: (loading: boolean) => set({ isLoading: loading }),
