@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TreeNode } from './types';
+import type { TreeNode } from '@/features/editor/lib/types/types';
 
 interface TreeNodeRendererProps {
   node: TreeNode;

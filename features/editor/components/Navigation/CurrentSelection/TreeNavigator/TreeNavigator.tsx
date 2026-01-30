@@ -16,6 +16,7 @@ export default function TreeNavigator() {
   
   // Local state for forms
   const [newSectionTitle, setNewSectionTitle] = useState('');
+  const [newDocumentName, setNewDocumentName] = useState('');
   
   const { 
     disabledSections = new Set(), 
@@ -30,7 +31,8 @@ export default function TreeNavigator() {
     disabledDocuments = new Set(), 
     actions: documentsBarActions, 
     clickedId: clickedDocumentId = null,
-    selectedProductMeta = null
+    selectedProductMeta = null,
+    showAdd: showAddDocument = false
   } = documentsState || {};
   
   // Provide fallback actions to prevent undefined errors
@@ -335,8 +337,84 @@ export default function TreeNavigator() {
   };
 
   return (
-    <div className="h-full overflow-y-auto">
-      {treeData.map(node => renderTreeNode(node, 0))}
+    <div className="flex flex-col h-full">
+      {/* Header with separator */}
+      <div className="flex-shrink-0 mb-1 px-3 pt-0.5">
+        <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)', paddingBottom: '0.5rem', paddingTop: '0.5rem' }}>
+          <h2 className="text-xl font-semibold tracking-wide text-white text-center flex-1">
+            {t('editor.desktop.sections.title' as any) || 'Sections & Documents'}
+          </h2>
+        </div>
+      </div>
+      
+      {/* Tree content with proper scrolling */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
+        <div className="px-3">
+          {/* Persistent Add Document Button - Original Style */}
+          <div className="mb-3">
+            <button
+              type="button"
+              onClick={safeDocumentsBarActions.toggleAddDocument}
+              className={`w-full py-2 rounded transition-colors text-sm font-medium flex items-center justify-center gap-2 ${
+                showAddDocument 
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              }`}
+            >
+              <span>+</span>
+              <span>{t('editor.desktop.documents.addButton' as any) || 'Add Document'}</span>
+            </button>
+            
+            {showAddDocument && (
+              <div className="w-full p-3 border border-blue-400 bg-blue-600/10 rounded-lg mt-2">
+                <h4 className="text-sm font-bold text-white mb-2">
+                  {t('editor.desktop.documents.custom.title' as any) || 'Add a custom document'}
+                </h4>
+                <input
+                  type="text"
+                  value={newDocumentName}
+                  onChange={(e) => setNewDocumentName(e.target.value)}
+                  placeholder={t('editor.desktop.documents.custom.titlePlaceholder' as any) || 'e.g. Market Research'}
+                  className="w-full px-3 py-2 mb-2 bg-slate-900/50 border border-white/30 rounded text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-blue-400"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newDocumentName.trim()) {
+                        // TODO: Implement add custom document
+                        console.log('Add custom document:', newDocumentName.trim());
+                        setNewDocumentName('');
+                        safeDocumentsBarActions.toggleAddDocument();
+                      }
+                    }}
+                    disabled={!newDocumentName.trim()}
+                    className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-white/40 text-white text-sm font-semibold rounded transition-colors"
+                  >
+                    {t('editor.desktop.documents.custom.add' as any) || 'Add'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewDocumentName('');
+                      safeDocumentsBarActions.toggleAddDocument();
+                    }}
+                    className="flex-1 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded transition-colors"
+                  >
+                    {t('editor.desktop.documents.custom.cancel' as any) || 'Cancel'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Tree Nodes */}
+          <div>
+            {treeData.map(node => renderTreeNode(node, 0))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
