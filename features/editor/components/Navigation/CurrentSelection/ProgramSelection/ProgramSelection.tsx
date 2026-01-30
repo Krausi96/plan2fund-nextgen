@@ -25,7 +25,7 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
         <div 
           className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
             selectedOption === 'program' 
-              ? 'border-blue-400 bg-blue-500/20 ring-2 ring-blue-400/50' 
+              ? 'border-blue-400 bg-blue-500/40 ring-2 ring-blue-400/50' 
               : 'border-slate-600 opacity-60 hover:opacity-100 backdrop-blur-sm'
           }`}
           onClick={() => onSelect('program')}
@@ -45,7 +45,7 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
         <div 
           className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
             selectedOption === 'template' 
-              ? 'border-purple-400 bg-purple-500/20 ring-2 ring-purple-400/50' 
+              ? 'border-purple-400 bg-purple-500/40 ring-2 ring-purple-400/50' 
               : 'border-slate-600 opacity-60 hover:opacity-100 backdrop-blur-sm'
           }`}
           onClick={() => onSelect('template')}
@@ -65,7 +65,7 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
         <div 
           className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
             selectedOption === 'free' 
-              ? 'border-green-400 bg-green-500/20 ring-2 ring-green-400/50' 
+              ? 'border-green-400 bg-green-500/40 ring-2 ring-green-400/50' 
               : 'border-slate-600 opacity-60 hover:opacity-100 backdrop-blur-sm'
           }`}
           onClick={() => onSelect('free')}
@@ -95,7 +95,6 @@ export default function ProgramSelection({
   const configuratorState = useConfiguratorState();
   const handleConnectProgram = onConnectProgram ?? configuratorState.actions.setProgramSummary;
   const programSummary = configuratorState.programSummary;
-  const isConfiguratorOpen = configuratorState.isConfiguratorOpen;
   
   // Access editor store for document setup management
   const setProgramProfile = useEditorStore((state) => state.setProgramProfile);
@@ -107,7 +106,6 @@ export default function ProgramSelection({
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'paste' | 'wizard'>('search');
-  const setupWizard = useEditorStore((state) => state.setupWizard);
 
   // Handle legacy program migration and automatic initialization
   useEffect(() => {
@@ -151,112 +149,12 @@ export default function ProgramSelection({
           setSetupStatus(migrationResult.status);
           setSetupDiagnostics(migrationResult.diagnostics);
         }
-        
-        console.log('✅ Legacy program migration completed:', {
-          programId: programSummary.id,
-          confidence: migrationResult.diagnostics.confidence,
-          warnings: migrationResult.diagnostics.warnings.length
-        });
         
       } catch (error) {
         console.error('❌ Failed to migrate legacy program:', error);
       }
     }
   }, [programSummary, setProgramProfile, setDocumentStructure, setSetupStatus, setSetupDiagnostics, handleConnectProgram]);
-
-  // Debug logging for program selection state
-  useEffect(() => {
-    console.log('🔍 ProgramSelection STATE DEBUG:', {
-      selectedOption,
-      programSummaryExists: !!programSummary,
-      programSummaryName: programSummary?.name,
-      setupWizardProgramProfileExists: !!setupWizard.programProfile,
-      setupWizardProgramProfileName: setupWizard.programProfile?.name,
-      isConfiguratorOpen,
-      shouldShowPanel: selectedOption === 'program' && (programSummary || setupWizard.programProfile)
-    });
-  }, [selectedOption, programSummary, setupWizard.programProfile, isConfiguratorOpen]);
-  
-  // Monitor state changes specifically after program selection
-  useEffect(() => {
-    if (selectedOption === 'program') {
-      console.log('🔍 PROGRAM SELECTED - Monitoring state updates:', {
-        programSummary,
-        setupWizardProgramProfile: setupWizard.programProfile,
-        programProfileName: setupWizard.programProfile?.name
-      });
-    }
-  }, [programSummary, setupWizard.programProfile, selectedOption]);
-  
-  // Monitor when setupWizard.programProfile gets populated
-  useEffect(() => {
-    if (setupWizard.programProfile) {
-      console.log('✅ setupWizard.programProfile UPDATED:', {
-        name: setupWizard.programProfile.name,
-        id: setupWizard.programProfile.id,
-        hasApplicationRequirements: !!setupWizard.programProfile.applicationRequirements
-      });
-    }
-  }, [setupWizard.programProfile]);
-  
-
-
-  // Handle legacy program migration and automatic initialization
-  useEffect(() => {
-    // Check for program selected in Reco/myProject flow
-    const savedProgram = localStorage.getItem('selectedProgram');
-    if (savedProgram && !programSummary) {
-      try {
-        const programData = JSON.parse(savedProgram);
-        console.log('🔄 Initializing from saved program:', programData);
-        
-        // Create temporary program summary for initialization
-        const tempSummary = {
-          id: programData.id,
-          name: programData.name,
-          type: programData.type || 'grant',
-          organization: programData.organization || 'Unknown',
-          setupStatus: 'draft' as const,
-          // Include application requirements if available
-          application_requirements: programData.application_requirements
-        };
-        
-        handleConnectProgram(tempSummary);
-        localStorage.removeItem('selectedProgram'); // Clean up
-      } catch (error) {
-        console.error('❌ Failed to initialize from saved program:', error);
-      }
-    }
-    
-    /* DISABLED FOR DEBUGGING - Legacy program migration interfering with state
-    // Handle legacy program migration
-    if (programSummary && !programSummary.documentStructure) {
-      console.log('🔄 Migrating legacy program to document setup system...');
-      try {
-        const migrationResult = migrateLegacySetup(programSummary);
-        
-        if (migrationResult.fundingProgram) {
-          setProgramProfile(migrationResult.fundingProgram);
-        }
-        
-        if (migrationResult.structure) {
-          setDocumentStructure(migrationResult.structure);
-          setSetupStatus(migrationResult.status);
-          setSetupDiagnostics(migrationResult.diagnostics);
-        }
-        
-        console.log('✅ Legacy program migration completed:', {
-          programId: programSummary.id,
-          confidence: migrationResult.diagnostics.confidence,
-          warnings: migrationResult.diagnostics.warnings.length
-        });
-        
-      } catch (error) {
-        console.error('❌ Failed to migrate legacy program:', error);
-      }
-    }
-    */
-  }, [programSummary]); // Simplified dependencies
 
   const handleCloseProgramFinder = () => {
     setActiveTab('search');
@@ -272,29 +170,21 @@ export default function ProgramSelection({
     }
     
     try {
-      console.log('🌐 Parsing URL:', url);
-      
       // Parse program information using external utility
       const parsedProgram = await parseProgramFromUrl(url);
       
       if (parsedProgram) {
-        console.log('✅ URL parsing successful:', parsedProgram);
         handleProgramSelect(parsedProgram);
       } else {
         alert('Could not extract program information from this URL. Please try a different funding program URL.');
       }
       
     } catch (error) {
-      console.error('❌ URL parsing failed:', error);
       alert('Failed to parse URL. Please check the URL format and try again.');
     }
   };
 
   const handleProgramSelect = (program: any) => {
-    console.log('🎯 Program selected:', program);
-    console.log('📋 Has application requirements:', !!program.application_requirements);
-    console.log('📊 Current selectedOption:', selectedOption);
-    
     // Automatically select the program option when a program is chosen
     setSelectedOption('program');
     
@@ -320,16 +210,10 @@ export default function ProgramSelection({
       const programSummary = generateProgramBlueprint(program);
       handleConnectProgram(programSummary);
       
-      console.log('✅ Program selected and document structure generated:', {
-        programId: program.id,
-        programName: program.name,
-        structureId: documentStructure.structureId,
-        confidence: program.confidenceScore || 90
-      });
-      
     } catch (error) {
-      console.error('❌ Failed to generate document structure from program:', error);
-      // Fallback to basic program connection
+      console.error('❌ Failed to process program:', error);
+      alert('Failed to process the selected program. Please try again or contact support.');
+      // Still provide basic connection as fallback
       const fallbackSummary = {
         id: program.id,
         name: program.name,
@@ -459,9 +343,7 @@ export default function ProgramSelection({
                         </h4>
                         <div className="w-full">
                           <EditorProgramFinder 
-                            onProgramSelect={(programId: string, route: string) => {
-                              // For mock example, we need to handle the program data properly
-                              console.log('Program selected in editor:', { programId, route });
+                            onProgramSelect={() => {
                               // The mock example handles its own store updates
                               // Just close the wizard view
                               setActiveTab('search');
@@ -497,12 +379,8 @@ export default function ProgramSelection({
                   }}
                 />
               )}
-              
-
             </div>
-          )}
-          
-          
+          )}      
         </div>
         
         {/* Dynamic Panel Column (30%) */}
@@ -510,10 +388,6 @@ export default function ProgramSelection({
           {selectedOption === 'program' && (
             <ProgramSummaryPanel 
               onClear={() => {
-                console.log('🗑️ Clearing program summary - updating to empty state');
-                console.log('BEFORE CLEAR - programSummary:', configuratorState.programSummary);
-                console.log('BEFORE CLEAR - setupWizard.programProfile:', setupWizard.programProfile);
-                
                 // Clear ALL program-related data
                 configuratorState.actions.setProgramSummary(null);
                 setProgramProfile(null);
@@ -527,11 +401,6 @@ export default function ProgramSelection({
                 if (typeof window !== 'undefined') {
                   localStorage.removeItem('selectedProgram');
                 }
-                
-                console.log('AFTER CLEAR - programSummary:', configuratorState.programSummary);
-                console.log('AFTER CLEAR - setupWizard.programProfile:', setupWizard.programProfile);
-                
-                // Keep panel open and selection intact
               }}
             />
           )}
@@ -539,12 +408,10 @@ export default function ProgramSelection({
             <TemplateStructurePanel 
               selectedOption={selectedOption}
               onClearTemplate={() => {
-                console.log('🗑️ Clearing template structure - updating to empty state');
                 // Clear the document structure
                 setDocumentStructure(null);
                 setSetupStatus('none');
                 setSetupDiagnostics(null);
-                // Keep panel open and selection intact
               }}
             />
           )}
@@ -552,20 +419,16 @@ export default function ProgramSelection({
             <StandardStructurePanel 
               selectedOption={selectedOption}
               onClearStructure={() => {
-                console.log('🗑️ Clearing standard structure - updating to empty state');
                 // Clear the document structure
                 setDocumentStructure(null);
                 setSetupStatus('none');
                 setSetupDiagnostics(null);
                 setInferredProductType(null);
-                // Keep panel open and selection intact
               }}
             />
           )}
         </div>
       </div>
-      
-
     </div>
   );
 }
