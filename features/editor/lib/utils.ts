@@ -24,9 +24,3 @@ export function shouldIgnoreClick(element: HTMLElement): boolean {
   
   return false;
 }
-
-// normalizeProgramInput moved to Program.utils.ts (program-specific utility)
-
-// generateProgramBlueprint removed - use Program.utils.ts functions instead
-
-// syncTemplateStateFromPlan moved to editorStore.ts (domain logic)
