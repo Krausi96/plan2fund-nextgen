@@ -47,6 +47,7 @@ export function TemplateOption({ onDocumentAnalyzed }: TemplateOptionProps) {
   const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
   const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
   const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
+  const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -168,6 +169,9 @@ export function TemplateOption({ onDocumentAnalyzed }: TemplateOptionProps) {
         missingFields: [],
         confidence: mockAnalysis.structureConfidence
       });
+      
+      // Default to submission for template uploads
+      setInferredProductType('submission');
 
       setIsAnalyzing(false);
 

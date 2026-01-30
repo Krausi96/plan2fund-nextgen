@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useEditorStore } from '@/features/editor/lib';
+import { useEditorStore, inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/features/editor/lib';
 
 interface BlueprintInstantiationStepProps {
   onComplete?: () => void;
@@ -51,6 +51,13 @@ export default function BlueprintInstantiationStep({
   const setupWizard = useEditorStore((state) => state.setupWizard);
   const documentStructure = setupWizard.documentStructure;
   const programSummary = useEditorStore((state) => state.programSummary);
+  
+  // Store actions for instantiation
+  const setSelectedProduct = useEditorStore((state) => state.setSelectedProduct);
+  const setPlan = useEditorStore((state) => state.setPlan);
+  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
+  const completeSetupWizard = useEditorStore((state) => state.completeSetupWizard);
+  const setIsConfiguratorOpen = useEditorStore((state) => state.setIsConfiguratorOpen);
   
   // UI state for editing
   const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});
@@ -324,6 +331,50 @@ export default function BlueprintInstantiationStep({
           </div>
         </div>
       </div>
+      
+      {/* Create Documents Button - Fixed at bottom */}
+      {documentStructure && (
+        <div className="flex justify-end gap-4 pt-4 border-t border-white/10">
+          <button
+            onClick={() => {
+              if (!documentStructure) return;
+              
+              // Step 1: Infer product type from blueprint
+              const productType = setupWizard.inferredProductType || inferProductTypeFromBlueprint(documentStructure);
+              
+              // Step 2: Prepare title page data from Step 1 (if exists)
+              const existingTitlePage = setupWizard.projectProfile ? {
+                title: setupWizard.projectProfile.projectName || '',
+                companyName: setupWizard.projectProfile.author || '',
+                date: new Date().toISOString().split('T')[0],
+                confidentialityStatement: setupWizard.projectProfile.confidentialityStatement || '',
+              } : undefined;
+              
+              // Step 3: Instantiate plan from blueprint
+              const plan = instantiateFromBlueprint(documentStructure, productType, existingTitlePage);
+              
+              // Step 4: Update store to trigger TreeNavigator & PreviewWorkspace sync
+              setSelectedProduct(productType);
+              setPlan(plan);
+              setSetupStatus('confirmed');
+              completeSetupWizard();
+              
+              // Step 5: Close configurator and navigate to editor
+              setIsConfiguratorOpen(false);
+              
+              console.log('✅ Documents created successfully:', {
+                productType,
+                sectionsCount: plan.sections.length,
+                source: documentStructure.source
+              });
+            }}
+            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg"
+          >
+            <span>✓</span>
+            <span>Create Documents</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

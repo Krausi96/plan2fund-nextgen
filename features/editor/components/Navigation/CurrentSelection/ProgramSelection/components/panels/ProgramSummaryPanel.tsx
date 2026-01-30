@@ -182,6 +182,18 @@ export function ProgramSummaryPanel({ onGenerate, onEdit, onClear }: ProgramSumm
 
   const hasProgramData = programProfile || programSummary;
   
+  // Debug logging for panel state
+  React.useEffect(() => {
+    console.log('🔍 ProgramSummaryPanel DATA DEBUG:', {
+      programProfileExists: !!programProfile,
+      programProfileName: programProfile?.name,
+      programSummaryExists: !!programSummary,
+      programSummaryName: programSummary?.name,
+      hasProgramData,
+      getProgramNameResult: getProgramName()
+    });
+  }, [programProfile, programSummary]);
+  
   // Force re-render when program data changes
   const [, forceUpdate] = React.useReducer(x => x + 1, 0);
   

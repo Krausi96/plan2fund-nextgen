@@ -326,6 +326,9 @@ export interface SetupWizardState {
     missingFields: string[];
     confidence: number;
   } | null;
+  
+  // Product type inference (Step 2 → Step 3 bridge)
+  inferredProductType?: ProductType | null;
 }
 
 // Helper types for editor store

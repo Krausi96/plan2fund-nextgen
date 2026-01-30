@@ -86,11 +86,12 @@ export function useEditorState() {
 }
 
 export function useConfiguratorState() {
-  const { selectedProduct, programSummary, programError, programLoading } = useEditorStore((state) => ({
+  const { selectedProduct, programSummary, programError, programLoading, isConfiguratorOpen } = useEditorStore((state) => ({
     selectedProduct: state.selectedProduct,
     programSummary: state.programSummary,
     programError: state.programError,
     programLoading: state.programLoading,
+    isConfiguratorOpen: state.isConfiguratorOpen,
   }));
   
   // Use selector hook for consistency
@@ -100,6 +101,7 @@ export function useConfiguratorState() {
   const actions = useEditorActions((a) => ({
     setSelectedProduct: a.setSelectedProduct,
     setProgramSummary: a.setProgramSummary,
+    setIsConfiguratorOpen: a.setIsConfiguratorOpen,
   }));
   
   return {
@@ -109,6 +111,7 @@ export function useConfiguratorState() {
     programSummary,
     programError,
     programLoading,
+    isConfiguratorOpen,
     actions,
   };
 }

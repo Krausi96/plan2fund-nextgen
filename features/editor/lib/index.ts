@@ -191,6 +191,8 @@ export {
   normalizeFundingProgram,
   migrateLegacySetup,
   generateDocumentStructureFromProfile,
+  inferProductTypeFromBlueprint,
+  instantiateFromBlueprint,
   // Simplified/deprecated functions
   parseProgramFromUrl, // @deprecated - use direct program input
   generateProgramBlueprint, // @deprecated - use normalizeFundingProgram instead

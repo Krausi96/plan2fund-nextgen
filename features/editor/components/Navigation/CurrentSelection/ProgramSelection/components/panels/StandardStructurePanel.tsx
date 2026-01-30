@@ -20,6 +20,28 @@ export function StandardStructurePanel({ onGenerate, onEdit, onClear, selectedOp
     return documentStructure?.sections || [];
   };
 
+  // Helper function to convert structure ID to human-readable name
+  const getStructureDisplayName = () => {
+    if (!documentStructure?.structureId) return 'Custom structure';
+    
+    const structureId = documentStructure.structureId;
+    
+    // Extract structure type from ID (format: standard-{type}-{timestamp})
+    const match = structureId.match(/^standard-([^-]+)-\d+$/);
+    if (match) {
+      const type = match[1];
+      const structureNames: Record<string, string> = {
+        'business-plan': 'Business Plan',
+        'strategy': 'Strategy Document',
+        'pitch-deck': 'Pitch Deck Outline'
+      };
+      return structureNames[type] || `${type.replace(/-/g, ' ')} Structure`;
+    }
+    
+    // Fallback for other formats
+    return structureId.replace(/^standard-/, '').replace(/-\d+$/, '').replace(/-/g, ' ');
+  };
+
 
 
   // Only show structure data when free option is selected AND we have standard structure data
@@ -38,8 +60,9 @@ export function StandardStructurePanel({ onGenerate, onEdit, onClear, selectedOp
 
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
+      
       {/* Improved Header */}
-      <div className="mb-4">
+      <div className="mb-2">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
             <span className="text-white text-lg">📋</span>
@@ -48,9 +71,7 @@ export function StandardStructurePanel({ onGenerate, onEdit, onClear, selectedOp
         </div>
         
         {hasStructureData ? (
-          <h4 className="text-white font-semibold text-base mb-2 truncate" title={documentStructure?.structureId}>
-            {documentStructure?.structureId || 'Custom structure'}
-          </h4>
+          <div className="h-0"></div>
         ) : (
           <div className="bg-slate-700/50 rounded-lg p-6 text-center">
             <div className="text-white/60 text-2xl mb-2">📋</div>
@@ -64,6 +85,24 @@ export function StandardStructurePanel({ onGenerate, onEdit, onClear, selectedOp
       {/* Standard Content */}
       {hasStructureData && (
         <div className="space-y-4 mb-4 flex-1">
+          
+          {/* Selected Structure Display */}
+          <div className="bg-slate-800/50 rounded-xl border border-green-400/30 p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-500/30 flex items-center justify-center flex-shrink-0 border-2 border-green-400">
+                <span className="text-green-300 text-lg">✓</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-white font-semibold text-base mb-1 truncate" title={getStructureDisplayName()}>
+                  Selected: {getStructureDisplayName()}
+                </h3>
+                <p className="text-green-300 text-xs truncate">
+                  Standard document structure
+                </p>
+              </div>
+            </div>
+          </div>
+          
           {/* Document Tree Structure */}
           <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">

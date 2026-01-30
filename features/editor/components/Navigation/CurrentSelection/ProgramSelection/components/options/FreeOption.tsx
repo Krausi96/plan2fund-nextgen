@@ -14,6 +14,7 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
   const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
   const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
   const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
+  const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
   
   // Removed unused selector: useSectionsAndDocumentsCounts()
 
@@ -105,6 +106,10 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
         missingFields: [],
         confidence: selectedIndustry ? 85 : 70
       });
+      
+      // Infer and store product type for Step 3 instantiation
+      const inferredType = structure === 'strategy' ? 'strategy' : 'submission';
+      setInferredProductType(inferredType);
     };
 
     createStandardBlueprint();

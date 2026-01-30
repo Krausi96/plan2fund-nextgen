@@ -95,6 +95,7 @@ export default function ProgramSelection({
   const configuratorState = useConfiguratorState();
   const handleConnectProgram = onConnectProgram ?? configuratorState.actions.setProgramSummary;
   const programSummary = configuratorState.programSummary;
+  const isConfiguratorOpen = configuratorState.isConfiguratorOpen;
   
   // Access editor store for document setup management
   const setProgramProfile = useEditorStore((state) => state.setProgramProfile);
@@ -105,6 +106,7 @@ export default function ProgramSelection({
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'paste' | 'wizard'>('search');
+  const setupWizard = useEditorStore((state) => state.setupWizard);
 
   // Handle legacy program migration and automatic initialization
   useEffect(() => {
@@ -161,6 +163,100 @@ export default function ProgramSelection({
     }
   }, [programSummary, setProgramProfile, setDocumentStructure, setSetupStatus, setSetupDiagnostics, handleConnectProgram]);
 
+  // Debug logging for program selection state
+  useEffect(() => {
+    console.log('🔍 ProgramSelection STATE DEBUG:', {
+      selectedOption,
+      programSummaryExists: !!programSummary,
+      programSummaryName: programSummary?.name,
+      setupWizardProgramProfileExists: !!setupWizard.programProfile,
+      setupWizardProgramProfileName: setupWizard.programProfile?.name,
+      isConfiguratorOpen,
+      shouldShowPanel: selectedOption === 'program' && (programSummary || setupWizard.programProfile)
+    });
+  }, [selectedOption, programSummary, setupWizard.programProfile, isConfiguratorOpen]);
+  
+  // Monitor state changes specifically after program selection
+  useEffect(() => {
+    if (selectedOption === 'program') {
+      console.log('🔍 PROGRAM SELECTED - Monitoring state updates:', {
+        programSummary,
+        setupWizardProgramProfile: setupWizard.programProfile,
+        programProfileName: setupWizard.programProfile?.name
+      });
+    }
+  }, [programSummary, setupWizard.programProfile, selectedOption]);
+  
+  // Monitor when setupWizard.programProfile gets populated
+  useEffect(() => {
+    if (setupWizard.programProfile) {
+      console.log('✅ setupWizard.programProfile UPDATED:', {
+        name: setupWizard.programProfile.name,
+        id: setupWizard.programProfile.id,
+        hasApplicationRequirements: !!setupWizard.programProfile.applicationRequirements
+      });
+    }
+  }, [setupWizard.programProfile]);
+  
+
+
+  // Handle legacy program migration and automatic initialization
+  useEffect(() => {
+    // Check for program selected in Reco/myProject flow
+    const savedProgram = localStorage.getItem('selectedProgram');
+    if (savedProgram && !programSummary) {
+      try {
+        const programData = JSON.parse(savedProgram);
+        console.log('🔄 Initializing from saved program:', programData);
+        
+        // Create temporary program summary for initialization
+        const tempSummary = {
+          id: programData.id,
+          name: programData.name,
+          type: programData.type || 'grant',
+          organization: programData.organization || 'Unknown',
+          setupStatus: 'draft' as const,
+          // Include application requirements if available
+          application_requirements: programData.application_requirements
+        };
+        
+        handleConnectProgram(tempSummary);
+        localStorage.removeItem('selectedProgram'); // Clean up
+      } catch (error) {
+        console.error('❌ Failed to initialize from saved program:', error);
+      }
+    }
+    
+    /* DISABLED FOR DEBUGGING - Legacy program migration interfering with state
+    // Handle legacy program migration
+    if (programSummary && !programSummary.documentStructure) {
+      console.log('🔄 Migrating legacy program to document setup system...');
+      try {
+        const migrationResult = migrateLegacySetup(programSummary);
+        
+        if (migrationResult.fundingProgram) {
+          setProgramProfile(migrationResult.fundingProgram);
+        }
+        
+        if (migrationResult.structure) {
+          setDocumentStructure(migrationResult.structure);
+          setSetupStatus(migrationResult.status);
+          setSetupDiagnostics(migrationResult.diagnostics);
+        }
+        
+        console.log('✅ Legacy program migration completed:', {
+          programId: programSummary.id,
+          confidence: migrationResult.diagnostics.confidence,
+          warnings: migrationResult.diagnostics.warnings.length
+        });
+        
+      } catch (error) {
+        console.error('❌ Failed to migrate legacy program:', error);
+      }
+    }
+    */
+  }, [programSummary]); // Simplified dependencies
+
   const handleCloseProgramFinder = () => {
     setActiveTab('search');
   };
@@ -197,6 +293,10 @@ export default function ProgramSelection({
     console.log('🎯 Program selected:', program);
     console.log('📋 Has application requirements:', !!program.application_requirements);
     console.log('📊 Current selectedOption:', selectedOption);
+    
+    // Automatically select the program option when a program is chosen
+    setSelectedOption('program');
+    
     try {
       // Generate document structure using new pipeline
       // Step 1: Normalize program data to FundingProgram
@@ -401,7 +501,7 @@ export default function ProgramSelection({
         
         {/* Dynamic Panel Column (30%) */}
         <div className="lg:w-5/12">
-          {selectedOption === 'program' && programSummary && (
+          {selectedOption === 'program' && (
             <ProgramSummaryPanel 
               onGenerate={() => console.log('Refresh program summary')}
               onEdit={() => console.log('Edit program summary')}

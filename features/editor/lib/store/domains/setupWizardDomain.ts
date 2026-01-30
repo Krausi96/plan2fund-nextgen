@@ -1,7 +1,8 @@
 import type { 
   SetupWizardState,
   ProjectProfile,
-  DocumentTemplateId
+  DocumentTemplateId,
+  ProductType
 } from '../../types/types';
 import type { DocumentStructure, SetupDiagnostics, FundingProgram } from '../../types/Program-Types';
 
@@ -17,6 +18,7 @@ export interface SetupWizardActions {
   setDocumentStructure: (structure: DocumentStructure | null) => void;
   setSetupStatus: (status: 'none' | 'draft' | 'confirmed' | 'locked') => void;
   setSetupDiagnostics: (diagnostics: SetupDiagnostics | null) => void;
+  setInferredProductType: (type: ProductType | null) => void;
   completeSetupWizard: () => void;
   resetSetupWizard: () => void;
 }
@@ -50,6 +52,10 @@ export const createSetupWizardDomain = (set: any): SetupWizardActions => ({
     setupWizard: { ...state.setupWizard, setupDiagnostics: diagnostics }
   })),
   
+  setInferredProductType: (type: ProductType | null) => set((state: any) => ({
+    setupWizard: { ...state.setupWizard, inferredProductType: type }
+  })),
+  
   completeSetupWizard: () => set((state: any) => ({
     setupWizard: { ...state.setupWizard, isComplete: true }
   })),
@@ -65,7 +71,8 @@ export const createSetupWizardDomain = (set: any): SetupWizardActions => ({
       setupStatus: 'none',
       setupVersion: '1.0',
       setupSource: 'standard',
-      setupDiagnostics: null
+      setupDiagnostics: null,
+      inferredProductType: null
     }
   }),
 });

@@ -101,6 +101,7 @@ export interface EditorActions {
   setDocumentStructure: (structure: any | null) => void;
   setSetupStatus: (status: 'none' | 'draft' | 'confirmed' | 'locked') => void;
   setSetupDiagnostics: (diagnostics: any | null) => void;
+  setInferredProductType: (type: any | null) => void;
   completeSetupWizard: () => void;
   resetSetupWizard: () => void;
   
