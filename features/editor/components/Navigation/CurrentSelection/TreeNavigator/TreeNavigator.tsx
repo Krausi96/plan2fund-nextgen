@@ -6,7 +6,7 @@ import {
   useEditorStore,
   getSectionTitle,
 } from '@/features/editor/lib';
-import { AddSectionForm, TreeNodeRenderer, type TreeNode } from './';
+import { AddSectionForm, TreeNodeRenderer, type TreeNode } from './components';
 
 export default function TreeNavigator() {
   const { t } = useI18n();
@@ -276,7 +276,7 @@ export default function TreeNavigator() {
           }}
           onMouseEnter={() => setHoveredNodeId(node.id)}
           onMouseLeave={() => setHoveredNodeId(null)}
-          renderCheckbox={(node) => {
+          renderCheckbox={(node: TreeNode) => {
             if (node.type === 'section' && safeSidebarActions.toggleSection) {
               return (
                 <input
@@ -326,7 +326,7 @@ export default function TreeNavigator() {
         {/* Children */}
         {isExpanded && hasChildren && (
           <div>
-            {node.children!.map(child => renderTreeNode(child, level + 1))}
+            {node.children!.map((child: TreeNode) => renderTreeNode(child, level + 1))}
           </div>
         )}
       </div>
