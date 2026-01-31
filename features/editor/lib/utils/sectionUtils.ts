@@ -2,7 +2,9 @@ import {
   METADATA_SECTION_ID, 
   ANCILLARY_SECTION_ID, 
   REFERENCES_SECTION_ID, 
-  APPENDICES_SECTION_ID 
+  APPENDICES_SECTION_ID,
+  TABLES_DATA_SECTION_ID,
+  FIGURES_IMAGES_SECTION_ID
 } from '../constants';
 import type { SectionTemplate } from '../types/types';
 import type { DocumentStructure } from '../types/Program-Types';
@@ -50,16 +52,21 @@ export function enhanceWithSpecialSections(
       )
     : [];
   
-  // Check if this structure already comes from MASTER_SECTIONS (contains special sections)
-  // If it has metadata or ancillary sections, don't add them again
-  const hasSpecialSections = baseSections.some(s => 
-    s.id === METADATA_SECTION_ID || s.id === ANCILLARY_SECTION_ID
+  // Check if this structure already comes from MASTER_SECTIONS (contains ALL special sections)
+  // If it has any special sections, don't add them again
+  const hasAnySpecialSections = baseSections.some(s => 
+    s.id === METADATA_SECTION_ID || 
+    s.id === ANCILLARY_SECTION_ID ||
+    s.id === REFERENCES_SECTION_ID ||
+    s.id === TABLES_DATA_SECTION_ID ||
+    s.id === FIGURES_IMAGES_SECTION_ID ||
+    s.id === APPENDICES_SECTION_ID
   );
   
   // Only add special sections if they don't already exist
   const leadingSpecialSections = [];
   
-  if (!hasSpecialSections) {
+  if (!hasAnySpecialSections) {
     leadingSpecialSections.push({
       id: METADATA_SECTION_ID,
       documentId: 'main_document',
@@ -81,7 +88,7 @@ export function enhanceWithSpecialSections(
   
   // All special sections are now handled via MASTER_SECTIONS
   // No need for inline trailing sections
-  const trailingSpecialSections: any[] = [];
+  const trailingSpecialSections: any[] = []; // Deprecated - kept for backward compatibility
   
   const result = {
     ...documentStructure,
