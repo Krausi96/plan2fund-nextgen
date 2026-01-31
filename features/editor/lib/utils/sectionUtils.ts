@@ -148,79 +148,16 @@ export function getCompleteSectionList(
   templateSections: SectionTemplate[], 
   t: TranslationFunction
 ): SectionTemplate[] {
-  // Define special sections with proper metadata
-  const specialSections: SectionTemplate[] = [
-    {
-      id: METADATA_SECTION_ID,
-      title: t('editor.section.metadata' as any) || 'Title Page',
-      description: 'Document title page with company information',
-      required: true,
-      category: 'general',
-      origin: 'template',
-      icon: '📕'
-    },
-    {
-      id: ANCILLARY_SECTION_ID,
-      title: t('editor.section.ancillary' as any) || 'Table of Contents',
-      description: 'Automatically generated table of contents',
-      required: true,
-      category: 'general',
-      origin: 'template',
-      icon: '📑'
-    }
-  ];
-
-  // Add template sections in the middle
-  const mainSections = templateSections.map(section => ({
+  // All special sections are now included in templateSections via MASTER_SECTIONS
+  // No need for separate specialSections or trailingSections arrays
+  
+  // Add icons to all sections
+  const sectionsWithIcons = templateSections.map(section => ({
     ...section,
-    icon: '🧾' // Default icon for regular sections
+    icon: section.icon || '🧾' // Default icon for sections without specific icons
   }));
-
-  // Add trailing special sections
-  const trailingSections: any[] = [
-    {
-      id: REFERENCES_SECTION_ID,
-      documentId: 'main_document',
-      title: t('editor.section.references' as any) || 'References',
-      type: 'optional' as const,
-      required: false,
-      programCritical: false,
-      icon: '📚'
-    },
-    {
-      id: 'tables_data',
-      documentId: 'main_document',
-      title: t('editor.desktop.program.document.tablesData' as any) || 'Tables/Data',
-      type: 'optional' as const,
-      required: false,
-      programCritical: false,
-      icon: '📊'
-    },
-    {
-      id: 'figures_images',
-      documentId: 'main_document',
-      title: t('editor.desktop.program.document.figuresImages' as any) || 'Figures/Images',
-      type: 'optional' as const,
-      required: false,
-      programCritical: false,
-      icon: '🖼️'
-    },
-    {
-      id: APPENDICES_SECTION_ID,
-      documentId: 'main_document',
-      title: t('editor.section.appendices' as any) || 'Appendices',
-      type: 'optional' as const,
-      required: false,
-      programCritical: false,
-      icon: '📎'
-    }
-  ];
-
-  return [
-    ...specialSections,
-    ...mainSections,
-    ...trailingSections
-  ];
+  
+  return sectionsWithIcons;
 }
 
 /**
@@ -256,6 +193,8 @@ export function isSpecialSection(sectionId: string): boolean {
     METADATA_SECTION_ID,
     ANCILLARY_SECTION_ID,
     REFERENCES_SECTION_ID,
-    APPENDICES_SECTION_ID
+    APPENDICES_SECTION_ID,
+    'tables_data',
+    'figures_images'
   ].includes(sectionId);
 }

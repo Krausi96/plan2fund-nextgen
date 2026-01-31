@@ -1,5 +1,54 @@
 import type { DocumentTemplate, SectionTemplate } from './types/types';
 
+// Master template sections that are shared across all products
+const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
+  {
+    id: 'ancillary',
+    title: 'Table of Contents',
+    description: 'Automatically generated table of contents',
+    required: true,
+    category: 'general',
+    origin: 'template',
+    icon: '📑'
+  },
+  {
+    id: 'references',
+    title: 'References',
+    description: 'List of references and citations',
+    required: false,
+    category: 'general',
+    origin: 'template',
+    icon: '📚'
+  },
+  {
+    id: 'tables_data',
+    title: 'Tables/Data',
+    description: 'Collection of tables, charts, and data visualizations',
+    required: false,
+    category: 'general',
+    origin: 'template',
+    icon: '📊'
+  },
+  {
+    id: 'figures_images',
+    title: 'Figures/Images',
+    description: 'Collection of figures, images, and illustrations',
+    required: false,
+    category: 'general',
+    origin: 'template',
+    icon: '🖼️'
+  },
+  {
+    id: 'appendices',
+    title: 'Appendices',
+    description: 'Additional supporting materials and documentation',
+    required: false,
+    category: 'general',
+    origin: 'template',
+    icon: '📎'
+  }
+];
+
 // ============================================================================
 // STRATEGY DOCUMENTS
 // ============================================================================
@@ -163,9 +212,9 @@ const FULL_SECTIONS: SectionTemplate[] = [
 // ============================================================================
 
 export const MASTER_SECTIONS: Record<string, SectionTemplate[]> = {
-  strategy: STRATEGY_SECTIONS, // Strategy now uses strategy-specific sections
-  review: FULL_SECTIONS, // Review now uses sections
-  submission: FULL_SECTIONS
+  strategy: [...STRATEGY_SECTIONS, ...SHARED_SPECIAL_SECTIONS], // Strategy now uses strategy-specific sections + shared special sections
+  review: [...FULL_SECTIONS, ...SHARED_SPECIAL_SECTIONS], // Review now uses sections + shared special sections
+  submission: [...FULL_SECTIONS, ...SHARED_SPECIAL_SECTIONS]
 };
 
 // Simplified document lookup by product type (all funding types share same docs per product)
