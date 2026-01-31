@@ -50,9 +50,15 @@ export function enhanceWithSpecialSections(
       )
     : [];
   
-  // Create special sections in correct order
-  const leadingSpecialSections = [
-    {
+  // Check if special sections already exist in baseSections
+  const hasMetadata = baseSections.some(s => s.id === METADATA_SECTION_ID);
+  const hasAncillary = baseSections.some(s => s.id === ANCILLARY_SECTION_ID);
+  
+  // Only add special sections if they don't already exist
+  const leadingSpecialSections = [];
+  
+  if (!hasMetadata) {
+    leadingSpecialSections.push({
       id: METADATA_SECTION_ID,
       documentId: 'main_document',
       title: t('editor.section.metadata' as any) || 'Title Page',
@@ -60,8 +66,11 @@ export function enhanceWithSpecialSections(
       required: true,
       programCritical: false,
       icon: '📕'
-    },
-    {
+    });
+  }
+  
+  if (!hasAncillary) {
+    leadingSpecialSections.push({
       id: ANCILLARY_SECTION_ID,
       documentId: 'main_document',
       title: t('editor.section.ancillary' as any) || 'Table of Contents',
@@ -69,8 +78,8 @@ export function enhanceWithSpecialSections(
       required: true,
       programCritical: false,
       icon: '📑'
-    }
-  ];
+    });
+  }
   
   // All special sections are now handled via MASTER_SECTIONS
   // No need for inline trailing sections

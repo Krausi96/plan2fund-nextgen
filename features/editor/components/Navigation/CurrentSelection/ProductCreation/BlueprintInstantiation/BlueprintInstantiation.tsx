@@ -115,8 +115,6 @@ export default function BlueprintInstantiationStep({
   }, [documentStructure]);
 
   const sectionsByDoc = getSectionsByDocument();
-  console.log('📋 sectionsByDoc result:', sectionsByDoc);
-  console.log('📋 sectionsByDoc keys:', Object.keys(sectionsByDoc));
   
   const blueprintSource = getBlueprintSource();
 
@@ -143,7 +141,6 @@ export default function BlueprintInstantiationStep({
     if (!newDocumentName.trim()) return;
     
     // TODO: Implement document addition logic
-    console.log('Adding document:', newDocumentName);
     setNewDocumentName('');
   };
 
@@ -152,14 +149,12 @@ export default function BlueprintInstantiationStep({
     if (!newSectionTitle.trim()) return;
     
     // TODO: Implement section addition logic
-    console.log('Adding section to document', documentId, ':', newSectionTitle);
     setNewSectionTitle('');
   };
 
   // Toggle section enabled/disabled
   const handleToggleSection = (sectionId: string) => {
     // TODO: Implement section enable/disable logic
-    console.log('Toggling section:', sectionId);
   };
 
   return (
