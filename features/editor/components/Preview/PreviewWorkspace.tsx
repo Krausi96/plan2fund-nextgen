@@ -133,9 +133,10 @@ const previewMode: 'formatted' | 'print' = 'formatted';
     const allSections = planDocument?.sections || [];
     
     // In live preview mode (no product selected yet), only show regular sections
-    // Hide special sections: TOC (ancillary), References, Appendices
+    // Hide special sections: Title Page (metadata), TOC (ancillary), References, Appendices
     if (!selectedProduct) {
       return allSections.filter(section => 
+        section.id !== 'metadata' &&
         section.id !== 'ancillary' && 
         section.id !== 'references' && 
         section.id !== 'appendices'
@@ -143,8 +144,9 @@ const previewMode: 'formatted' | 'print' = 'formatted';
     }
     
     // When product is selected, exclude special sections that have dedicated renderers
-    // These are rendered separately by TableOfContentsRenderer, ReferencesRenderer, etc.
+    // These are rendered separately by TitlePageRenderer, TableOfContentsRenderer, ReferencesRenderer, etc.
     return allSections.filter(section => 
+      section.id !== 'metadata' &&
       section.id !== 'ancillary' && 
       section.id !== 'references' && 
       section.id !== 'appendices'
