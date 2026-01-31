@@ -47,6 +47,12 @@ export const DEFAULT_PRODUCT_OPTIONS: ProductOption[] = [
     description: 'planTypes.strategy.description',
     icon: '💡',
   },
+  {
+    value: 'upgrade',
+    label: 'planTypes.upgrade.title',
+    description: 'planTypes.upgrade.description',
+    icon: '♻️',
+  },
 ];
 
 /**

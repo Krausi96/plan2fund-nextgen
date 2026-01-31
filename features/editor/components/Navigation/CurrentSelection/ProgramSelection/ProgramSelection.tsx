@@ -7,7 +7,7 @@ import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
 import { ProgramFinder } from './components/finder/ProgramFinder';
 import EditorProgramFinder from '@/features/editor/components/Navigation/CurrentSelection/ProgramSelection/components/finder/ProgramFinder/EditorProgramFinder';
 import { TemplateOption } from './components/options/TemplateOption';
-import { FreeOption } from './components/options/FreeOption';
+import { FreeOption } from './components/options/free-option/FreeOption';
 import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup, generateDocumentStructureFromProfile, parseProgramFromUrl } from '@/features/editor/lib';
 
 interface OptionSelectorProps {
@@ -87,10 +87,12 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
 
 interface ProgramSelectionProps {
   onConnectProgram?: (value: any) => void;
+  onNavigateToBlueprint?: () => void;
 }
 
 export default function ProgramSelection({
-  onConnectProgram
+  onConnectProgram,
+  onNavigateToBlueprint
 }: ProgramSelectionProps) {
   const configuratorState = useConfiguratorState();
   const handleConnectProgram = onConnectProgram ?? configuratorState.actions.setProgramSummary;
@@ -378,6 +380,7 @@ export default function ProgramSelection({
                   onProductSelected={(product) => {
                     console.log('Product selected in free option:', product);
                   }}
+                  onNavigateToBlueprint={onNavigateToBlueprint}
                 />
               )}
             </div>

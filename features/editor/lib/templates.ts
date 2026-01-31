@@ -225,15 +225,47 @@ const FULL_SECTIONS: SectionTemplate[] = [
 // MASTER TEMPLATES
 // ============================================================================
 
+const UPGRADE_SECTIONS: SectionTemplate[] = [
+  {
+    id: 'upgrade_analysis',
+    title: 'Upgrade Analysis',
+    description: 'Analysis of existing plan structure and identification of gaps.',
+    required: true,
+    category: 'general',
+    origin: 'template',
+    prompts: [
+      'Analyze the existing plan structure',
+      'Identify missing sections',
+      'Highlight weak areas',
+      'Suggest improvements'
+    ]
+  },
+  {
+    id: 'upgrade_strategy',
+    title: 'Upgrade Strategy',
+    description: 'Strategy for upgrading the existing plan.',
+    required: true,
+    category: 'general',
+    origin: 'template',
+    prompts: [
+      'Choose upgrade approach',
+      'Define migration plan',
+      'Set priorities for improvements'
+    ]
+  }
+];
+
 export const MASTER_SECTIONS: Record<string, SectionTemplate[]> = {
   strategy: [...STRATEGY_SECTIONS, ...SHARED_SPECIAL_SECTIONS], // Strategy now uses strategy-specific sections + shared special sections
   review: [...FULL_SECTIONS, ...SHARED_SPECIAL_SECTIONS], // Review now uses sections + shared special sections
-  submission: [...FULL_SECTIONS, ...SHARED_SPECIAL_SECTIONS]
+  submission: [...FULL_SECTIONS, ...SHARED_SPECIAL_SECTIONS],
+  upgrade: [...FULL_SECTIONS, ...UPGRADE_SECTIONS, ...SHARED_SPECIAL_SECTIONS]
 };
 
 // Simplified document lookup by product type (all funding types share same docs per product)
 export const MASTER_DOCUMENTS_BY_PRODUCT: Record<string, DocumentTemplate[]> = {
   strategy: [], // Strategy now uses sections, no documents
   review: [], // Review now uses sections, no documents
-  submission: []
+  submission: [],
+  upgrade: [] // Upgrade uses sections, no documents
 };

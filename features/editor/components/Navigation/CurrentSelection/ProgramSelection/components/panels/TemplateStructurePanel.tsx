@@ -71,7 +71,7 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
             <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
               <span className="text-white text-lg">🔍</span>
             </div>
-            <h3 className="text-white font-bold text-lg">{t('editor.desktop.program.uploadTemplateHint')}</h3>
+            <h3 className="text-white font-bold text-lg">{t('editor.desktop.program.panels.templateAnalysis')}</h3>
           </div>
           
           {/* Action Buttons - Top Right (REFRESH REMOVED) */}
@@ -108,7 +108,7 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
           <div className="bg-purple-900/20 border border-purple-700/30 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-purple-300 text-lg">📁</span>
-              <h4 className="text-purple-200 font-semibold text-base flex-1">{t('editor.desktop.program.selectProgramHint')}</h4>
+              <h4 className="text-purple-200 font-semibold text-base flex-1">{t('editor.desktop.program.panels.requiredDocuments')}</h4>
             </div>
                       
             <div className="space-y-2 ml-2">

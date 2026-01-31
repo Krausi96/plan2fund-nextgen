@@ -199,7 +199,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
               <span className="text-white text-lg">📄</span>
             </div>
-            <h3 className="text-white font-bold text-lg">Program Summary</h3>
+            <h3 className="text-white font-bold text-lg">{t('editor.desktop.program.panels.programSummary')}</h3>
           </div>
           
           {/* Action Buttons - Top Right (REFRESH REMOVED) */}
@@ -244,7 +244,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
           <div className="bg-slate-700/50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-blue-300 text-lg">📁</span>
-              <h4 className="text-white font-semibold text-base flex-1">Required Documents ({getRequiredDocuments().length})</h4>
+              <h4 className="text-white font-semibold text-base flex-1">{t('editor.desktop.program.panels.requiredDocuments')} ({getRequiredDocuments().length})</h4>
             </div>
               
             <div className="space-y-2 ml-2">

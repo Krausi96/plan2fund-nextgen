@@ -437,7 +437,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                     {/* Step 2: Program Selection */}
                     {setupWizard.currentStep === 2 && (
                       <div className="space-y-6">
-                        <ProgramSelection />
+                        <ProgramSelection onNavigateToBlueprint={() => actions.setSetupWizardStep(3)} />
                       </div>
                     )}
                     

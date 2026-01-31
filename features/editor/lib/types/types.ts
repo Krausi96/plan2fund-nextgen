@@ -44,7 +44,7 @@ export type {
   ProgramSummary
 };
 
-export type ProductType = 'submission' | 'review' | 'strategy';
+export type ProductType = 'submission' | 'review' | 'strategy' | 'upgrade';
 
 export type ProductOption = {
   value: ProductType;
@@ -158,14 +158,6 @@ export interface PlanDocument {
 
 // Re-export BusinessPlan if it exists elsewhere, otherwise define it
 export type BusinessPlan = PlanDocument;
-
-// ============================================================================
-// PROGRAM TYPES
-// ============================================================================
-
-// ProgramSummary moved to Program-Types.ts for single source of truth
-
-// ProgramProfile functionality moved to setup.types.ts as FundingProgram
 
 // ============================================================================
 // AI & CONVERSATION TYPES

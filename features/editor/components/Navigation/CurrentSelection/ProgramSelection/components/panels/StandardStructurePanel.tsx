@@ -43,11 +43,6 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
     return sortSectionsByCanonicalOrder(sections);
   };
 
-  const getOptionalSections = () => {
-    // For now, return empty array - optional sections logic can be added later
-    return [];
-  };
-
   // Handle case when no documents exist but we have product type
   const hasTemplateStructure = setupWizard.inferredProductType && getRequiredDocuments().length === 0;
 
@@ -90,7 +85,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
             <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
               <span className="text-white text-lg">📋</span>
             </div>
-            <h3 className="text-white font-bold text-lg">Standard Structure</h3>
+            <h3 className="text-white font-bold text-lg">{t('editor.desktop.program.panels.standardStructure')}</h3>
           </div>
           
           {/* Action Buttons - Top Right (REFRESH REMOVED) */}
@@ -126,7 +121,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
           <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-green-300 text-base">📁</span>
-              <h4 className="text-green-200 font-semibold text-sm flex-1">Document Structure</h4>
+              <h4 className="text-green-200 font-semibold text-sm flex-1">{t('editor.desktop.program.panels.requiredDocuments')}</h4>
               <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full font-medium">
                 Selected
               </span>
