@@ -94,6 +94,7 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
         title: s.title,
         documentId: s.documentId
       })));
+      console.log('📝 Full document structure:', JSON.stringify(documentStructure, null, 2));
 
       // Update store with standard structure
       console.log('📝 Setting document structure with sections:', documentStructure?.sections?.length);
