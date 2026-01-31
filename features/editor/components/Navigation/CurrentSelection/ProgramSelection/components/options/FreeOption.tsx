@@ -91,8 +91,8 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
       // DEBUG: Log the enhanced structure
       console.log('📝 Enhanced document structure sections:', documentStructure?.sections?.map(s => ({
         id: s.id,
-        title: s.title
-        // icon: s.icon // REMOVED: icon property may not exist on all section types
+        title: s.title,
+        documentId: s.documentId
       })));
 
       // Update store with standard structure

@@ -101,7 +101,7 @@ export default function BlueprintInstantiationStep({
 
   // Group sections by document
   const getSectionsByDocument = useCallback(() => {
-    console.log('🏗️ BlueprintInstantiation documentStructure sections:', documentStructure?.sections?.length, documentStructure?.sections?.map(s => s.id));
+    console.log('🏗️ BlueprintInstantiation documentStructure sections:', documentStructure?.sections?.length, documentStructure?.sections?.map(s => ({id: s.id, title: s.title})));
     if (!documentStructure?.sections) return {};
     
     const grouped: Record<string, any[]> = {};
