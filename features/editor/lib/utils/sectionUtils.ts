@@ -10,6 +10,52 @@ import type { SectionTemplate } from '../types/types';
 import type { DocumentStructure } from '../types/Program-Types';
 import type { Translations } from '@/shared/contexts/I18nContext';
 
+// Define the canonical section order
+const CANONICAL_SECTION_ORDER = [
+  METADATA_SECTION_ID,      // Title Page - must be first
+  ANCILLARY_SECTION_ID,     // Table of Contents - must be second
+  'executive_summary',
+  'project_description',
+  'market_analysis',
+  'financial_plan',
+  'team_qualifications',
+  'risk_assessment',
+  'business_model_canvas',
+  'go_to_market_strategy',
+  'unit_economics',
+  'milestones_next_steps',
+  REFERENCES_SECTION_ID,    // References
+  TABLES_DATA_SECTION_ID,   // Tables/Data
+  FIGURES_IMAGES_SECTION_ID, // Figures/Images
+  APPENDICES_SECTION_ID     // Appendices
+];
+
+// Create a map for fast lookup
+const SECTION_ORDER_MAP = new Map(CANONICAL_SECTION_ORDER.map((id, index) => [id, index]));
+
+/**
+ * Sort sections according to canonical order
+ * Ensures Title Page is first, TOC is second, and sections follow the defined order
+ */
+export function sortSectionsByCanonicalOrder<T extends { id: string }>(sections: T[]): T[] {
+  return [...sections].sort((a, b) => {
+    const orderA = SECTION_ORDER_MAP.get(a.id);
+    const orderB = SECTION_ORDER_MAP.get(b.id);
+    
+    // If both sections are in the canonical order, sort by their defined positions
+    if (orderA !== undefined && orderB !== undefined) {
+      return orderA - orderB;
+    }
+    
+    // If only one section is in canonical order, it comes first
+    if (orderA !== undefined) return -1;
+    if (orderB !== undefined) return 1;
+    
+    // If neither is in canonical order, maintain original order
+    return 0;
+  });
+}
+
 type TranslationFunction = (key: keyof Translations) => string;
 
 /**

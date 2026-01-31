@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore, inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/features/editor/lib';
-import { getSectionIcon } from '@/features/editor/lib/utils/sectionUtils';
+import { getSectionIcon, sortSectionsByCanonicalOrder } from '@/features/editor/lib/utils/sectionUtils';
 
 interface BlueprintInstantiationStepProps {
   onComplete?: () => void;
@@ -99,12 +99,15 @@ export default function BlueprintInstantiationStep({
     }));
   };
 
-  // Group sections by document
+  // Group sections by document and sort them
   const getSectionsByDocument = useCallback(() => {
     if (!documentStructure?.sections) return {};
     
+    // Sort sections by canonical order first
+    const sortedSections = sortSectionsByCanonicalOrder(documentStructure.sections);
+    
     const grouped: Record<string, any[]> = {};
-    documentStructure.sections.forEach(section => {
+    sortedSections.forEach(section => {
       const docId = section.documentId || 'main_document';
       if (!grouped[docId]) {
         grouped[docId] = [];
@@ -118,22 +121,30 @@ export default function BlueprintInstantiationStep({
   
   const blueprintSource = getBlueprintSource();
 
-  // Get required sections for a document
+  // Get required sections for a document (sorted)
   const getRequiredSections = (documentId: string) => {
     // If no sections are grouped by documentId, show all sections under the single document
     if (Object.keys(sectionsByDoc).length === 0 && documentStructure?.sections?.length) {
-      return documentStructure.sections.filter(section => section.required !== false);
+      return sortSectionsByCanonicalOrder(
+        documentStructure.sections.filter(section => section.required !== false)
+      );
     }
-    return sectionsByDoc[documentId]?.filter(section => section.required !== false) || [];
+    return sortSectionsByCanonicalOrder(
+      sectionsByDoc[documentId]?.filter(section => section.required !== false) || []
+    );
   };
 
-  // Get optional sections for a document
+  // Get optional sections for a document (sorted)
   const getOptionalSections = (documentId: string) => {
     // If no sections are grouped by documentId, show all sections under the single document
     if (Object.keys(sectionsByDoc).length === 0 && documentStructure?.sections?.length) {
-      return documentStructure.sections.filter(section => section.required === false);
+      return sortSectionsByCanonicalOrder(
+        documentStructure.sections.filter(section => section.required === false)
+      );
     }
-    return sectionsByDoc[documentId]?.filter(section => section.required === false) || [];
+    return sortSectionsByCanonicalOrder(
+      sectionsByDoc[documentId]?.filter(section => section.required === false) || []
+    );
   };
 
   // Add new document
@@ -145,7 +156,7 @@ export default function BlueprintInstantiationStep({
   };
 
   // Add new section
-  const handleAddSection = (documentId: string) => {
+  const handleAddSection = (_documentId: string) => {
     if (!newSectionTitle.trim()) return;
     
     // TODO: Implement section addition logic
@@ -153,7 +164,7 @@ export default function BlueprintInstantiationStep({
   };
 
   // Toggle section enabled/disabled
-  const handleToggleSection = (sectionId: string) => {
+  const handleToggleSection = (__sectionId: string) => {
     // TODO: Implement section enable/disable logic
   };
 

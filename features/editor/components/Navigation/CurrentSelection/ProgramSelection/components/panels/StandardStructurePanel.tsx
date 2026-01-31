@@ -2,6 +2,7 @@ import React from 'react';
 import { useEditorStore } from '@/features/editor/lib';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
+import { sortSectionsByCanonicalOrder } from '@/features/editor/lib/utils/sectionUtils';
 
 interface StandardStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;
@@ -29,11 +30,17 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
   const getRequiredSections = () => {
     // Get actual sections from MASTER_SECTIONS based on inferred product type
     const productType = setupWizard.inferredProductType;
+    let sections: any[] = [];
+    
     if (productType && MASTER_SECTIONS[productType]) {
-      return MASTER_SECTIONS[productType];
+      sections = MASTER_SECTIONS[productType];
+    } else {
+      // Fallback to document structure sections
+      sections = documentStructure?.sections || [];
     }
-    // Fallback to document structure sections
-    return documentStructure?.sections || [];
+    
+    // Sort sections according to canonical order
+    return sortSectionsByCanonicalOrder(sections);
   };
 
   const getOptionalSections = () => {

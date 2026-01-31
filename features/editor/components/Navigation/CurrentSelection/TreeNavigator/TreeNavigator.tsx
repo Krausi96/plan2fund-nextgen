@@ -7,6 +7,7 @@ import {
   getSectionTitle,
 } from '@/features/editor/lib';
 import { AddSectionForm, TreeNodeRenderer } from './components';
+import { sortSectionsByCanonicalOrder } from '@/features/editor/lib/utils/sectionUtils';
 import type { TreeNode } from '@/features/editor/lib/types/types';
 
 export default function TreeNavigator() {
@@ -62,8 +63,11 @@ export default function TreeNavigator() {
     documentStructure: state.setupWizard.documentStructure
   }));
   
-  // Get sections from document structure
-  const sections = documentStructure?.sections || [];
+  // Get sections from document structure and sort them
+  const sections = React.useMemo(() => {
+    const rawSections = documentStructure?.sections || [];
+    return sortSectionsByCanonicalOrder(rawSections);
+  }, [documentStructure]);
   
   // State for tree expansion/collapse
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
