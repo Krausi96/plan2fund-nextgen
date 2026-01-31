@@ -258,8 +258,8 @@ function CurrentSelection({}: CurrentSelectionProps) {
       isAccessible: setupWizard.currentStep >= 3 && !!programSummary, // Accessible after step 2 completion and program selection
       onClick: handlePlanClick,
       renderContent: () => !isConfiguratorOpen && (
-        <div className="flex items-center gap-1 max-w-[140px]">
-          <span className="text-white font-medium truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}>
+        <div className="text-white font-medium truncate flex items-center gap-1 max-w-[140px]">
+          <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}>
             {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}
           </span>
         </div>
@@ -274,7 +274,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
     return (
       <div 
         key={section.key}
-        className={`flex flex-col items-start text-left p-2 rounded transition-colors min-w-0 max-w-[160px] flex-shrink-0 ${
+        className={`flex flex-col items-center text-center p-2 rounded transition-colors min-w-0 max-w-[160px] flex-shrink-0 ${
           section.isActive 
             ? 'bg-white/20' 
             : section.isAccessible 
@@ -325,12 +325,12 @@ function CurrentSelection({}: CurrentSelectionProps) {
         ))}
         
         {/* Readiness */}
-        <div className="flex flex-col items-start text-left min-w-0">
+        <div className="flex flex-col items-center text-center min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-white/70 font-medium text-xs mb-1">📊 {t('editor.desktop.selection.readiness' as any) || 'Bereitschaft'}</span>
           </div>
           {!isConfiguratorOpen && (
-            <div className="text-white font-medium flex items-center gap-1 min-w-0">
+            <div className="text-white font-bold flex items-center justify-center gap-1 min-w-0 w-full">
               <ReadinessCheck />
             </div>
           )}

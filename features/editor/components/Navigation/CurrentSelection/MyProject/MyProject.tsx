@@ -297,6 +297,22 @@ const MyProject: React.FC<MyProjectProps> = ({
     );
   }
 
+  // Display mode - show project title or default text
+  if (mode === 'display') {
+    const projectTitle = formData.title || projectProfile?.projectName || t('editor.desktop.myProject.noProject' as any) || 'No Project';
+    
+    return (
+      <div className="text-white font-bold truncate flex items-center gap-1 max-w-[140px]">
+        <span 
+          className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" 
+          title={projectTitle}
+        >
+          {projectTitle}
+        </span>
+      </div>
+    );
+  }
+
   return null;
 };
 
