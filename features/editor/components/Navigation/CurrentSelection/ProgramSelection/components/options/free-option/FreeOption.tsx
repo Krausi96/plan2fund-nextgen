@@ -132,26 +132,26 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
     {
       id: 'business-plan',
       title: t('editor.desktop.program.document.businessPlan'),
-      subtitle: '(Submission)',
-      description: 'Full comprehensive business plan with financial projections and detailed analysis',
+      subtitle: '(Base Structure)',
+      description: 'A structured starting point for building a full business plan. Creates a standard business plan structure based on best practices.',
       icon: '📋',
-      features: ['Financial Statements', 'Market Analysis', 'Implementation Timeline', 'Risk Assessment']
+      features: ['Standard Sections', 'Clear Structure', 'Foundation to Extend', 'Best Practice Flow']
     },
     {
       id: 'strategy',
       title: t('editor.desktop.program.document.strategyDocument'), 
-      subtitle: '(Strategic Focus)',
-      description: 'High-level strategic overview focusing on market positioning and growth initiatives',
-      icon: '🎯',
-      features: ['SWOT Analysis', 'Competitive Positioning', 'Strategic Roadmap', 'Resource Planning']
+      subtitle: '(Clarity First)',
+      description: 'A strategic planning document to clarify what to build, for whom, and why. Best for founders before or at early startup stage.',
+      icon: '💡',
+      features: ['Business Model Logic', 'Go-to-market Strategy', 'Milestones & Next Steps', 'Risk Assessment']
     },
     {
       id: 'upgrade',
       title: t('editor.desktop.program.document.upgradePlan'), 
-      subtitle: '(Upgrade Existing)',
-      description: 'Upload and upgrade an existing business plan to current standards',
+      subtitle: '(Modernize)',
+      description: 'Improve and modernize existing documents. Upload an existing business plan (DOCX/PDF) and upgrade it to current standards.',
       icon: '♻️',
-      features: ['Structure Analysis', 'Weakness Detection', 'Missing Sections', 'Modernization']
+      features: ['Structure Analysis', 'Weakness Detection', 'Missing Sections', 'Modernization Flags']
     }
     // REMOVED pitch-deck option - not a valid product type
   ];
