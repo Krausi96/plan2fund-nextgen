@@ -282,7 +282,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
               : 'opacity-50'
         }`}
         style={{
-          cursor: isAccessibleAndInactive ? 'pointer' : section.isActive ? 'default' : 'not-allowed',
+          cursor: isAccessibleAndInactive ? 'pointer' : section.isActive ? 'default' : 'pointer',
         }}
         onClick={section.isAccessible ? section.onClick : undefined}
       >
@@ -419,31 +419,9 @@ function CurrentSelection({}: CurrentSelectionProps) {
                         </h2>
                         <div className="border-b border-white/20 mb-2"></div>
                         
-                        {/* Row 2: Simple flex layout with fixed proportions */}
-                        <div className="flex gap-4 mb-3">
-                          {/* Box 1: Description with fixed width */}
-                          <div className="w-64 flex-shrink-0">
-                            <p className="text-white/60 text-sm whitespace-nowrap">
-                              {t('editor.desktop.myProject.subtitle') || 'Enter basic project data'}
-                            </p>
-                          </div>
-                          
-                          {/* Box 2: Header taking remaining space */}
-                          <div className="flex-grow min-w-0">
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2 truncate">
-                              <span className="text-xl flex-shrink-0">
-                                {currentSection === 1 && '📋'}
-                                {currentSection === 2 && '🏢'}
-                                {currentSection === 3 && '✨'}
-                              </span>
-                              <span className="truncate">
-                                {currentSection === 1 && (t('editor.desktop.myProject.sections.generalInfo') || 'General Information')}
-                                {currentSection === 2 && (t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile')}
-                                {currentSection === 3 && (t('editor.desktop.myProject.sections.planningContext') || 'Planning Context')}
-                              </span>
-                            </h2>
-                          </div>
-                        </div>
+                        <p className="text-white/60 text-sm mb-4">
+                          {t('editor.desktop.myProject.subtitle') || 'Enter basic project data'}
+                        </p>
                         <div className="w-full">
                           <MyProject 
                             mode="form" 

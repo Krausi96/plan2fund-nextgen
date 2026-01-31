@@ -231,11 +231,12 @@ export default function ProgramSelection({
     <div className="relative mb-6 pb-6">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-1">
           <h2 className="text-2xl font-bold text-white">
             {t('editor.desktop.program.header' as any) || 'Document Setup'}
           </h2>
         </div>
+        <div className="border-b border-white/20 mb-2"></div>
         <p className="text-white/70 text-sm">
           {t('editor.desktop.program.subtitle' as any) || 'Choose how your document structure and requirements are defined.'}
         </p>
@@ -275,21 +276,21 @@ export default function ProgramSelection({
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => setActiveTab('search')}
-                      className={`inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-colors text-sm ${activeTab === 'search' ? 'bg-blue-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
+                      className={`inline-flex items-center gap-2 px-4 py-1.5 font-medium rounded-lg transition-colors text-sm ${activeTab === 'search' ? 'bg-blue-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
                     >
                       <span>🔍</span>
                       {t('editor.desktop.program.searchPrograms' as any) || 'Search Programs'}
                     </button>
                     <button
                       onClick={() => setActiveTab('paste')}
-                      className={`inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-colors text-sm ${activeTab === 'paste' ? 'bg-blue-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
+                      className={`inline-flex items-center gap-2 px-4 py-1.5 font-medium rounded-lg transition-colors text-sm ${activeTab === 'paste' ? 'bg-blue-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
                     >
                       <span>🔗</span>
                       {t('editor.desktop.program.pasteUrl' as any) || 'Paste URL'}
                     </button>
                     <button
                       onClick={() => setActiveTab('wizard')}
-                      className={`inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-colors text-sm ${activeTab === 'wizard' ? 'bg-purple-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
+                      className={`inline-flex items-center gap-2 px-4 py-1.5 font-medium rounded-lg transition-colors text-sm ${activeTab === 'wizard' ? 'bg-purple-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
                     >
                       <span>🧠</span>
                       {t('editor.desktop.program.recoWizard' as any) || 'Reco Wizard'}

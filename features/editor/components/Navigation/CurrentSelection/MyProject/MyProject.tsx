@@ -214,76 +214,81 @@ const MyProject: React.FC<MyProjectProps> = ({
 
     return (
       <>
-        <div className={`${className} flex gap-4 items-start`}>
-          {/* Navigation Sidebar */}
-          <div className="w-64 flex-shrink-0">
-            <div className="bg-slate-800 rounded-lg p-2 border border-slate-700">
-              <nav className="space-y-2">
-                <button
-                  onClick={() => handleNavClick(1)}
-                  className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
-                    currentSection === 1 
-                      ? 'bg-blue-500/30 text-white' 
-                      : 'text-white/70 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <span className="text-lg">📋</span>
-                  <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.generalInfo') || 'General Info'}</span>
-                </button>
-                
-                <button
-                  onClick={() => handleNavClick(2)}
-                  className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
-                    currentSection === 2 
-                      ? 'bg-blue-500/30 text-white' 
-                      : 'text-white/70 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <span className="text-lg">🏢</span>
-                  <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}</span>
-                </button>
-                
-                <button
-                  onClick={() => handleNavClick(3)}
-                  className={`w-full text-left flex items-center gap-2 p-1.5 rounded transition-colors ${
-                    currentSection === 3 
-                      ? 'bg-blue-500/30 text-white' 
-                      : 'text-white/70 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <span className="text-lg">✨</span>
-                  <span className="text-sm whitespace-nowrap">{t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}</span>
-                </button>
-              </nav>
+        <div className={`${className}`}>
+          {/* Navigation Buttons - Matching Program/Template Style */}
+          <div className="mb-6">
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleNavClick(1)}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold rounded-lg transition-all duration-200 text-base ${
+                  currentSection === 1 
+                    ? 'bg-blue-600 text-white shadow-lg' 
+                    : 'bg-slate-800/30 border border-white/10 text-white/80 hover:border-white/30 hover:text-white hover:bg-slate-800/40 backdrop-blur-sm'
+                }`}
+              >
+                <span className="text-xl">📋</span>
+                <span>{t('editor.desktop.myProject.sections.generalInfo') || 'General Info'}</span>
+                {currentSection === 1 && (
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                )}
+              </button>
+              
+              <button
+                onClick={() => handleNavClick(2)}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold rounded-lg transition-all duration-200 text-base ${
+                  currentSection === 2 
+                    ? 'bg-blue-600 text-white shadow-lg' 
+                    : 'bg-slate-800/30 border border-white/10 text-white/80 hover:border-white/30 hover:text-white hover:bg-slate-800/40 backdrop-blur-sm'
+                }`}
+              >
+                <span className="text-xl">🏢</span>
+                <span>{t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}</span>
+                {currentSection === 2 && (
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                )}
+              </button>
+              
+              <button
+                onClick={() => handleNavClick(3)}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold rounded-lg transition-all duration-200 text-base ${
+                  currentSection === 3 
+                    ? 'bg-blue-600 text-white shadow-lg' 
+                    : 'bg-slate-800/30 border border-white/10 text-white/80 hover:border-white/30 hover:text-white hover:bg-slate-800/40 backdrop-blur-sm'
+                }`}
+              >
+                <span className="text-xl">✨</span>
+                <span>{t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}</span>
+                {currentSection === 3 && (
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                )}
+              </button>
             </div>
           </div>
           
           {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            <div className="space-y-4">
-              {/* Show only current section */}
-              {currentSection === 1 && (
-                <GeneralInfoStep 
-                  formData={formData} 
-                  onChange={handleFieldChange}
-                  onInteraction={onInteraction}
-                />
-              )}
-              
-              {currentSection === 2 && (
-                <ProjectProfileStep 
-                  formData={formData} 
-                  onChange={handleFieldChange}
-                />
-              )}
-              
-              {currentSection === 3 && (
-                <PlanningContextStep 
-                  formData={formData} 
-                  onChange={handleFieldChange}
-                />
-              )}
-            </div>
+          <div className="space-y-4">
+            {/* Show only current section */}
+            {currentSection === 1 && (
+              <GeneralInfoStep 
+                formData={formData} 
+                onChange={handleFieldChange}
+                onInteraction={onInteraction}
+              />
+            )}
+            
+            {currentSection === 2 && (
+              <ProjectProfileStep 
+                formData={formData} 
+                onChange={handleFieldChange}
+              />
+            )}
+            
+            {currentSection === 3 && (
+              <PlanningContextStep 
+                formData={formData} 
+                onChange={handleFieldChange}
+              />
+            )}
           </div>
         </div>
         {/* Only show preview when explicitly requested */}

@@ -50,12 +50,6 @@ import {
   useSectionsAndDocumentsCounts,
   useSelectedProductMeta,
 } from './useEditorSelectors';
-import {
-  METADATA_SECTION_ID,
-  ANCILLARY_SECTION_ID,
-  REFERENCES_SECTION_ID,
-  APPENDICES_SECTION_ID,
-} from '../constants';
 import { useEditorActions } from './useEditorActions';
 import { useToggleHandlers, useEditHandlers } from './useEditorHandlers';
 import type { SectionTemplate, DocumentTemplate } from '../types/types';

@@ -36,11 +36,11 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
     <Card className="bg-slate-800 border-slate-700">
       <CardContent>
         <div className="space-y-6">
-          {/* Required Fields */}
+          {/* Required Fields - Single Row */}
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-white text-sm font-medium mb-2">
+                <label className="block text-white text-sm font-bold mb-2">
                   {t('editor.desktop.setupWizard.fields.projectName') || 'Document Title'} *
                 </label>
                 <input
@@ -53,7 +53,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
               </div>
               
               <div>
-                <label className="block text-white text-sm font-medium mb-2">
+                <label className="block text-white text-sm font-bold mb-2">
                   {t('editor.desktop.setupWizard.fields.author') || 'Author / Organization'} *
                 </label>
                 <input
@@ -66,7 +66,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
               </div>
               
               <div>
-                <label className="block text-white text-sm font-medium mb-2">
+                <label className="block text-white text-sm font-bold mb-2">
                   {t('editor.desktop.setupWizard.fields.confidentiality')}
                 </label>
                 <select
@@ -110,7 +110,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
             >
               <div className="flex items-center gap-2">
                 <span>📑</span>
-                <span className="text-white font-medium">{t('editor.desktop.setupWizard.fields.documentInfo') || 'Document Information'}</span>
+                <span className="text-white font-bold">{t('editor.desktop.setupWizard.fields.documentInfo') || 'Document Information'}</span>
                 <span className="text-white/70 text-sm">({t('editor.desktop.setupWizard.optional') || 'Optional'})</span>
               </div>
               <span className={`transform transition-transform ${expandedSections.documentInfo ? 'rotate-180' : ''}`}>
@@ -120,9 +120,9 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
             
             {expandedSections.documentInfo && (
               <div className="px-4 pb-4 pt-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">
+                    <label className="block text-white text-sm font-bold mb-2">
                       {t('editor.desktop.setupWizard.fields.subtitle')}
                     </label>
                     <input
@@ -135,7 +135,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                   </div>
                   
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">
+                    <label className="block text-white text-sm font-bold mb-2">
                       {t('editor.desktop.setupWizard.fields.date')}
                     </label>
                     <input
@@ -146,8 +146,8 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                     />
                   </div>
                   
-                  <div className="md:col-span-2">
-                    <label className="block text-white text-sm font-medium mb-2">
+                  <div>
+                    <label className="block text-white text-sm font-bold mb-2">
                       {t('editor.desktop.setupWizard.fields.logo')}
                     </label>
                     <input
@@ -164,7 +164,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                           reader.readAsDataURL(file);
                         }
                       }}
-                      className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                      className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
                     />
                   </div>
                 </div>
@@ -181,7 +181,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
             >
               <div className="flex items-center gap-2">
                 <span>📞</span>
-                <span className="text-white font-medium">{t('editor.desktop.setupWizard.fields.contactInfo') || 'Contact Information'}</span>
+                <span className="text-white font-bold">{t('editor.desktop.setupWizard.fields.contactInfo') || 'Contact Information'}</span>
                 <span className="text-white/70 text-sm">({t('editor.desktop.setupWizard.optional') || 'Optional'})</span>
               </div>
               <span className={`transform transition-transform ${expandedSections.contactInfo ? 'rotate-180' : ''}`}>
@@ -191,9 +191,9 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
             
             {expandedSections.contactInfo && (
               <div className="px-4 pb-4 pt-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">
+                    <label className="block text-white text-sm font-bold mb-2">
                       {t('editor.desktop.setupWizard.fields.email')}
                     </label>
                     <input
@@ -206,7 +206,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                   </div>
                   
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">
+                    <label className="block text-white text-sm font-bold mb-2">
                       {t('editor.desktop.setupWizard.fields.phone')}
                     </label>
                     <input
@@ -219,7 +219,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                   </div>
                   
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">
+                    <label className="block text-white text-sm font-bold mb-2">
                       {t('editor.desktop.setupWizard.fields.website')}
                     </label>
                     <input
@@ -232,7 +232,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                   </div>
                   
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">
+                    <label className="block text-white text-sm font-bold mb-2">
                       {t('editor.desktop.setupWizard.fields.address')}
                     </label>
                     <input
