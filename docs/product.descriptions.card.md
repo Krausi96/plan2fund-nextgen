@@ -55,7 +55,6 @@ Creates a **standard business plan structure** based on best practices.
 **Improve and modernize existing documents.**
 
 Upload an existing business plan (DOCX/PDF) and upgrade it to current standards.
-Your structure is preserved, weaknesses are identified, and missing parts are added.
 
 **Best for:**
 - Existing business plans
@@ -74,7 +73,6 @@ Your structure is preserved, weaknesses are identified, and missing parts are ad
 ## Basisstruktur auswählen
 
 ### 💡 Strategiedokument (Klarheit an erster Stelle)
-**Für Gründer vor oder in der frühen Startphase.**
 
 Ein **strategisches Planungsdokument**, um zu klären, **was für wen und warum entwickelt werden soll.** 
 
@@ -126,8 +124,7 @@ Erstellt eine **Standardstruktur für Businesspläne** auf der Grundlage von Bes
 ### ♻️ Dokumente aktualisieren
 **Verbessern und modernisieren Sie bestehende Dokumente.**
 
-Laden Sie einen bestehenden Businessplan (DOCX/PDF) hoch und aktualisieren Sie ihn auf den aktuellen Stand.
-Ihre Struktur bleibt erhalten, Schwachstellen werden identifiziert und fehlende Teile ergänzt.
+Lade einen bestehenden Businessplan hoch, um Schwachstellen zu identifizieren und fehlende Teile zu ergänzen.
 
 **Am besten geeignet für:**
 - Bestehende Business Pläne

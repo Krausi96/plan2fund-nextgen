@@ -257,7 +257,6 @@ const UPGRADE_SECTIONS: SectionTemplate[] = [
 
 export const MASTER_SECTIONS: Record<string, SectionTemplate[]> = {
   strategy: [...STRATEGY_SECTIONS, ...SHARED_SPECIAL_SECTIONS], // Strategy now uses strategy-specific sections + shared special sections
-  review: [...FULL_SECTIONS, ...SHARED_SPECIAL_SECTIONS], // Review now uses sections + shared special sections
   submission: [...FULL_SECTIONS, ...SHARED_SPECIAL_SECTIONS],
   upgrade: [...FULL_SECTIONS, ...UPGRADE_SECTIONS, ...SHARED_SPECIAL_SECTIONS]
 };
@@ -265,7 +264,6 @@ export const MASTER_SECTIONS: Record<string, SectionTemplate[]> = {
 // Simplified document lookup by product type (all funding types share same docs per product)
 export const MASTER_DOCUMENTS_BY_PRODUCT: Record<string, DocumentTemplate[]> = {
   strategy: [], // Strategy now uses sections, no documents
-  review: [], // Review now uses sections, no documents
   submission: [],
   upgrade: [] // Upgrade uses sections, no documents
 };

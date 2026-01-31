@@ -70,8 +70,6 @@ export function TitlePageRenderer({ planDocument, disabledSections, t, compact =
     switch (planDocument.productType) {
       case 'strategy':
         return 'planTypes.strategy.title';
-      case 'review':
-        return 'planTypes.review.title';
       case 'submission':
         return 'planTypes.custom.title';
       default:

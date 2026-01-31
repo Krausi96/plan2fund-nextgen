@@ -44,7 +44,7 @@ export type {
   ProgramSummary
 };
 
-export type ProductType = 'submission' | 'review' | 'strategy' | 'upgrade';
+export type ProductType = 'submission' | 'strategy' | 'upgrade';
 
 export type ProductOption = {
   value: ProductType;
@@ -278,7 +278,7 @@ export interface ProjectProfile {
   confidentiality: 'public' | 'confidential' | 'private';
   confidentialityStatement?: string;
   oneLiner: string;
-  stage: 'idea' | 'MVP' | 'revenue';
+  stage: 'idea' | 'MVP' | 'revenue' | 'growth' | 'established';
   country: string;
   industryTags: string[]; // max 3
   mainObjective?: string;

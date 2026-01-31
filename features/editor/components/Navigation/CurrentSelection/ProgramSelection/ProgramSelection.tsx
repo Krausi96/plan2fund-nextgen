@@ -265,11 +265,23 @@ export default function ProgramSelection({
       />
       
       {/* Two-Column Layout */}
-      <div className="flex flex-col lg:flex-row gap-6 mt-6">
+      <div className="flex flex-col lg:flex-row gap-6 mt-4">
         {/* Main Content Column (70%) */}
         <div className="lg:w-7/12">
           {/* Selected Option Content */}
-          {selectedOption && (
+          {selectedOption === 'free' ? (
+            // Free option without the outer container
+            <FreeOption 
+              onStructureSelected={(structure) => {
+                console.log('Free structure selected:', structure);
+              }}
+              onProductSelected={(product) => {
+                console.log('Product selected in free option:', product);
+              }}
+              onNavigateToBlueprint={onNavigateToBlueprint}
+            />
+          ) : selectedOption && (
+            // Apply the container for 'program' and 'template' options
             <div className="bg-slate-800/30 rounded-xl border border-white/10 p-6">
               
               {/* Horizontal Program Tabs (for Program option) */}
@@ -300,10 +312,10 @@ export default function ProgramSelection({
                   </div>
                   
                   {/* Dynamic Content Below Tabs - SAME CONTAINER */}
-                  <div className="mt-6 border-t border-white/10 pt-6">
+                  <div className="mt-4 border-t border-white/10 pt-2">
                     {activeTab === 'search' && (
                       <div>
-                        <h4 className="text-white font-medium mb-4">
+                        <h4 className="text-white text.lg font-bold mb-4">
                           {t('editor.desktop.program.finder.title' as any) || 'Find Funding Programs'}
                         </h4>
                         <ProgramFinder 
@@ -315,7 +327,7 @@ export default function ProgramSelection({
                     
                     {activeTab === 'paste' && (
                       <div>
-                        <h4 className="text-white font-medium mb-4">
+                        <h4 className="text-white font-medium mb-4 mt-2">
                           {t('editor.desktop.program.pasteUrl' as any) || 'Paste Program URL'}
                         </h4>
                         <div className="bg-slate-800/50 rounded-lg p-4 border border-white/10">
@@ -368,19 +380,6 @@ export default function ProgramSelection({
                   onDocumentAnalyzed={(analysis) => {
                     console.log('Template analysis complete:', analysis);
                   }}
-                />
-              )}
-              
-              {/* Free Content */}
-              {selectedOption === 'free' && (
-                <FreeOption 
-                  onStructureSelected={(structure) => {
-                    console.log('Free structure selected:', structure);
-                  }}
-                  onProductSelected={(product) => {
-                    console.log('Product selected in free option:', product);
-                  }}
-                  onNavigateToBlueprint={onNavigateToBlueprint}
                 />
               )}
             </div>

@@ -11,54 +11,18 @@ interface FreeOptionProps {
   onNavigateToBlueprint?: () => void;
 }
 
-
-
 export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeOptionProps) {
   const [selectedStructure, setSelectedStructure] = useState<string | null>(null);
-  const [selectedIndustry, setSelectedIndustry] = useState<string>('');
-  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   
-  const toggleExpand = (cardId: string) => {
-    setExpandedCards(prev => ({
-      ...prev,
-      [cardId]: !prev[cardId]
-    }));
-  };
-  
-  const truncateText = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + '...';
-  };
-  
-  const formatDescription = (description: string, isExpanded: boolean) => {
-    if (!isExpanded) {
-      return truncateText(description, 120);
-    }
-    
-    
-    // This is a simplified approach - in a real implementation, we'd want to parse
-    // the structured content more accurately
-    const lines = description.split('. ').filter(line => line.trim() !== '');
-    
-    return (
-      <div className="text-white/70 text-xs leading-relaxed space-y-1">
-        {lines.map((line, index) => (
-          <div key={index}>{line}{index < lines.length - 1 ? '.' : ''}</div>
-        ))}
-      </div>
-    );
-  };
-  
+
   const { t } = useI18n();
   
   // Access editor store for document setup management
   const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
   const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
-  const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
   const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
   
-  // Removed unused selector: useSectionsAndDocumentsCounts()
-
+  
   const handleStructureSelect = (structure: string) => {
     setSelectedStructure(structure);
     
@@ -74,25 +38,19 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       const structureMap = {
         'business-plan': {
           productType: 'submission' as const,
-          // No hardcoded documents - will use template system
-          // No hardcoded sections - will use MASTER_SECTIONS[productType]
         },
         'strategy': {
           productType: 'strategy' as const
-          // No hardcoded documents - will use template system  
-          // No hardcoded sections - will use MASTER_SECTIONS[productType]
         },
         'upgrade': {
           productType: 'upgrade' as const
-          // No hardcoded documents - will use template system  
-          // No hardcoded sections - will use MASTER_SECTIONS[productType]
         }
       };
 
       const structureConfig = structureMap[structure as keyof typeof structureMap] || structureMap['business-plan'];
       
       // Create document structure using actual template data
-      const baseStructure = {
+      const baseStructure: any = {
         structureId: `standard-${structure}-${Date.now()}`,
         version: '1.0',
         source: 'standard' as const,
@@ -126,8 +84,8 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
         aiGuidance: [],
         renderingRules: {},
         conflicts: [],
-        warnings: selectedIndustry ? [`Industry focus: ${selectedIndustry}`] : ['Standard template - no program requirements applied'],
-        confidenceScore: selectedIndustry ? 85 : 70,
+        warnings: ['Standard template - no program requirements applied'],
+        confidenceScore: 70,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         createdBy: 'standard-template'
@@ -139,11 +97,6 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       // Update store with standard structure
       setDocumentStructure(documentStructure);
       setSetupStatus('draft');
-      setSetupDiagnostics({
-        warnings: selectedIndustry ? [`Industry focus: ${selectedIndustry}`] : ['Standard template - no program requirements applied'],
-        missingFields: [],
-        confidence: selectedIndustry ? 85 : 70
-      });
       
       // Infer and store product type for Step 3 instantiation - SYNCED WITH MASTER_TEMPLATES
       const inferredType = structureConfig.productType;
@@ -164,30 +117,20 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
     {
       id: 'business-plan',
       title: t('editor.desktop.program.document.businessPlan'),
-      subtitle: '(Base Structure)',
-      description: 'A structured starting point for building a full business plan. Creates a standard business plan structure based on best practices. Best for: Building a business plan from scratch. Outcome: Standard business plan sections, Clear structure and flow, A foundation you can extend or adapt. Typically includes: Executive Summary, Project / Product Description, Market Analysis (TAM/SAM/SOM, competition), Financial Plan (budget, cashflow, funding use), Team & Qualifications, Risk Assessment, Appendices & supporting documents (optional).',
       icon: '📋',
-      features: ['Executive Summary', 'Market Analysis', 'Financial Plan', 'Risk Assessment']
     },
     {
       id: 'strategy',
       title: t('editor.desktop.program.document.strategyDocument'), 
-      subtitle: '(Clarity First)',
-      description: 'A strategic planning document to clarify what to build, for whom, and why. For founders before or at early startup stage. Best for: Founders before company formation, Early-stage startups (idea → MVP), Internal alignment & decision-making, Preparing for a later business plan or funding. Typically includes: Business model logic, Go-to-market strategy, Milestones & next steps, Key risks & assumptions. Focuses on: Problem & customer definition, Value proposition & solution concept, Target market & positioning, Competitive landscape.',
       icon: '💡',
-      features: ['Business Model Logic', 'Go-to-market Strategy', 'Milestones & Next Steps', 'Risk Assessment']
     },
     {
       id: 'upgrade',
       title: t('editor.desktop.program.document.upgradePlan'), 
-      subtitle: '(Modernize)',
-      description: 'Improve and modernize existing documents. Upload an existing business plan (DOCX/PDF) and upgrade it to current standards. Your structure is preserved, weaknesses are identified, and missing parts are added. Best for: Existing business plans, Rejected or weak funding applications, Outdated plans that need modernization, Improving clarity, numbers, and structure. What happens: Existing structure is analyzed, Weaknesses are highlighted and Best Practice structure is suggested. Outcome: A clearer, stronger, more coherent plan.',
       icon: '♻️',
-      features: ['Structure Analysis', 'Weakness Detection', 'Missing Sections', 'Modernization Flags']
     }
   ];
 
-  
   return (
     <div className="space-y-6">
       {selectedStructure === 'upgrade' ? (
@@ -204,7 +147,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
               className="flex items-center gap-2 text-green-400 hover:text-green-300 text-sm"
             >
               <span>←</span>
-              <span>Back to Plan Options</span>
+              <span>{t('editor.desktop.program.backToPlanOptions')}</span>
             </button>
           </div>
           <UpgradeOption onNavigateToBlueprint={onNavigateToBlueprint} />
@@ -213,61 +156,33 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
         <>
           {/* Base Structure Selection - MOVING FROM PRODUCT SELECTION */}
           <div className="bg-slate-800/50 rounded-xl border border-white/10 p-5">
-            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+            <h3 className="text-white font-bold text-xl mb-6 flex items-center gap-2">
               <span>🏗️</span>
-              Choose Base Structure
+              {t('editor.desktop.program.chooseBaseStructure')}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {structureOptions.map((option) => (
                 <div
                   key={option.id}
                   onClick={() => handleStructureSelect(option.id)}
-                  className={`cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 ${
+                  className={`cursor-pointer rounded-xl border-2 p-6 transition-all duration-200 min-h-[160px] ${
                     selectedStructure === option.id
-                      ? 'border-green-400 bg-green-900/20 shadow-lg scale-[1.02]'
-                      : 'border-white/20 hover:border-green-400/50 hover:bg-white/5'
+                      ? 'border-green-400 bg-green-900/20 shadow-lg scale-[1.02] opacity-100'
+                      : 'border-white/20 hover:border-green-400/50 hover:bg-white/5 opacity-50'
                   }`}
                 >
-                  <div className="text-center mb-3">
-                    <div className="text-3xl mb-2">{option.icon}</div>
-                    <h4 className="text-white font-bold text-base mb-1">{option.title}</h4>
-                    <p className="text-green-300 text-xs font-medium mb-2">{option.subtitle}</p>
-                    <div className="text-white/70 text-xs leading-relaxed max-h-20 overflow-hidden">{
-                      typeof formatDescription(option.description, expandedCards[option.id]) === 'string'
-                        ? formatDescription(option.description, expandedCards[option.id])
-                        : formatDescription(option.description, expandedCards[option.id])
-                    }</div>
-                    {option.description.length > 120 && (
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleExpand(option.id);
-                        }}
-                        className="text-green-400 text-xs mt-1 hover:text-green-300"
-                      >
-                        {expandedCards[option.id] ? 'Show less' : 'Read more'}
-                      </button>
-                    )}
+                  <div className="text-center">
+                    <div className="text-6xl mb-4 mt-3">{option.icon}</div>
+                    <h4 className="text-white font-bold text-base mb-3">{option.title}</h4>
+                    <p className="text-white/80 text-xs leading-relaxed">
+                    </p>
                   </div>
-                  
-                  {/* Features List */}
-                  <div className="mt-3 pt-3 border-t border-white/10">
-                    <div className="text-white/60 text-xs font-medium mb-2">Includes:</div>
-                    <ul className="space-y-1">
-                      {option.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center gap-1 text-white/80 text-xs">
-                          <span className="text-green-400 text-xs">•</span>
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
+                                
                   {selectedStructure === option.id && (
-                    <div className="mt-3 pt-3 border-t border-green-700/30">
-                      <div className="text-green-300 text-xs font-medium flex items-center gap-1 justify-center">
-                        <span>✓</span>
-                        <span>Selected</span>
+                    <div className="mt-4 flex items-center justify-center">
+                      <div className="text-green-400 text-xs font-medium flex items-center gap-1">
+                        <span>{option.icon}</span>
+                        <span>{t('editor.desktop.program.selected')}</span>
                       </div>
                     </div>
                   )}
@@ -275,37 +190,6 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
               ))}
             </div>
           </div>
-
-          {/* Industry Preset (Optional) */}
-          {selectedStructure && selectedStructure !== 'upgrade' && (
-            <div className="bg-slate-800/50 rounded-xl border border-white/10 p-5">
-              <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
-                <span>🏭</span>
-                Industry Focus (Optional)
-              </h3>
-              
-              <div className="max-w-md">
-                <select
-                  value={selectedIndustry}
-                  onChange={(e) => setSelectedIndustry(e.target.value)}
-                  className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-white focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400/60"
-                >
-                  <option value="">Select industry...</option>
-                  <option value="technology">Technology</option>
-                  <option value="healthcare">Healthcare</option>
-                  <option value="finance">Finance</option>
-                  <option value="manufacturing">Manufacturing</option>
-                  <option value="green-energy">Green Energy</option>
-                  <option value="education">Education</option>
-                  <option value="other">Other</option>
-                </select>
-                
-                <p className="text-white/60 text-xs mt-2">
-                  Industry selection helps tailor section suggestions and examples
-                </p>
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>

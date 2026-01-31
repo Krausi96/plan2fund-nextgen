@@ -1,9 +1,7 @@
-// General editor utilities - no program-specific imports needed
 /**
  * ============================================================================  
  * EDITOR UTILITIES
  * ============================================================================  
- * 
  * @param element - The HTML element that was clicked
  * @returns true if the click should be ignored, false otherwise
  */

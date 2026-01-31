@@ -292,8 +292,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
           </span>
           {section.isActive && isConfiguratorOpen && (
             <span className="relative">
-              <span className="absolute h-2 w-2 rounded-full bg-green-400 opacity-75 animate-subtle-pulse"></span>
-              <span className="relative h-2 w-2 rounded-full bg-green-400 block"></span>
+              <span className="relative h-2 w-2 rounded-full bg-green-400 block animate-pulse" ></span>
             </span>
           )}
         </div>

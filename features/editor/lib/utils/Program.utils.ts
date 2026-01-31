@@ -441,8 +441,8 @@ export function inferProductTypeFromBlueprint(structure: DocumentStructure): Pro
     return 'strategy';
   }
   
-  if (structureId.includes('review') || structureId.includes('revision')) {
-    return 'review';
+  if (structureId.includes('upgrade')) {
+    return 'upgrade';
   }
   
   // Default to submission for business plans and templates

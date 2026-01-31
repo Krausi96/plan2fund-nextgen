@@ -99,8 +99,6 @@ export function shouldDisplayPageNumber(
   );
   
   // For the executive summary itself, based on the user's issue description
-  // where they mention seeing page numbers in the executive summary,
-  // we want to exclude it
   if (sectionIndex >= 0 && execSummaryIndex >= 0 && sectionIndex === execSummaryIndex) {
     return false;  // Don't show page number for executive summary
   }

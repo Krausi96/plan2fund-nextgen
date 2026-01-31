@@ -145,8 +145,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
       );
     }
     
-    // When product is selected, exclude special sections that have dedicated renderers
-    // These are rendered separately by TitlePageRenderer, TableOfContentsRenderer, ReferencesRenderer, etc.
+    
     // Note: tables_data and figures_images sections are currently rendered by SectionRenderer as regular content
     return allSections.filter(section => 
       section.id !== 'metadata' &&

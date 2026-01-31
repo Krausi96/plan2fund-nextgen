@@ -123,7 +123,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
               <span className="text-green-300 text-base">📁</span>
               <h4 className="text-green-200 font-semibold text-sm flex-1">{t('editor.desktop.program.panels.requiredDocuments')}</h4>
               <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full font-medium">
-                Selected
+                {t('editor.desktop.program.panels.documents.selected')}
               </span>
             </div>
                       
@@ -180,9 +180,12 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
                         className="flex items-center gap-2 text-white font-medium mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
                         onClick={() => toggleDocument(docId)}
                       >
-                        <span className="truncate flex-1" title={doc.name}>
-                          {doc.name}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span>📄</span>
+                          <span className="truncate flex-1" title={doc.name}>
+                            {doc.name}
+                          </span>
+                        </div>
                         <span className="text-green-300 transform transition-transform duration-200 ml-2">
                           {isExpanded ? '▼' : '▶'}
                         </span>

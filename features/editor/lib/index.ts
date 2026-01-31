@@ -198,11 +198,6 @@ export {
   // Simplified/deprecated functions
   parseProgramFromUrl, // @deprecated - use direct program input
   generateProgramBlueprint, // @deprecated - use normalizeFundingProgram instead
-  // Removed functions (unused):
-  // normalizeProgramSetup - never used
-  // normalizeToProgramProfile - just wrapper for normalizeFundingProgram
-  // generateBlueprintFromProfile - unused placeholder
-  // syncTemplateStateFromPlan - use store actions instead
 } from './utils/Program.utils';
 
 // ============================================================================

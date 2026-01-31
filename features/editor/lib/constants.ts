@@ -35,12 +35,7 @@ export const DEFAULT_PRODUCT_OPTIONS: ProductOption[] = [
     description: 'planTypes.custom.description',
     icon: '📋',
   },
-  {
-    value: 'review',
-    label: 'planTypes.review.title',
-    description: 'planTypes.review.description',
-    icon: '✏️',
-  },
+
   {
     value: 'strategy',
     label: 'planTypes.strategy.title',
