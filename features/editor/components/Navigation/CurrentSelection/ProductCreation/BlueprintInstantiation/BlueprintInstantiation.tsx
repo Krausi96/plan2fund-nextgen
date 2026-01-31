@@ -109,15 +109,20 @@ export default function BlueprintInstantiationStep({
     const grouped: Record<string, any[]> = {};
     documentStructure.sections.forEach(section => {
       const docId = section.documentId || 'main_document';
+      console.log(`  Processing section ${section.id}: documentId = ${docId}`);
       if (!grouped[docId]) {
         grouped[docId] = [];
       }
       grouped[docId].push(section);
     });
+    console.log('  Final grouped result:', grouped);
     return grouped;
   }, [documentStructure]);
 
   const sectionsByDoc = getSectionsByDocument();
+  console.log('📋 sectionsByDoc result:', sectionsByDoc);
+  console.log('📋 sectionsByDoc keys:', Object.keys(sectionsByDoc));
+  
   const blueprintSource = getBlueprintSource();
 
   // Get required sections for a document
