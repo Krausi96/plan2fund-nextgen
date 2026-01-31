@@ -16,6 +16,19 @@ interface FreeOptionProps {
 export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeOptionProps) {
   const [selectedStructure, setSelectedStructure] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState<string>('');
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  
+  const toggleExpand = (cardId: string) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [cardId]: !prev[cardId]
+    }));
+  };
+  
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + '...';
+  };
   
   const { t } = useI18n();
   
@@ -133,7 +146,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       id: 'business-plan',
       title: t('editor.desktop.program.document.businessPlan'),
       subtitle: '(Base Structure)',
-      description: 'A structured starting point for building a full business plan. Creates a standard business plan structure based on best practices. Best for: Building a business plan from scratch. Outcome: Standard business plan sections, Clear structure and flow, A foundation you can extend or adapt.',
+      description: 'A structured starting point for building a full business plan. Creates a standard business plan structure based on best practices. Best for: Building a business plan from scratch. Outcome: Standard business plan sections, Clear structure and flow, A foundation you can extend or adapt. Typically includes: Executive Summary, Project / Product Description, Market Analysis (TAM/SAM/SOM, competition), Financial Plan (budget, cashflow, funding use), Team & Qualifications, Risk Assessment, Appendices & supporting documents (optional).',
       icon: '📋',
       features: ['Executive Summary', 'Market Analysis', 'Financial Plan', 'Risk Assessment']
     },
@@ -141,7 +154,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       id: 'strategy',
       title: t('editor.desktop.program.document.strategyDocument'), 
       subtitle: '(Clarity First)',
-      description: 'A strategic planning document to clarify what to build, for whom, and why. For founders before or at early startup stage. Best for: Founders before company formation, Early-stage startups (idea → MVP), Internal alignment & decision-making, Preparing for a later business plan or funding.',
+      description: 'A strategic planning document to clarify what to build, for whom, and why. For founders before or at early startup stage. Best for: Founders before company formation, Early-stage startups (idea → MVP), Internal alignment & decision-making, Preparing for a later business plan or funding. Typically includes: Business model logic, Go-to-market strategy, Milestones & next steps, Key risks & assumptions. Focuses on: Problem & customer definition, Value proposition & solution concept, Target market & positioning, Competitive landscape.',
       icon: '💡',
       features: ['Business Model Logic', 'Go-to-market Strategy', 'Milestones & Next Steps', 'Risk Assessment']
     },
@@ -149,7 +162,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       id: 'upgrade',
       title: t('editor.desktop.program.document.upgradePlan'), 
       subtitle: '(Modernize)',
-      description: 'Improve and modernize existing documents. Upload an existing business plan (DOCX/PDF) and upgrade it to current standards. Your structure is preserved, weaknesses are identified, and missing parts are added. Best for: Existing business plans, Rejected or weak funding applications, Outdated plans that need modernization, Improving clarity, numbers, and structure.',
+      description: 'Improve and modernize existing documents. Upload an existing business plan (DOCX/PDF) and upgrade it to current standards. Your structure is preserved, weaknesses are identified, and missing parts are added. Best for: Existing business plans, Rejected or weak funding applications, Outdated plans that need modernization, Improving clarity, numbers, and structure. What happens: Existing structure is analyzed, Weaknesses are highlighted and Best Practice structure is suggested. Outcome: A clearer, stronger, more coherent plan.',
       icon: '♻️',
       features: ['Structure Analysis', 'Weakness Detection', 'Missing Sections', 'Modernization Flags']
     }
@@ -200,7 +213,22 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
                     <div className="text-3xl mb-2">{option.icon}</div>
                     <h4 className="text-white font-bold text-base mb-1">{option.title}</h4>
                     <p className="text-green-300 text-xs font-medium mb-2">{option.subtitle}</p>
-                    <p className="text-white/70 text-xs leading-relaxed">{option.description}</p>
+                    <p className="text-white/70 text-xs leading-relaxed">{
+                      expandedCards[option.id] 
+                        ? option.description 
+                        : truncateText(option.description, 120)
+                    }</p>
+                    {option.description.length > 120 && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExpand(option.id);
+                        }}
+                        className="text-green-400 text-xs mt-1 hover:text-green-300"
+                      >
+                        {expandedCards[option.id] ? 'Show less' : 'Read more'}
+                      </button>
+                    )}
                   </div>
                   
                   {/* Features List */}
