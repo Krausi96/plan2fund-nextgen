@@ -1,11 +1,14 @@
 import React from 'react';
 import { useEditorStore } from '@/features/editor/lib';
+import { getSectionIcon } from '@/features/editor/lib/utils/sectionUtils';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface ProgramSummaryPanelProps {
   onClear?: () => void;
 }
 
 export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
+  const { t } = useI18n();
   const programProfile = useEditorStore((state) => state.setupWizard?.programProfile);
   const programSummary = useEditorStore((state) => state.programSummary);
 
@@ -228,7 +231,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
           <div className="bg-slate-700/50 rounded-lg p-6 text-center">
             <div className="text-white/60 text-2xl mb-2">📋</div>
             <p className="text-white/80 text-sm">
-              Select a program to view requirements
+              {t('requirementsChecker.selectProgram')}
             </p>
           </div>
         )}
@@ -273,53 +276,25 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                       className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-white/20 pl-3 ${isExpanded ? 'max-h-[1000px]' : 'max-h-0'}`}
                     >
                       <div className="space-y-2 py-1">
-                        {/* Only show standard document structure when we have actual program data */}
-                        {hasProgramData && (
-                          <>
-                            {/* Standard Document Structure */}
-                            <div className="text-white/80 text-sm flex items-center gap-2">
-                              <span>📕</span>
-                              <span>Title Page</span>
+                        {/* Dynamically render required sections from program data */}
+                        {getRequiredSections().map((section: any, sectionIndex: number) => {
+                          const sectionId = section.id || sectionIndex;
+                          const sectionTitle = section.title || section.name || section;
+                          const icon = getSectionIcon(sectionId);
+                                                
+                          return (
+                            <div key={sectionIndex} className="text-white/80 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
+                              <span>{icon}</span>
+                              <span className="truncate">
+                                {t(`editor.section.${sectionId}` as any) ||
+                                 sectionTitle}
+                              </span>
+                              {section.required !== undefined && section.required && (
+                                <span className="text-red-400 font-bold">*</span>
+                              )}
                             </div>
-                            <div className="text-white/80 text-sm flex items-center gap-2">
-                              <span>📑</span>
-                              <span>Table of Contents</span>
-                            </div>
-                          </>
-                        )}
-                          
-                        {/* Required Sections */}
-                        {getRequiredSections().map((section: any, sectionIndex: number) => (
-                          <div key={sectionIndex} className="text-white/80 text-sm flex items-center gap-2 truncate" title={section.title || section.name || section}>
-                            <span>🧾</span>
-                            <span className="truncate">{section.title || section.name || section}</span>
-                            {section.required !== undefined && section.required && (
-                              <span className="text-red-400 font-bold">*</span>
-                            )}
-                          </div>
-                        ))}
-                          
-                        {/* Additional Document Elements - only show when we have actual program data */}
-                        {hasProgramData && (
-                          <>
-                            <div className="text-white/80 text-sm flex items-center gap-2">
-                              <span>📚</span>
-                              <span>References</span>
-                            </div>
-                            <div className="text-white/80 text-sm flex items-center gap-2">
-                              <span>📊</span>
-                              <span>Tables/Data</span>
-                            </div>
-                            <div className="text-white/80 text-sm flex items-center gap-2">
-                              <span>🖼️</span>
-                              <span>Figures/Images</span>
-                            </div>
-                            <div className="text-white/80 text-sm flex items-center gap-2">
-                              <span>📎</span>
-                              <span>Appendices</span>
-                            </div>
-                          </>
-                        )}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -344,7 +319,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
               </div>
               
               <ul className="space-y-2">
-                {getKeyRequirements().slice(0, 6).map((req: string, index: number) => (
+                {getKeyRequirements().map((req: string, index: number) => (
                   <li key={index} className="flex items-start gap-3 p-2 bg-amber-900/20 rounded-md border border-amber-700/20 hover:bg-amber-900/30 transition-colors">
                     <div className="w-5 h-5 rounded-full bg-amber-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-amber-200 text-xs font-bold">{index + 1}</span>
@@ -352,13 +327,6 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                     <span className="text-amber-100 text-sm flex-1" title={req}>{req}</span>
                   </li>
                 ))}
-                {getKeyRequirements().length > 6 && (
-                  <li className="text-center pt-2">
-                    <span className="text-amber-400 text-sm italic px-3 py-2 bg-amber-900/10 rounded-lg border border-amber-700/20">
-                      +{getKeyRequirements().length - 6} more requirements
-                    </span>
-                  </li>
-                )}
               </ul>
             </div>
           )}

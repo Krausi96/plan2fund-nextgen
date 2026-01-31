@@ -2,7 +2,7 @@ import React from 'react';
 import { useEditorStore } from '@/features/editor/lib';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { sortSectionsByCanonicalOrder } from '@/features/editor/lib/utils/sectionUtils';
+import { sortSectionsByCanonicalOrder, getSectionIcon } from '@/features/editor/lib/utils/sectionUtils';
 
 interface StandardStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;
@@ -112,7 +112,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
           <div className="bg-slate-700/50 rounded-lg p-6 text-center">
             <div className="text-white/60 text-2xl mb-2">📋</div>
             <p className="text-white/80 text-sm">
-              Select a base structure to start
+              {t('editor.ui.selectSection')}
             </p>
           </div>
         )}
@@ -148,66 +148,27 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
                   {/* Template Sections */}
                   <div className="ml-6 border-l-2 border-green-500/30 pl-3 max-h-[1000px]">
                     <div className="space-y-2 py-1">
-                      {/* Standard Document Structure - USING EXISTING TRANSLATION KEYS */}
-                      <div className="text-green-200 text-sm flex items-center gap-2">
-                        <span>📕</span>
-                        <span>{t('editor.section.metadata')}</span>
-                      </div>
-                      <div className="text-green-200 text-sm flex items-center gap-2">
-                        <span>📑</span>
-                        <span>{t('editor.section.ancillary')}</span>
-                      </div>
-                      
-                      {/* Actual Template Sections */}
-                      {getRequiredSections()
-                        .slice(0, 8)
-                        .map((section: any, idx: number) => (
-                          <div key={idx} className="text-green-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
-                            <span>🧾</span>
+                      {/* Actual Template Sections - dynamically rendered with proper icons */}
+                      {getRequiredSections().map((section: any, idx: number) => {
+                        const sectionId = section.id || idx;
+                        const sectionTitle = section.title || section.name || section;
+                        const icon = getSectionIcon(sectionId);
+                        
+                        return (
+                          <div key={idx} className="text-green-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
+                            <span>{icon}</span>
                             <span className="truncate flex-1">
-                              {section.id === 'executive_summary' ? t('editor.desktop.program.section.executiveSummary') :
-                               section.id === 'project_description' ? t('editor.desktop.program.section.projectDescription') :
-                               section.id === 'market_analysis' ? t('editor.desktop.program.section.marketAnalysis') :
-                               section.id === 'financial_plan' ? t('editor.desktop.program.section.financialPlan') :
-                               section.id === 'team_qualifications' ? t('editor.desktop.program.section.teamQualifications') :
-                               section.id === 'risk_assessment' ? t('editor.desktop.program.section.riskAssessment') :
-                               section.id === 'business_model_canvas' ? t('editor.desktop.program.section.businessModelCanvas') :
-                               section.id === 'go_to_market_strategy' ? t('editor.desktop.program.section.goToMarket') :
-                               section.id === 'unit_economics' ? t('editor.desktop.program.section.unitEconomics') :
-                               section.id === 'milestones_next_steps' ? t('editor.desktop.program.section.milestonesNextSteps') :
-                               (section.title || section.name)}
+                              {t(`editor.section.${sectionId}` as any) ||
+                               sectionTitle}
                             </span>
                             {section.required && (
                               <span className="text-red-400 font-bold flex-shrink-0">*</span>
                             )}
                           </div>
-                        ))}
+                        );
+                      })}
                       
-                      {/* Additional Document Elements - CONSOLIDATED TRANSLATION KEYS */}
-                      <div className="text-green-200 text-sm flex items-center gap-2">
-                        <span>📚</span>
-                        <span>{t('editor.section.references')}</span>
-                      </div>
-                      <div className="text-green-200 text-sm flex items-center gap-2">
-                        <span>📊</span>
-                        <span>{t('editor.desktop.program.document.tablesData')}</span>
-                      </div>
-                      <div className="text-green-200 text-sm flex items-center gap-2">
-                        <span>🖼️</span>
-                        <span>{t('editor.desktop.program.document.figuresImages')}</span>
-                      </div>
-                      <div className="text-green-200 text-sm flex items-center gap-2">
-                        <span>📎</span>
-                        <span>{t('editor.section.appendices')}</span>
-                      </div>
-                      
-                      {/* Optional Sections - Placeholder */}
-                      {getOptionalSections().length > 0 && (
-                        <div className="mt-3 pt-2 border-t border-white/10">
-                          <div className="text-white/60 text-xs font-medium mb-2">Optional Sections:</div>
-                          <div className="text-white/40 text-xs italic">Coming soon...</div>
-                        </div>
-                      )}
+
                     </div>
                   </div>
                 </div>
@@ -243,14 +204,12 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
                             .map((section: any, idx: number) => (
                               <div key={`${section.id}-${idx}`} className="text-green-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
                                 <span>
-                                  {section.id === 'metadata' ? '📕' : 
-                                   section.id === 'ancillary' ? '📑' : 
-                                   section.id === 'references' ? '📚' : 
-                                   section.id === 'tables_data' ? '📊' : 
-                                   section.id === 'figures_images' ? '🖼️' : 
-                                   section.id === 'appendices' ? '📎' : '🧾'}
+                                  {getSectionIcon(section.id)}
                                 </span>
-                                <span className="truncate flex-1">{section.title || section.name}</span>
+                                <span className="truncate flex-1">
+                                  {t(`editor.section.${section.id}` as any) ||
+                                   section.title || section.name}
+                                </span>
                                 {section.required && (
                                   <span className="text-red-400 font-bold flex-shrink-0">*</span>
                                 )}
