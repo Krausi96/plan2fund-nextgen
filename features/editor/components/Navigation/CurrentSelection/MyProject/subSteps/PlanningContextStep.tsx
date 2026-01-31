@@ -114,18 +114,18 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
               
               let buttonClass = '';
               if (isCompleted) {
-                buttonClass = 'bg-green-600/30 border border-green-500 text-green-300';
+                buttonClass = 'bg-green-600/30 border border-green-500 text-green-200 font-bold';
               } else if (isCurrent) {
-                buttonClass = 'bg-blue-600/30 border border-blue-500 text-blue-300';
+                buttonClass = 'bg-blue-600 text-white font-bold shadow-lg';
               } else {
-                buttonClass = 'bg-slate-600/50 hover:bg-slate-600 border border-slate-500 text-white';
+                buttonClass = 'bg-slate-700/50 border border-slate-600 text-white/70 font-bold hover:text-white hover:bg-slate-700/60';
               }
               
               return (
                 <button
                   key={step}
                   onClick={() => goToStep(step)}
-                  className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-200 ${buttonClass}`}
+                  className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-300 ${buttonClass}`}
                 >
                   <div className="relative">
                     <span className="text-2xl">{getStepEmoji(step)}</span>
@@ -138,7 +138,7 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                       <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                     )}
                   </div>
-                  <span className="text-sm font-semibold text-center truncate w-full">
+                  <span className="text-sm font-bold text-center truncate w-full">
                     {getStepTitle(step)}
                     {isRequired && <span className="text-red-400"> *</span>}
                   </span>
@@ -162,10 +162,10 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                   </h4>
                   <span className="text-red-400 font-bold text-sm">*</span>
                 </div>
-                <p className="text-white/70 text-sm font-bold mb-3">{getStepDescription(currentStep)}</p>
+                <p className="text-white/70 text-sm font-medium mb-5">{getStepDescription(currentStep)}</p>
                 
-                <div className="w-full">
-                  <div className="flex items-center gap-3">
+                <div className="w-84 mb-5">
+                  <div className="flex items-center gap-4">
                     <input
                       type="range"
                       min="0"
@@ -173,9 +173,9 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                       step="6"
                       value={formData.financialBaseline?.planningHorizon ?? 0}
                       onChange={(e) => handleFieldChange('financialBaseline.planningHorizon', parseInt(e.target.value))}
-                      className="flex-1 h-1.5 mt-1 bg-slate-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
+                      className="w-96 h-1.5 mt-1 bg-slate-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
                     />
-                    <span className="text-white text-sm font-bold w-20 text-right">
+                    <span className="text-white text-base font-bold w-20 text-right whitespace-nowrap">
                       {formData.financialBaseline?.planningHorizon ?? 0} {t(`editor.desktop.myProject.months.${(formData.financialBaseline?.planningHorizon ?? 0) === 1 ? 'singular' : 'plural'}` as any)}
                     </span>
                   </div>
@@ -194,7 +194,7 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                     {t('editor.desktop.myProject.fields.mainObjective' as any) || 'Main Business Objective'}
                   </h4>
                 </div>
-                <p className="text-white/70 text-sm font-bold mb-3">{getStepDescription(currentStep)}</p>
+                <p className="text-white/70 text-sm font-medium mb-5">{getStepDescription(currentStep)}</p>
                 
                 <div className="space-y-2">
                   {businessObjectives.map((objective) => (

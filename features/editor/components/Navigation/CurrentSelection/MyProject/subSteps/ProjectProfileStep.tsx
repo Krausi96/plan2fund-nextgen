@@ -113,11 +113,11 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
               
               let buttonClass = '';
               if (isCompleted) {
-                buttonClass = 'bg-green-600/30 border border-green-500 text-green-300';
+                buttonClass = 'bg-green-600/30 border border-green-500 text-green-200 font-bold';
               } else if (isCurrent) {
-                buttonClass = 'bg-blue-600/30 border border-blue-500 text-blue-300';
+                buttonClass = 'bg-blue-600 text-white font-bold shadow-lg';
               } else if (isUnlocked) {
-                buttonClass = 'bg-slate-600/50 hover:bg-slate-600 border border-slate-500 text-white';
+                buttonClass = 'bg-slate-700/50 border border-slate-600 text-white/70 font-bold hover:text-white hover:bg-slate-700/60';
               } else {
                 buttonClass = 'bg-slate-800/50 border border-slate-700 text-slate-500 cursor-not-allowed';
               }
@@ -127,7 +127,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   key={step}
                   onClick={() => isUnlocked && goToStep(step)}
                   disabled={false}
-                  className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-200 ${buttonClass}`}
+                  className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-300 ${buttonClass}`}
                 >
                   <div className="relative">
                     <span className="text-2xl">{getStepEmoji(step)}</span>
@@ -140,7 +140,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                     )}
                   </div>
-                  <span className="text-sm font-semibold text-center truncate w-full">
+                  <span className="text-sm font-bold text-center truncate w-full">
                     {getStepTitle(step)}
                     {isRequired && <span className="text-red-400"> *</span>}
                   </span>
@@ -164,55 +164,53 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   </h4>
                   <span className="text-red-400 font-bold text-sm">*</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <label className="block text-white text-sm font-medium">
-                          {t('editor.desktop.myProject.fields.country') || 'Country'}
-                        </label>
-                        <span className="text-red-400 text-[8px]">*</span>
-                      </div>
-                      <select
-                        value={formData.country}
-                        onChange={(e) => handleCountryChange(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
-                        required
-                      >
-                        <option value="">{t('editor.desktop.myProject.placeholders.selectCountry')}</option>
-                        <option value="Austria">{t('editor.desktop.myProject.countries.austria') || 'Austria'}</option>
-                        <option value="Germany">{t('editor.desktop.myProject.countries.germany') || 'Germany'}</option>
-                        <option value="France">{t('editor.desktop.myProject.countries.france') || 'France'}</option>
-                        <option value="Italy">{t('editor.desktop.myProject.countries.italy') || 'Italy'}</option>
-                        <option value="Spain">{t('editor.desktop.myProject.countries.spain') || 'Spain'}</option>
-                        <option value="Netherlands">{t('editor.desktop.myProject.countries.netherlands') || 'Netherlands'}</option>
-                        <option value="Belgium">{t('editor.desktop.myProject.countries.belgium') || 'Belgium'}</option>
-                        <option value="Switzerland">{t('editor.desktop.myProject.countries.switzerland') || 'Switzerland'}</option>
-                        <option value="United Kingdom">{t('editor.desktop.myProject.countries.unitedKingdom') || 'United Kingdom'}</option>
-                        <option value="USA">{t('editor.desktop.myProject.countries.usa') || 'USA'}</option>
-                        <option value="Canada">{t('editor.desktop.myProject.countries.canada') || 'Canada'}</option>
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-white text-sm font-medium mb-2">
-                        Region
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className="block text-white text-sm font-bold">
+                        {t('editor.desktop.myProject.fields.country') || 'Country'}
                       </label>
-                      <input
-                        type="text"
-                        value={formData.region || ''}
-                        onChange={(e) => handleFieldChange('region', e.target.value)}
-                        placeholder="e.g., Vienna, Bavaria, or specific area"
-                        className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
-                      />
-                      <p className="text-white/50 text-xs mt-1">
-                        Optional: Specify region or state
-                      </p>
+                      <span className="text-red-400 text-[8px]">*</span>
                     </div>
+                    <select
+                      value={formData.country}
+                      onChange={(e) => handleCountryChange(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
+                      required
+                    >
+                      <option value="">{t('editor.desktop.myProject.placeholders.selectCountry')}</option>
+                      <option value="Austria">{t('editor.desktop.myProject.countries.austria') || 'Austria'}</option>
+                      <option value="Germany">{t('editor.desktop.myProject.countries.germany') || 'Germany'}</option>
+                      <option value="France">{t('editor.desktop.myProject.countries.france') || 'France'}</option>
+                      <option value="Italy">{t('editor.desktop.myProject.countries.italy') || 'Italy'}</option>
+                      <option value="Spain">{t('editor.desktop.myProject.countries.spain') || 'Spain'}</option>
+                      <option value="Netherlands">{t('editor.desktop.myProject.countries.netherlands') || 'Netherlands'}</option>
+                      <option value="Belgium">{t('editor.desktop.myProject.countries.belgium') || 'Belgium'}</option>
+                      <option value="Switzerland">{t('editor.desktop.myProject.countries.switzerland') || 'Switzerland'}</option>
+                      <option value="United Kingdom">{t('editor.desktop.myProject.countries.unitedKingdom') || 'United Kingdom'}</option>
+                      <option value="USA">{t('editor.desktop.myProject.countries.usa') || 'USA'}</option>
+                      <option value="Canada">{t('editor.desktop.myProject.countries.canada') || 'Canada'}</option>
+                    </select>
                   </div>
                   
                   <div>
-                    <label className="block text-white text-sm font-medium mb-2">
+                    <label className="block text-white text-sm font-bold mb-2">
+                      Region
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.region || ''}
+                      onChange={(e) => handleFieldChange('region', e.target.value)}
+                      placeholder="e.g., Vienna, Bavaria"
+                      className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
+                    />
+                    <p className="text-white/50 text-xs mt-1">
+                      Optional
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-white text-sm font-bold mb-2">
                       {t('editor.desktop.myProject.fields.currency') || 'Currency'}
                     </label>
                     <input
@@ -220,10 +218,10 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       value={formData.financialBaseline.currency}
                       readOnly
                       className="w-full px-3 py-2 bg-slate-700/50 text-white/70 rounded-lg border border-slate-600 cursor-not-allowed text-sm"
-                      placeholder="Auto-detected from country"
+                      placeholder="Auto-detected"
                     />
                     <p className="text-white/50 text-xs mt-1">
-                      {t('editor.desktop.myProject.placeholders.autoDetected')}
+                      Auto
                     </p>
                   </div>
                 </div>
@@ -280,11 +278,11 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🏭</span>
-                    <h4 className="text-white font-medium text-sm text-white">
+                    <h4 className="text-white font-bold text-sm">
                       {t('editor.desktop.myProject.fields.industry') || 'Industry'}
                     </h4>
                   </div>
-                  <span className="text-white/70 text-xs">(Optional)</span>
+                  <span className="text-white/70 text-xs font-bold">(Optional)</span>
                 </div>
                 <div className="space-y-4">
                   <p className="text-white/70 text-sm">{t('editor.desktop.myProject.descriptions.industry') || 'Describe your industry and focus areas'}</p>
@@ -313,8 +311,8 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                             }}
                             className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
                               isSelected
-                                ? 'bg-blue-600 border-blue-600 text-white font-medium'
-                                : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                ? 'bg-blue-600 border-blue-600 text-white font-bold'
+                                : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600 font-bold'
                             }`}
                           >
                             <span className={`w-4 h-4 rounded border flex items-center justify-center ${
@@ -326,7 +324,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                                 </svg>
                               )}
                             </span>
-                            <span>{focus.label}</span>
+                            <span className="font-bold">{focus.label}</span>
                           </button>
                         );
                       })}
@@ -335,7 +333,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     {/* Sub-categories for selected industries */}
                     {formData.industryFocus?.includes('digital') && (
                       <div className="mt-4 pt-4 border-t border-slate-600">
-                        <h4 className="text-white text-sm font-medium mb-3">Digital & Software Focus:</h4>
+                        <h4 className="text-white text-sm font-bold mb-3">Digital & Software Focus:</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {[{ value: 'ai', label: 'AI & Machine Learning' },
                             { value: 'fintech', label: 'FinTech' },
@@ -384,7 +382,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     
                     {formData.industryFocus?.includes('sustainability') && (
                       <div className="mt-4 pt-4 border-t border-slate-600">
-                        <h4 className="text-white text-sm font-medium mb-3">Climate & Sustainability Focus:</h4>
+                        <h4 className="text-white text-sm font-bold mb-3">Climate & Sustainability Focus:</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {[{ value: 'greentech', label: 'GreenTech' },
                             { value: 'cleantech', label: 'CleanTech' },
@@ -431,7 +429,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     
                     {formData.industryFocus?.includes('health') && (
                       <div className="mt-4 pt-4 border-t border-slate-600">
-                        <h4 className="text-white text-sm font-medium mb-3">Health & Life Sciences Focus:</h4>
+                        <h4 className="text-white text-sm font-bold mb-3">Health & Life Sciences Focus:</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {[{ value: 'biotech', label: 'Biotech' },
                             { value: 'medtech', label: 'MedTech' },
@@ -478,7 +476,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     
                     {formData.industryFocus?.includes('manufacturing') && (
                       <div className="mt-4 pt-4 border-t border-slate-600">
-                        <h4 className="text-white text-sm font-medium mb-3">Manufacturing & Hardware Focus:</h4>
+                        <h4 className="text-white text-sm font-bold mb-3">Manufacturing & Hardware Focus:</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {[{ value: 'industry_4_0', label: 'Industry 4.0' },
                             { value: 'smart_manufacturing', label: 'Smart Manufacturing' },
@@ -571,7 +569,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     {/* Custom industry input when 'other' is selected */}
                     {formData.industryFocus?.includes('other') && (
                       <div className="mt-4 pt-4 border-t border-slate-600">
-                        <label className="block text-white text-sm font-medium mb-2">
+                        <label className="block text-white text-sm font-bold mb-2">
                           {t('editor.desktop.myProject.fields.customIndustry') || 'Specify your industry'}
                         </label>
                         <input
@@ -596,30 +594,30 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">👥</span>
-                    <h4 className="text-white font-medium text-sm text-white">
+                    <h4 className="text-white font-bold text-sm">
                       {t('editor.desktop.myProject.fields.team') || 'Team Information'}
                     </h4>
                   </div>
-                  <span className="text-white/70 text-xs">(Optional)</span>
+                  <span className="text-white/70 text-xs font-bold">(Optional)</span>
                 </div>
                 <div className="space-y-4">
                   <p className="text-white/70 text-sm">{t('editor.desktop.myProject.descriptions.team') || 'Provide team size and information'}</p>
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <label className="block text-white text-sm font-medium">
+                      <label className="block text-white text-sm font-bold">
                         {t('editor.desktop.myProject.fields.teamSize') || 'Team Size'}
                       </label>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <input
                         type="range"
                         min="1"
                         max="100"
                         value={formData.teamSize || 1}
                         onChange={(e) => handleFieldChange('teamSize', parseInt(e.target.value))}
-                        className="flex-1 h-2 mt-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                        className="w-96 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
                       />
-                      <span className="text-white text-sm w-12 text-center">
+                      <span className="text-white text-sm font-bold w-12 text-center bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600">
                         {formData.teamSize || 1}
                       </span>
                     </div>
