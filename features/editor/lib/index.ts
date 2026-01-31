@@ -110,6 +110,8 @@ export {
   ANCILLARY_SECTION_ID,
   REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
+  TABLES_DATA_SECTION_ID,
+  FIGURES_IMAGES_SECTION_ID,
   isSpecialSectionId,
   getSectionTitle,
 } from './constants';

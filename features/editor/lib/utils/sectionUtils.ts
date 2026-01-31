@@ -97,9 +97,7 @@ export function enhanceWithSpecialSections(
  * @returns Complete section list with proper icons and ordering
  */
 export function getCompleteSectionList(
-  templateSections: SectionTemplate[], 
-  t: TranslationFunction
-): SectionTemplate[] {
+  templateSections: SectionTemplate[]): SectionTemplate[] {
   // All special sections are now included in templateSections via MASTER_SECTIONS
   // No need for separate specialSections or trailingSections arrays
   

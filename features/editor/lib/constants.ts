@@ -83,6 +83,8 @@ export const METADATA_SECTION_ID = 'metadata';
 export const ANCILLARY_SECTION_ID = 'ancillary';
 export const REFERENCES_SECTION_ID = 'references';
 export const APPENDICES_SECTION_ID = 'appendices';
+export const TABLES_DATA_SECTION_ID = 'tables_data';
+export const FIGURES_IMAGES_SECTION_ID = 'figures_images';
 
 /**
  * Check if a section ID is a special section (metadata, ancillary, etc.)
@@ -92,7 +94,9 @@ export function isSpecialSectionId(sectionId: string): boolean {
     METADATA_SECTION_ID,
     ANCILLARY_SECTION_ID,
     REFERENCES_SECTION_ID,
-    APPENDICES_SECTION_ID
+    APPENDICES_SECTION_ID,
+    TABLES_DATA_SECTION_ID,
+    FIGURES_IMAGES_SECTION_ID
   ].includes(sectionId);
 }
 

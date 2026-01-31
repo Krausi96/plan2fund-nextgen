@@ -1,9 +1,17 @@
 import type { DocumentTemplate, SectionTemplate } from './types/types';
+import {
+  METADATA_SECTION_ID,
+  ANCILLARY_SECTION_ID,
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
+  TABLES_DATA_SECTION_ID,
+  FIGURES_IMAGES_SECTION_ID
+} from './constants';
 
 // Master template sections that are shared across all products
 const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
   {
-    id: 'metadata',
+    id: METADATA_SECTION_ID,
     title: 'Title Page',
     description: 'Document title page with company information',
     required: true,
@@ -12,7 +20,7 @@ const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
     icon: '📕'
   },
   {
-    id: 'ancillary',
+    id: ANCILLARY_SECTION_ID,
     title: 'Table of Contents',
     description: 'Automatically generated table of contents',
     required: true,
@@ -21,7 +29,7 @@ const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
     icon: '📑'
   },
   {
-    id: 'references',
+    id: REFERENCES_SECTION_ID,
     title: 'References',
     description: 'List of references and citations',
     required: false,
@@ -30,7 +38,7 @@ const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
     icon: '📚'
   },
   {
-    id: 'tables_data',
+    id: TABLES_DATA_SECTION_ID,
     title: 'Tables/Data',
     description: 'Collection of tables, charts, and data visualizations',
     required: false,
@@ -39,7 +47,7 @@ const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
     icon: '📊'
   },
   {
-    id: 'figures_images',
+    id: FIGURES_IMAGES_SECTION_ID,
     title: 'Figures/Images',
     description: 'Collection of figures, images, and illustrations',
     required: false,
@@ -48,7 +56,7 @@ const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
     icon: '🖼️'
   },
   {
-    id: 'appendices',
+    id: APPENDICES_SECTION_ID,
     title: 'Appendices',
     description: 'Additional supporting materials and documentation',
     required: false,
@@ -58,9 +66,6 @@ const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
   }
 ];
 
-// ============================================================================
-// STRATEGY DOCUMENTS
-// ============================================================================
 
 // ============================================================================
 // STRATEGY SECTIONS
