@@ -42,6 +42,8 @@ export function enhanceWithSpecialSections(
   if (!documentStructure) return null;
   
   console.log('🔍 enhanceWithSpecialSections input sections:', documentStructure.sections?.length, documentStructure.sections?.map(s => s.id));
+  console.log('🔍 enhanceWithSpecialSections input documents:', documentStructure.documents);
+  console.log('🔍 enhanceWithSpecialSections input full structure:', JSON.stringify(documentStructure, null, 2));
   
   // Convert template sections if needed
   const baseSections = Array.isArray(documentStructure.sections) 
@@ -128,6 +130,8 @@ export function enhanceWithSpecialSections(
   };
   
   console.log('✅ Final enhanced sections:', result.sections.length, result.sections.map(s => ({id: s.id, title: s.title})));
+  console.log('✅ Final enhanced documents:', result.documents);
+  console.log('✅ Final enhanced full structure:', JSON.stringify(result, null, 2));
   
   return result;
 }
