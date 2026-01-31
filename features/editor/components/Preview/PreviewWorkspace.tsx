@@ -133,23 +133,27 @@ const previewMode: 'formatted' | 'print' = 'formatted';
     const allSections = planDocument?.sections || [];
     
     // In live preview mode (no product selected yet), only show regular sections
-    // Hide special sections: Title Page (metadata), TOC (ancillary), References, Appendices
+    // Hide special sections: Title Page (metadata), TOC (ancillary), References, Appendices, Tables/Data, Figures/Images
     if (!selectedProduct) {
       return allSections.filter(section => 
         section.id !== 'metadata' &&
         section.id !== 'ancillary' && 
         section.id !== 'references' && 
-        section.id !== 'appendices'
+        section.id !== 'appendices' &&
+        section.id !== 'tables_data' &&
+        section.id !== 'figures_images'
       );
     }
     
     // When product is selected, exclude special sections that have dedicated renderers
     // These are rendered separately by TitlePageRenderer, TableOfContentsRenderer, ReferencesRenderer, etc.
+    // Note: tables_data and figures_images sections are currently rendered by SectionRenderer as regular content
     return allSections.filter(section => 
       section.id !== 'metadata' &&
       section.id !== 'ancillary' && 
       section.id !== 'references' && 
       section.id !== 'appendices'
+      // Keep tables_data and figures_images for now - they render as regular content sections
     );
   }, [planDocument?.sections, selectedProduct]);
 
