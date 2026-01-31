@@ -204,7 +204,6 @@ export const useSectionsForSidebar = (
     // No need for inline definitions here
     
     // Check which special sections are missing from regularSections
-    const existingSectionIds = new Set(regularSections.map(s => s.id));
     
     // Get regular sections that are not special sections
     const regularNonSpecialSections = regularSections.filter(s => !specialSectionIds.includes(s.id));
@@ -218,7 +217,9 @@ export const useSectionsForSidebar = (
     const referencesSection = regularSections.find(s => s.id === REFERENCES_SECTION_ID);
     const appendicesSection = regularSections.find(s => s.id === APPENDICES_SECTION_ID);
     
+    // ALWAYS ensure Title Page is first position
     if (titlePageSection) orderedSections.push(titlePageSection);
+    // ALWAYS ensure Table of Contents is second position
     if (tocSection) orderedSections.push(tocSection);
     
     orderedSections = [...orderedSections, ...regularNonSpecialSections];

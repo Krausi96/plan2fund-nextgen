@@ -36,6 +36,11 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
     return documentStructure?.sections || [];
   };
 
+  const getOptionalSections = () => {
+    // For now, return empty array - optional sections logic can be added later
+    return [];
+  };
+
   // Handle case when no documents exist but we have product type
   const hasTemplateStructure = setupWizard.inferredProductType && getRequiredDocuments().length === 0;
 
@@ -189,9 +194,11 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
                         <span>{t('editor.section.appendices')}</span>
                       </div>
                       
-                      {getRequiredSections().length > 8 && (
-                        <div className="text-green-300 text-sm italic">
-                          +{getRequiredSections().length - 8} more sections
+                      {/* Optional Sections - Placeholder */}
+                      {getOptionalSections().length > 0 && (
+                        <div className="mt-3 pt-2 border-t border-white/10">
+                          <div className="text-white/60 text-xs font-medium mb-2">Optional Sections:</div>
+                          <div className="text-white/40 text-xs italic">Coming soon...</div>
                         </div>
                       )}
                     </div>
@@ -223,47 +230,25 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
                         className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-green-500/30 pl-3 ${isExpanded ? 'max-h-[1000px]' : 'max-h-0'}`}
                       >
                         <div className="space-y-2 py-1">
-                          {/* Standard Document Structure - USING EXISTING TRANSLATION KEYS */}
-                          <div className="text-green-200 text-sm flex items-center gap-2">
-                            <span>📕</span>
-                            <span>{t('editor.section.metadata')}</span>
-                          </div>
-                          <div className="text-green-200 text-sm flex items-center gap-2">
-                            <span>📑</span>
-                            <span>{t('editor.section.ancillary')}</span>
-                          </div>
-                          
-                          {/* Document Sections - SHOW ACTUAL TEMPLATE SECTIONS */}
+                          {/* SHOW ACTUAL DOCUMENT STRUCTURE SECTIONS - NO HARDCODED DUPLICATES */}
                           {getRequiredSections()
                             .filter(section => section.documentId === doc.id || !section.documentId) // Handle both template and document structure formats
-                            .slice(0, 8)
                             .map((section: any, idx: number) => (
-                              <div key={idx} className="text-green-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
-                                <span>🧾</span>
+                              <div key={`${section.id}-${idx}`} className="text-green-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
+                                <span>
+                                  {section.id === 'metadata' ? '📕' : 
+                                   section.id === 'ancillary' ? '📑' : 
+                                   section.id === 'references' ? '📚' : 
+                                   section.id === 'tables_data' ? '📊' : 
+                                   section.id === 'figures_images' ? '🖼️' : 
+                                   section.id === 'appendices' ? '📎' : '🧾'}
+                                </span>
                                 <span className="truncate flex-1">{section.title || section.name}</span>
                                 {section.required && (
                                   <span className="text-red-400 font-bold flex-shrink-0">*</span>
                                 )}
                               </div>
                             ))}
-                          
-                          {/* Additional Document Elements */}
-                          <div className="text-green-200 text-sm flex items-center gap-2">
-                            <span>📚</span>
-                            <span>{t('editor.section.references')}</span>
-                          </div>
-                          <div className="text-green-200 text-sm flex items-center gap-2">
-                            <span>📊</span>
-                            <span>{t('editor.desktop.program.document.tablesData')}</span>
-                          </div>
-                          <div className="text-green-200 text-sm flex items-center gap-2">
-                            <span>🖼️</span>
-                            <span>{t('editor.desktop.program.document.figuresImages')}</span>
-                          </div>
-                          <div className="text-green-200 text-sm flex items-center gap-2">
-                            <span>📎</span>
-                            <span>{t('editor.section.appendices')}</span>
-                          </div>
                         </div>
                       </div>
                     </div>
