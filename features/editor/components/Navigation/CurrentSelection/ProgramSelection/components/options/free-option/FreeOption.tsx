@@ -133,15 +133,15 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       id: 'business-plan',
       title: t('editor.desktop.program.document.businessPlan'),
       subtitle: '(Base Structure)',
-      description: 'A structured starting point for building a full business plan. Creates a standard business plan structure based on best practices.',
+      description: 'A structured starting point for building a full business plan. Creates a standard business plan structure based on best practices. Best for: Building a business plan from scratch. Outcome: Standard business plan sections, Clear structure and flow, A foundation you can extend or adapt.',
       icon: '📋',
-      features: ['Standard Sections', 'Clear Structure', 'Foundation to Extend', 'Best Practice Flow']
+      features: ['Executive Summary', 'Market Analysis', 'Financial Plan', 'Risk Assessment']
     },
     {
       id: 'strategy',
       title: t('editor.desktop.program.document.strategyDocument'), 
       subtitle: '(Clarity First)',
-      description: 'A strategic planning document to clarify what to build, for whom, and why. Best for founders before or at early startup stage.',
+      description: 'A strategic planning document to clarify what to build, for whom, and why. For founders before or at early startup stage. Best for: Founders before company formation, Early-stage startups (idea → MVP), Internal alignment & decision-making, Preparing for a later business plan or funding.',
       icon: '💡',
       features: ['Business Model Logic', 'Go-to-market Strategy', 'Milestones & Next Steps', 'Risk Assessment']
     },
@@ -149,11 +149,10 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       id: 'upgrade',
       title: t('editor.desktop.program.document.upgradePlan'), 
       subtitle: '(Modernize)',
-      description: 'Improve and modernize existing documents. Upload an existing business plan (DOCX/PDF) and upgrade it to current standards.',
+      description: 'Improve and modernize existing documents. Upload an existing business plan (DOCX/PDF) and upgrade it to current standards. Your structure is preserved, weaknesses are identified, and missing parts are added. Best for: Existing business plans, Rejected or weak funding applications, Outdated plans that need modernization, Improving clarity, numbers, and structure.',
       icon: '♻️',
       features: ['Structure Analysis', 'Weakness Detection', 'Missing Sections', 'Modernization Flags']
     }
-    // REMOVED pitch-deck option - not a valid product type
   ];
 
   
