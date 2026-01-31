@@ -30,6 +30,25 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
     return text.slice(0, maxLength) + '...';
   };
   
+  const formatDescription = (description: string, isExpanded: boolean) => {
+    if (!isExpanded) {
+      return truncateText(description, 120);
+    }
+    
+    
+    // This is a simplified approach - in a real implementation, we'd want to parse
+    // the structured content more accurately
+    const lines = description.split('. ').filter(line => line.trim() !== '');
+    
+    return (
+      <div className="text-white/70 text-xs leading-relaxed space-y-1">
+        {lines.map((line, index) => (
+          <div key={index}>{line}{index < lines.length - 1 ? '.' : ''}</div>
+        ))}
+      </div>
+    );
+  };
+  
   const { t } = useI18n();
   
   // Access editor store for document setup management
@@ -213,11 +232,11 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
                     <div className="text-3xl mb-2">{option.icon}</div>
                     <h4 className="text-white font-bold text-base mb-1">{option.title}</h4>
                     <p className="text-green-300 text-xs font-medium mb-2">{option.subtitle}</p>
-                    <p className="text-white/70 text-xs leading-relaxed">{
-                      expandedCards[option.id] 
-                        ? option.description 
-                        : truncateText(option.description, 120)
-                    }</p>
+                    <div className="text-white/70 text-xs leading-relaxed max-h-20 overflow-hidden">{
+                      typeof formatDescription(option.description, expandedCards[option.id]) === 'string'
+                        ? formatDescription(option.description, expandedCards[option.id])
+                        : formatDescription(option.description, expandedCards[option.id])
+                    }</div>
                     {option.description.length > 120 && (
                       <button 
                         onClick={(e) => {
