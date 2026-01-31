@@ -85,14 +85,8 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
         createdBy: 'standard-template'
       };
       
-      // DEBUG: Log the base structure sections
-      console.log('🏗️ Base structure sections from MASTER_SECTIONS:', baseStructure.sections?.map(s => ({id: s.id, title: s.title})));
-      
       // ENHANCE with special sections (Title Page, TOC, References, Appendices)
       const documentStructure = enhanceWithSpecialSections(baseStructure, t);
-      
-      // DEBUG: Log the enhanced structure
-      console.log('📝 Enhanced document structure sections:', documentStructure?.sections?.map(s => ({id: s.id, title: s.title})));
       
       // Update store with standard structure
       setDocumentStructure(documentStructure);

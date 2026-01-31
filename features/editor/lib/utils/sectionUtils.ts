@@ -52,9 +52,6 @@ export function enhanceWithSpecialSections(
       )
     : [];
   
-  // DEBUG: Log section IDs to understand duplication
-  console.log('🔍 baseSections IDs:', baseSections.map(s => s.id));
-  
   // Check if this structure already comes from MASTER_SECTIONS (contains ALL special sections)
   // If it has any special sections, don't add them again
   const hasAnySpecialSections = baseSections.some(s => 
@@ -66,13 +63,10 @@ export function enhanceWithSpecialSections(
     s.id === APPENDICES_SECTION_ID
   );
   
-  console.log('🔍 hasAnySpecialSections:', hasAnySpecialSections);
-  
   // Only add special sections if they don't already exist
   const leadingSpecialSections = [];
   
   if (!hasAnySpecialSections) {
-    console.log('➕ Adding special sections');
     leadingSpecialSections.push({
       id: METADATA_SECTION_ID,
       documentId: 'main_document',
@@ -90,8 +84,6 @@ export function enhanceWithSpecialSections(
       programCritical: false,
       icon: '📑'
     });
-  } else {
-    console.log('➖ Skipping special sections - already present');
   }
   
   // All special sections are now handled via MASTER_SECTIONS
@@ -106,9 +98,6 @@ export function enhanceWithSpecialSections(
       ...trailingSpecialSections
     ]
   };
-  
-  console.log('✅ Final sections count:', result.sections.length);
-  console.log('✅ Final sections IDs:', result.sections.map(s => s.id));
   
   return result;
 }
