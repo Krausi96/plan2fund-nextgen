@@ -18,7 +18,6 @@ import {
 } from './renderers/AncillaryRenderers';
 import { DocumentSettings } from '@/shared/components/editor/DocumentSettings';
 import { DEFAULT_DOCUMENT_STYLE, type DocumentStyleConfig } from '@/shared/components/editor/DocumentStyles';
-import { getCompleteSectionList } from '@/features/editor/lib/utils/sectionUtils';
 
 // Define which sections are safe for inline editing
 // Define which sections are restricted from inline editing
@@ -129,7 +128,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
     logoPlaceholder: typedT('editor.desktop.setupWizard.placeholders.logo'),
   };
   
-  // Get complete section list using unified logic
+  // Filter out special sections that are handled by dedicated renderers
   const sectionsToRender = useMemo(() => {
     const allSections = planDocument?.sections || [];
     
@@ -143,27 +142,14 @@ const previewMode: 'formatted' | 'print' = 'formatted';
       );
     }
     
-    // When product is selected, use unified section logic to ensure proper ordering
-    // Convert PlanSection[] to SectionTemplate[] format for getCompleteSectionList
-    const templateSections = allSections.map(section => ({
-      id: section.id || section.key || '',
-      title: section.title || '',
-      description: section.description || '',
-      required: section.required !== false,
-      category: 'general' as const,
-      origin: 'template' as const
-    }));
-    
-    // Get unified section list with proper ordering
-    const unifiedSections = getCompleteSectionList(templateSections, i18nT as any);
-    
-    // Convert back to PlanSection format for rendering
-    return unifiedSections.map(section => ({
-      ...section,
-      key: section.id,
-      content: section.content || ''
-    }));
-  }, [planDocument?.sections, selectedProduct, i18nT]);
+    // When product is selected, exclude special sections that have dedicated renderers
+    // These are rendered separately by TableOfContentsRenderer, ReferencesRenderer, etc.
+    return allSections.filter(section => 
+      section.id !== 'ancillary' && 
+      section.id !== 'references' && 
+      section.id !== 'appendices'
+    );
+  }, [planDocument?.sections, selectedProduct]);
 
   // Focus edit input when editing starts
   useEffect(() => {
@@ -389,6 +375,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
                 {/* Only show special sections when product is selected (not in live preview mode) */}
                 {selectedProduct && (
                   <>
+                    <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
                     {sectionsToRender.map((section, index) => (
                       <SectionRenderer
                         key={section.key}
@@ -406,6 +393,10 @@ const previewMode: 'formatted' | 'print' = 'formatted';
                         editInputRef={editInputRef}
                       />
                     ))}
+                    <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                    <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                    <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                    <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
                   </>
                 )}
               </div>
