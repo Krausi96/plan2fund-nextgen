@@ -128,20 +128,34 @@ export default function BlueprintInstantiationStep({
 
   // Get required sections for a document
   const getRequiredSections = (documentId: string) => {
+    console.log(`🔍 getRequiredSections called for documentId: ${documentId}`);
+    console.log(`  sectionsByDoc keys:`, Object.keys(sectionsByDoc));
+    console.log(`  sectionsByDoc[${documentId}]:`, sectionsByDoc[documentId]);
+    
     // If no sections are grouped by documentId, show all sections under the single document
     if (Object.keys(sectionsByDoc).length === 0 && documentStructure?.sections?.length) {
+      console.log('  FALLBACK: Using all sections as required');
       return documentStructure.sections.filter(section => section.required !== false);
     }
-    return sectionsByDoc[documentId]?.filter(section => section.required !== false) || [];
+    const result = sectionsByDoc[documentId]?.filter(section => section.required !== false) || [];
+    console.log(`  RETURNING ${result.length} required sections`);
+    return result;
   };
 
   // Get optional sections for a document
   const getOptionalSections = (documentId: string) => {
+    console.log(`🔍 getOptionalSections called for documentId: ${documentId}`);
+    console.log(`  sectionsByDoc keys:`, Object.keys(sectionsByDoc));
+    console.log(`  sectionsByDoc[${documentId}]:`, sectionsByDoc[documentId]);
+    
     // If no sections are grouped by documentId, show all sections under the single document
     if (Object.keys(sectionsByDoc).length === 0 && documentStructure?.sections?.length) {
+      console.log('  FALLBACK: Using all sections as optional');
       return documentStructure.sections.filter(section => section.required === false);
     }
-    return sectionsByDoc[documentId]?.filter(section => section.required === false) || [];
+    const result = sectionsByDoc[documentId]?.filter(section => section.required === false) || [];
+    console.log(`  RETURNING ${result.length} optional sections`);
+    return result;
   };
 
   // Add new document
