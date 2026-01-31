@@ -65,15 +65,6 @@ export default function TreeNavigator() {
   // Get sections from document structure
   const sections = documentStructure?.sections || [];
   
-  // DEBUG: Log sections to identify duplication
-  React.useEffect(() => {
-    console.log('🌳 TreeNavigator received sections:', sections?.length, sections?.map(s => ({
-      id: s.id,
-      title: s.title,
-      documentId: s.documentId
-    })));
-  }, [sections]);
-  
   // State for tree expansion/collapse
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);

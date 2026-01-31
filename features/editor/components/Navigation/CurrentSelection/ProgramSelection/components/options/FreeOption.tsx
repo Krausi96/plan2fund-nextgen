@@ -88,16 +88,7 @@ export function FreeOption({ onStructureSelected }: FreeOptionProps) {
       // ENHANCE with special sections (Title Page, TOC, References, Appendices)
       const documentStructure = enhanceWithSpecialSections(baseStructure, t);
       
-      // DEBUG: Log the enhanced structure
-      console.log('📝 Enhanced document structure sections:', documentStructure?.sections?.map(s => ({
-        id: s.id,
-        title: s.title,
-        documentId: s.documentId
-      })));
-      console.log('📝 Full document structure:', JSON.stringify(documentStructure, null, 2));
-
       // Update store with standard structure
-      console.log('📝 Setting document structure with sections:', documentStructure?.sections?.length);
       setDocumentStructure(documentStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({

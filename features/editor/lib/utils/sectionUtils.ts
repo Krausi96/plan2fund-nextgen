@@ -41,10 +41,6 @@ export function enhanceWithSpecialSections(
 ): DocumentStructure | null {
   if (!documentStructure) return null;
   
-  console.log('🔍 enhanceWithSpecialSections input sections:', documentStructure.sections?.length, documentStructure.sections?.map(s => s.id));
-  console.log('🔍 enhanceWithSpecialSections input documents:', documentStructure.documents);
-  console.log('🔍 enhanceWithSpecialSections input full structure:', JSON.stringify(documentStructure, null, 2));
-  
   // Convert template sections if needed
   const baseSections = Array.isArray(documentStructure.sections) 
     ? documentStructure.sections.map(section => 
@@ -53,8 +49,6 @@ export function enhanceWithSpecialSections(
           : convertSectionTemplate(section as unknown as SectionTemplate)
       )
     : [];
-  
-  console.log('🔄 baseSections after conversion:', baseSections.length, baseSections.map(s => s.id));
   
   // Create special sections in correct order
   const leadingSpecialSections = [
@@ -78,47 +72,9 @@ export function enhanceWithSpecialSections(
     }
   ];
   
-  const trailingSpecialSections = [
-    {
-      id: REFERENCES_SECTION_ID,
-      documentId: 'main_document',
-      title: t('editor.section.references' as any) || 'References',
-      type: 'optional' as const,
-      required: false,
-      programCritical: false,
-      icon: '📚'
-    },
-    {
-      id: 'tables_data',
-      documentId: 'main_document',
-      title: t('editor.desktop.program.document.tablesData' as any) || 'Tables/Data',
-      type: 'optional' as const,
-      required: false,
-      programCritical: false,
-      icon: '📊'
-    },
-    {
-      id: 'figures_images',
-      documentId: 'main_document',
-      title: t('editor.desktop.program.document.figuresImages' as any) || 'Figures/Images',
-      type: 'optional' as const,
-      required: false,
-      programCritical: false,
-      icon: '🖼️'
-    },
-    {
-      id: APPENDICES_SECTION_ID,
-      documentId: 'main_document',
-      title: t('editor.section.appendices' as any) || 'Appendices',
-      type: 'optional' as const,
-      required: false,
-      programCritical: false,
-      icon: '📎'
-    }
-  ];
-  
-  console.log('✨ leadingSpecialSections created:', leadingSpecialSections.map(s => ({id: s.id, title: s.title})));
-  console.log('✨ trailingSpecialSections created:', trailingSpecialSections.map(s => ({id: s.id, title: s.title})));
+  // All special sections are now handled via MASTER_SECTIONS
+  // No need for inline trailing sections
+  const trailingSpecialSections: any[] = [];
   
   const result = {
     ...documentStructure,
@@ -128,10 +84,6 @@ export function enhanceWithSpecialSections(
       ...trailingSpecialSections
     ]
   };
-  
-  console.log('✅ Final enhanced sections:', result.sections.length, result.sections.map(s => ({id: s.id, title: s.title})));
-  console.log('✅ Final enhanced documents:', result.documents);
-  console.log('✅ Final enhanced full structure:', JSON.stringify(result, null, 2));
   
   return result;
 }

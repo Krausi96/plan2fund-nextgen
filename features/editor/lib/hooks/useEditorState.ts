@@ -124,27 +124,8 @@ export function useSectionEditorState(sectionId: string | null) {
   const section = useMemo(() => {
     if (!plan || !sectionId) return null;
     
-    // Special section definitions
-    const SPECIAL_SECTIONS = {
-      [METADATA_SECTION_ID]: 'Title Page',
-      [ANCILLARY_SECTION_ID]: 'Table of Contents',
-      [REFERENCES_SECTION_ID]: 'References',
-      [APPENDICES_SECTION_ID]: 'Appendices'
-    };
-
-    // Check if this is a special section
-    const title = SPECIAL_SECTIONS[sectionId as keyof typeof SPECIAL_SECTIONS];
-    if (title) {
-      return {
-        id: sectionId,
-        key: sectionId,
-        title,
-        content: '',
-        fields: { displayTitle: title, sectionNumber: null },
-        status: 'draft',
-        isSpecial: true
-      };
-    }
+    // All special sections are now handled via MASTER_SECTIONS
+    // No need for inline definitions here
     
     // Regular section lookup
     return plan.sections?.find((s: any) => s.id === sectionId) || null;

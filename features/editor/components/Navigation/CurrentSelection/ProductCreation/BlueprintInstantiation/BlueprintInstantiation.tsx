@@ -101,22 +101,16 @@ export default function BlueprintInstantiationStep({
 
   // Group sections by document
   const getSectionsByDocument = useCallback(() => {
-    console.log('🏗️ BlueprintInstantiation accessing documentStructure:', documentStructure);
-    console.log('🏗️ BlueprintInstantiation documentStructure sections:', documentStructure?.sections?.length, documentStructure?.sections?.map(s => ({id: s.id, title: s.title})));
-    console.log('🏗️ BlueprintInstantiation documentStructure documents:', documentStructure?.documents);
-    console.log('🏗️ BlueprintInstantiation full documentStructure:', JSON.stringify(documentStructure, null, 2));
     if (!documentStructure?.sections) return {};
     
     const grouped: Record<string, any[]> = {};
     documentStructure.sections.forEach(section => {
       const docId = section.documentId || 'main_document';
-      console.log(`  Processing section ${section.id}: documentId = ${docId}`);
       if (!grouped[docId]) {
         grouped[docId] = [];
       }
       grouped[docId].push(section);
     });
-    console.log('  Final grouped result:', grouped);
     return grouped;
   }, [documentStructure]);
 
@@ -128,34 +122,20 @@ export default function BlueprintInstantiationStep({
 
   // Get required sections for a document
   const getRequiredSections = (documentId: string) => {
-    console.log(`🔍 getRequiredSections called for documentId: ${documentId}`);
-    console.log(`  sectionsByDoc keys:`, Object.keys(sectionsByDoc));
-    console.log(`  sectionsByDoc[${documentId}]:`, sectionsByDoc[documentId]);
-    
     // If no sections are grouped by documentId, show all sections under the single document
     if (Object.keys(sectionsByDoc).length === 0 && documentStructure?.sections?.length) {
-      console.log('  FALLBACK: Using all sections as required');
       return documentStructure.sections.filter(section => section.required !== false);
     }
-    const result = sectionsByDoc[documentId]?.filter(section => section.required !== false) || [];
-    console.log(`  RETURNING ${result.length} required sections`);
-    return result;
+    return sectionsByDoc[documentId]?.filter(section => section.required !== false) || [];
   };
 
   // Get optional sections for a document
   const getOptionalSections = (documentId: string) => {
-    console.log(`🔍 getOptionalSections called for documentId: ${documentId}`);
-    console.log(`  sectionsByDoc keys:`, Object.keys(sectionsByDoc));
-    console.log(`  sectionsByDoc[${documentId}]:`, sectionsByDoc[documentId]);
-    
     // If no sections are grouped by documentId, show all sections under the single document
     if (Object.keys(sectionsByDoc).length === 0 && documentStructure?.sections?.length) {
-      console.log('  FALLBACK: Using all sections as optional');
       return documentStructure.sections.filter(section => section.required === false);
     }
-    const result = sectionsByDoc[documentId]?.filter(section => section.required === false) || [];
-    console.log(`  RETURNING ${result.length} optional sections`);
-    return result;
+    return sectionsByDoc[documentId]?.filter(section => section.required === false) || [];
   };
 
   // Add new document

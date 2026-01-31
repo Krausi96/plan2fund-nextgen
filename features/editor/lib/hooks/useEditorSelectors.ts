@@ -200,51 +200,11 @@ export const useSectionsForSidebar = (
       APPENDICES_SECTION_ID
     ];
     
-    // Create special sections if they don't exist in regularSections
-    const specialSections: SectionTemplate[] = [
-      {
-        id: METADATA_SECTION_ID,
-        title: 'Title Page',
-        description: 'Document title page with company information',
-        required: true,
-        category: 'general' as const,
-        origin: 'template',
-      },
-      {
-        id: ANCILLARY_SECTION_ID,
-        title: 'Table of Contents',
-        description: 'Automatically generated table of contents',
-        required: true,
-        category: 'general' as const,
-        origin: 'template',
-      },
-      {
-        id: REFERENCES_SECTION_ID,
-        title: 'References',
-        description: 'List of references and citations',
-        required: false,
-        category: 'general' as const,
-        origin: 'template',
-      },
-      {
-        id: APPENDICES_SECTION_ID,
-        title: 'Appendices',
-        description: 'Additional supporting documents and information',
-        required: false,
-        category: 'general' as const,
-        origin: 'template',
-      }
-    ];
+    // All special sections are now handled via MASTER_SECTIONS
+    // No need for inline definitions here
     
     // Check which special sections are missing from regularSections
     const existingSectionIds = new Set(regularSections.map(s => s.id));
-    const missingSpecialSections = specialSections.filter(s => !existingSectionIds.has(s.id));
-    
-    // Separate special sections from regular sections for proper ordering
-    const titlePageSection = [...regularSections.filter(s => s.id === METADATA_SECTION_ID), ...missingSpecialSections.filter(s => s.id === METADATA_SECTION_ID)];
-    const tocSection = [...regularSections.filter(s => s.id === ANCILLARY_SECTION_ID), ...missingSpecialSections.filter(s => s.id === ANCILLARY_SECTION_ID)];
-    const referencesSection = [...regularSections.filter(s => s.id === REFERENCES_SECTION_ID), ...missingSpecialSections.filter(s => s.id === REFERENCES_SECTION_ID)];
-    const appendicesSection = [...regularSections.filter(s => s.id === APPENDICES_SECTION_ID), ...missingSpecialSections.filter(s => s.id === APPENDICES_SECTION_ID)];
     
     // Get regular sections that are not special sections
     const regularNonSpecialSections = regularSections.filter(s => !specialSectionIds.includes(s.id));
@@ -252,13 +212,19 @@ export const useSectionsForSidebar = (
     // Build the ordered result: title page, toc, regular sections, references, appendices
     let orderedSections = [];
     
-    if (titlePageSection.length > 0) orderedSections.push(titlePageSection[0]);
-    if (tocSection.length > 0) orderedSections.push(tocSection[0]);
+    // Add special sections in proper order (they should come from MASTER_SECTIONS)
+    const titlePageSection = regularSections.find(s => s.id === METADATA_SECTION_ID);
+    const tocSection = regularSections.find(s => s.id === ANCILLARY_SECTION_ID);
+    const referencesSection = regularSections.find(s => s.id === REFERENCES_SECTION_ID);
+    const appendicesSection = regularSections.find(s => s.id === APPENDICES_SECTION_ID);
+    
+    if (titlePageSection) orderedSections.push(titlePageSection);
+    if (tocSection) orderedSections.push(tocSection);
     
     orderedSections = [...orderedSections, ...regularNonSpecialSections];
     
-    if (referencesSection.length > 0) orderedSections.push(referencesSection[0]);
-    if (appendicesSection.length > 0) orderedSections.push(appendicesSection[0]);
+    if (referencesSection) orderedSections.push(referencesSection);
+    if (appendicesSection) orderedSections.push(appendicesSection);
     
     return orderedSections;
   });

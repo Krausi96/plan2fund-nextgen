@@ -3,6 +3,15 @@ import type { DocumentTemplate, SectionTemplate } from './types/types';
 // Master template sections that are shared across all products
 const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
   {
+    id: 'metadata',
+    title: 'Title Page',
+    description: 'Document title page with company information',
+    required: true,
+    category: 'general',
+    origin: 'template',
+    icon: '📕'
+  },
+  {
     id: 'ancillary',
     title: 'Table of Contents',
     description: 'Automatically generated table of contents',
