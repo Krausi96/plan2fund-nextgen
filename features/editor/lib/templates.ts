@@ -1,26 +1,31 @@
-// Root templates file
-// This file has been cleared as per requirements and will serve as the main templates file
-// containing consolidated content from all template subdirectories
+// Main export file for templates module
+// Re-exports all template-related functionality
 
-// Export all template functionality
-export * from './templates/catalog/products/business_plan';
-export * from './templates/catalog/products/strategy';
-export * from './templates/catalog/products/upgrade';
-export * from './templates/shared';
-export * from './templates/master';
-export * from './templates/documents';
+// Export individual section catalogs
+export { BUSINESS_PLAN_SECTIONS } from './catalog/products/business_plan';
+export { STRATEGY_SECTIONS } from './catalog/products/strategy';
+export { UPGRADE_SECTIONS } from './catalog/products/upgrade';
+
+// Export shared special sections
+export { SHARED_SPECIAL_SECTIONS } from './shared';
+
+// Export the master sections collection
+export { MASTER_SECTIONS } from './master';
+
+// Export document templates
+export { MASTER_DOCUMENTS_BY_PRODUCT } from './documents';
 
 // Export action functions
-export { addCustomDocument } from './templates/actions/addCustomDocument';
-export { addCustomSection } from './templates/actions/addCustomSection';
-export { addCustomSubsection } from './templates/actions/addCustomSubsection';
+export { addCustomDocument } from './actions/addCustomDocument';
+export { addCustomSection } from './actions/addCustomSection';
+export { addCustomSubsection } from './actions/addCustomSubsection';
 
 // Export service functions
-export { createBlueprint } from './templates/services/blueprint/createBlueprint';
-export { normalizeTemplate } from './templates/services/blueprint/normalizeTemplate';
+export { createBlueprint } from './services/blueprint/createBlueprint';
+export { normalizeTemplate } from './services/blueprint/normalizeTemplate';
 
 // Export state interfaces
-export type { BlueprintState, BlueprintStore } from './templates/state/blueprint';
-export { initialBlueprintState } from './templates/state/blueprint';
-export type { PlanInstanceState, PlanInstanceStore } from './templates/state/planInstance';
-export { initialPlanInstanceState } from './templates/state/planInstance';
+export type { BlueprintState, BlueprintStore } from './state/blueprint';
+export { initialBlueprintState } from './state/blueprint';
+export type { PlanInstanceState, PlanInstanceStore } from './state/planInstance';
+export { initialPlanInstanceState } from './state/planInstance';
