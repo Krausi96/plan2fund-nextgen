@@ -176,6 +176,13 @@ export type QuestionStatus = 'pending' | 'answered' | 'skipped' | 'hidden';
 // TEMPLATE TYPES
 // ============================================================================
 
+// Define subsection template
+export interface SubsectionTemplate {
+  id: string;
+  title: string;
+  rawText: string;
+}
+
 export interface SectionTemplate {
   id: string;
   title: string;
@@ -198,6 +205,8 @@ export interface SectionTemplate {
     version?: string;
   };
   origin?: 'template' | 'custom';
+  sectionIntro?: string;
+  rawSubsections?: SubsectionTemplate[];
   [key: string]: any;
 }
 
