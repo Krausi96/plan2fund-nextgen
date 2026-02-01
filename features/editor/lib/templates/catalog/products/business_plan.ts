@@ -133,6 +133,34 @@ Who are the members of the founding team and what previous experience do they ha
         rawText: `
 What is the company name and, if applicable, the date the company was founded? What legal form are you planning? Company headquarters: Where do you plan to locate the company and what advantages or challenges does this present? What are the planned ownership structures (who holds what shares in the company)? Are there already relevant contracts (articles of association, etc.)? Are there external cooperation partners and what are the possible advantages and disadvantages in this regard? Status of company formation: What essential steps have already been taken to set up the company (trademark registration, entry in the commercial register, application for a business license, any advance commitments, etc.)?
 `
+      },
+      {
+        id: "organizational_structure",
+        title: "Organizational structure",
+        rawText: `
+Use an organizational chart to illustrate the (planned) organizational structure, including any outsourced areas of activity (e.g., accounting). If positions have already been filled, this should be clearly indicated.
+`
+      },
+      {
+        id: "swot_analysis",
+        title: "Company analysis/SWOT analysis",
+        rawText: `
+What are your company's core tasks? What business model do you have in mind? SWOT analysis: Identify strengths and weaknesses in relation to your competitors. Compare these strengths and weaknesses with current trends to identify opportunities and risks for your business model and derive measures if necessary.
+`
+      },
+      {
+        id: "goals",
+        title: "Goals",
+        rawText: `
+Set goals (short-, medium-, and long-term) against which you can measure your progress. The goals you set should be SMART (specific, measurable, realistic, relevant, and time-bound). Useful model: Balanced Scorecard.
+`
+      },
+      {
+        id: "implementation_planning",
+        title: "Implementation planning",
+        rawText: `
+What individual steps have you planned for the successful establishment of your company over the next few years (personnel, location, etc.)? What milestones have you set? By what dates do you want to have your planning measures implemented (product completion, financing finalized, business license obtained, etc.)? Which tasks and milestones are directly dependent on each other? What is the critical path during the implementation or start-up phase? What milestones have you planned for the post-start-up phase?
+`
       }
     ]
   },
