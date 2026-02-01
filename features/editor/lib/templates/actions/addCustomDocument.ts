@@ -11,16 +11,16 @@ export function addCustomDocument(plan: PlanDocument, title: string) {
     category: 'general' as const,
     sections: []
   };
-  
+
   if (!plan.metadata) {
     plan.metadata = {};
   }
-  
+
   if (!plan.metadata.customDocuments) {
     plan.metadata.customDocuments = [];
   }
-  
+
   plan.metadata.customDocuments.push(newDocument);
-  
+
   return newDocument;
 }

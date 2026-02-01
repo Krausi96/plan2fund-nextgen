@@ -1,4 +1,4 @@
-// Split custom business plan sections here
+// Strategy sections
 import type { SectionTemplate } from '../../../types/types';
 
 export const STRATEGY_SECTIONS: SectionTemplate[] = [

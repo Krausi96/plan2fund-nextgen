@@ -1,5 +1,5 @@
 // Placeholder for plan instance state management
-import type { PlanDocument, PlanSection } from '../../types/types';
+import type { PlanDocument } from '../../types/types';
 
 export interface PlanInstanceState {
   id: string;

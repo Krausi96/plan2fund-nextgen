@@ -1,4 +1,4 @@
-// Split upgrade sections here
+// Upgrade sections
 import type { SectionTemplate } from '../../../types/types';
 
 export const UPGRADE_SECTIONS: SectionTemplate[] = [

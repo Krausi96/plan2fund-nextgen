@@ -1,5 +1,5 @@
 // Placeholder for blueprint state management
-import type { DocumentTemplate, SectionTemplate } from '../../types/types';
+import type { SectionTemplate } from '../../types/types';
 
 export interface BlueprintState {
   id: string;

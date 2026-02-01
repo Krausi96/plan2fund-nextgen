@@ -1,11 +1,11 @@
-// Split custom plan sections here
+// Business plan sections
 import type { SectionTemplate } from '../../../types/types';
 
 export const BUSINESS_PLAN_SECTIONS: SectionTemplate[] = [
   {
     id: 'executive_summary',
     title: 'Executive Summary',
-    description: 'Provide a concise overview of the business plan and funding request.',
+    description: 'Provide a concise overview of the project and funding request.',
     required: true,
     wordCountMin: 200,
     wordCountMax: 500,
