@@ -107,37 +107,31 @@ What work do you carry out yourself? What work is carried out by partners? Descr
     ]
   },
   {
-    id: 'market_analysis',
-    title: 'Market Analysis',
-    description: 'Analyse the market context for your project.',
+    id: 'company_management',
+    title: 'Company & Management',
+    description: 'Details about company structure, management team, and governance.',
     required: true,
-    wordCountMin: 300,
-    wordCountMax: 700,
-    order: 6,
-    category: 'market',
+    wordCountMin: 400,
+    wordCountMax: 900,
+    order: 3,
+    category: 'team',
     origin: 'template',
     sectionIntro: `
-This section analyzes the market opportunity, target customers, competition,
-and positioning strategy.
+This section covers company structure, management team, and governance aspects.
 `,
     rawSubsections: [
       {
-        id: "target_market_segmentation",
-        title: "Target Market & Segmentation",
+        id: "management_team",
+        title: "Management and (founding) team",
         rawText: `
-Define your primary and secondary target markets.
-What are the key demographics, psychographics, and behavioral characteristics?
-What is the size of your addressable market?
+Who are the members of the founding team and what previous experience do they have? What roles do they play in the company? Is there any expertise that you do not have within the team? If so, how will you fill this gap? By outsourcing? By hiring additional staff or bringing in additional partners? Also show how the management team integrates sustainability into the company's management and what training and measures are being implemented to promote sustainable practices.
 `
       },
       {
-        id: "competitive_analysis",
-        title: "Competitive Analysis",
+        id: "company_information",
+        title: "Information about the company",
         rawText: `
-Who are your direct and indirect competitors?
-What are their strengths and weaknesses?
-How do you differentiate from them?
-What is your competitive advantage?
+What is the company name and, if applicable, the date the company was founded? What legal form are you planning? Company headquarters: Where do you plan to locate the company and what advantages or challenges does this present? What are the planned ownership structures (who holds what shares in the company)? Are there already relevant contracts (articles of association, etc.)? Are there external cooperation partners and what are the possible advantages and disadvantages in this regard? Status of company formation: What essential steps have already been taken to set up the company (trademark registration, entry in the commercial register, application for a business license, any advance commitments, etc.)?
 `
       }
     ]
@@ -149,7 +143,7 @@ What is your competitive advantage?
     required: true,
     wordCountMin: 300,
     wordCountMax: 800,
-    order: 5,
+    order: 4,
     category: 'financial',
     origin: 'template',
     sectionIntro: `
@@ -184,7 +178,7 @@ What are the key milestones the funding will achieve?
     required: true,
     wordCountMin: 200,
     wordCountMax: 600,
-    order: 7,
+    order: 5,
     category: 'team',
     origin: 'template',
     sectionIntro: `
@@ -219,7 +213,7 @@ How do these relationships strengthen your business?
     required: true,
     wordCountMin: 200,
     wordCountMax: 600,
-    order: 8,
+    order: 6,
     category: 'risk',
     origin: 'template',
     sectionIntro: `
