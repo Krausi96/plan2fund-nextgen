@@ -198,6 +198,27 @@ Unlike the industry, the market does not refer to the sum of suppliers, but rath
         rawText: `
 Which target group are you addressing with your offering? What characteristics and purchase-deciding factors such as age group, interests, preferences, values, behavior, etc. does your target group have? Is your offering aimed at private customers (B2C) or companies (B2B)?
 `
+      },
+      {
+        id: "trends",
+        title: "Trends",
+        rawText: `
+Describe current trends. Technology-driven changes and trends in customer behavior are particularly interesting. How do you take these trends into account and even use them for your product/service?
+`
+      },
+      {
+        id: "competitor_analysis",
+        title: "Competitor analysis",
+        rawText: `
+Compare your product/service with the offerings of your main competitors. Use the competition analysis overview table on our website (under Downloads). A comprehensive competition analysis will help you identify your strengths and weaknesses in comparison to other companies and optimize your offering.
+`
+      },
+      {
+        id: "market_entry_barriers_dependencies",
+        title: "Market entry barriers & dependencies",
+        rawText: `
+Are there any legal, economic, regional, or other market entry barriers, and how do you intend to deal with them? Are there any dependencies on suppliers, customers, or competitors, e.g., that only one production company can manufacture your product?
+`
       }
     ]
   },
