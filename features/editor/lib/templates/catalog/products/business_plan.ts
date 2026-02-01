@@ -27,17 +27,9 @@ target market, solution approach, and expected impact.
 `
       }
     ],
-    prompts: [
-      'Summarise your project in two to three sentences.',
-      'Which problem or need does your project address?',
-      'What makes your approach innovative?',
-      'Briefly state the expected impact.'
-    ],
-    validationRules: {
-      requiredFields: ['project_overview', 'innovation_aspect', 'expected_impact'],
-      formatRequirements: ['clear_problem_statement', 'solution_description']
-    }
+
   },
+  
   {
     id: 'project_description',
     title: 'Project Description',
@@ -82,6 +74,34 @@ Does it improve quality or efficiency?
 Does it provide something entirely new?
 
 Describe the product or service from the customer's perspective.
+`
+      },
+      {
+        id: "usp_strengths_weaknesses",
+        title: "USP, Strengths & Weaknesses",
+        rawText: `
+Describe the unique selling point (USP) of your product/service. What are the strengths and weaknesses of your products and/or services compared to the competition? Why should customers buy from you? What sets you apart from the competition?
+`
+      },
+      {
+        id: "degree_of_innovation",
+        title: "Degree of Innovation",
+        rawText: `
+If you offer an innovative product or service, please describe the degree of innovation. What type of innovation is it: technical, creative, social, procedural, or process innovation? How high is the degree of innovation compared to the products/services offered on the market in Austria or worldwide?
+`
+      },
+      {
+        id: "trademark_patent_strategy",
+        title: "Trademark Protection and Patents",
+        rawText: `
+In many industries, trademark protection and patents are of central importance. Does this also apply to your company? If so, you should explain your planned intellectual property strategy here and state the current status of its implementation (e.g., patents, utility models, or trademark rights filed or granted?).
+`
+      },
+      {
+        id: "service_provision",
+        title: "Service Provision",
+        rawText: `
+What work do you carry out yourself? What work is carried out by partners? Describe the service provision processes.
 `
       }
     ]
