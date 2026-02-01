@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
-import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/sectionUtils';
+import { enhanceWithSpecialSections } from '@/features/editor/lib';
 import { UpgradeOption } from './UpgradeOption';
 
 interface FreeOptionProps {

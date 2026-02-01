@@ -1,6 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
+import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/utils/Program.utils';
+import {
+  ANCILLARY_SECTION_ID
+} from '@/features/editor/lib/constants';
 
 interface DetectedDocument {
   fileName: string;
@@ -34,9 +38,10 @@ interface DocumentAnalysis {
 
 interface TemplateOptionProps {
   onDocumentAnalyzed?: (analysis: DocumentAnalysis) => void;
+  onNavigateToBlueprint?: () => void;
 }
 
-export function TemplateOption({ onDocumentAnalyzed }: TemplateOptionProps) {
+export function TemplateOption({ onDocumentAnalyzed, onNavigateToBlueprint }: TemplateOptionProps) {
   const { t } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -94,8 +99,36 @@ export function TemplateOption({ onDocumentAnalyzed }: TemplateOptionProps) {
     setIsAnalyzing(true);
     
     try {
-      // Simulate document analysis
-      const mockAnalysis: DocumentAnalysis = {
+      // Process each file and extract content (this is a simplified representation)
+      // In a real implementation, you would use a library like mammoth for .docx or pdf.js for .pdf
+      
+      // Simulate extracting content from uploaded files
+      const extractedContent = {
+        title: 'Sample Business Plan',
+        sections: [
+          { title: 'Executive Summary', content: 'This is the executive summary...', type: 'executive_summary' },
+          { title: 'Company Description', content: 'About our company...', type: 'company_description' },
+          { title: 'Market Analysis', content: 'Market trends and analysis...', type: 'market_analysis' },
+          { title: 'Financial Plan', content: 'Financial projections...', type: 'financial_plan' },
+          { title: 'Team Qualifications', content: 'Our team members...', type: 'team_qualifications' },
+          { title: 'Risk Assessment', content: 'Risk evaluation...', type: 'risk_assessment' },
+          { title: 'References', content: 'Sources and references used...', type: 'references' },
+          { title: 'Appendices', content: 'Additional supporting materials...', type: 'appendices' }
+        ],
+        hasTitlePage: true,
+        hasTOC: true,
+        totalPages: 45,
+        wordCount: 12000
+      };
+      
+      // Use the unified function to merge uploaded content with special sections
+      const finalStructure = mergeUploadedContentWithSpecialSections(extractedContent, null, t as (key: string) => string);
+      
+      // Create analysis report based on detection results
+      // We'll use a simpler analysis for the merged structure
+      const detectedSections = finalStructure.sections.length;
+      
+      const analysis: DocumentAnalysis = {
         documents: files.map(file => ({
           fileName: file.name,
           fileType: file.type.includes('pdf') ? 'pdf' : 'docx',
@@ -103,77 +136,48 @@ export function TemplateOption({ onDocumentAnalyzed }: TemplateOptionProps) {
           pageCount: file.type.includes('pdf') ? Math.floor(Math.random() * 50) + 1 : undefined,
           wordCount: file.type.includes('docx') ? Math.floor(Math.random() * 5000) + 1000 : undefined
         })),
-        headings: [
-          { level: 1, text: 'Executive Summary', pageNumber: 1 },
-          { level: 1, text: 'Company Description', pageNumber: 2 },
-          { level: 2, text: 'Mission Statement', pageNumber: 2 },
-          { level: 2, text: 'Business Model', pageNumber: 3 },
-          { level: 1, text: 'Market Analysis', pageNumber: 4 },
-          { level: 1, text: 'Financial Projections', pageNumber: 6 }
-        ],
+        headings: extractedContent.sections.map((section, index) => ({
+          level: section.type.startsWith('executive') || index === 0 ? 1 : 2,
+          text: section.title,
+          pageNumber: Math.floor(index / 3) + 1
+        })),
         styles: [
           { name: 'Heading 1', count: 4, sample: 'Executive Summary' },
-          { name: 'Heading 2', count: 8, sample: 'Mission Statement' },
+          { name: 'Heading 2', count: 8, sample: 'Market Analysis' },
           { name: 'Normal Text', count: 156, sample: 'The company...' }
         ],
-        hasTableOfContents: true,
-        tocEntries: 12,
+        hasTableOfContents: finalStructure.sections.some(s => s.id === ANCILLARY_SECTION_ID),
+        tocEntries: finalStructure.sections.filter(s => s.id === ANCILLARY_SECTION_ID).length,
         structureConfidence: 85,
         warnings: [
-          'Some headings may need reorganization',
+          ...(detectedSections > 0 ? [] : ['No sections detected in template']),
           'Consider adding financial data sections'
         ]
       };
-
-      setAnalysis(mockAnalysis);
-      onDocumentAnalyzed?.(mockAnalysis);
-
-      // Generate document structure from analysis
-      const documentStructure = {
-        structureId: `template-${Date.now()}`,
-        version: '1.0',
-        source: 'template' as const,
-        documents: [
-          { 
-            id: 'main_document', 
-            name: 'Main Document', 
-            purpose: 'Primary business plan document', 
-            required: true 
-          }
-        ],
-        sections: mockAnalysis.headings.map((heading, index) => ({
-          id: `section_${index}`,
-          documentId: 'main_document',
-          title: heading.text,
-          type: index < 3 ? 'required' : 'optional' as 'required' | 'optional' | 'conditional',
-          required: index < 3,
-          programCritical: false
-        })),
-        requirements: [],
-        validationRules: [],
-        aiGuidance: [],
-        renderingRules: {},
-        conflicts: [],
-        warnings: mockAnalysis.warnings,
-        confidenceScore: mockAnalysis.structureConfidence,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: 'template-upload'
-      };
-
-      // Update store with template-based structure
-      setDocumentStructure(documentStructure);
+      
+      setAnalysis(analysis);
+      onDocumentAnalyzed?.(analysis);
+      
+      // Update store with the enhanced structure
+      setDocumentStructure(finalStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({
-        warnings: mockAnalysis.warnings,
+        warnings: analysis.warnings,
         missingFields: [],
-        confidence: mockAnalysis.structureConfidence
+        confidence: analysis.structureConfidence
       });
       
       // Default to submission for template uploads
       setInferredProductType('submission');
 
       setIsAnalyzing(false);
+      
+      // Navigate to blueprint if callback is provided
+      if (onNavigateToBlueprint) {
+        setTimeout(() => {
+          onNavigateToBlueprint();
+        }, 100); // Small delay to ensure state updates
+      }
 
     } catch (error) {
       console.error('Document analysis failed:', error);

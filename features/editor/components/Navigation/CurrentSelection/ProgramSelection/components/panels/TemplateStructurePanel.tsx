@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useEditorStore } from '@/features/editor/lib';
-import { getSectionIcon } from '@/features/editor/lib/utils/sectionUtils';
+import { getSectionIcon } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface TemplateStructurePanelProps {

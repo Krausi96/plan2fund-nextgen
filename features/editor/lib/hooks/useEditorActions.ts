@@ -3,20 +3,6 @@
  * EDITOR STORE ACTION HOOKS
  * ============================================================================
  * 
- * Provides hooks for accessing editor store actions and keyboard handlers.
- * 
- * WHAT IT DOES:
- *   - Provides useEditorActions hook to access all store actions
- *   - Provides useEscapeKeyHandler for Escape key handling
- *   - Allows selective action access via selector pattern
- * 
- * USED BY:
- *   - Editor.tsx - Gets all actions via useEditorActions
- *   - useEditorState.ts - Uses useEditorActions internally
- *   - Sidebar.tsx - Via useSidebarState (which uses this)
- *   - DocumentsBar.tsx - Via useDocumentsBarState (which uses this)
- *   - Any component that needs to update store state
- * 
  * HOOKS:
  *   1. useEditorActions<T>(selector) - Get store actions via selector
  *      Example: useEditorActions(a => ({ setPlan: a.setPlan, setError: a.setError }))
@@ -50,18 +36,15 @@ export function useEditorActions<T>(selector: (actions: any) => T): T {
       setPlan: state.setPlan,
       setIsLoading: state.setIsLoading,
       setError: state.setError,
-      // Removed: setProgressSummary (not used - property removed from store)
       updateSection: state.updateSection,
       addCustomSection: state.addCustomSection,
       removeCustomSection: state.removeCustomSection,
       setActiveSectionId: state.setActiveSectionId,
-      // Removed: setActiveQuestionId (not used - property removed from store)
       setSelectedProduct: state.setSelectedProduct,
       setProgramSummary: state.setProgramSummary,
       setProgramLoading: state.setProgramLoading,
       setProgramError: state.setProgramError,
       setIsConfiguratorOpen: state.setIsConfiguratorOpen,
-      // Removed: setEditingSectionId (not used - property removed from store)
       setDisabledSectionIds: state.setDisabledSectionIds,
       setDisabledDocumentIds: state.setDisabledDocumentIds,
       setCustomSections: state.setCustomSections,
@@ -88,8 +71,6 @@ export function useEditorActions<T>(selector: (actions: any) => T): T {
       setInferredProductType: state.setInferredProductType,
       completeSetupWizard: state.completeSetupWizard,
       resetSetupWizard: state.resetSetupWizard,
-      // Removed: setTemplateLoading (not used - property removed from store)
-      // Removed: setTemplateError (not used - property removed from store)
       resetFormState: state.resetFormState,
       syncTemplateStateFromPlan: state.syncTemplateStateFromPlan,
     };

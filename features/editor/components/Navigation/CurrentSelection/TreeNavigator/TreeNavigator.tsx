@@ -7,7 +7,7 @@ import {
   getSectionTitle,
 } from '@/features/editor/lib';
 import { AddSectionForm, TreeNodeRenderer } from './components';
-import { sortSectionsByCanonicalOrder } from '@/features/editor/lib/utils/sectionUtils';
+import { sortSectionsByCanonicalOrder } from '@/features/editor/lib';
 import type { TreeNode } from '@/features/editor/lib/types/types';
 
 export default function TreeNavigator() {

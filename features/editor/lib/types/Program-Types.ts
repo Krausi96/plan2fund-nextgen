@@ -159,6 +159,11 @@ export interface DocumentStructure {
     programCritical: boolean;
     aiPrompt?: string;
     checklist?: string[];
+    detection?: {
+      source: 'upload' | 'ocr' | 'program';
+      confidence: number;
+      payload?: any;
+    };
   }>;
   
   // Requirements

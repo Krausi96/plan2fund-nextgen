@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore, inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/features/editor/lib';
-import { getSectionIcon, sortSectionsByCanonicalOrder } from '@/features/editor/lib/utils/sectionUtils';
+import { getSectionIcon, sortSectionsByCanonicalOrder } from '@/features/editor/lib';
 
 interface BlueprintInstantiationStepProps {
   onComplete?: () => void;

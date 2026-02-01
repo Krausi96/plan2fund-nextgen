@@ -2,7 +2,7 @@ import React from 'react';
 import { useEditorStore } from '@/features/editor/lib';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { sortSectionsByCanonicalOrder, getSectionIcon } from '@/features/editor/lib/utils/sectionUtils';
+import { sortSectionsByCanonicalOrder, getSectionIcon } from '@/features/editor/lib';
 
 interface StandardStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;

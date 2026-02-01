@@ -200,6 +200,23 @@ export {
   generateProgramBlueprint, // @deprecated - use normalizeFundingProgram instead
 } from './utils/Program.utils';
 
+// Section Detection utilities
+export {
+  detectSpecialSections,
+  enhanceWithSpecialSections,
+  applyDetectionResults,
+  sortSectionsByCanonicalOrder,
+  getCompleteSectionList,
+  getSectionIcon,
+  isSpecialSection,
+} from './utils/Program.utils';
+
+// Document normalization utilities
+export {
+  normalizeDocumentStructure,
+  mergeUploadedContentWithSpecialSections,
+} from './utils/Program.utils';
+
 // ============================================================================
 // AI CLIENT - Section AI functionality
 // ============================================================================

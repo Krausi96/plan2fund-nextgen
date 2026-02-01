@@ -9,6 +9,7 @@ import EditorProgramFinder from '@/features/editor/components/Navigation/Current
 import { TemplateOption } from './components/options/TemplateOption';
 import { FreeOption } from './components/options/free-option/FreeOption';
 import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup, generateDocumentStructureFromProfile, parseProgramFromUrl } from '@/features/editor/lib';
+import { FlowSimulator } from '@/features/editor/components/DevTools';
 
 interface OptionSelectorProps {
   selectedOption: 'program' | 'template' | 'free' | null;
@@ -108,6 +109,8 @@ export default function ProgramSelection({
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'paste' | 'wizard'>('search');
+
+
 
   // Handle legacy program migration and automatic initialization
   useEffect(() => {
@@ -231,16 +234,21 @@ export default function ProgramSelection({
 
   return (
     <div className="relative mb-6 pb-6">
+      {/* Flow Simulator - Added for testing purposes */}
+      <div className="mb-6 p-4 bg-slate-900/50 rounded-lg border border-blue-500/30">
+        <FlowSimulator />
+      </div>
+      
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
           <h2 className="text-2xl font-bold text-white">
-            {t('editor.desktop.program.header' as any) || 'Document Setup'}
+            {t('editor.Desktop.program.header' as any) || 'Document Setup'}
           </h2>
         </div>
         <div className="border-b border-white/20 mb-2"></div>
         <p className="text-white/70 text-sm">
-          {t('editor.desktop.program.subtitle' as any) || 'Choose how your document structure and requirements are defined.'}
+          {t('editor.Desktop.program.subtitle' as any) || 'Choose how your document structure and requirements are defined.'}
         </p>
       </div>
       
@@ -315,7 +323,7 @@ export default function ProgramSelection({
                   <div className="mt-4 border-t border-white/10 pt-2">
                     {activeTab === 'search' && (
                       <div>
-                        <h4 className="text-white text.lg font-bold mb-4">
+                        <h4 className="text-white text-lg font-bold mb-4">
                           {t('editor.desktop.program.finder.title' as any) || 'Find Funding Programs'}
                         </h4>
                         <ProgramFinder 
@@ -380,6 +388,7 @@ export default function ProgramSelection({
                   onDocumentAnalyzed={(analysis) => {
                     console.log('Template analysis complete:', analysis);
                   }}
+                  onNavigateToBlueprint={onNavigateToBlueprint}
                 />
               )}
             </div>
