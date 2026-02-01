@@ -240,4 +240,20 @@ export type {
 
 export {
   MASTER_SECTIONS,
-} from './templates';
+  SHARED_SPECIAL_SECTIONS,
+  MASTER_DOCUMENTS_BY_PRODUCT,
+  // Section catalogs
+  BUSINESS_PLAN_SECTIONS,
+  STRATEGY_SECTIONS,
+  UPGRADE_SECTIONS,
+  // Action functions
+  addCustomDocument,
+  addCustomSection,
+  addCustomSubsection,
+  // Service functions
+  createBlueprint,
+  normalizeTemplate,
+  // State interfaces
+  initialBlueprintState,
+  initialPlanInstanceState,
+} from './templates/templates';
