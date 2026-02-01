@@ -69,7 +69,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
           }
         ],
         // Populate with actual template sections - CONVERT to document structure format
-        sections: MASTER_SECTIONS[structureConfig.productType]?.map(templateSection => ({
+        sections: MASTER_SECTIONS[structureConfig.productType]?.map((templateSection: any) => ({
           id: templateSection.id,
           documentId: 'main_document',
           title: templateSection.title || templateSection.name || '',

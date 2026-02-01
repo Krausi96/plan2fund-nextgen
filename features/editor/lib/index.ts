@@ -256,4 +256,4 @@ export {
   // State interfaces
   initialBlueprintState,
   initialPlanInstanceState,
-} from './templates/templates';
+} from './templates';
