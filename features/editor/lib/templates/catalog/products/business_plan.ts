@@ -165,13 +165,50 @@ What individual steps have you planned for the successful establishment of your 
     ]
   },
   {
+    id: 'industry_market_competition',
+    title: 'Industry, market, and competition',
+    description: 'Analysis of the industry, market potential, and competitive landscape.',
+    required: true,
+    wordCountMin: 400,
+    wordCountMax: 900,
+    order: 4,
+    category: 'market',
+    origin: 'template',
+    sectionIntro: `
+This section covers the industry analysis, market potential, and competitive landscape.
+`,
+    rawSubsections: [
+      {
+        id: "industry_analysis",
+        title: "Industry",
+        rawText: `
+Describe the industry in which you want to operate: the size of the industry (number of companies), the structure of the industry (company size, fragmented structures or a few market leaders), special features and rules (e.g., opening hours, free services, down payments, regular customer discounts, trends in prices, demand). Useful model: Industry structure analysis according to Porter (Five Forces). Also analyze the importance of sustainability in your industry and how you can differentiate yourself from your competitors through sustainable practices.
+`
+      },
+      {
+        id: "market_sales_potential",
+        title: "Market & Sales Potential",
+        rawText: `
+Unlike the industry, the market does not refer to the sum of suppliers, but rather to the sum of consumers. Important parameters are volume, price, sales, and growth. Based on the market figures, you can derive your company's sales potential. Try to write down plausible estimates for the future and set your sales target for the initial phase lower, as market penetration will take place gradually.
+`
+      },
+      {
+        id: "target_groups",
+        title: "Target groups",
+        rawText: `
+Which target group are you addressing with your offering? What characteristics and purchase-deciding factors such as age group, interests, preferences, values, behavior, etc. does your target group have? Is your offering aimed at private customers (B2C) or companies (B2B)?
+`
+      }
+    ]
+  },
+  {
     id: 'financial_plan',
     title: 'Financial Plan',
     description: 'Provide a detailed budget and financing plan.',
     required: true,
     wordCountMin: 300,
     wordCountMax: 800,
-    order: 4,
+    order: 5,
     category: 'financial',
     origin: 'template',
     sectionIntro: `
@@ -206,7 +243,7 @@ What are the key milestones the funding will achieve?
     required: true,
     wordCountMin: 200,
     wordCountMax: 600,
-    order: 5,
+    order: 6,
     category: 'team',
     origin: 'template',
     sectionIntro: `
@@ -241,7 +278,7 @@ How do these relationships strengthen your business?
     required: true,
     wordCountMin: 200,
     wordCountMax: 600,
-    order: 6,
+    order: 7,
     category: 'risk',
     origin: 'template',
     sectionIntro: `
