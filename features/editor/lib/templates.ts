@@ -9,7 +9,7 @@ import {
 } from './constants';
 
 // Master template sections that are shared across all products
-const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
+export const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = [
   {
     id: METADATA_SECTION_ID,
     title: 'Title Page',
