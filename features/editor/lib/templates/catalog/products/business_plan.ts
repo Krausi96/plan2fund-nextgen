@@ -267,13 +267,64 @@ What payment terms do you set (payment deadlines, discounts, reminder fees, etc.
     ]
   },
   {
+    id: 'performance_financial_planning',
+    title: 'Performance and financial planning',
+    description: 'Financial planning including investment, cost, revenue, and capital requirements.',
+    required: true,
+    wordCountMin: 400,
+    wordCountMax: 900,
+    order: 6,
+    category: 'financial',
+    origin: 'template',
+    sectionIntro: `
+This section covers financial planning including investment costs, cost planning, revenue planning, and capital requirements.
+`,
+    rawSubsections: [
+      {
+        id: "founding_investment_costs",
+        title: "Founding costs & Investment costs",
+        rawText: `
+In addition to founding costs such as legal and tax fees, investments are required to get your business up and running. What investments are necessary to generate initial revenue? Are there alternatives such as leasing or shared use? Will you need to make further investments in the medium term (within the next 3-5 financial years)? Also describe how sustainable investments and technologies enable long-term cost savings and efficiency gains. Take ecological and social risks into account in your financial planning.
+`
+      },
+      {
+        id: "cost_planning",
+        title: "Cost planning",
+        rawText: `
+What production costs or cost of goods sold do you expect? What other running costs do you anticipate? What staffing requirements and personnel costs do you expect? How much is your entrepreneur's salary? (Costs within the next 3-5 fiscal years.) Also take into account social security contributions and taxes payable to the tax office.
+`
+      },
+      {
+        id: "sales_revenue_planning",
+        title: "Sales/revenue planning",
+        rawText: `
+You can plan your sales/revenue based on the sales potential you determined in Chapter 3.2. Market and sales potential. The planning must be realistic and comprehensible.
+`
+      },
+      {
+        id: "profit_loss_balance_sheet",
+        title: "Profit and loss statement & balance sheet",
+        rawText: `
+Compare revenue with costs.
+`
+      },
+      {
+        id: "capital_requirements_sources",
+        title: "Capital requirements and sources of financing",
+        rawText: `
+How high is your total capital requirement based on the calculations carried out above? What sources of financing can you use to cover the financing requirement?
+`
+      }
+    ]
+  },
+  {
     id: 'financial_plan',
     title: 'Financial Plan',
     description: 'Provide a detailed budget and financing plan.',
     required: true,
     wordCountMin: 300,
     wordCountMax: 800,
-    order: 6,
+    order: 7,
     category: 'financial',
     origin: 'template',
     sectionIntro: `
@@ -308,7 +359,7 @@ What are the key milestones the funding will achieve?
     required: true,
     wordCountMin: 200,
     wordCountMax: 600,
-    order: 7,
+    order: 8,
     category: 'team',
     origin: 'template',
     sectionIntro: `
@@ -343,7 +394,7 @@ How do these relationships strengthen your business?
     required: true,
     wordCountMin: 200,
     wordCountMax: 600,
-    order: 8,
+    order: 9,
     category: 'risk',
     origin: 'template',
     sectionIntro: `
