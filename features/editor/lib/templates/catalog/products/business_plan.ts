@@ -223,13 +223,57 @@ Are there any legal, economic, regional, or other market entry barriers, and how
     ]
   },
   {
+    id: 'marketing_sales',
+    title: 'Marketing & Sales',
+    description: 'Strategies for marketing, sales, pricing, and customer service.',
+    required: true,
+    wordCountMin: 400,
+    wordCountMax: 900,
+    order: 5,
+    category: 'market',
+    origin: 'template',
+    sectionIntro: `
+This section covers marketing and sales strategies, pricing, and customer service approaches.
+`,
+    rawSubsections: [
+      {
+        id: "marketing_strategy_channels",
+        title: "Marketing Strategy & Communication Channels",
+        rawText: `
+Present your marketing strategy and the marketing measures derived from it (including your market entry strategy). Which communication channels and advertising media do you intend to use? Also explain how sustainability is integrated into your marketing and sales strategies and how you communicate your sustainability initiatives.
+`
+      },
+      {
+        id: "sales_strategy_channels",
+        title: "Sales Strategy & Sales Channels",
+        rawText: `
+Present your sales strategy and the sales measures derived from it. How do you intend to sell your product/service (online shop, retail store, via third parties, etc.)?
+`
+      },
+      {
+        id: "pricing",
+        title: "Pricing",
+        rawText: `
+What retail price do you want/can you achieve? On the one hand, the sales price must cover costs and, on the other hand, it must be marketable. It is easier to charge a higher price for innovative products/services, while for traditional products/services, you tend to have to orient yourself towards prevailing prices, unless you can plausibly argue why a higher price is justified in your case (e.g., due to higher quality).
+`
+      },
+      {
+        id: "payment_terms_customer_service",
+        title: "Payment terms & customer service",
+        rawText: `
+What payment terms do you set (payment deadlines, discounts, reminder fees, etc.)? How do you handle service and complaint requests from your customers?
+`
+      }
+    ]
+  },
+  {
     id: 'financial_plan',
     title: 'Financial Plan',
     description: 'Provide a detailed budget and financing plan.',
     required: true,
     wordCountMin: 300,
     wordCountMax: 800,
-    order: 5,
+    order: 6,
     category: 'financial',
     origin: 'template',
     sectionIntro: `
@@ -264,7 +308,7 @@ What are the key milestones the funding will achieve?
     required: true,
     wordCountMin: 200,
     wordCountMax: 600,
-    order: 6,
+    order: 7,
     category: 'team',
     origin: 'template',
     sectionIntro: `
@@ -299,7 +343,7 @@ How do these relationships strengthen your business?
     required: true,
     wordCountMin: 200,
     wordCountMax: 600,
-    order: 7,
+    order: 8,
     category: 'risk',
     origin: 'template',
     sectionIntro: `
