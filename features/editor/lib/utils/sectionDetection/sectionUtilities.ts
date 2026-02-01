@@ -1,0 +1,163 @@
+/**
+ * SECTION UTILITIES
+ * 
+ * Contains various section-related utility functions including sorting, list handling, and metadata.
+ */
+
+import {
+  METADATA_SECTION_ID,
+  ANCILLARY_SECTION_ID,
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
+  TABLES_DATA_SECTION_ID,
+  FIGURES_IMAGES_SECTION_ID
+} from '../../constants';
+
+import type { SectionTemplate } from '../../types/types';
+
+// Define the canonical section order
+const CANONICAL_SECTION_ORDER = [
+  METADATA_SECTION_ID,      // Title Page - must be first
+  ANCILLARY_SECTION_ID,     // Table of Contents - must be second
+  'executive_summary',
+  'company_description',
+  'project_description',
+  'market_analysis',
+  'financial_plan',
+  'team_qualifications',
+  'risk_assessment',
+  'business_model_canvas',
+  'go_to_market_strategy',
+  'unit_economics',
+  'milestones_next_steps',
+  'company_overview',
+  'about_company',
+  'company_information',
+  REFERENCES_SECTION_ID,    // References
+  TABLES_DATA_SECTION_ID,   // Tables/Data
+  FIGURES_IMAGES_SECTION_ID, // Figures/Images
+  APPENDICES_SECTION_ID     // Appendices
+];
+
+// Create a map for fast lookup
+const SECTION_ORDER_MAP = new Map(CANONICAL_SECTION_ORDER.map((id, index) => [id, index]));
+
+/**
+ * Sort sections according to canonical order
+ * Ensures Title Page is first, TOC is second, and sections follow the defined order
+ */
+export function sortSectionsByCanonicalOrder<T extends { id: string }>(sections: T[]): T[] {
+  // Identify special sections that should be at the end
+  const endingSpecialSections = new Set([
+    REFERENCES_SECTION_ID,
+    TABLES_DATA_SECTION_ID,
+    FIGURES_IMAGES_SECTION_ID,
+    APPENDICES_SECTION_ID
+  ]);
+  
+  return [...sections].sort((a, b) => {
+    const orderA = SECTION_ORDER_MAP.get(a.id);
+    const orderB = SECTION_ORDER_MAP.get(b.id);
+    
+    const isEndingA = endingSpecialSections.has(a.id);
+    const isEndingB = endingSpecialSections.has(b.id);
+    
+    // If both sections are in the canonical order, sort by their defined positions
+    if (orderA !== undefined && orderB !== undefined) {
+      return orderA - orderB;
+    }
+    
+    // If only one section is in canonical order
+    if (orderA !== undefined) {
+      if (isEndingA) {
+        // A is a canonical ending special section
+        return 1; // Ending special sections come after non-canonical sections
+      } else {
+        return -1; // Introductory canonical sections come before non-canonical sections
+      }
+    }
+    
+    if (orderB !== undefined) {
+      if (isEndingB) {
+        // B is a canonical ending special section
+        return -1; // Non-canonical sections come before ending special sections
+      } else {
+        return 1; // Introductory canonical sections come before non-canonical sections
+      }
+    }
+    
+    // If neither is in canonical order, determine based on whether they're ending special sections
+    if (isEndingA && isEndingB) {
+      // Both are ending special sections, sort by canonical order
+      return (orderA || 0) - (orderB || 0);
+    }
+    
+    // Ending special sections come after non-ending sections
+    if (isEndingA) return 1;
+    if (isEndingB) return -1;
+    
+    // Both are regular non-canonical sections, maintain their relative order
+    // This ensures they appear between the intro special sections and ending special sections
+    return 0;
+  });
+}
+
+/**
+ * Get complete section list including special sections for display purposes
+ * Combines template sections with special sections (Title Page, TOC, References, Appendices)
+ * 
+ * @param templateSections - Sections from MASTER_SECTIONS or document structure
+ * @returns Complete section list with proper icons and ordering
+ */
+export function getCompleteSectionList(
+  templateSections: SectionTemplate[]): SectionTemplate[] {
+  // All special sections are now included in templateSections via MASTER_SECTIONS
+  // No need for separate specialSections or trailingSections arrays
+  
+  // Add icons to all sections
+  const sectionsWithIcons = templateSections.map(section => ({
+    ...section,
+    icon: section.icon || '🧾' // Default icon for sections without specific icons
+  }));
+  
+  return sectionsWithIcons;
+}
+
+/**
+ * Get section icon by section ID
+ * Maps section IDs to appropriate emoji icons
+ * 
+ * @param sectionId - Section identifier
+ * @returns Emoji icon string
+ */
+export function getSectionIcon(sectionId: string): string {
+  const iconMap: Record<string, string> = {
+    [METADATA_SECTION_ID]: '📕',
+    [ANCILLARY_SECTION_ID]: '📑',
+    [REFERENCES_SECTION_ID]: '📚',
+    'tables_data': '📊',
+    'figures_images': '🖼️',
+    [APPENDICES_SECTION_ID]: '📎',
+    // Default for regular sections
+    'default': '🧾'
+  };
+  
+  return iconMap[sectionId] || iconMap['default'];
+}
+
+/**
+ * Check if section is a special section
+ * 
+ * @param sectionId - Section identifier
+ * @returns boolean indicating if it's a special section
+ */
+export function isSpecialSection(sectionId: string): boolean {
+  return [
+    METADATA_SECTION_ID,
+    ANCILLARY_SECTION_ID,
+    REFERENCES_SECTION_ID,
+    APPENDICES_SECTION_ID,
+    'tables_data',
+    'figures_images'
+  ].includes(sectionId);
+}
