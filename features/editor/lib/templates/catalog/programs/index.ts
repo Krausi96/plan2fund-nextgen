@@ -1,6 +1,15 @@
 /**
- * Export mock programs for use in the application
+ * Export all mock funding programs
+ * Individual program files for better maintainability
  */
 
-export { MOCK_FUNDING_PROGRAMS } from './mockPrograms';
-export { programManager, resetProgramDatabase, getProgramCountByRegion, getProgramCountByType } from './programManager';
+export { awsSeedfinancing } from './aws-seedfinancing';
+export { ffgBasisprogramm } from './ffg-basisprogramm';
+export { eicAccelerator } from './eic-accelerator';
+
+// Aggregate all programs for easy import
+export const MOCK_FUNDING_PROGRAMS = [
+  awsSeedfinancing,
+  ffgBasisprogramm,
+  eicAccelerator
+];

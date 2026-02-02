@@ -3,7 +3,7 @@
  * Utility functions to manage the mock funding program repository
  */
 
-import { MOCK_FUNDING_PROGRAMS } from './mockPrograms';
+import { MOCK_FUNDING_PROGRAMS } from './index';
 
 export interface ProgramManager {
   /**

@@ -40,8 +40,8 @@ interface ProgramFinderProps {
 
 // Use the mock program repository instead of hardcoded catalog
 const loadProgramCatalog = async (): Promise<Program[]> => {
-  const { MOCK_FUNDING_PROGRAMS } = await import('@/features/editor/lib/templates/catalog/programs/mockPrograms');
-  return MOCK_FUNDING_PROGRAMS.map(program => ({
+  const { MOCK_FUNDING_PROGRAMS } = await import('@/features/editor/lib/templates/catalog/programs');
+  return MOCK_FUNDING_PROGRAMS.map((program: any) => ({
     id: program.id,
     name: program.name,
     type: program.type || 'grant',
