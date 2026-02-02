@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useEditorStore, mergeUploadedContentWithSpecialSections } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
-type SimulationType = 'programFinder' | 'templateUpload' | 'badTemplateUpload' | 'recoWizard' | 'urlParsing' | 'freeOption' | 'debugCanonicalOrdering';
+type SimulationType = 'programFinder' | 'templateUpload' | 'badTemplateUpload' | 'recoWizard' | 'urlParsing' | 'freeOption' | 'debugCanonicalOrdering' | 'strategyTemplateUpload' | 'businessModelCanvas';
 
 interface SimulationResult {
   type: SimulationType;
@@ -338,6 +338,349 @@ export function FlowSimulator() {
         type: 'templateUpload', 
         status: 'error', 
         message: `Template upload simulation failed: ${(error as Error).message}`
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+  
+  const simulateStrategyTemplateUpload = async () => {
+    setIsRunning(true);
+    addResult({ type: 'strategyTemplateUpload', status: 'running', message: 'Starting strategy document template upload simulation...' });
+    
+    try {
+      // Simulate strategy document file upload
+      const mockFile = {
+        name: 'strategy_document.docx',
+        size: 1843200, // 1.8 MB
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      };
+      
+      // Simulate extracted content from a strategy document
+      const extractedContent = {
+        title: 'Corporate Strategy Document',
+        sections: [
+          { 
+            title: 'Executive Summary', 
+            content: 'Strategic overview and key initiatives...', 
+            type: 'executive_summary',
+            rawSubsections: [
+              { id: 'strat_exec_overview', title: 'Strategic Overview', content: 'High-level strategic overview' },
+              { id: 'strat_exec_initiatives', title: 'Key Initiatives', content: 'Major strategic initiatives' },
+              { id: 'strat_exec_benefits', title: 'Expected Benefits', content: 'Anticipated benefits from strategy' }
+            ]
+          },
+          { 
+            title: 'Strategic Vision', 
+            content: 'Company vision and mission alignment...', 
+            type: 'strategic_vision',
+            rawSubsections: [
+              { id: 'strat_vision_mission', title: 'Mission Alignment', content: 'Alignment with company mission' },
+              { id: 'strat_vision_goals', title: 'Strategic Goals', content: 'Long-term strategic goals' },
+              { id: 'strat_vision_objectives', title: 'Strategic Objectives', content: 'Specific strategic objectives' }
+            ]
+          },
+          { 
+            title: 'Market Positioning', 
+            content: 'Market positioning and competitive advantage...', 
+            type: 'market_positioning',
+            rawSubsections: [
+              { id: 'strat_market_analysis', title: 'Market Analysis', content: 'Analysis of market positioning' },
+              { id: 'strat_competitive_adv', title: 'Competitive Advantages', content: 'Key competitive advantages' },
+              { id: 'strat_differentiators', title: 'Differentiators', content: 'Market differentiation factors' }
+            ]
+          },
+          { 
+            title: 'SWOT Analysis', 
+            content: 'Strengths, weaknesses, opportunities, threats...', 
+            type: 'swot_analysis',
+            rawSubsections: [
+              { id: 'strat_swot_strengths', title: 'Strengths', content: 'Internal strengths' },
+              { id: 'strat_swot_weaknesses', title: 'Weaknesses', content: 'Internal weaknesses' },
+              { id: 'strat_swot_opportunities', title: 'Opportunities', content: 'External opportunities' },
+              { id: 'strat_swot_threats', title: 'Threats', content: 'External threats' }
+            ]
+          },
+          { 
+            title: 'Implementation Roadmap', 
+            content: 'Strategy implementation plan...', 
+            type: 'implementation_roadmap',
+            rawSubsections: [
+              { id: 'strat_impl_phase1', title: 'Phase 1: Foundation', content: 'Foundation building phase' },
+              { id: 'strat_impl_phase2', title: 'Phase 2: Growth', content: 'Growth and expansion phase' },
+              { id: 'strat_impl_phase3', title: 'Phase 3: Optimization', content: 'Optimization and scaling phase' }
+            ]
+          },
+          { 
+            title: 'Resource Allocation', 
+            content: 'Resources required for strategy execution...', 
+            type: 'resource_allocation',
+            rawSubsections: [
+              { id: 'strat_res_budget', title: 'Budget Allocation', content: 'Financial resource allocation' },
+              { id: 'strat_res_team', title: 'Team Resources', content: 'Human resource allocation' },
+              { id: 'strat_res_infrastructure', title: 'Infrastructure', content: 'Infrastructure investments' }
+            ]
+          },
+          { 
+            title: 'Risk Management', 
+            content: 'Risk mitigation strategies...', 
+            type: 'risk_management',
+            rawSubsections: [
+              { id: 'strat_risk_identification', title: 'Risk Identification', content: 'Identified strategic risks' },
+              { id: 'strat_risk_mitigation', title: 'Mitigation Strategies', content: 'Risk mitigation approaches' },
+              { id: 'strat_risk_monitoring', title: 'Monitoring Plan', content: 'Risk monitoring procedures' }
+            ]
+          },
+          { 
+            title: 'Performance Metrics', 
+            content: 'KPIs and success metrics...', 
+            type: 'performance_metrics',
+            rawSubsections: [
+              { id: 'strat_kpi_financial', title: 'Financial KPIs', content: 'Financial performance indicators' },
+              { id: 'strat_kpi_operational', title: 'Operational KPIs', content: 'Operational performance indicators' },
+              { id: 'strat_kpi_strategic', title: 'Strategic KPIs', content: 'Strategic performance indicators' }
+            ]
+          },
+          { 
+            title: 'Stakeholder Engagement', 
+            content: 'Engagement strategy for stakeholders...', 
+            type: 'stakeholder_engagement',
+            rawSubsections: [
+              { id: 'strat_stakeholders_internal', title: 'Internal Stakeholders', content: 'Engagement of internal stakeholders' },
+              { id: 'strat_stakeholders_external', title: 'External Stakeholders', content: 'Engagement of external stakeholders' },
+              { id: 'strat_communication_plan', title: 'Communication Plan', content: 'Stakeholder communication approach' }
+            ]
+          },
+          { 
+            title: 'Change Management', 
+            content: 'Change management framework...', 
+            type: 'change_management',
+            rawSubsections: [
+              { id: 'strat_change_process', title: 'Change Process', content: 'Process for managing change' },
+              { id: 'strat_change_training', title: 'Training Programs', content: 'Training for change implementation' },
+              { id: 'strat_change_support', title: 'Support Systems', content: 'Support systems for change' }
+            ]
+          },
+          { 
+            title: 'References', 
+            content: 'Sources and references used...', 
+            type: 'references' 
+          },
+          { 
+            title: 'Appendices', 
+            content: 'Additional supporting materials...', 
+            type: 'appendices' 
+          }
+        ],
+        hasTitlePage: true,
+        hasTOC: true,
+        totalPages: 32,
+        wordCount: 8500
+      };
+      
+      // Use the unified function to merge uploaded content with special sections
+      const finalStructure = mergeUploadedContentWithSpecialSections(extractedContent, null, t as (key: string) => string);
+      
+      setDocumentStructure(finalStructure);
+      setSetupStatus('draft');
+      setSetupDiagnostics({
+        warnings: finalStructure.warnings,
+        missingFields: [],
+        confidence: finalStructure.confidenceScore
+      });
+      
+      addResult({ 
+        type: 'strategyTemplateUpload', 
+        status: 'success', 
+        message: 'Strategy document template upload simulation completed',
+        details: { 
+          fileName: mockFile.name, 
+          fileSize: `${(mockFile.size / 1024 / 1024).toFixed(1)} MB`, 
+          sections: finalStructure.sections.length,
+          source: finalStructure.source
+        }
+      });
+    } catch (error) {
+      addResult({ 
+        type: 'strategyTemplateUpload', 
+        status: 'error', 
+        message: `Strategy template upload simulation failed: ${(error as Error).message}`
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+  
+  const simulateBusinessModelCanvas = async () => {
+    setIsRunning(true);
+    addResult({ type: 'businessModelCanvas', status: 'running', message: 'Starting business model canvas template upload simulation...' });
+    
+    try {
+      // Simulate business model canvas file upload
+      const mockFile = {
+        name: 'business_model_canvas.docx',
+        size: 1228800, // 1.2 MB
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      };
+      
+      // Simulate extracted content from a business model canvas document
+      const extractedContent = {
+        title: 'Business Model Canvas',
+        sections: [
+          { 
+            title: 'Value Propositions', 
+            content: 'Value propositions for customers...', 
+            type: 'value_propositions',
+            rawSubsections: [
+              { id: 'canvas_vp_product', title: 'Product Value', content: 'Value provided by products' },
+              { id: 'canvas_vp_service', title: 'Service Value', content: 'Value provided by services' },
+              { id: 'canvas_vp_solution', title: 'Solution Value', content: 'Value of overall solution' }
+            ]
+          },
+          { 
+            title: 'Customer Segments', 
+            content: 'Target customer segments...', 
+            type: 'customer_segments',
+            rawSubsections: [
+              { id: 'canvas_cs_mass', title: 'Mass Market', content: 'Mass market segment' },
+              { id: 'canvas_cs_niche', title: 'Niche Market', content: 'Niche market segment' },
+              { id: 'canvas_cs_multi', title: 'Multi-sided Platform', content: 'Multi-sided platform segments' }
+            ]
+          },
+          { 
+            title: 'Channels', 
+            content: 'Distribution channels...', 
+            type: 'channels',
+            rawSubsections: [
+              { id: 'canvas_ch_direct', title: 'Direct Channels', content: 'Direct sales channels' },
+              { id: 'canvas_ch_partner', title: 'Partner Channels', content: 'Partner distribution channels' },
+              { id: 'canvas_ch_online', title: 'Online Channels', content: 'Online distribution channels' }
+            ]
+          },
+          { 
+            title: 'Customer Relationships', 
+            content: 'Customer relationship types...', 
+            type: 'customer_relationships',
+            rawSubsections: [
+              { id: 'canvas_cr_personal', title: 'Personal Assistance', content: 'Personal assistance relationships' },
+              { id: 'canvas_cr_self_service', title: 'Self Service', content: 'Self-service relationships' },
+              { id: 'canvas_cr_automated', title: 'Automated Services', content: 'Automated service relationships' }
+            ]
+          },
+          { 
+            title: 'Revenue Streams', 
+            content: 'Revenue stream types...', 
+            type: 'revenue_streams',
+            rawSubsections: [
+              { id: 'canvas_rs_asset_sale', title: 'Asset Sales', content: 'Revenue from asset sales' },
+              { id: 'canvas_rs_usage_fee', title: 'Usage Fees', content: 'Revenue from usage fees' },
+              { id: 'canvas_rs_subscription', title: 'Subscriptions', content: 'Subscription revenue' }
+            ]
+          },
+          { 
+            title: 'Key Resources', 
+            content: 'Key resources required...', 
+            type: 'key_resources',
+            rawSubsections: [
+              { id: 'canvas_kr_physical', title: 'Physical Resources', content: 'Physical key resources' },
+              { id: 'canvas_kr_intellectual', title: 'Intellectual Property', content: 'Intellectual property resources' },
+              { id: 'canvas_kr_human', title: 'Human Resources', content: 'Human key resources' }
+            ]
+          },
+          { 
+            title: 'Key Activities', 
+            content: 'Key activities to execute...', 
+            type: 'key_activities',
+            rawSubsections: [
+              { id: 'canvas_ka_production', title: 'Production Activities', content: 'Production-related activities' },
+              { id: 'canvas_ka_problem_solving', title: 'Problem Solving', content: 'Problem-solving activities' },
+              { id: 'canvas_ka_platform', title: 'Platform/Network', content: 'Platform/network activities' }
+            ]
+          },
+          { 
+            title: 'Key Partnerships', 
+            content: 'Key partnerships and suppliers...', 
+            type: 'key_partnerships',
+            rawSubsections: [
+              { id: 'canvas_kp_suppliers', title: 'Suppliers', content: 'Key suppliers' },
+              { id: 'canvas_kp_strategic', title: 'Strategic Partners', content: 'Strategic partnerships' },
+              { id: 'canvas_kp_jv', title: 'Joint Ventures', content: 'Joint venture partners' }
+            ]
+          },
+          { 
+            title: 'Cost Structure', 
+            content: 'Overall cost structure...', 
+            type: 'cost_structure',
+            rawSubsections: [
+              { id: 'canvas_cs_fixed', title: 'Fixed Costs', content: 'Fixed operational costs' },
+              { id: 'canvas_cs_variable', title: 'Variable Costs', content: 'Variable operational costs' },
+              { id: 'canvas_cs_economies', title: 'Economies of Scale', content: 'Economies of scale effects' }
+            ]
+          },
+          { 
+            title: 'Business Model Analysis', 
+            content: 'Analysis of the business model...', 
+            type: 'business_model_analysis',
+            rawSubsections: [
+              { id: 'canvas_analysis_feasibility', title: 'Feasibility Analysis', content: 'Analysis of business model feasibility' },
+              { id: 'canvas_analysis_risks', title: 'Risk Assessment', content: 'Risk assessment for business model' },
+              { id: 'canvas_analysis_opportunities', title: 'Opportunity Evaluation', content: 'Evaluation of opportunities' }
+            ]
+          },
+          { 
+            title: 'Implementation Plan', 
+            content: 'Plan for implementing the business model...', 
+            type: 'implementation_plan',
+            rawSubsections: [
+              { id: 'canvas_impl_timeline', title: 'Timeline', content: 'Implementation timeline' },
+              { id: 'canvas_impl_resources', title: 'Resource Requirements', content: 'Resource requirements for implementation' },
+              { id: 'canvas_impl_milestones', title: 'Milestones', content: 'Key implementation milestones' }
+            ]
+          },
+          { 
+            title: 'References', 
+            content: 'Sources and references used...', 
+            type: 'references' 
+          },
+          { 
+            title: 'Appendices', 
+            content: 'Additional supporting materials...', 
+            type: 'appendices' 
+          }
+        ],
+        hasTitlePage: true,
+        hasTOC: true,
+        totalPages: 24,
+        wordCount: 6200
+      };
+      
+      // Use the unified function to merge uploaded content with special sections
+      const finalStructure = mergeUploadedContentWithSpecialSections(extractedContent, null, t as (key: string) => string);
+      
+      setDocumentStructure(finalStructure);
+      setSetupStatus('draft');
+      setSetupDiagnostics({
+        warnings: finalStructure.warnings,
+        missingFields: [],
+        confidence: finalStructure.confidenceScore
+      });
+      
+      addResult({ 
+        type: 'businessModelCanvas', 
+        status: 'success', 
+        message: 'Business model canvas template upload simulation completed',
+        details: { 
+          fileName: mockFile.name, 
+          fileSize: `${(mockFile.size / 1024 / 1024).toFixed(1)} MB`, 
+          sections: finalStructure.sections.length,
+          source: finalStructure.source
+        }
+      });
+    } catch (error) {
+      addResult({ 
+        type: 'businessModelCanvas', 
+        status: 'error', 
+        message: `Business model canvas upload simulation failed: ${(error as Error).message}`
       });
     } finally {
       setIsRunning(false);
@@ -852,6 +1195,12 @@ export function FlowSimulator() {
       case 'debugCanonicalOrdering':
         await simulateDebugCanonicalOrdering();
         break;
+      case 'strategyTemplateUpload':
+        await simulateStrategyTemplateUpload();
+        break;
+      case 'businessModelCanvas':
+        await simulateBusinessModelCanvas();
+        break;
       default:
         addResult({ 
           type: selectedSimulation, 
@@ -882,6 +1231,8 @@ export function FlowSimulator() {
           <option value="urlParsing">URL Parsing</option>
           <option value="freeOption">Free Option</option>
           <option value="debugCanonicalOrdering">Debug Canonical Ordering</option>
+          <option value="strategyTemplateUpload">Strategy Document Template</option>
+          <option value="businessModelCanvas">Business Model Canvas</option>
         </select>
         
         <button 
