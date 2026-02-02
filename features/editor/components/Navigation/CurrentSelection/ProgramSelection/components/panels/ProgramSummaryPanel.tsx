@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditorStore, getSectionIcon } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
@@ -166,9 +166,16 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
   // Get document structure from store
   const documentStructure = useEditorStore((state) => state.setupWizard.documentStructure);
   
-  // Get documents and sections from document structure
-  const documents = documentStructure?.documents || [];
-  const sections = documentStructure?.sections || [];
+  // State for document expansion
+  const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});
+  
+  // Toggle document expansion
+  const toggleDocument = (documentId: string) => {
+    setExpandedDocuments(prev => ({
+      ...prev,
+      [documentId]: !prev[documentId]
+    }));
+  };
   
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
@@ -222,33 +229,62 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
         <div className="space-y-3 mt-2">
           <div className="text-white font-semibold text-sm border-b border-white/20 pb-1">Documents & Structure:</div>
           
-          {/* Documents List */}
-          {documents.length > 0 && (
+          {/* Documents Tree */}
+          {documentStructure.documents && documentStructure.documents.length > 0 && (
             <div className="space-y-2">
-              <div className="text-white/70 text-xs uppercase tracking-wide">Documents ({documents.length}):</div>
-              <div className="space-y-1 ml-2">
-                {documents.map((doc, index) => (
-                  <div key={doc.id} className="flex items-center gap-2 text-white/90 text-sm">
-                    <span className="text-blue-400">📄</span>
-                    <span className="truncate">{doc.name}</span>
+              {documentStructure.documents.map((doc) => {
+                // Find sections that belong to this document
+                const docSections = documentStructure.sections?.filter(
+                  (section: any) => section.documentId === doc.id
+                ) || [];
+                
+                const isExpanded = expandedDocuments[doc.id] ?? true; // Default to expanded
+                
+                return (
+                  <div key={doc.id} className="border border-white/10 rounded-lg bg-slate-700/20">
+                    {/* Document Header */}
+                    <div 
+                      className="flex items-center gap-2 p-2 cursor-pointer hover:bg-white/5 rounded-t-lg"
+                      onClick={() => toggleDocument(doc.id)}
+                    >
+                      <span className="text-blue-400">📄</span>
+                      <span className="text-white font-medium flex-1 truncate" title={doc.name}>{doc.name}</span>
+                      <span className="text-white/70 transform transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
+                        ▼
+                      </span>
+                    </div>
+                    
+                    {/* Sections List */}
+                    {isExpanded && docSections.length > 0 && (
+                      <div className="p-2 pt-0 border-t border-white/10">
+                        <div className="space-y-1 ml-4">
+                          {docSections.map((section: any) => (
+                            <div key={section.id} className="flex items-center gap-2 text-white/80 text-sm">
+                              <span className="text-red-400">{getSectionIcon(section.id)}</span>
+                              <span className="flex-1 truncate">{section.title}</span>
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${section.required ? 'bg-red-500/30 text-red-300' : 'bg-gray-500/30 text-gray-300'}`}>
+                                {section.required ? 'Req' : 'Opt'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           )}
           
-          {/* Sections List */}
-          {sections.length > 0 && (
+          {/* Show requirements if available */}
+          {documentStructure.requirements && documentStructure.requirements.length > 0 && (
             <div className="space-y-2 mt-3">
-              <div className="text-white/70 text-xs uppercase tracking-wide">Sections ({sections.length}):</div>
-              <div className="space-y-1 ml-2 max-h-40 overflow-y-auto">
-                {sections.map((section) => (
-                  <div key={section.id} className="flex items-center gap-2 text-white/80 text-sm">
-                    <span className="text-red-400">{getSectionIcon(section.id)}</span>
-                    <span className="truncate">{section.title}</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded ${section.required ? 'bg-red-500/30 text-red-300' : 'bg-gray-500/30 text-gray-300'}`}>
-                      {section.required ? 'Req' : 'Opt'}
-                    </span>
+              <div className="text-white/70 text-xs uppercase tracking-wide">Requirements ({documentStructure.requirements.length}):</div>
+              <div className="space-y-1 ml-2 max-h-32 overflow-y-auto">
+                {documentStructure.requirements.map((requirement: any, index: number) => (
+                  <div key={index} className="flex items-center gap-2 text-white/70 text-xs">
+                    <span className="text-blue-400">•</span>
+                    <span className="truncate">{requirement.rule || `Requirement ${index + 1}`}</span>
                   </div>
                 ))}
               </div>
