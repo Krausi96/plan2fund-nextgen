@@ -254,6 +254,16 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
       rule: `Document must be in ${doc.format} format from ${doc.authority}`,
       target: doc.document_name,
       evidenceType: 'document_submission'
+    })),
+    // Program-level requirements
+    ...(profile.requirements || []).map((req, index) => ({
+      id: `req_program_${index}`,
+      scope: 'section' as const,
+      category: 'market' as const, // Using 'market' as a general category for program requirements
+      severity: 'major' as const,
+      rule: `Must address ${req} requirement`,
+      target: req,
+      evidenceType: 'content'
     }))
   ];
   
