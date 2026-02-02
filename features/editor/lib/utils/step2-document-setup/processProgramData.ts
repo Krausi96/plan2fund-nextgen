@@ -212,7 +212,7 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
   const primaryDocumentId = documents[0].id;
   
   // Generate sections from parsed requirements
-  const sections = profile.applicationRequirements.sections.map((section, sectionIndex) => {
+  let sections = profile.applicationRequirements.sections.map((section, sectionIndex) => {
     // Create subsections for this section
     const rawSubsections = section.subsections.map((subsection, subIndex) => ({
       id: `subsec_${sectionIndex}_${subIndex}_${subsection.title.replace(/\s+/g, '_').toLowerCase()}`,
@@ -223,9 +223,10 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
     // Determine appropriate document for this section based on content
     let sectionDocumentId = primaryDocumentId; // Default to primary document
     
-    // Map sections to appropriate documents based on keywords
+    // Map sections to appropriate documents based on keywords and business logic
     const sectionLower = section.title.toLowerCase();
     
+    // Try to find a document that matches the section content
     if (sectionLower.includes('financial') || sectionLower.includes('finance')) {
       // Try to find Financial Statements document
       const financialDoc = documents.find(doc => 
@@ -254,6 +255,55 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
       if (marketDoc) {
         sectionDocumentId = marketDoc.id;
       }
+    } else if (sectionLower.includes('team') || sectionLower.includes('qualification') || sectionLower.includes('personnel')) {
+      // Team sections often go in business plan
+      const businessPlanDoc = documents.find(doc => 
+        doc.name.toLowerCase().includes('business') || 
+        doc.name.toLowerCase().includes('plan')
+      );
+      if (businessPlanDoc) {
+        sectionDocumentId = businessPlanDoc.id;
+      }
+    } else if (sectionLower.includes('innovation') || sectionLower.includes('technology') || sectionLower.includes('patent')) {
+      // Innovation sections might go in proof of innovation or business plan
+      const innovationDoc = documents.find(doc => 
+        doc.name.toLowerCase().includes('innovation') || 
+        doc.name.toLowerCase().includes('patent') ||
+        doc.name.toLowerCase().includes('technical')
+      );
+      if (innovationDoc) {
+        sectionDocumentId = innovationDoc.id;
+      } else {
+        // Default to business plan if no specific innovation document
+        const businessPlanDoc = documents.find(doc => 
+          doc.name.toLowerCase().includes('business') || 
+          doc.name.toLowerCase().includes('plan')
+        );
+        if (businessPlanDoc) {
+          sectionDocumentId = businessPlanDoc.id;
+        }
+      }
+    } else if (sectionLower.includes('objective') || sectionLower.includes('goal') || sectionLower.includes('summary')) {
+      // Executive summaries and objectives often go in business plan
+      const businessPlanDoc = documents.find(doc => 
+        doc.name.toLowerCase().includes('business') || 
+        doc.name.toLowerCase().includes('plan')
+      );
+      if (businessPlanDoc) {
+        sectionDocumentId = businessPlanDoc.id;
+      }
+    }
+    
+    // If no specific document found and we have a business plan document, default to business plan
+    // Otherwise, fall back to primary document
+    if (sectionDocumentId === primaryDocumentId) {
+      const businessPlanDoc = documents.find(doc => 
+        doc.name.toLowerCase().includes('business') || 
+        doc.name.toLowerCase().includes('plan')
+      );
+      if (businessPlanDoc) {
+        sectionDocumentId = businessPlanDoc.id;
+      }
     }
     
     return {
@@ -269,8 +319,43 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
     };
   });
   
-  // Generate requirements from financial and other requirements
-  const requirements = [
+  // After initial assignment, redistribute sections more evenly if some documents are empty
+  const documentIds = documents.map(doc => doc.id);
+  if (documentIds.length > 1 && sections.length > 0) {
+    // Group sections by document
+    const sectionsByDocument: Record<string, any[]> = {};
+    documentIds.forEach(id => sectionsByDocument[id] = []);
+    
+    sections.forEach(section => {
+      if (sectionsByDocument[section.documentId]) {
+        sectionsByDocument[section.documentId].push(section);
+      } else {
+        // If section doesn't match any known document, assign to first document
+        sectionsByDocument[documentIds[0]].push(section);
+      }
+    });
+    
+    // Identify documents with no sections
+    const emptyDocuments = documentIds.filter(id => sectionsByDocument[id].length === 0);
+    
+    // If there are documents without sections, redistribute sections more evenly
+    if (emptyDocuments.length > 0 && sections.length >= documentIds.length) {
+      // Create a new sections array with more even distribution
+      const redistributedSections: any[] = [];
+      
+      // Create copies of sections to avoid mutation issues
+      const allSections = sections.map(s => ({ ...s }));
+      
+      // Distribute sections more evenly among documents
+      allSections.forEach((section, index) => {
+        const targetDocumentId = documentIds[index % documentIds.length];
+        const updatedSection = { ...section, documentId: targetDocumentId };
+        redistributedSections.push(updatedSection);
+      });
+      
+      sections = redistributedSections;
+    }
+  }  const requirements = [
     // Financial requirements
     ...profile.applicationRequirements.financialRequirements.financial_statements_required.map((stmt, index) => ({
       id: `req_financial_${index}`,
