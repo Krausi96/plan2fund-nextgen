@@ -32,6 +32,34 @@ export function TreeNodeRenderer({
 }: TreeNodeRendererProps) {
   // Get tree prefix characters
   const getTreePrefix = (nodeLevel: number, isLastChild: boolean, hasChildrenNodes: boolean) => {
+    if (node.type === 'subsection') {
+      return '├─ '; // Tree character for subsections
+    }
+    if (node.type === 'show-more' || node.type === 'toggle-subsections') {
+      return ''; // No prefix for show more or toggle nodes
+    }
+    if (node.type === 'document' && nodeLevel === 0) {
+      return hasChildrenNodes ? '▾ ' : '▸ '; // Arrow for documents
+    }
+    if (node.type === 'section' && nodeLevel === 1) {
+      // Check if this is a special section (executive summary or other special types)
+      const isSpecialSection = [
+        'executive_summary',
+        'exec',
+        'metadata',
+        'ancillary',
+        'references',
+        'appendices',
+        'tables_data',
+        'figures_images'
+      ].includes(node.id);
+      
+      if (isSpecialSection) {
+        return isLastChild ? '└─ ' : '├─ '; // Tree character for special sections
+      }
+      
+      return hasChildrenNodes ? '▾ ' : '▸ '; // Arrow for sections
+    }
     if (nodeLevel === 0) {
       return hasChildrenNodes ? '▾ ' : '▸ ';
     } else {
@@ -41,6 +69,7 @@ export function TreeNodeRenderer({
 
   // Get background styling class
   const getBackgroundClass = () => {
+    if (node.type === 'subsection') return 'text-white/70 hover:bg-white/5 pl-4'; // Further reduced indent for subsections
     if (node.isDisabled) return 'opacity-50 text-white/50';
     if (isSelected) return 'bg-blue-600/20 text-white';
     if (isProductDoc) return 'bg-purple-600/20 text-white';
@@ -56,9 +85,9 @@ export function TreeNodeRenderer({
         height: '36px',
         paddingLeft: `${paddingLeft}px`
       }}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onClick={node.type === 'subsection' ? () => {} : onClick}
+      onMouseEnter={node.type === 'subsection' ? () => {} : onMouseEnter}
+      onMouseLeave={node.type === 'subsection' ? () => {} : onMouseLeave}
     >
       {/* Tree prefix with proper characters */}
       <span className="text-white/70 mr-1" style={{ width: '16px', textAlign: 'center', fontFamily: 'monospace' }}>
@@ -66,12 +95,10 @@ export function TreeNodeRenderer({
       </span>
       
       {/* Icon */}
-      {node.icon && (
-        <span className="flex-shrink-0">{node.icon}</span>
-      )}
+      <span className={node.type === 'subsection' ? 'text-xs' : ''}>{node.icon}</span>
       
       {/* Node name */}
-      <span className={`flex-1 text-sm font-medium truncate ${node.isDisabled ? 'line-through' : ''}`}>
+      <span className={`flex-1 ${node.type === 'subsection' ? 'text-xs' : 'text-sm'} font-medium truncate ${node.isDisabled ? 'line-through' : ''}`}>
         {node.name}
       </span>
       
@@ -80,7 +107,7 @@ export function TreeNodeRenderer({
         className="flex items-center gap-1 flex-shrink-0"
         style={{ opacity: (isHovered || isSelected) ? 1 : 0, transition: 'opacity 0.2s' }}
       >
-        {renderCheckbox?.(node)}
+        {node.type !== 'subsection' && renderCheckbox?.(node)}
       </div>
     </div>
   );

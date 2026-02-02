@@ -72,6 +72,7 @@ export default function TreeNavigator() {
   // State for tree expansion/collapse
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [expandedSubsections, setExpandedSubsections] = useState<Record<string, boolean>>({});
 
   // Toggle node expansion
   const toggleNode = (nodeId: string) => {
@@ -111,41 +112,89 @@ export default function TreeNavigator() {
       
       // Add sections as children of the document
       if (sections && sections.length > 0) {
-        documentNode.children = sections.map((section: any) => ({
-          id: section.id,
-          name: getSectionTitle(section.id, section.title || section.name || 'Untitled Section', t),
-          type: 'section',
-          parentId: 'core-product',
-          isDisabled: disabledSections?.has?.(section.id) || false,
-          isActive: section.id === activeSectionId,
-          isRequired: section.required,
-          isCustom: section.origin === 'custom',
-          origin: section.origin || 'template',
-          icon: section.id === 'metadata' ? '📕' : 
-                section.id === 'ancillary' ? '📑' : 
-                section.id === 'references' ? '📚' : 
-                section.id === 'tables_data' ? '📊' : 
-                section.id === 'figures_images' ? '🖼️' : 
-                section.id === 'appendices' ? '📎' : '🧾',
-          children: [],
-          level: 1,
-        }));
+        documentNode.children = sections.map((section: any) => {
+          // Create subsection children if they exist
+          const subsectionChildren = section.rawSubsections?.map((subsection: any) => ({
+            id: `${section.id}-subsection-${subsection.id}`,
+            name: subsection.title,
+            type: 'subsection' as const,
+            parentId: section.id,
+            isDisabled: disabledSections?.has?.(section.id) || false,
+            isActive: false, // Subsections don't have active state
+            isRequired: false,
+            isCustom: false,
+            origin: 'template',
+            icon: '📌',
+            children: [],
+            level: 2,
+          })) || [];
+          
+          // Handle subsections with expand/collapse functionality
+          let finalSubsectionChildren = subsectionChildren;
+          const isSubsectionsExpanded = expandedSubsections[section.id] ?? false;
+          
+          if (subsectionChildren.length > 4) {
+            // Show only first 4 unless expanded
+            finalSubsectionChildren = isSubsectionsExpanded 
+              ? subsectionChildren 
+              : subsectionChildren.slice(0, 4);
+            
+            // Add "Show more" or "Show less" indicator as a special node
+            const toggleNode = {
+              id: `${section.id}-toggle`,
+              name: isSubsectionsExpanded 
+                ? `(${t('editor.ui.showLess' as any) || 'Show less'})` 
+                : `+${subsectionChildren.length - 4} ${t('editor.ui.more' as any) || 'more'}`,
+              type: 'toggle-subsections' as const,
+              parentId: section.id,
+              isDisabled: false,
+              isActive: false,
+              isRequired: false,
+              isCustom: false,
+              origin: 'template',
+              icon: isSubsectionsExpanded ? '▴' : '▾',
+              children: [],
+              level: 2,
+            };
+            finalSubsectionChildren = [...finalSubsectionChildren, toggleNode];
+          }
+          
+          return {
+            id: section.id,
+            name: getSectionTitle(section.id, section.title || section.name || 'Untitled Section', t),
+            type: 'section',
+            parentId: 'core-product',
+            isDisabled: disabledSections?.has?.(section.id) || false,
+            isActive: section.id === activeSectionId,
+            isRequired: section.required,
+            isCustom: section.origin === 'custom',
+            origin: section.origin || 'template',
+            icon: section.id === 'metadata' ? '📕' : 
+                  section.id === 'ancillary' ? '📑' : 
+                  section.id === 'references' ? '📚' : 
+                  section.id === 'tables_data' ? '📊' : 
+                  section.id === 'figures_images' ? '🖼️' : 
+                  section.id === 'appendices' ? '📎' : '🧾',
+            children: finalSubsectionChildren,
+            level: 1,
+          };
+        });
       }
       
-      // Add section add button as last child if document is expanded
+      // Add section add button as first child if document is expanded
       if (documentNode.isExpanded && !expandedSectionId && !isEditingSection) {
         documentNode.children = [
-          ...(documentNode.children || []),
           {
             id: 'add-section-button-core',
-            name: t('editor.desktop.sections.addButton' as any) || 'Add Section',
+            name: t('editor.desktop.program.addSection' as any) || 'Add Section',
             type: 'add-section',
             icon: '+',
             parentId: 'core-product',
             children: [],
             level: 1,
             isSpecial: true,
-          }
+          },
+          ...(documentNode.children || [])
         ];
       }
       
@@ -169,28 +218,104 @@ export default function TreeNavigator() {
         isExpanded: expandedNodes.has(doc.id),
       };
       
-      // Add section add button as last child if document is expanded
+      // Add section add button as first child if document is expanded
       if (documentNode.isExpanded && !expandedSectionId && !isEditingSection) {
         documentNode.children = [
-          ...(documentNode.children || []),
           {
             id: `add-section-button-${doc.id}`,
-            name: t('editor.desktop.sections.addButton' as any) || 'Add Section',
+            name: t('editor.desktop.program.addSection' as any) || 'Add Section',
             type: 'add-section',
             icon: '+',
             parentId: doc.id,
             children: [],
             level: 1,
             isSpecial: true,
-          }
+          },
+          ...(documentNode.children || [])
         ];
+      }
+      
+      // Add sections to document if they exist
+      if (sections && sections.length > 0) {
+        // Filter sections that belong to this document
+        const docSections = sections.filter((section: any) => section.documentId === doc.id);
+        
+        docSections.forEach((section: any) => {
+          // Create subsection children if they exist
+          const subsectionChildren = section.rawSubsections?.map((subsection: any) => ({
+            id: `${section.id}-subsection-${subsection.id}`,
+            name: subsection.title,
+            type: 'subsection' as const,
+            parentId: section.id,
+            isDisabled: disabledSections?.has?.(section.id) || false,
+            isActive: false, // Subsections don't have active state
+            isRequired: false,
+            isCustom: false,
+            origin: 'template',
+            icon: '📌',
+            children: [],
+            level: 2,
+          })) || [];
+          
+          // Handle subsections with expand/collapse functionality
+          let finalSubsectionChildren = subsectionChildren;
+          const isSubsectionsExpanded = expandedSubsections[section.id] ?? false;
+          
+          if (subsectionChildren.length > 4) {
+            // Show only first 4 unless expanded
+            finalSubsectionChildren = isSubsectionsExpanded 
+              ? subsectionChildren 
+              : subsectionChildren.slice(0, 4);
+            
+            // Add "Show more" or "Show less" indicator as a special node
+            const toggleNode = {
+              id: `${section.id}-toggle`,
+              name: isSubsectionsExpanded 
+                ? `(${t('editor.ui.showLess' as any) || 'Show less'})` 
+                : `+${subsectionChildren.length - 4} ${t('editor.ui.more' as any) || 'more'}`,
+              type: 'toggle-subsections' as const,
+              parentId: section.id,
+              isDisabled: false,
+              isActive: false,
+              isRequired: false,
+              isCustom: false,
+              origin: 'template',
+              icon: isSubsectionsExpanded ? '▴' : '▾',
+              children: [],
+              level: 2,
+            };
+            finalSubsectionChildren = [...finalSubsectionChildren, toggleNode];
+          }
+          
+          const sectionNode: TreeNode = {
+            id: section.id,
+            name: getSectionTitle(section.id, section.title || section.name || 'Untitled Section', t),
+            type: 'section' as const,
+            parentId: doc.id,
+            isDisabled: disabledSections?.has?.(section.id) || false,
+            isActive: section.id === activeSectionId,
+            isRequired: section.required,
+            isCustom: section.origin === 'custom',
+            origin: section.origin || 'template',
+            icon: section.id === 'metadata' ? '📕' : 
+                  section.id === 'ancillary' ? '📑' : 
+                  section.id === 'references' ? '📚' : 
+                  section.id === 'tables_data' ? '📊' : 
+                  section.id === 'figures_images' ? '🖼️' : 
+                  section.id === 'appendices' ? '📎' : '🧾',
+            children: finalSubsectionChildren,
+            level: 1,
+          };
+          
+          documentNode.children = [...(documentNode.children || []), sectionNode];
+        });
       }
       
       treeNodes.push(documentNode);
     });
     
     return treeNodes;
-  }, [sections, disabledSections, activeSectionId, documents, disabledDocuments, clickedDocumentId, selectedProductMeta, expandedDocumentId, t, expandedNodes, expandedSectionId, isEditingSection]);
+  }, [sections, disabledSections, activeSectionId, documents, disabledDocuments, clickedDocumentId, selectedProductMeta, expandedDocumentId, t, expandedNodes, expandedSectionId, isEditingSection, expandedSubsections]);
 
   // Render tree node with proper indentation and tree characters
   const renderTreeNode = (node: TreeNode, level: number = 0) => {
@@ -214,33 +339,26 @@ export default function TreeNavigator() {
     if (node.isSpecial) {
       if (node.type === 'add-section') {
         return (
-          <div key={node.id}>
-            <div
-              className="relative w-full px-3 py-1 transition-all flex items-center gap-2"
+          <div key={node.id} className="my-1.5">
+            <button
+              type="button"
+              onClick={safeSidebarActions.toggleAddSection}
+              className={`relative w-full px-4 py-1 rounded transition-colors text-xs font-medium flex items-center justify-start gap-1.5 ${
+                showAddSection 
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              }`}
               style={{ 
                 height: '36px',
-                paddingLeft: `${12 + (level * 20)}px`
+                paddingLeft: '32px'
               }}
             >
-              <span className="text-white/70 mr-1" style={{ width: '16px', textAlign: 'center', fontFamily: 'monospace' }}>
-                └─
-              </span>
-              
-              <button
-                type="button"
-                onClick={safeSidebarActions.toggleAddSection}
-                className={`flex-1 py-1.5 rounded transition-colors text-xs font-medium flex items-center justify-center gap-1 ${
-                  showAddSection 
-                    ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
-                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                }`}
-              >
-                <span>+</span>
-                <span>{node.name}</span>
-              </button>
-            </div>
+              <span className="text-white mr-0.5">+</span>
+              <span>📄</span>
+              <span>{t('editor.desktop.program.addSection' as any) || 'Add Section'}</span>
+            </button>
             {showAddSection && (
-              <div className="px-3 py-1" style={{ paddingLeft: `${12 + ((level + 1) * 20)}px` }}>
+              <div className="px-3 py-0" style={{ paddingLeft: '12px' }}>
                 <AddSectionForm
                   newSectionTitle={newSectionTitle}
                   setNewSectionTitle={setNewSectionTitle}
@@ -275,6 +393,13 @@ export default function TreeNavigator() {
               safeSidebarActions.setActiveSectionId(node.id, 'sidebar');
             } else if (node.type === 'document' && !node.isDisabled) {
               safeDocumentsBarActions.setClickedDocumentId(node.id);
+            } else if (node.type === 'toggle-subsections') {
+              // Toggle subsections visibility
+              setExpandedSubsections(prev => ({
+                ...prev,
+                [node.parentId!]: !(prev[node.parentId!] ?? false)
+              }));
+              return; // Don't toggle the node itself
             }
             
             if (hasChildren) {
@@ -355,17 +480,17 @@ export default function TreeNavigator() {
       <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2" style={{ scrollbarWidth: 'thin' }}>
         <div className="px-3">
           {/* Persistent Add Document Button - Original Style */}
-          <div className="mb-3">
+          <div className="mb-2 mt-2">
             <button
               type="button"
               onClick={safeDocumentsBarActions.toggleAddDocument}
-              className={`relative w-full px-3 py-2 rounded transition-colors text-sm font-medium flex items-center justify-center gap-2 ${
+              className={`relative w-full px-4 py-2 rounded transition-colors text-sm font-medium flex items-center justify-start gap-2 ${
                 showAddDocument 
                   ? 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-400' 
                   : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
               }`}
             >
-              <span>+</span>
+              <span className="text-white mr-1.5">+</span>
               <span>🧾</span>
               <span>{t('editor.desktop.documents.addButton' as any) || 'Add Document'}</span>
             </button>

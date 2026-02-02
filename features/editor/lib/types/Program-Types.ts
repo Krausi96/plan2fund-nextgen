@@ -164,6 +164,8 @@ export interface DocumentStructure {
       confidence: number;
       payload?: any;
     };
+    // Template-specific properties
+    rawSubsections?: Array<{ id: string; title: string; rawText: string }>;
   }>;
   
   // Requirements

@@ -243,7 +243,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
       isAccessible: setupWizard.currentStep >= 2, // Accessible after step 1 completion
       onClick: handleProgramClick,
       renderContent: () => !isConfiguratorOpen && (
-        <div className="text-white font-medium truncate flex items-center gap-1 max-w-[140px]">
+        <div className="text-white font-bold truncate flex items-center justify-center gap-1 max-w-[140px]">
           <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}>
             {programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
           </span>
@@ -258,7 +258,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
       isAccessible: setupWizard.currentStep >= 3 && !!programSummary, // Accessible after step 2 completion and program selection
       onClick: handlePlanClick,
       renderContent: () => !isConfiguratorOpen && (
-        <div className="text-white font-medium truncate flex items-center gap-1 max-w-[140px]">
+        <div className="text-white font-bold truncate flex items-center justify-center gap-1 max-w-[140px]">
           <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}>
             {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}
           </span>

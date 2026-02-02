@@ -68,7 +68,7 @@ export function instantiateFromBlueprint(
   existingTitlePage?: any
 ): PlanDocument {
   // Convert blueprint sections to plan sections
-  const planSections: PlanSection[] = blueprint.sections.map((section) => ({
+  const planSections: PlanSection[] = blueprint.sections.map((section: any) => ({
     key: section.id,
     id: section.id,
     title: section.title,
@@ -81,6 +81,12 @@ export function instantiateFromBlueprint(
       blueprintProgramCritical: section.programCritical,
       blueprintAiPrompt: section.aiPrompt,
       blueprintChecklist: section.checklist,
+      // Preserve subsections if they exist in the template
+      subchapters: section.rawSubsections?.map((subsection: any, index: number) => ({
+        id: subsection.id,
+        title: subsection.title,
+        numberLabel: `${index + 1}`,
+      })) || [],
     },
     status: 'draft',
   }));

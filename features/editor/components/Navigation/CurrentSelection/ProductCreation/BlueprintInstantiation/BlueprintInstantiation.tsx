@@ -62,8 +62,26 @@ export default function BlueprintInstantiationStep({
   
   // UI state for editing
   const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});
+  const [expandedSubsections, setExpandedSubsections] = useState<Record<string, boolean>>({});
+  const [expandedSubsectionDetails, setExpandedSubsectionDetails] = useState<Record<string, boolean>>({});
   const [newDocumentName, setNewDocumentName] = useState('');
   const [newSectionTitle, setNewSectionTitle] = useState('');
+  
+  // Initialize subsection expansion state to collapsed by default
+  React.useEffect(() => {
+    if (documentStructure?.sections) {
+      const initialExpandedState: Record<string, boolean> = {};
+      const initialDetailState: Record<string, boolean> = {};
+      documentStructure.sections.forEach(section => {
+        if (section.rawSubsections && section.rawSubsections.length > 0) {
+          initialExpandedState[section.id] = false; // Collapsed by default
+          initialDetailState[section.id] = false; // Show summary by default
+        }
+      });
+      setExpandedSubsections(initialExpandedState);
+      setExpandedSubsectionDetails(initialDetailState);
+    }
+  }, [documentStructure]);
 
   // Get blueprint source information
   const getBlueprintSource = useCallback(() => {
@@ -251,32 +269,168 @@ export default function BlueprintInstantiationStep({
                     <div className="p-3 pt-0 border-t border-white/10">
                       <div className="space-y-2 ml-4">
                         {/* Required Sections */}
-                        {requiredSections.map((section) => (
-                          <div key={section.id} className="flex items-center gap-2 text-white/90 text-sm">
-                            <span className="text-red-400">
-                              {getSectionIcon(section.id)}
-                            </span>
-                            <span className="flex-1 truncate" title={section.title}>{section.title}</span>
-                            <span className="text-xs bg-red-500/20 text-red-300 px-2 py-0.5 rounded">{translations.requiredLabel || 'Required'}</span>
-                          </div>
-                        ))}
+                        {requiredSections.map((section) => {
+                          const isSubsectionsExpanded = expandedSubsections[section.id] ?? false;
+                          const showAllSubsections = expandedSubsectionDetails[section.id] ?? false;
+                          
+                          // Show only first 3 subsections in summary view
+                          const visibleSubsections = showAllSubsections 
+                            ? section.rawSubsections 
+                            : section.rawSubsections?.slice(0, 3) || [];
+                          
+                          const hasMoreSubsections = section.rawSubsections && section.rawSubsections.length > 3;
+                          
+                          return (
+                            <div key={section.id}>
+                              <div 
+                                className="flex items-center gap-2 text-white/90 text-sm cursor-pointer hover:bg-white/5 p-1 rounded"
+                                onClick={() => {
+                                  setExpandedSubsections(prev => ({
+                                    ...prev,
+                                    [section.id]: !isSubsectionsExpanded
+                                  }));
+                                }}
+                              >
+                                <span className="text-white/60 text-sm">
+                                  {isSubsectionsExpanded ? '▼' : '▶'}
+                                </span>
+                                <span className="text-red-400">
+                                  {getSectionIcon(section.id)}
+                                </span>
+                                <span className="flex-1 truncate" title={t(`editor.section.${section.id}` as any) || section.title}>{t(`editor.section.${section.id}` as any) || section.title}</span>
+                                <span className="text-xs bg-red-500/20 text-red-300 px-2 py-0.5 rounded">{translations.requiredLabel || 'Required'}</span>
+                              </div>
+                              {/* Display subsections if they exist */}
+                              {section.rawSubsections && section.rawSubsections.length > 0 && (
+                                <div className="ml-4 mt-1 space-y-1">
+                                  {isSubsectionsExpanded && (
+                                    <div className="space-y-1 mt-1 pl-2 border-l-2 border-white/20">
+                                      {visibleSubsections.map((subsection: any) => (
+                                        <div key={`${section.id}-${subsection.id}`} className="flex items-center gap-2 text-white/70 text-xs pl-2">
+                                          <span className="text-xs">📌</span>
+                                          <span className="truncate" title={t(`editor.subsection.${subsection.id}` as any) || subsection.title}>{t(`editor.subsection.${subsection.id}` as any) || subsection.title}</span>
+                                        </div>
+                                      ))}
+                                      {hasMoreSubsections && !showAllSubsections && (
+                                        <button
+                                          className="text-xs text-blue-400 hover:text-blue-300 pl-2"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setExpandedSubsectionDetails(prev => ({
+                                              ...prev,
+                                              [section.id]: true
+                                            }));
+                                          }}
+                                        >
+                                          + {section.rawSubsections.length - 3} {t('editor.ui.more' as any) || 'more'}
+                                        </button>
+                                      )}
+                                      {showAllSubsections && hasMoreSubsections && (
+                                        <button
+                                          className="text-xs text-blue-400 hover:text-blue-300 pl-2"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setExpandedSubsectionDetails(prev => ({
+                                              ...prev,
+                                              [section.id]: false
+                                            }));
+                                          }}
+                                        >
+                                          Show less...
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                         
                         {/* Optional Sections */}
-                        {optionalSections.map((section) => (
-                          <div key={section.id} className="flex items-center gap-2 text-white/90 text-sm">
-                            <input
-                              type="checkbox"
-                              checked={true} // Assuming optional sections are enabled by default
-                              onChange={() => handleToggleSection(section.id)}
-                              className="w-4 h-4 rounded text-blue-500 bg-slate-600 border-slate-500 focus:ring-blue-500 focus:ring-offset-0"
-                            />
-                            <span>
-                              {getSectionIcon(section.id)}
-                            </span>
-                            <span className="flex-1 truncate" title={section.title}>{section.title}</span>
-                            <button className="text-xs text-blue-400 hover:text-blue-300 underline">{translations.renameButton || 'Rename'}</button>
-                          </div>
-                        ))}
+                        {optionalSections.map((section) => {
+                          const isSubsectionsExpanded = expandedSubsections[section.id] ?? false;
+                          const showAllSubsections = expandedSubsectionDetails[section.id] ?? false;
+                          
+                          // Show only first 3 subsections in summary view
+                          const visibleSubsections = showAllSubsections 
+                            ? section.rawSubsections 
+                            : section.rawSubsections?.slice(0, 3) || [];
+                          
+                          const hasMoreSubsections = section.rawSubsections && section.rawSubsections.length > 3;
+                          
+                          return (
+                            <div key={section.id}>
+                              <div 
+                                className="flex items-center gap-2 text-white/90 text-sm cursor-pointer hover:bg-white/5 p-1 rounded"
+                                onClick={() => {
+                                  setExpandedSubsections(prev => ({
+                                    ...prev,
+                                    [section.id]: !isSubsectionsExpanded
+                                  }));
+                                }}
+                              >
+                                <span className="text-white/60 text-sm">
+                                  {isSubsectionsExpanded ? '▼' : '▶'}
+                                </span>
+                                <input
+                                  type="checkbox"
+                                  checked={true} // Assuming optional sections are enabled by default
+                                  onChange={() => handleToggleSection(section.id)}
+                                  className="w-4 h-4 rounded text-blue-500 bg-slate-600 border-slate-500 focus:ring-blue-500 focus:ring-offset-0"
+                                />
+                                <span>
+                                  {getSectionIcon(section.id)}
+                                </span>
+                                <span className="flex-1 truncate" title={t(`editor.section.${section.id}` as any) || section.title}>{t(`editor.section.${section.id}` as any) || section.title}</span>
+                                <button className="text-xs text-blue-400 hover:text-blue-300 underline">{translations.renameButton || 'Rename'}</button>
+                              </div>
+                              {/* Display subsections if they exist */}
+                              {section.rawSubsections && section.rawSubsections.length > 0 && (
+                                <div className="ml-4 mt-1 space-y-1">
+                                  {isSubsectionsExpanded && (
+                                    <div className="space-y-1 mt-1 pl-2 border-l-2 border-white/20">
+                                      {visibleSubsections.map((subsection: any) => (
+                                        <div key={`${section.id}-${subsection.id}`} className="flex items-center gap-2 text-white/70 text-xs pl-2">
+                                          <span className="text-xs">📌</span>
+                                          <span className="truncate" title={t(`editor.subsection.${subsection.id}` as any) || subsection.title}>{t(`editor.subsection.${subsection.id}` as any) || subsection.title}</span>
+                                        </div>
+                                      ))}
+                                      {hasMoreSubsections && !showAllSubsections && (
+                                        <button
+                                          className="text-xs text-blue-400 hover:text-blue-300 pl-2"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setExpandedSubsectionDetails(prev => ({
+                                              ...prev,
+                                              [section.id]: true
+                                            }));
+                                          }}
+                                        >
+                                          + {section.rawSubsections.length - 3} {t('editor.ui.more' as any) || 'more'}
+                                        </button>
+                                      )}
+                                      {showAllSubsections && hasMoreSubsections && (
+                                        <button
+                                          className="text-xs text-blue-400 hover:text-blue-300 pl-2"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setExpandedSubsectionDetails(prev => ({
+                                              ...prev,
+                                              [section.id]: false
+                                            }));
+                                          }}
+                                        >
+                                          Show less...
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

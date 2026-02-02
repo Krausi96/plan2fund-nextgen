@@ -375,7 +375,7 @@ export interface ConnectCopy {
 export type TreeNode = {
   id: string;
   name: string;
-  type: 'document' | 'section' | 'add-document' | 'add-section';
+  type: 'document' | 'section' | 'subsection' | 'add-document' | 'add-section' | 'show-more' | 'toggle-subsections';
   parentId?: string;
   children?: TreeNode[];
   isDisabled?: boolean;

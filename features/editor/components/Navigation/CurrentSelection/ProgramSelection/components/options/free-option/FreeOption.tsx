@@ -77,7 +77,9 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
           required: templateSection.required !== false,
           programCritical: false,
           aiPrompt: templateSection.aiPrompt || `Write detailed content for ${templateSection.title || templateSection.name}`,
-          checklist: templateSection.checklist || [`Address ${templateSection.title || templateSection.name} requirements`]
+          checklist: templateSection.checklist || [`Address ${templateSection.title || templateSection.name} requirements`],
+          // Include template-specific properties
+          rawSubsections: templateSection.rawSubsections
         })) || [],
         requirements: [],
         validationRules: [],

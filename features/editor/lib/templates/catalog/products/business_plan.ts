@@ -289,7 +289,7 @@ What payment terms do you set (payment deadlines, discounts, reminder fees, etc.
   },
   {
     id: 'performance_financial_planning',
-    title: 'Performance and financial planning',
+    title: 'Financial Planning',
     description: 'Financial planning including investment, cost, revenue, and capital requirements.',
     required: true,
     wordCountMin: 400,
@@ -355,107 +355,5 @@ What are the key milestones the funding will achieve?
 `
       }
     ]
-  },
-  {
-    id: 'financial_plan',
-    title: 'Financial Plan',
-    description: 'Provide a detailed budget and financing plan.',
-    required: true,
-    wordCountMin: 300,
-    wordCountMax: 800,
-    order: 7,
-    category: 'financial',
-    origin: 'template',
-    sectionIntro: `
-Summarize this section and its subsections professionally.
-`,
-    rawSubsections: [
-      {
-        id: "revenue_model_projection",
-        title: "Revenue Model & Projections",
-        rawText: `
-What is your revenue model?
-What are your projected revenues for the next 3-5 years?
-What are the key assumptions behind your projections?
-`
-      },
-      {
-        id: "funding_requirements_use",
-        title: "Funding Requirements & Use of Funds",
-        rawText: `
-How much funding do you require?
-How will you use the funds?
-What are the key milestones the funding will achieve?
-`
-      }
-    ]
-  },
-  {
-    id: 'team_qualifications',
-    title: 'Team & Qualifications',
-    description: 'Present the project team, their roles and qualifications.',
-    required: true,
-    wordCountMin: 200,
-    wordCountMax: 600,
-    order: 8,
-    category: 'team',
-    origin: 'template',
-    sectionIntro: `
-Summarize this section and its subsections professionally.
-`,
-    rawSubsections: [
-      {
-        id: "team_structure_key_roles",
-        title: "Team Structure & Key Roles",
-        rawText: `
-Who are the key members of your team?
-What are their roles and responsibilities?
-What is their background and experience?
-`
-      },
-      {
-        id: "advisors_partnerships",
-        title: "Advisors & Strategic Partnerships",
-        rawText: `
-Who are your advisors and board members?
-What strategic partnerships do you have?
-How do these relationships strengthen your business?
-`
-      }
-    ]
-  },
-  {
-    id: 'risk_assessment',
-    title: 'Risk Assessment',
-    description: 'Identify potential risks and describe mitigation strategies.',
-    required: true,
-    wordCountMin: 200,
-    wordCountMax: 600,
-    order: 9,
-    category: 'risk',
-    origin: 'template',
-    sectionIntro: `
-Summarize this section and its subsections professionally.
-`,
-    rawSubsections: [
-      {
-        id: "market_regulatory_risks",
-        title: "Market & Regulatory Risks",
-        rawText: `
-What are the key market risks?
-What regulatory challenges do you face?
-How will you mitigate these risks?
-`
-      },
-      {
-        id: "operational_financial_risks",
-        title: "Operational & Financial Risks",
-        rawText: `
-What are the operational risks?
-What are the financial risks?
-What contingency plans do you have?
-`
-      }
-    ]
-  }
+  }  
 ];
