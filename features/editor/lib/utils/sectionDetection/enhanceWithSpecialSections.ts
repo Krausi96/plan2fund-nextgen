@@ -30,7 +30,9 @@ function convertSectionTemplate(template: any): any {
     required: template.required !== false,
     programCritical: false,
     aiPrompt: template.aiPrompt || `Write detailed content for ${template.title || template.name}`,
-    checklist: template.checklist || [`Address ${template.title || template.name} requirements`]
+    checklist: template.checklist || [`Address ${template.title || template.name} requirements`],
+    // Preserve subsections if they exist in the template
+    ...(template.rawSubsections && { rawSubsections: template.rawSubsections })
   };
 }
 

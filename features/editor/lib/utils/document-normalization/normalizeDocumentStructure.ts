@@ -141,7 +141,9 @@ export function mergeUploadedContentWithSpecialSections(
         required: index < 3,
         programCritical: false,
         ...(section.content && { content: section.content }),
-        ...(section.type && { sectionType: section.type })
+        ...(section.type && { sectionType: section.type }),
+        // Preserve subsections if they exist in the section
+        ...((section as any).rawSubsections && { rawSubsections: (section as any).rawSubsections })
       })),
     requirements: [],
     validationRules: [],

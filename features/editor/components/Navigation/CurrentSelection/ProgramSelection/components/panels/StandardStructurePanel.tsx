@@ -153,8 +153,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
                           <div key={idx} className="text-green-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
                             <span>{icon}</span>
                             <span className="truncate flex-1">
-                              {t(`editor.section.${sectionId}` as any) ||
-                               sectionTitle}
+                              {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
                             </span>
                             {section.required && (
                               <span className="text-red-400 font-bold flex-shrink-0">*</span>
@@ -205,8 +204,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
                                   {getSectionIcon(section.id)}
                                 </span>
                                 <span className="truncate flex-1">
-                                  {t(`editor.section.${section.id}` as any) ||
-                                   section.title || section.name}
+                                  {t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : (section.title || section.name)}
                                 </span>
                                 {section.required && (
                                   <span className="text-red-400 font-bold flex-shrink-0">*</span>

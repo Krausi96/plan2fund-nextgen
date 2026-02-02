@@ -166,22 +166,140 @@ export function FlowSimulator() {
       const extractedContent = {
         title: 'Sample Business Plan',
         sections: [
-          { title: 'Title Page', content: 'Business Plan Title Page with company details...', type: 'metadata' },
-          { title: 'Table of Contents', content: 'Table of contents with page numbers...', type: 'ancillary' },
-          { title: 'Executive Summary', content: 'This is the executive summary...', type: 'executive_summary' },
-          { title: 'Company Overview', content: 'About our company...', type: 'company_description' },
-          { title: 'Market Analysis', content: 'Market trends and analysis...', type: 'market_analysis' },
-          { title: 'Financial Plan', content: 'Financial projections...', type: 'financial_plan' },
-          { title: 'Team Structure', content: 'Our team members...', type: 'team_qualifications' },
-          { title: 'Risk Assessment', content: 'Assessment of potential risks...', type: 'risk_assessment' },
-          { title: 'Go-to-Market Strategy', content: 'Market entry strategy...', type: 'go_to_market_strategy' },
-          { title: 'Unit Economics', content: 'Economic model analysis...', type: 'unit_economics' },
-          { title: 'Milestones', content: 'Project milestones and next steps...', type: 'milestones_next_steps' },
-          { title: 'Business Model Canvas', content: 'Business model visualization...', type: 'business_model_canvas' },
-          { title: 'Tables and Data', content: 'Detailed financial tables and data...', type: 'tables_data' },
-          { title: 'Figures and Images', content: 'Charts and graphs...', type: 'figures_images' },
-          { title: 'References', content: 'Sources and references used...', type: 'references' },
-          { title: 'Appendices', content: 'Additional supporting materials...', type: 'appendices' }
+          { 
+            title: 'Title Page', 
+            content: 'Business Plan Title Page with company details...', 
+            type: 'metadata' 
+          },
+          { 
+            title: 'Table of Contents', 
+            content: 'Table of contents with page numbers...', 
+            type: 'ancillary' 
+          },
+          { 
+            title: 'Executive Summary', 
+            content: 'This is the executive summary...', 
+            type: 'executive_summary',
+            rawSubsections: [
+              { id: 'exec_sum_intro', title: 'Introduction', content: 'Brief introduction to the summary' },
+              { id: 'exec_sum_goals', title: 'Goals and Objectives', content: 'Key goals and objectives' },
+              { id: 'exec_sum_financial', title: 'Financial Highlights', content: 'Key financial highlights' },
+              { id: 'exec_sum_conclusion', title: 'Conclusion', content: 'Concluding remarks' }
+            ]
+          },
+          { 
+            title: 'Company Overview', 
+            content: 'About our company...', 
+            type: 'company_description',
+            rawSubsections: [
+              { id: 'comp_overview_history', title: 'Company History', content: 'History of the company' },
+              { id: 'comp_overview_mission', title: 'Mission Statement', content: 'Company mission' },
+              { id: 'comp_overview_vision', title: 'Vision Statement', content: 'Company vision' }
+            ]
+          },
+          { 
+            title: 'Market Analysis', 
+            content: 'Market trends and analysis...', 
+            type: 'market_analysis',
+            rawSubsections: [
+              { id: 'market_size', title: 'Market Size', content: 'Total addressable market' },
+              { id: 'market_growth', title: 'Growth Trends', content: 'Growth projections' },
+              { id: 'market_competition', title: 'Competitive Landscape', content: 'Analysis of competitors' },
+              { id: 'market_opportunities', title: 'Opportunities', content: 'Market opportunities' }
+            ]
+          },
+          { 
+            title: 'Financial Plan', 
+            content: 'Financial projections...', 
+            type: 'financial_plan',
+            rawSubsections: [
+              { id: 'fin_proj_revenue', title: 'Revenue Projections', content: 'Projected revenue streams' },
+              { id: 'fin_proj_costs', title: 'Cost Structure', content: 'Projected costs' },
+              { id: 'fin_proj_cashflow', title: 'Cash Flow Analysis', content: 'Cash flow projections' },
+              { id: 'fin_proj_roi', title: 'ROI Analysis', content: 'Return on investment analysis' }
+            ]
+          },
+          { 
+            title: 'Team Structure', 
+            content: 'Our team members...', 
+            type: 'team_qualifications',
+            rawSubsections: [
+              { id: 'team_founders', title: 'Founder Profiles', content: 'Profiles of founders' },
+              { id: 'team_advisors', title: 'Advisory Board', content: 'Advisor profiles' },
+              { id: 'team_structure', title: 'Organizational Structure', content: 'Team organization' }
+            ]
+          },
+          { 
+            title: 'Risk Assessment', 
+            content: 'Assessment of potential risks...', 
+            type: 'risk_assessment',
+            rawSubsections: [
+              { id: 'risk_market', title: 'Market Risks', content: 'Risks related to market' },
+              { id: 'risk_financial', title: 'Financial Risks', content: 'Financial risks' },
+              { id: 'risk_operational', title: 'Operational Risks', content: 'Operational risks' }
+            ]
+          },
+          { 
+            title: 'Go-to-Market Strategy', 
+            content: 'Market entry strategy...', 
+            type: 'go_to_market_strategy',
+            rawSubsections: [
+              { id: 'gtm_channels', title: 'Distribution Channels', content: 'Channel strategy' },
+              { id: 'gtm_marketing', title: 'Marketing Strategy', content: 'Marketing approach' },
+              { id: 'gtm_sales', title: 'Sales Strategy', content: 'Sales approach' }
+            ]
+          },
+          { 
+            title: 'Unit Economics', 
+            content: 'Economic model analysis...', 
+            type: 'unit_economics',
+            rawSubsections: [
+              { id: 'unit_rev_model', title: 'Revenue Model', content: 'Revenue model explanation' },
+              { id: 'unit_cost_struct', title: 'Cost Structure', content: 'Cost structure details' },
+              { id: 'unit_profit', title: 'Profitability Analysis', content: 'Profitability calculations' }
+            ]
+          },
+          { 
+            title: 'Milestones', 
+            content: 'Project milestones and next steps...', 
+            type: 'milestones_next_steps',
+            rawSubsections: [
+              { id: 'milestone_q1', title: 'Q1 Goals', content: 'First quarter goals' },
+              { id: 'milestone_q2', title: 'Q2 Goals', content: 'Second quarter goals' },
+              { id: 'milestone_q3', title: 'Q3 Goals', content: 'Third quarter goals' },
+              { id: 'milestone_q4', title: 'Q4 Goals', content: 'Fourth quarter goals' }
+            ]
+          },
+          { 
+            title: 'Business Model Canvas', 
+            content: 'Business model visualization...', 
+            type: 'business_model_canvas',
+            rawSubsections: [
+              { id: 'canvas_cust_seg', title: 'Customer Segments', content: 'Customer segment analysis' },
+              { id: 'canvas_val_prop', title: 'Value Propositions', content: 'Value proposition details' },
+              { id: 'canvas_key_act', title: 'Key Activities', content: 'Key business activities' }
+            ]
+          },
+          { 
+            title: 'Tables and Data', 
+            content: 'Detailed financial tables and data...', 
+            type: 'tables_data' 
+          },
+          { 
+            title: 'Figures and Images', 
+            content: 'Charts and graphs...', 
+            type: 'figures_images' 
+          },
+          { 
+            title: 'References', 
+            content: 'Sources and references used...', 
+            type: 'references' 
+          },
+          { 
+            title: 'Appendices', 
+            content: 'Additional supporting materials...', 
+            type: 'appendices' 
+          }
         ],
         hasTitlePage: true,
         hasTOC: true,
@@ -243,33 +361,33 @@ export function FlowSimulator() {
       const extractedContent = {
         title: '   ', // Whitespace-only title (effectively empty)
         sections: [
-          { title: 'Section 1', content: 'Just some random content...', type: 'unknown_type' },
-          { title: 'Section 2', content: '', type: '' }, // Empty content
-          { title: '', content: 'Content with no title', type: 'random' }, // No title
-          { title: '  ', content: 'Content with whitespace-only title', type: 'random' }, // Whitespace-only title
+          { title: 'Section 1', content: 'Just some random content...', type: 'unknown_type', rawSubsections: [] },
+          { title: 'Section 2', content: '', type: '', rawSubsections: [] }, // Empty content
+          { title: '', content: 'Content with no title', type: 'random', rawSubsections: [] }, // No title
+          { title: '  ', content: 'Content with whitespace-only title', type: 'random', rawSubsections: [] }, // Whitespace-only title
           // Duplicate special sections
-          { title: 'References', content: 'Some references', type: 'references' },
-          { title: 'References', content: 'More references content', type: 'references' }, // Duplicate
-          { title: 'Appendices', content: 'Some appendices', type: 'appendices' },
-          { title: 'Appendices', content: 'More appendices content', type: 'appendices' }, // Duplicate
-          { title: 'Tables and Data', content: '', type: 'tables_data' }, // Empty content for tables
-          { title: 'Tables and Data', content: 'More table content', type: 'tables_data' }, // Duplicate
-          { title: 'Figures and Images', content: '   ', type: 'figures_images' }, // Whitespace-only content
-          { title: 'Figures and Images', content: 'More figures content', type: 'figures_images' }, // Duplicate
+          { title: 'References', content: 'Some references', type: 'references', rawSubsections: [] },
+          { title: 'References', content: 'More references content', type: 'references', rawSubsections: [] }, // Duplicate
+          { title: 'Appendices', content: 'Some appendices', type: 'appendices', rawSubsections: [] },
+          { title: 'Appendices', content: 'More appendices content', type: 'appendices', rawSubsections: [] }, // Duplicate
+          { title: 'Tables and Data', content: '', type: 'tables_data', rawSubsections: [] }, // Empty content for tables
+          { title: 'Tables and Data', content: 'More table content', type: 'tables_data', rawSubsections: [] }, // Duplicate
+          { title: 'Figures and Images', content: '   ', type: 'figures_images', rawSubsections: [] }, // Whitespace-only content
+          { title: 'Figures and Images', content: 'More figures content', type: 'figures_images', rawSubsections: [] }, // Duplicate
           // More bad examples
-          { title: 'Another Empty Section', content: '', type: 'unknown' }, // Another empty section
-          { title: 'Yet Another Section', content: 'Some content', type: 'undefined_type' }, // Undefined type
-          { title: 'Marketing', content: 'Marketing strategy', type: 'marketing' }, // Custom section name
-          { title: 'Risk Analysis', content: 'Risk assessment', type: 'risk' }, // Custom section name
-          { title: 'Finance', content: 'Financial details', type: 'finance' }, // Custom section name
-          { title: 'Meilensteine', content: 'German milestones', type: 'milestones' }, // Non-English section name
-          { title: 'Executive Summary', content: 'Executive summary content', type: 'executive_summary' },
-          { title: 'Company Overview', content: 'Company overview content', type: 'company_description' },
-          { title: 'Market Analysis', content: 'Market analysis content', type: 'market_analysis' },
-          { title: 'Financial Plan', content: 'Financial plan content', type: 'financial_plan' },
+          { title: 'Another Empty Section', content: '', type: 'unknown', rawSubsections: [] }, // Another empty section
+          { title: 'Yet Another Section', content: 'Some content', type: 'undefined_type', rawSubsections: [] }, // Undefined type
+          { title: 'Marketing', content: 'Marketing strategy', type: 'marketing', rawSubsections: [] }, // Custom section name
+          { title: 'Risk Analysis', content: 'Risk assessment', type: 'risk', rawSubsections: [] }, // Custom section name
+          { title: 'Finance', content: 'Financial details', type: 'finance', rawSubsections: [] }, // Custom section name
+          { title: 'Meilensteine', content: 'German milestones', type: 'milestones', rawSubsections: [] }, // Non-English section name
+          { title: 'Executive Summary', content: 'Executive summary content', type: 'executive_summary', rawSubsections: [] },
+          { title: 'Company Overview', content: 'Company overview content', type: 'company_description', rawSubsections: [] },
+          { title: 'Market Analysis', content: 'Market analysis content', type: 'market_analysis', rawSubsections: [] },
+          { title: 'Financial Plan', content: 'Financial plan content', type: 'financial_plan', rawSubsections: [] },
           // More duplicates
-          { title: 'Executive Summary', content: 'Duplicate executive summary', type: 'executive_summary' }, // Duplicate
-          { title: 'Company Overview', content: 'Duplicate company overview', type: 'company_description' }, // Duplicate
+          { title: 'Executive Summary', content: 'Duplicate executive summary', type: 'executive_summary', rawSubsections: [] }, // Duplicate
+          { title: 'Company Overview', content: 'Duplicate company overview', type: 'company_description', rawSubsections: [] }, // Duplicate
         ],
         hasTitlePage: false, // Missing title page
         hasTOC: false, // Missing table of contents

@@ -286,8 +286,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                             <div key={sectionIndex} className="text-white/80 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
                               <span>{icon}</span>
                               <span className="truncate">
-                                {t(`editor.section.${sectionId}` as any) ||
-                                 sectionTitle}
+                                {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
                               </span>
                               {section.required !== undefined && section.required && (
                                 <span className="text-red-400 font-bold">*</span>

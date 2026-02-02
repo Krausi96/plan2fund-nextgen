@@ -274,11 +274,12 @@ export default function BlueprintInstantiationStep({
                           const showAllSubsections = expandedSubsectionDetails[section.id] ?? false;
                           
                           // Show only first 3 subsections in summary view
+                          const subsections = section.rawSubsections || section.fields?.subchapters || [];
                           const visibleSubsections = showAllSubsections 
-                            ? section.rawSubsections 
-                            : section.rawSubsections?.slice(0, 3) || [];
+                            ? subsections 
+                            : subsections?.slice(0, 3) || [];
                           
-                          const hasMoreSubsections = section.rawSubsections && section.rawSubsections.length > 3;
+                          const hasMoreSubsections = subsections && subsections.length > 3;
                           
                           return (
                             <div key={section.id}>
@@ -297,7 +298,7 @@ export default function BlueprintInstantiationStep({
                                 <span className="text-red-400">
                                   {getSectionIcon(section.id)}
                                 </span>
-                                <span className="flex-1 truncate" title={t(`editor.section.${section.id}` as any) || section.title}>{t(`editor.section.${section.id}` as any) || section.title}</span>
+                                <span className="flex-1 truncate" title={t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : section.title}>{t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : section.title}</span>
                                 <span className="text-xs bg-red-500/20 text-red-300 px-2 py-0.5 rounded">{translations.requiredLabel || 'Required'}</span>
                               </div>
                               {/* Display subsections if they exist */}
@@ -308,7 +309,7 @@ export default function BlueprintInstantiationStep({
                                       {visibleSubsections.map((subsection: any) => (
                                         <div key={`${section.id}-${subsection.id}`} className="flex items-center gap-2 text-white/70 text-xs pl-2">
                                           <span className="text-xs">📌</span>
-                                          <span className="truncate" title={t(`editor.subsection.${subsection.id}` as any) || subsection.title}>{t(`editor.subsection.${subsection.id}` as any) || subsection.title}</span>
+                                          <span className="truncate" title={t(`editor.subsection.${subsection.id}` as any) !== `editor.subsection.${subsection.id}` ? t(`editor.subsection.${subsection.id}` as any) : subsection.title}>{t(`editor.subsection.${subsection.id}` as any) !== `editor.subsection.${subsection.id}` ? t(`editor.subsection.${subsection.id}` as any) : subsection.title}</span>
                                         </div>
                                       ))}
                                       {hasMoreSubsections && !showAllSubsections && (
@@ -353,11 +354,12 @@ export default function BlueprintInstantiationStep({
                           const showAllSubsections = expandedSubsectionDetails[section.id] ?? false;
                           
                           // Show only first 3 subsections in summary view
+                          const subsections = section.rawSubsections || section.fields?.subchapters || [];
                           const visibleSubsections = showAllSubsections 
-                            ? section.rawSubsections 
-                            : section.rawSubsections?.slice(0, 3) || [];
+                            ? subsections 
+                            : subsections?.slice(0, 3) || [];
                           
-                          const hasMoreSubsections = section.rawSubsections && section.rawSubsections.length > 3;
+                          const hasMoreSubsections = subsections && subsections.length > 3;
                           
                           return (
                             <div key={section.id}>
@@ -382,18 +384,18 @@ export default function BlueprintInstantiationStep({
                                 <span>
                                   {getSectionIcon(section.id)}
                                 </span>
-                                <span className="flex-1 truncate" title={t(`editor.section.${section.id}` as any) || section.title}>{t(`editor.section.${section.id}` as any) || section.title}</span>
+                                <span className="flex-1 truncate" title={t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : section.title}>{t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : section.title}</span>
                                 <button className="text-xs text-blue-400 hover:text-blue-300 underline">{translations.renameButton || 'Rename'}</button>
                               </div>
                               {/* Display subsections if they exist */}
-                              {section.rawSubsections && section.rawSubsections.length > 0 && (
+                              {subsections && subsections.length > 0 && (
                                 <div className="ml-4 mt-1 space-y-1">
                                   {isSubsectionsExpanded && (
                                     <div className="space-y-1 mt-1 pl-2 border-l-2 border-white/20">
                                       {visibleSubsections.map((subsection: any) => (
                                         <div key={`${section.id}-${subsection.id}`} className="flex items-center gap-2 text-white/70 text-xs pl-2">
                                           <span className="text-xs">📌</span>
-                                          <span className="truncate" title={t(`editor.subsection.${subsection.id}` as any) || subsection.title}>{t(`editor.subsection.${subsection.id}` as any) || subsection.title}</span>
+                                          <span className="truncate" title={t(`editor.subsection.${subsection.id}` as any) !== `editor.subsection.${subsection.id}` ? t(`editor.subsection.${subsection.id}` as any) : subsection.title}>{t(`editor.subsection.${subsection.id}` as any) !== `editor.subsection.${subsection.id}` ? t(`editor.subsection.${subsection.id}` as any) : subsection.title}</span>
                                         </div>
                                       ))}
                                       {hasMoreSubsections && !showAllSubsections && (
@@ -407,7 +409,7 @@ export default function BlueprintInstantiationStep({
                                             }));
                                           }}
                                         >
-                                          + {section.rawSubsections.length - 3} {t('editor.ui.more' as any) || 'more'}
+                                          + {subsections.length - 3} {t('editor.ui.more' as any) || 'more'}
                                         </button>
                                       )}
                                       {showAllSubsections && hasMoreSubsections && (

@@ -114,9 +114,10 @@ export default function TreeNavigator() {
       if (sections && sections.length > 0) {
         documentNode.children = sections.map((section: any) => {
           // Create subsection children if they exist
-          const subsectionChildren = section.rawSubsections?.map((subsection: any) => ({
+          const subsections = section.rawSubsections || section.fields?.subchapters || [];
+          const subsectionChildren = subsections?.map((subsection: any) => ({
             id: `${section.id}-subsection-${subsection.id}`,
-            name: subsection.title,
+            name: t(`editor.subsection.${subsection.id}` as any) !== `editor.subsection.${subsection.id}` ? t(`editor.subsection.${subsection.id}` as any) : subsection.title,
             type: 'subsection' as const,
             parentId: section.id,
             isDisabled: disabledSections?.has?.(section.id) || false,
@@ -242,9 +243,10 @@ export default function TreeNavigator() {
         
         docSections.forEach((section: any) => {
           // Create subsection children if they exist
-          const subsectionChildren = section.rawSubsections?.map((subsection: any) => ({
+          const subsections = section.rawSubsections || section.fields?.subchapters || [];
+          const subsectionChildren = subsections?.map((subsection: any) => ({
             id: `${section.id}-subsection-${subsection.id}`,
-            name: subsection.title,
+            name: t(`editor.subsection.${subsection.id}` as any) !== `editor.subsection.${subsection.id}` ? t(`editor.subsection.${subsection.id}` as any) : subsection.title,
             type: 'subsection' as const,
             parentId: section.id,
             isDisabled: disabledSections?.has?.(section.id) || false,
@@ -290,10 +292,10 @@ export default function TreeNavigator() {
           const sectionNode: TreeNode = {
             id: section.id,
             name: getSectionTitle(section.id, section.title || section.name || 'Untitled Section', t),
-            type: 'section' as const,
-            parentId: doc.id,
+            type: 'section',
+            parentId: 'core-product',
             isDisabled: disabledSections?.has?.(section.id) || false,
-            isActive: section.id === activeSectionId,
+            isActive: false, // Subsections don't have active state
             isRequired: section.required,
             isCustom: section.origin === 'custom',
             origin: section.origin || 'template',

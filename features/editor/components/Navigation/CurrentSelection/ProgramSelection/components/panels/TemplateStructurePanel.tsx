@@ -146,8 +146,7 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
                             <div key={idx} className="text-purple-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
                               <span>{icon}</span>
                               <span className="truncate flex-1">
-                                {t(`editor.section.${sectionId}` as any) ||
-                                 sectionTitle}
+                                {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
                               </span>
                               {section.required && (
                                 <span className="text-red-400 font-bold flex-shrink-0">*</span>
