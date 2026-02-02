@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEditorStore } from '@/features/editor/lib';
+import { useEditorStore, getSectionIcon } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface ProgramSummaryPanelProps {
@@ -163,6 +163,13 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
     }
   }, [hasProgramData, programProfile, programSummary]);
 
+  // Get document structure from store
+  const documentStructure = useEditorStore((state) => state.setupWizard.documentStructure);
+  
+  // Get documents and sections from document structure
+  const documents = documentStructure?.documents || [];
+  const sections = documentStructure?.sections || [];
+  
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
       {/* Improved Header with Action Buttons */}
@@ -210,11 +217,45 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
         )}
       </div>
 
-      {/* Program Content intentionally hidden in Step 2.
-          Detailed application requirements (documents, sections, key requirements)
-          are only surfaced via the Step 3 blueprint/tree views. */}
-
-
+      {/* Show document structure when available */}
+      {hasProgramData && documentStructure && (
+        <div className="space-y-3 mt-2">
+          <div className="text-white font-semibold text-sm border-b border-white/20 pb-1">Documents & Structure:</div>
+          
+          {/* Documents List */}
+          {documents.length > 0 && (
+            <div className="space-y-2">
+              <div className="text-white/70 text-xs uppercase tracking-wide">Documents ({documents.length}):</div>
+              <div className="space-y-1 ml-2">
+                {documents.map((doc, index) => (
+                  <div key={doc.id} className="flex items-center gap-2 text-white/90 text-sm">
+                    <span className="text-blue-400">📄</span>
+                    <span className="truncate">{doc.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Sections List */}
+          {sections.length > 0 && (
+            <div className="space-y-2 mt-3">
+              <div className="text-white/70 text-xs uppercase tracking-wide">Sections ({sections.length}):</div>
+              <div className="space-y-1 ml-2 max-h-40 overflow-y-auto">
+                {sections.map((section) => (
+                  <div key={section.id} className="flex items-center gap-2 text-white/80 text-sm">
+                    <span className="text-red-400">{getSectionIcon(section.id)}</span>
+                    <span className="truncate">{section.title}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${section.required ? 'bg-red-500/30 text-red-300' : 'bg-gray-500/30 text-gray-300'}`}>
+                      {section.required ? 'Req' : 'Opt'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
     </div>
   );
