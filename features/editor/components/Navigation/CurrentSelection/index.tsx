@@ -20,6 +20,7 @@ type CurrentSelectionProps = {
 function CurrentSelection({}: CurrentSelectionProps) {
   const { t } = useI18n();
   const { selectedProductMeta, programSummary } = useConfiguratorState();
+  const documentStructure = useEditorStore((state) => state.setupWizard.documentStructure);
   const isConfiguratorOpen = useEditorStore((state) => state.isConfiguratorOpen);
   const setupWizard = useEditorStore((state) => state.setupWizard);
   // const { plan } = useEditorState(); // Not used in current implementation
@@ -244,8 +245,14 @@ function CurrentSelection({}: CurrentSelectionProps) {
       onClick: handleProgramClick,
       renderContent: () => !isConfiguratorOpen && (
         <div className="text-white font-bold truncate flex items-center justify-center gap-1 max-w-[140px]">
-          <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}>
-            {programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
+          <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={
+            documentStructure?.source === 'template' 
+              ? (t('editor.desktop.selection.customTemplate' as any) || 'Custom Template')
+              : programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'
+          }>
+            {documentStructure?.source === 'template' 
+              ? (t('editor.desktop.selection.customTemplate' as any) || 'Custom Template')
+              : programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
           </span>
         </div>
       )
@@ -259,8 +266,18 @@ function CurrentSelection({}: CurrentSelectionProps) {
       onClick: handlePlanClick,
       renderContent: () => !isConfiguratorOpen && (
         <div className="text-white font-bold truncate flex items-center justify-center gap-1 max-w-[140px]">
-          <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}>
-            {selectedProductMeta ? (t(selectedProductMeta.label as any) || selectedProductMeta.label) : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}
+          <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={
+            documentStructure?.source === 'template' 
+              ? ((documentStructure && 'documents' in documentStructure && documentStructure.documents && documentStructure.documents.length > 0 && documentStructure.documents[0]?.name) || 'Corporate Strategy Document')
+              : selectedProductMeta 
+                ? (t(selectedProductMeta.label as any) || selectedProductMeta.label)
+                : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'
+          }>
+            {documentStructure?.source === 'template' 
+              ? ((documentStructure && 'documents' in documentStructure && documentStructure.documents && documentStructure.documents.length > 0 && documentStructure.documents[0]?.name) || 'Corporate Strategy Document')
+              : selectedProductMeta 
+                ? (t(selectedProductMeta.label as any) || selectedProductMeta.label)
+                : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}
           </span>
         </div>
       )

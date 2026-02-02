@@ -93,7 +93,19 @@ export default function TreeNavigator() {
     
     // Add core product document if selected
     if (selectedProductMeta && !expandedDocumentId) {
-      const translatedLabel = t(selectedProductMeta.label as any) || selectedProductMeta.label || 'No selection';
+      // Check if document structure exists and comes from template
+      const isTemplateBased = documentStructure?.source === 'template';
+      
+      // For template-based structures, use the first document's name or fall back to translation
+      const templateTitle = documentStructure?.documents && documentStructure.documents.length > 0 
+        ? documentStructure.documents[0].name 
+        : undefined;
+      
+      const translatedLabel = isTemplateBased 
+        ? (templateTitle || t('editor.desktop.selection.customTemplate' as any) || 'Custom Template')
+        : (t(selectedProductMeta.label as any) || selectedProductMeta.label || 'No selection');
+      
+      const documentIcon = isTemplateBased ? '🧩' : (selectedProductMeta.icon || '📄');
       
       const documentNode: TreeNode = {
         id: 'core-product',
@@ -102,9 +114,9 @@ export default function TreeNavigator() {
         isDisabled: false,
         isActive: clickedDocumentId === 'core-product',
         isRequired: true,
-        isCustom: false,
-        origin: 'product',
-        icon: selectedProductMeta.icon || '📄',
+        isCustom: isTemplateBased,
+        origin: isTemplateBased ? 'template' : 'product',
+        icon: documentIcon,
         children: [],
         level: 0,
         isExpanded: expandedNodes.has('core-product'),

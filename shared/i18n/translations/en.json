@@ -901,6 +901,7 @@
   "editor.desktop.selection.programLabel": "Program / Template",
   "editor.desktop.selection.noProgram": "No program connected",
   "editor.desktop.selection.noPlan": "-",
+  "editor.desktop.selection.customTemplate": "Custom Template",
   "editor.desktop.selection.readiness": "Readiness",
   "editor.desktop.selection.sectionsLabel": "Sections",
   "editor.desktop.selection.documentsLabel": "Documents",
