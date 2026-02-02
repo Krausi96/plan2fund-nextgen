@@ -1,6 +1,5 @@
 import React from 'react';
 import { useEditorStore } from '@/features/editor/lib';
-import { getSectionIcon } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface ProgramSummaryPanelProps {
@@ -46,21 +45,6 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
     }
     
     // No fallback - return empty array if no actual documents found
-    return [];
-  };
-
-  const getRequiredSections = () => {
-    // Only return sections if we actually have program data
-    if (!hasProgramData) {
-      return [];
-    }
-    
-    if (programProfile?.applicationRequirements?.sections?.length) {
-      return programProfile.applicationRequirements.sections;
-    }
-    if (programSummary?.requiredSections?.length) {
-      return programSummary.requiredSections;
-    }
     return [];
   };
 
@@ -136,17 +120,6 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
       forceUpdate();
     }
   }, [hasProgramData, programProfile, programSummary]);
-  
-  // Collapsible state management
-  const [expandedDocuments, setExpandedDocuments] = React.useState<Record<string, boolean>>({});
-  
-  // Toggle document expansion
-  const toggleDocument = (docId: string) => {
-    setExpandedDocuments(prev => ({
-      ...prev,
-      [docId]: !prev[docId]
-    }));
-  };
   
   // Debug logs to see what data is available
   React.useEffect(() => {
@@ -237,100 +210,10 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
         )}
       </div>
 
-      {/* Program Content - Only show when we have actual program data with documents */}
-      {hasProgramData && getRequiredDocuments().length > 0 && (
-        <div className="space-y-4 mb-4 flex-1">
-          {/* Document Tree Structure */}
-          <div className="bg-slate-700/50 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-blue-300 text-lg">📁</span>
-              <h4 className="text-white font-semibold text-base flex-1">{t('editor.desktop.program.panels.requiredDocuments')} ({getRequiredDocuments().length})</h4>
-            </div>
-              
-            <div className="space-y-2 ml-2">
-              {getRequiredDocuments().map((doc: any, docIndex: number) => {
-                const docId = doc.id || doc.document_name || doc.name || `doc-${docIndex}`;
-                const isExpanded = expandedDocuments[docId] ?? true; // Default to expanded
-                  
-                return (
-                  <div key={docId}>
-                    {/* Document Header with Collapse Toggle */}
-                    <div 
-                      className="flex items-center gap-2 text-white font-medium mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
-                      onClick={() => toggleDocument(docId)}
-                    >
-                      <span className="text-blue-300">🧾</span>
-                      <span className="truncate flex-1" title={doc.name || doc.document_name || doc}>
-                        {doc.name || doc.document_name || doc}
-                      </span>
-                      {doc.required !== undefined && doc.required && (
-                        <span className="text-red-400 font-bold">*</span>
-                      )}
-                      <span className="text-blue-300 transform transition-transform duration-200 ml-2">
-                        {isExpanded ? '▼' : '▶'}
-                      </span>
-                    </div>
-                      
-                    {/* Collapsible Nested Sections */}
-                    <div 
-                      className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-white/20 pl-3 ${isExpanded ? 'max-h-[1000px]' : 'max-h-0'}`}
-                    >
-                      <div className="space-y-2 py-1">
-                        {/* Dynamically render required sections from program data */}
-                        {getRequiredSections().map((section: any, sectionIndex: number) => {
-                          const sectionId = section.id || sectionIndex;
-                          const sectionTitle = section.title || section.name || section;
-                          const icon = getSectionIcon(sectionId);
-                                                
-                          return (
-                            <div key={sectionIndex} className="text-white/80 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
-                              <span>{icon}</span>
-                              <span className="truncate">
-                                {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
-                              </span>
-                              {section.required !== undefined && section.required && (
-                                <span className="text-red-400 font-bold">*</span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-                
-              {getRequiredDocuments().length === 0 && hasProgramData && (
-                <div className="text-white/60 text-sm italic text-center py-2">No documents specified for this program</div>
-              )}
-            </div>
-          </div>
-            
-          {/* Key Requirements - Enhanced Display (only show when we have requirements) */}
-          {getKeyRequirements().length > 0 && (
-            <div className="bg-amber-900/20 border border-amber-700/30 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-amber-300 text-lg">⚠️</span>
-                <h4 className="text-amber-200 font-semibold text-base">Key Requirements</h4>
-                <span className="ml-auto px-2 py-1 bg-amber-500/20 text-amber-300 text-xs rounded-full font-medium">
-                  {getKeyRequirements().length} items
-                </span>
-              </div>
-              
-              <ul className="space-y-2">
-                {getKeyRequirements().map((req: string, index: number) => (
-                  <li key={index} className="flex items-start gap-3 p-2 bg-amber-900/20 rounded-md border border-amber-700/20 hover:bg-amber-900/30 transition-colors">
-                    <div className="w-5 h-5 rounded-full bg-amber-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-amber-200 text-xs font-bold">{index + 1}</span>
-                    </div>
-                    <span className="text-amber-100 text-sm flex-1" title={req}>{req}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Program Content intentionally hidden in Step 2.
+          Detailed application requirements (documents, sections, key requirements)
+          are only surfaced via the Step 3 blueprint/tree views. */}
+
 
 
     </div>

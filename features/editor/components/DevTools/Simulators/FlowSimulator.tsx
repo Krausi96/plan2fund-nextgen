@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useEditorStore, mergeUploadedContentWithSpecialSections } from '@/features/editor/lib';
+import { useEditorStore, useConfiguratorState, mergeUploadedContentWithSpecialSections } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 type SimulationType = 'programFinder' | 'templateUpload' | 'badTemplateUpload' | 'recoWizard' | 'urlParsing' | 'freeOption' | 'debugCanonicalOrdering' | 'strategyTemplateUpload' | 'businessModelCanvas';
@@ -23,6 +23,10 @@ export function FlowSimulator() {
   const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
   const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
   const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
+  
+  // Access configurator state for updating program summary
+  const configuratorActions = useConfiguratorState().actions;
+  
   const { t } = useI18n();
   
   const addResult = (result: Omit<SimulationResult, 'timestamp'>) => {
@@ -40,6 +44,9 @@ export function FlowSimulator() {
     addResult({ type: 'programFinder', status: 'running', message: 'Starting program finder simulation with comprehensive test cases...' });
     
     try {
+      // Import the required functions to process application requirements
+      const { normalizeFundingProgram, generateDocumentStructureFromProfile } = await import('@/features/editor/lib');
+      
       // Simulate program selection
       const mockProgram = {
         id: 'test-program-123',
@@ -82,48 +89,11 @@ export function FlowSimulator() {
       // Update store with program data
       setProgramProfile(mockProgram);
       
-      // Simulate document structure generation
-      const mockStructure = {
-        structureId: 'test-structure-123',
-        version: '1.0',
-        source: 'program' as const,
-        documents: [{ id: 'main', name: 'Main Document', purpose: 'Main document', required: true }],
-        sections: [
-          { id: 'metadata', documentId: 'main', title: 'Title Page', type: 'required' as const, required: true, programCritical: false },
-          { id: 'ancillary', documentId: 'main', title: 'Table of Contents', type: 'required' as const, required: true, programCritical: false },
-          { id: 'exec', documentId: 'main', title: 'Executive Summary', type: 'required' as const, required: true, programCritical: true },
-          { id: 'comp', documentId: 'main', title: 'Company Overview', type: 'required' as const, required: true, programCritical: true },
-          { id: 'proj', documentId: 'main', title: 'Project Description', type: 'required' as const, required: true, programCritical: true },
-          { id: 'market', documentId: 'main', title: 'Market Analysis', type: 'required' as const, required: true, programCritical: true },
-          { id: 'fin', documentId: 'main', title: 'Financial Plan', type: 'required' as const, required: true, programCritical: true },
-          { id: 'team', documentId: 'main', title: 'Team Qualifications', type: 'required' as const, required: true, programCritical: true },
-          { id: 'risk', documentId: 'main', title: 'Risk Assessment', type: 'required' as const, required: true, programCritical: true },
-          { id: 'model', documentId: 'main', title: 'Business Model Canvas', type: 'required' as const, required: true, programCritical: true },
-          { id: 'gtm', documentId: 'main', title: 'Go-to-Market Strategy', type: 'required' as const, required: true, programCritical: true },
-          { id: 'ue', documentId: 'main', title: 'Unit Economics', type: 'required' as const, required: true, programCritical: true },
-          { id: 'steps', documentId: 'main', title: 'Milestones and Next Steps', type: 'required' as const, required: true, programCritical: true },
-          { id: 'refs', documentId: 'main', title: 'References', type: 'required' as const, required: false, programCritical: false },
-          { id: 'tabs', documentId: 'main', title: 'Tables and Data', type: 'required' as const, required: false, programCritical: false },
-          { id: 'figs', documentId: 'main', title: 'Figures and Images', type: 'required' as const, required: false, programCritical: false },
-          { id: 'app', documentId: 'main', title: 'Appendices', type: 'required' as const, required: false, programCritical: false },
-          { id: 'refs', documentId: 'main', title: 'References', type: 'required' as const, required: false, programCritical: false },
-          { id: 'tabs', documentId: 'main', title: 'Tables and Data', type: 'required' as const, required: false, programCritical: false },
-          { id: 'figs', documentId: 'main', title: 'Figures and Images', type: 'required' as const, required: false, programCritical: false },
-          { id: 'app', documentId: 'main', title: 'Appendices', type: 'required' as const, required: false, programCritical: false }
-        ],
-        requirements: [],
-        validationRules: [],
-        aiGuidance: [],
-        renderingRules: {},
-        conflicts: [],
-        warnings: [],
-        confidenceScore: 90,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: 'simulation'
-      };
+      // Use the same pipeline as the real ProgramFinder to process application requirements
+      const fundingProgram = normalizeFundingProgram(mockProgram);
+      const documentStructure = generateDocumentStructureFromProfile(fundingProgram);
       
-      setDocumentStructure(mockStructure);
+      setDocumentStructure(documentStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({
         warnings: [],
@@ -132,11 +102,21 @@ export function FlowSimulator() {
       });
       setInferredProductType('submission');
       
+      // Update configurator state to ensure ProgramSummaryPanel shows the program
+      configuratorActions.setProgramSummary({
+        id: mockProgram.id,
+        name: mockProgram.name,
+        type: mockProgram.fundingTypes[0] || 'grant',
+        organization: mockProgram.provider,
+        setupStatus: 'draft' as const,
+        application_requirements: mockProgram.applicationRequirements
+      });
+      
       addResult({ 
         type: 'programFinder', 
         status: 'success', 
         message: 'Program finder simulation completed successfully',
-        details: { program: mockProgram.name, sections: mockStructure.sections.length }
+        details: { program: mockProgram.name, sections: documentStructure.sections.length }
       });
     } catch (error) {
       addResult({ 
@@ -317,6 +297,15 @@ export function FlowSimulator() {
         confidence: finalStructure.confidenceScore
       });
       
+      // Update configurator state to reflect template upload
+      configuratorActions.setProgramSummary({
+        id: 'template-upload-' + Date.now(),
+        name: 'Template Upload',
+        type: 'template',
+        organization: 'Local File',
+        setupStatus: 'draft' as const
+      });
+      
       // Count special sections in the final structure
       const specialSectionsAdded = finalStructure.sections.filter((s: any) => ['metadata', 'ancillary', 'references', 'appendices', 'tables_data', 'figures_images'].includes(s.id)).length;
       
@@ -486,6 +475,15 @@ export function FlowSimulator() {
         warnings: finalStructure.warnings,
         missingFields: [],
         confidence: finalStructure.confidenceScore
+      });
+      
+      // Update configurator state to reflect strategy template upload
+      configuratorActions.setProgramSummary({
+        id: 'strategy-template-upload-' + Date.now(),
+        name: 'Strategy Template Upload',
+        type: 'template',
+        organization: 'Local File',
+        setupStatus: 'draft' as const
       });
       
       addResult({ 
@@ -664,6 +662,15 @@ export function FlowSimulator() {
         confidence: finalStructure.confidenceScore
       });
       
+      // Update configurator state to reflect business model canvas upload
+      configuratorActions.setProgramSummary({
+        id: 'bmc-template-upload-' + Date.now(),
+        name: 'Business Model Canvas Upload',
+        type: 'template',
+        organization: 'Local File',
+        setupStatus: 'draft' as const
+      });
+      
       addResult({ 
         type: 'businessModelCanvas', 
         status: 'success', 
@@ -730,6 +737,15 @@ export function FlowSimulator() {
         warnings: finalStructure.warnings,
         missingFields: [],
         confidence: finalStructure.confidenceScore
+      });
+      
+      // Update configurator state to reflect template upload
+      configuratorActions.setProgramSummary({
+        id: 'template-upload-' + Date.now(),
+        name: 'Template Upload',
+        type: 'template',
+        organization: 'Local File',
+        setupStatus: 'draft' as const
       });
       
       // Count special sections in the final structure
@@ -827,9 +843,19 @@ export function FlowSimulator() {
           { id: 'figs', documentId: 'main', title: 'Figures and Images', type: 'required' as const, required: false, programCritical: false },
           { id: 'app', documentId: 'main', title: 'Appendices', type: 'required' as const, required: false, programCritical: false }
         ],
-        requirements: [],
-        validationRules: [],
-        aiGuidance: [],
+        requirements: [
+          { id: 'req1', scope: 'section' as const, category: 'financial' as const, severity: 'major' as const, rule: 'Must include detailed financial projections', target: 'Financial Projections', evidenceType: 'financial_document' },
+          { id: 'req2', scope: 'document' as const, category: 'formatting' as const, severity: 'blocker' as const, rule: 'Document must be in PDF format', target: 'Recommended Structure', evidenceType: 'document_submission' },
+          { id: 'req3', scope: 'section' as const, category: 'market' as const, severity: 'major' as const, rule: 'Must include comprehensive market analysis', target: 'Market Analysis', evidenceType: 'market_research' }
+        ],
+        validationRules: [
+          { id: 'val1', type: 'presence' as const, scope: 'Recommended Structure', errorMessage: 'Recommended Structure is required and must be submitted' },
+          { id: 'val2', type: 'presence' as const, scope: 'Financial Projections', errorMessage: 'Financial Projections are required for financial evaluation' }
+        ],
+        aiGuidance: [
+          { sectionId: 'exec', prompt: 'Write professional executive summary focusing on key value propositions', checklist: ['Cover all executive summary aspects', 'Maintain professional tone', 'Highlight key value propositions'], examples: ['Example content for executive summary...'] },
+          { sectionId: 'fin', prompt: 'Write detailed financial projections with 3-year forecast', checklist: ['Include 3-year forecast', 'Provide detailed breakdown', 'Include sensitivity analysis'], examples: ['Example financial projections...'] }
+        ],
         renderingRules: {},
         conflicts: [],
         warnings: [],
@@ -847,6 +873,15 @@ export function FlowSimulator() {
         confidence: 85
       });
       setInferredProductType('submission');
+      
+      // Update configurator state to reflect reco wizard results
+      configuratorActions.setProgramSummary({
+        id: 'reco-wizard-' + Date.now(),
+        name: 'Recommendation Wizard',
+        type: 'wizard',
+        organization: 'AI Assistant',
+        setupStatus: 'draft' as const
+      });
       
       addResult({ 
         type: 'recoWizard', 
@@ -911,9 +946,19 @@ export function FlowSimulator() {
           { id: 'figs', documentId: 'main', title: 'Figures and Images', type: 'required' as const, required: false, programCritical: false },
           { id: 'app', documentId: 'main', title: 'Appendices', type: 'required' as const, required: false, programCritical: false }
         ],
-        requirements: [],
-        validationRules: [],
-        aiGuidance: [],
+        requirements: [
+          { id: 'req1', scope: 'section' as const, category: 'financial' as const, severity: 'major' as const, rule: 'Must include detailed financial projections', target: 'Financial Plan', evidenceType: 'financial_document' },
+          { id: 'req2', scope: 'document' as const, category: 'formatting' as const, severity: 'blocker' as const, rule: 'Document must be in PDF format', target: 'URL-Parsed Program', evidenceType: 'document_submission' },
+          { id: 'req3', scope: 'section' as const, category: 'market' as const, severity: 'major' as const, rule: 'Must include comprehensive market analysis', target: 'Market Analysis', evidenceType: 'market_research' }
+        ],
+        validationRules: [
+          { id: 'val1', type: 'presence' as const, scope: 'URL-Parsed Program', errorMessage: 'URL-Parsed Program is required and must be submitted' },
+          { id: 'val2', type: 'presence' as const, scope: 'Financial Projections', errorMessage: 'Financial Projections are required for financial evaluation' }
+        ],
+        aiGuidance: [
+          { sectionId: 'exec', prompt: 'Write professional executive summary focusing on key value propositions', checklist: ['Cover all executive summary aspects', 'Maintain professional tone', 'Highlight key value propositions'], examples: ['Example content for executive summary...'] },
+          { sectionId: 'fin', prompt: 'Write detailed financial projections with 3-year forecast', checklist: ['Include 3-year forecast', 'Provide detailed breakdown', 'Include sensitivity analysis'], examples: ['Example financial projections...'] }
+        ],
         renderingRules: {},
         conflicts: [],
         warnings: [],
@@ -931,6 +976,15 @@ export function FlowSimulator() {
         confidence: 80
       });
       setInferredProductType('submission');
+      
+      // Update configurator state to reflect URL parsing results
+      configuratorActions.setProgramSummary({
+        id: 'url-parsing-' + Date.now(),
+        name: 'URL Parsing Result',
+        type: 'program',
+        organization: 'External Source',
+        setupStatus: 'draft' as const
+      });
       
       addResult({ 
         type: 'urlParsing', 
@@ -1097,9 +1151,19 @@ export function FlowSimulator() {
         missingBestPracticeSections: [],
         qualityGaps: [],
         modernizationFlags: [],
-        requirements: [],
-        validationRules: [],
-        aiGuidance: [],
+        requirements: [
+          { id: 'req1', scope: 'section' as const, category: 'financial' as const, severity: 'major' as const, rule: 'Must include detailed financial projections', target: 'Financial Plan', evidenceType: 'financial_document' },
+          { id: 'req2', scope: 'document' as const, category: 'formatting' as const, severity: 'blocker' as const, rule: 'Document must be in PDF format', target: 'Business Plan', evidenceType: 'document_submission' },
+          { id: 'req3', scope: 'section' as const, category: 'market' as const, severity: 'major' as const, rule: 'Must include comprehensive market analysis', target: 'Market Analysis', evidenceType: 'market_research' }
+        ],
+        validationRules: [
+          { id: 'val1', type: 'presence' as const, scope: 'Business Plan', errorMessage: 'Business Plan is required and must be submitted' },
+          { id: 'val2', type: 'presence' as const, scope: 'Financial Projections', errorMessage: 'Financial Projections are required for financial evaluation' }
+        ],
+        aiGuidance: [
+          { sectionId: 'exec', prompt: 'Write professional executive summary focusing on key value propositions', checklist: ['Cover all executive summary aspects', 'Maintain professional tone', 'Highlight key value propositions'], examples: ['Example content for executive summary...'] },
+          { sectionId: 'fin', prompt: 'Write detailed financial projections with 3-year forecast', checklist: ['Include 3-year forecast', 'Provide detailed breakdown', 'Include sensitivity analysis'], examples: ['Example financial projections...'] }
+        ],
         renderingRules: {},
         conflicts: [],
         warnings: [],
@@ -1117,6 +1181,15 @@ export function FlowSimulator() {
         confidence: 85
       });
       setInferredProductType('upgrade');
+      
+      // Update configurator state to reflect free option selection
+      configuratorActions.setProgramSummary({
+        id: 'free-option-' + Date.now(),
+        name: 'Free Option Structure',
+        type: 'free',
+        organization: 'User Defined',
+        setupStatus: 'draft' as const
+      });
       
       addResult({ 
         type: 'freeOption', 
@@ -1200,6 +1273,15 @@ export function FlowSimulator() {
         warnings: processedStructure.warnings,
         missingFields: [],
         confidence: processedStructure.confidenceScore
+      });
+      
+      // Update configurator state to reflect debug canonical ordering results
+      configuratorActions.setProgramSummary({
+        id: 'debug-canonical-ordering-' + Date.now(),
+        name: 'Debug Canonical Ordering',
+        type: 'debug',
+        organization: 'Testing Framework',
+        setupStatus: 'draft' as const
       });
       
       addResult({ 

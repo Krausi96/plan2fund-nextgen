@@ -5,6 +5,7 @@ import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/u
 import {
   ANCILLARY_SECTION_ID
 } from '@/features/editor/lib/constants';
+import { extractContentFromFiles } from '@/features/editor/lib/utils/document-processing/documentProcessor';
 
 interface DetectedDocument {
   fileName: string;
@@ -99,92 +100,8 @@ export function TemplateOption({ onDocumentAnalyzed, onNavigateToBlueprint }: Te
     setIsAnalyzing(true);
     
     try {
-      // Process each file and extract content (this is a simplified representation)
-      // In a real implementation, you would use a library like mammoth for .docx or pdf.js for .pdf
-      
-      // Simulate extracting content from uploaded files
-      const extractedContent = {
-        title: 'Sample Business Plan',
-        sections: [
-          { 
-            title: 'Executive Summary', 
-            content: 'This is the executive summary...', 
-            type: 'executive_summary',
-            rawSubsections: [
-              { id: 'exec_sum_intro', title: 'Introduction', content: 'Brief introduction to the summary' },
-              { id: 'exec_sum_goals', title: 'Goals and Objectives', content: 'Key goals and objectives' },
-              { id: 'exec_sum_financial', title: 'Financial Highlights', content: 'Key financial highlights' },
-              { id: 'exec_sum_conclusion', title: 'Conclusion', content: 'Concluding remarks' }
-            ]
-          },
-          { 
-            title: 'Company Description', 
-            content: 'About our company...', 
-            type: 'company_description',
-            rawSubsections: [
-              { id: 'comp_desc_history', title: 'Company History', content: 'History of the company' },
-              { id: 'comp_desc_mission', title: 'Mission Statement', content: 'Company mission' },
-              { id: 'comp_desc_vision', title: 'Vision Statement', content: 'Company vision' }
-            ]
-          },
-          { 
-            title: 'Market Analysis', 
-            content: 'Market trends and analysis...', 
-            type: 'market_analysis',
-            rawSubsections: [
-              { id: 'market_size', title: 'Market Size', content: 'Total addressable market' },
-              { id: 'market_growth', title: 'Growth Trends', content: 'Growth projections' },
-              { id: 'market_competition', title: 'Competitive Landscape', content: 'Analysis of competitors' },
-              { id: 'market_opportunities', title: 'Opportunities', content: 'Market opportunities' }
-            ]
-          },
-          { 
-            title: 'Financial Plan', 
-            content: 'Financial projections...', 
-            type: 'financial_plan',
-            rawSubsections: [
-              { id: 'fin_proj_revenue', title: 'Revenue Projections', content: 'Projected revenue streams' },
-              { id: 'fin_proj_costs', title: 'Cost Structure', content: 'Projected costs' },
-              { id: 'fin_proj_cashflow', title: 'Cash Flow Analysis', content: 'Cash flow projections' },
-              { id: 'fin_proj_roi', title: 'ROI Analysis', content: 'Return on investment analysis' }
-            ]
-          },
-          { 
-            title: 'Team Qualifications', 
-            content: 'Our team members...', 
-            type: 'team_qualifications',
-            rawSubsections: [
-              { id: 'team_founders', title: 'Founder Profiles', content: 'Profiles of founders' },
-              { id: 'team_advisors', title: 'Advisory Board', content: 'Advisor profiles' },
-              { id: 'team_structure', title: 'Organizational Structure', content: 'Team organization' }
-            ]
-          },
-          { 
-            title: 'Risk Assessment', 
-            content: 'Risk evaluation...', 
-            type: 'risk_assessment',
-            rawSubsections: [
-              { id: 'risk_market', title: 'Market Risks', content: 'Risks related to market' },
-              { id: 'risk_financial', title: 'Financial Risks', content: 'Financial risks' },
-              { id: 'risk_operational', title: 'Operational Risks', content: 'Operational risks' }
-            ]
-          },
-          { 
-            title: 'References', 
-            content: 'Sources and references used...', 
-            type: 'references'
-          },
-          { 
-            title: 'Appendices', 
-            content: 'Additional supporting materials...', 
-            type: 'appendices'
-          }
-        ],
-        hasTitlePage: true,
-        hasTOC: true,
-        totalPages: 45,
-        wordCount: 12000
-      };
+      // Extract content from uploaded files using real processing
+      const extractedContent = await extractContentFromFiles(files);
       
       // Use the unified function to merge uploaded content with special sections
       const finalStructure = mergeUploadedContentWithSpecialSections(extractedContent, null, t as (key: string) => string);

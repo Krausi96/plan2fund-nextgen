@@ -38,47 +38,33 @@ interface ProgramFinderProps {
   onClose: () => void;
 }
 
-// Minimal program catalog for demonstration
-const PROGRAM_CATALOG: Program[] = [
-  {
-    id: 'aws-innovation-grant-2024',
-    name: 'AWS Innovation Grant',
-    type: 'grant',
-    organization: 'Amazon Web Services',
-    amountRange: '€10,000 - €100,000',
-    deadline: '2024-12-31',
-    focusAreas: ['Cloud Computing', 'AI/ML', 'Sustainability'],
-    description: 'Support for innovative cloud-based solutions',
-    requirements: ['executive-summary', 'company-description', 'market-analysis', 'financial-plan'],
-    application_requirements: {
-      documents: [
-        {
-          document_name: 'Business Plan',
-          required: true,
-          format: 'pdf',
-          authority: 'AWS',
-          reuseable: false
-        }
-      ],
-      sections: [
-        {
-          title: 'Executive Summary',
-          required: true,
-          subsections: [
-            { title: 'Project Overview', required: true },
-            { title: 'Innovation Aspects', required: true }
-          ]
-        }
-      ],
+// Use the mock program repository instead of hardcoded catalog
+const loadProgramCatalog = async (): Promise<Program[]> => {
+  const { MOCK_FUNDING_PROGRAMS } = await import('@/features/editor/lib/templates/catalog/programs/mockPrograms');
+  return MOCK_FUNDING_PROGRAMS.map(program => ({
+    id: program.id,
+    name: program.name,
+    type: program.type || 'grant',
+    organization: program.organization || 'Unknown',
+    amountRange: program.funding_amount_min && program.funding_amount_max 
+      ? `${program.currency || '€'}${program.funding_amount_min.toLocaleString()} - ${program.currency || '€'}${program.funding_amount_max.toLocaleString()}`
+      : undefined,
+    deadline: 'Ongoing',
+    focusAreas: program.focus_areas || [],
+    description: program.description,
+    requirements: program.requirements || [],
+    application_requirements: program.application_requirements || {
+      documents: [],
+      sections: [],
       financial_requirements: {
-        financial_statements_required: ['Financial Projections'],
-        years_required: [3],
-        co_financing_proof_required: true,
-        own_funds_proof_required: true
+        financial_statements_required: [],
+        years_required: [],
+        co_financing_proof_required: false,
+        own_funds_proof_required: false
       }
     }
-  }
-];
+  }));
+};
 
 export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) {
   const { t } = useI18n();
@@ -89,15 +75,24 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
   const [selectedFocus, setSelectedFocus] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
-  // Load programs (simulating API call)
+  // Load programs from mock repository
   useEffect(() => {
     const loadPrograms = async () => {
       setLoading(true);
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setPrograms(PROGRAM_CATALOG);
-      setFilteredPrograms(PROGRAM_CATALOG);
-      setLoading(false);
+      try {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+        const programCatalog = await loadProgramCatalog();
+        setPrograms(programCatalog);
+        setFilteredPrograms(programCatalog);
+      } catch (error) {
+        console.error('Failed to load programs:', error);
+        // Fallback to empty array
+        setPrograms([]);
+        setFilteredPrograms([]);
+      } finally {
+        setLoading(false);
+      }
     };
     
     loadPrograms();
@@ -131,7 +126,7 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
     setFilteredPrograms(filtered);
   }, [programs, searchTerm, selectedType, selectedFocus]);
 
-  const handleProgramClick = (program: Program) => {
+  const handleProgramClick = async (program: Program) => {
     // Save program selection
     if (typeof window !== 'undefined') {
       try {

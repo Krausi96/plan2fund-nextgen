@@ -202,18 +202,26 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
   }));
   
   // Generate sections from parsed requirements
-  const sections = profile.applicationRequirements.sections.flatMap((section, sectionIndex) => 
-    section.subsections.map((subsection, subIndex) => ({
-      id: `sec_${sectionIndex}_${subIndex}_${section.title.replace(/\s+/g, '_').toLowerCase()}_${subsection.title.replace(/\s+/g, '_').toLowerCase()}`,
+  const sections = profile.applicationRequirements.sections.map((section, sectionIndex) => {
+    // Create subsections for this section
+    const rawSubsections = section.subsections.map((subsection, subIndex) => ({
+      id: `subsec_${sectionIndex}_${subIndex}_${subsection.title.replace(/\s+/g, '_').toLowerCase()}`,
+      title: subsection.title,
+      rawText: '' // Initially empty, will be filled by the AI or user
+    }));
+    
+    return {
+      id: `sec_${sectionIndex}_${section.title.replace(/\s+/g, '_').toLowerCase()}`,
       documentId: 'main_document',
-      title: `${section.title}: ${subsection.title}`,
-      type: subsection.required ? 'required' : 'optional' as 'required' | 'optional' | 'conditional',
-      required: subsection.required,
+      title: section.title,
+      type: section.required ? 'required' : 'optional' as 'required' | 'optional' | 'conditional',
+      required: section.required,
       programCritical: true,
-      aiPrompt: `Write detailed content for ${subsection.title} in the context of ${profile.name}`,
-      checklist: [`Address ${subsection.title} requirements`, `Include relevant details`, `Follow program guidelines`]
-    }))
-  );
+      aiPrompt: `Write detailed content for ${section.title} in the context of ${profile.name}`,
+      checklist: [`Address ${section.title} requirements`, `Include relevant details`, `Follow program guidelines`],
+      rawSubsections: rawSubsections
+    };
+  });
   
   // Generate requirements from financial and other requirements
   const requirements = [
@@ -376,17 +384,27 @@ export function migrateLegacySetup(programSummary: ProgramSummary): {
       rawData: programSummary
     };
     
-    // Note: Document structure generation would happen here in full implementation
-    // For now, return the funding program for migration
+    // Generate document structure from application requirements when available
+    let structure: DocumentStructure | null = null;
+    try {
+      if (fundingProgram.applicationRequirements.documents.length > 0 ||
+          fundingProgram.applicationRequirements.sections.length > 0) {
+        structure = generateDocumentStructureFromProfile(fundingProgram);
+      }
+    } catch (e) {
+      console.warn('Failed to generate document structure from legacy program:', e);
+    }
     
     return {
       fundingProgram,
-      structure: null, // Will be generated separately
-      status: 'none' as const,
+      structure,
+      status: structure ? 'draft' : 'none',
       diagnostics: {
-        warnings: ['Legacy program migrated - limited information available'],
-        missingFields: ['Detailed requirements', 'Specific deadlines'],
-        confidence: 60
+        warnings: structure
+          ? ['Legacy program migrated from application requirements']
+          : ['Legacy program migrated - limited information available'],
+        missingFields: structure ? [] : ['Detailed requirements', 'Specific deadlines'],
+        confidence: structure ? 80 : 60
       }
     };
     

@@ -10,6 +10,9 @@ export { BUSINESS_PLAN_SECTIONS } from './catalog/products/business_plan';
 export { STRATEGY_SECTIONS } from './catalog/products/strategy';
 export { UPGRADE_SECTIONS } from './catalog/products/upgrade';
 
+// Export program catalogs
+export { MOCK_FUNDING_PROGRAMS } from './catalog/programs';
+
 // Export action functions
 export { addCustomDocument } from './actions/addCustomDocument';
 export { addCustomSection } from './actions/addCustomSection';

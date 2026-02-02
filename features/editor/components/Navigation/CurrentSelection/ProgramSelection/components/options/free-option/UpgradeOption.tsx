@@ -3,6 +3,7 @@ import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/utils/Program.utils';
 import { ANCILLARY_SECTION_ID } from '@/features/editor/lib/constants';
+import { extractContentFromFiles } from '@/features/editor/lib/utils/document-processing/documentProcessor';
 
 // Types for UpgradeOption component
 interface DetectedDocument {
@@ -102,23 +103,8 @@ export function UpgradeOption({ onNavigateToBlueprint }: UpgradeOptionProps) {
     setIsAnalyzing(true);
 
     try {
-      // In a real implementation, we would use a library like mammoth for .docx or pdf.js for .pdf
-      // to extract content from the uploaded files. For this demo, we'll simulate the extraction.
-      
-      // Create a more realistic extracted content based on the actual files
-      // In a real implementation, we would extract content from uploaded files using libraries like Mammoth for .docx or pdf.js for .pdf
-      // For this demo, we'll simulate content extraction from the uploaded files
-      // In a real scenario, this would be replaced with actual content extraction logic
-      
-      // Create minimal extracted content based on file information
-      const extractedContent = {
-        title: 'Uploaded Business Plan',
-        sections: [], // Start with empty sections - let the detection logic handle everything
-        hasTitlePage: true,
-        hasTOC: true,
-        totalPages: files.reduce((sum, file) => sum + Math.floor(file.size / 1000), 0), // Rough estimate
-        wordCount: files.reduce((sum, file) => sum + Math.floor(file.size / 10), 0) // Rough estimate
-      };
+      // Extract content from uploaded files using real processing
+      const extractedContent = await extractContentFromFiles(files);
       
       // Use the unified function to merge uploaded content with special sections
       const baseStructure = mergeUploadedContentWithSpecialSections(extractedContent, null, t as (key: string) => string);

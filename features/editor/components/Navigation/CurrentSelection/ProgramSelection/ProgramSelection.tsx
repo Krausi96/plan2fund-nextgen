@@ -4,11 +4,10 @@ import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
 import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
 import { StandardStructurePanel } from './components/panels/StandardStructurePanel';
 import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
-import { ProgramFinder } from './components/finder/ProgramFinder';
-import EditorProgramFinder from '@/features/editor/components/Navigation/CurrentSelection/ProgramSelection/components/finder/ProgramFinder/EditorProgramFinder';
+import { ProgramFinder, UrlParser, EditorProgramFinder } from './components/finder';
 import { TemplateOption } from './components/options/TemplateOption';
 import { FreeOption } from './components/options/free-option/FreeOption';
-import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup, generateDocumentStructureFromProfile, parseProgramFromUrl } from '@/features/editor/lib';
+import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup, generateDocumentStructureFromProfile } from '@/features/editor/lib';
 import { FlowSimulator } from '@/features/editor/components/DevTools';
 
 interface OptionSelectorProps {
@@ -105,6 +104,7 @@ export default function ProgramSelection({
   const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
   const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
   const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
+  const documentStructure = useEditorStore((state) => state.setupWizard.documentStructure);
   
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
@@ -140,7 +140,7 @@ export default function ProgramSelection({
     }
     
     // Handle legacy program migration
-    if (programSummary && !programSummary.documentStructure) {
+    if (programSummary && !programSummary.documentStructure && !documentStructure) {
       console.log('🔄 Migrating legacy program to document setup system...');
       try {
         const migrationResult = migrateLegacySetup(programSummary);
@@ -159,34 +159,10 @@ export default function ProgramSelection({
         console.error('❌ Failed to migrate legacy program:', error);
       }
     }
-  }, [programSummary, setProgramProfile, setDocumentStructure, setSetupStatus, setSetupDiagnostics, handleConnectProgram]);
+  }, [programSummary, documentStructure, setProgramProfile, setDocumentStructure, setSetupStatus, setSetupDiagnostics, handleConnectProgram]);
 
   const handleCloseProgramFinder = () => {
     setActiveTab('search');
-  };
-
-  const handleUrlParse = async () => {
-    const urlInput = document.querySelector('input[type="url"]') as HTMLInputElement;
-    const url = urlInput?.value.trim();
-    
-    if (!url) {
-      alert('Please enter a valid URL');
-      return;
-    }
-    
-    try {
-      // Parse program information using external utility
-      const parsedProgram = await parseProgramFromUrl(url);
-      
-      if (parsedProgram) {
-        handleProgramSelect(parsedProgram);
-      } else {
-        alert('Could not extract program information from this URL. Please try a different funding program URL.');
-      }
-      
-    } catch (error) {
-      alert('Failed to parse URL. Please check the URL format and try again.');
-    }
   };
 
   const handleProgramSelect = (program: any) => {
@@ -338,24 +314,10 @@ export default function ProgramSelection({
                         <h4 className="text-white font-medium mb-4 mt-2">
                           {t('editor.desktop.program.pasteUrl' as any) || 'Paste Program URL'}
                         </h4>
-                        <div className="bg-slate-800/50 rounded-lg p-4 border border-white/10">
-                          <p className="text-white/70 text-sm mb-3">
-                            {t('editor.desktop.program.pasteUrlDescription' as any) || 'Enter the official program URL to automatically load requirements'}
-                          </p>
-                          <div className="flex gap-2">
-                            <input
-                              type="url"
-                              placeholder="https://www.aws.at/funding/..."
-                              className="flex-1 rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
-                            />
-                            <button 
-                              onClick={handleUrlParse}
-                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors whitespace-nowrap"
-                            >
-                              {t('editor.desktop.program.loadProgram' as any) || 'Load Program'}
-                            </button>
-                          </div>
-                        </div>
+                        <UrlParser 
+                          onProgramSelect={handleProgramSelect}
+                          onBackToFinder={() => setActiveTab('search')}
+                        />
                       </div>
                     )}
                     
