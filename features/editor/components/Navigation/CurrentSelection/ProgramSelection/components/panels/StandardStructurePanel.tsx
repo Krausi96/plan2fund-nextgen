@@ -28,15 +28,18 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
   };
 
   const getRequiredSections = () => {
-    // Get actual sections from MASTER_SECTIONS based on inferred product type
+    // When document structure exists and has sections (like from upload/upgrade), use those with canonical sorting
+    // This ensures real document data is shown instead of template data for upgrade option
+    if (documentStructure?.sections && documentStructure.sections.length > 0) {
+      return sortSectionsByCanonicalOrder(documentStructure.sections);
+    }
+    
+    // Otherwise, fall back to template sections based on inferred product type
     const productType = setupWizard.inferredProductType;
     let sections: any[] = [];
     
     if (productType && MASTER_SECTIONS[productType]) {
       sections = MASTER_SECTIONS[productType];
-    } else {
-      // Fallback to document structure sections
-      sections = documentStructure?.sections || [];
     }
     
     // Sort sections according to canonical order
@@ -44,10 +47,19 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
   };
 
   // Handle case when no documents exist but we have product type
-  const hasTemplateStructure = setupWizard.inferredProductType && getRequiredDocuments().length === 0;
+  // Only use template structure if there's no document structure at all
+  const hasTemplateStructure = setupWizard.inferredProductType && 
+                                getRequiredDocuments().length === 0 &&
+                                (!documentStructure || !documentStructure.sections || documentStructure.sections.length === 0) &&
+                                selectedOption !== 'free';
 
-  // Only show structure data when free option is selected AND we have standard structure data
-  const hasStructureData = selectedOption === 'free' && !!documentStructure?.source && documentStructure.source === 'standard';
+  // Show structure data when free option is selected with standard/upgrade structure OR when any document structure exists for other options
+  const hasStructureData = (selectedOption === 'free' && 
+                          !!documentStructure?.source && (documentStructure.source === 'standard' || documentStructure.source === 'upgrade') &&
+                          (documentStructure?.sections?.length > 0 || documentStructure?.documents?.length > 0))
+                        || 
+                          (selectedOption !== 'free' && documentStructure && 
+                          (documentStructure?.sections?.length > 0 || documentStructure?.documents?.length > 0));
   
   // Collapsible state management
   const [expandedDocuments, setExpandedDocuments] = React.useState<Record<string, boolean>>({});
@@ -197,7 +209,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
                         <div className="space-y-2 py-1">
                           {/* SHOW ACTUAL DOCUMENT STRUCTURE SECTIONS - NO HARDCODED DUPLICATES */}
                           {getRequiredSections()
-                            .filter(section => section.documentId === doc.id || !section.documentId) // Handle both template and document structure formats
+                            .filter(section => section.documentId === doc.id) // Only show sections that belong to this specific document
                             .map((section: any, idx: number) => (
                               <div key={`${section.id}-${idx}`} className="text-green-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
                                 <span>

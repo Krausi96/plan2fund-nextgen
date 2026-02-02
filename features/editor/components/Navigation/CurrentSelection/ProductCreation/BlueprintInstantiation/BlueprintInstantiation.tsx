@@ -524,7 +524,7 @@ export default function BlueprintInstantiationStep({
               
               // Step 2: Prepare title page data from Step 1 (if exists)
               const existingTitlePage = setupWizard.projectProfile ? {
-                title: setupWizard.projectProfile.projectName || '',
+                title: documentStructure?.source === 'upgrade' ? 'Upgrade Document' : setupWizard.projectProfile.projectName || '',
                 companyName: setupWizard.projectProfile.author || '',
                 date: new Date().toISOString().split('T')[0],
                 confidentialityStatement: setupWizard.projectProfile.confidentialityStatement || '',
@@ -532,6 +532,13 @@ export default function BlueprintInstantiationStep({
               
               // Step 3: Instantiate plan from blueprint
               const plan = instantiateFromBlueprint(documentStructure, productType, existingTitlePage);
+              
+              // If document structure source is 'upgrade', update the plan title to reflect this
+              if (documentStructure?.source === 'upgrade') {
+                if (plan.documents && plan.documents.length > 0) {
+                  plan.documents[0].name = t('editor.desktop.selection.upgradeDocument' as any) || 'Upgrade Document'
+                }
+              }
               
               // Step 4: Update store to trigger TreeNavigator & PreviewWorkspace sync
               setSelectedProduct(productType);

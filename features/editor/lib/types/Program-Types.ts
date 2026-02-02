@@ -138,7 +138,7 @@ export interface FundingProgram {
 export interface DocumentStructure {
   structureId: string;
   version: string;
-  source: 'program' | 'template' | 'standard';
+  source: 'program' | 'template' | 'standard' | 'upgrade';
   
   // Document structure
   documents: Array<{

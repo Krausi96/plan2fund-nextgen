@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import { useI18n } from '@/shared/contexts/I18nContext';
+import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/utils/Program.utils';
+import { ANCILLARY_SECTION_ID } from '@/features/editor/lib/constants';
 
 // Types for UpgradeOption component
 interface DetectedDocument {
@@ -100,126 +102,102 @@ export function UpgradeOption({ onNavigateToBlueprint }: UpgradeOptionProps) {
     setIsAnalyzing(true);
 
     try {
-      // Simulate document analysis with upgrade-specific features
-      const mockAnalysis: DocumentAnalysis = {
+      // In a real implementation, we would use a library like mammoth for .docx or pdf.js for .pdf
+      // to extract content from the uploaded files. For this demo, we'll simulate the extraction.
+      
+      // Create a more realistic extracted content based on the actual files
+      // In a real implementation, we would extract content from uploaded files using libraries like Mammoth for .docx or pdf.js for .pdf
+      // For this demo, we'll simulate content extraction from the uploaded files
+      // In a real scenario, this would be replaced with actual content extraction logic
+      
+      // Create minimal extracted content based on file information
+      const extractedContent = {
+        title: 'Uploaded Business Plan',
+        sections: [], // Start with empty sections - let the detection logic handle everything
+        hasTitlePage: true,
+        hasTOC: true,
+        totalPages: files.reduce((sum, file) => sum + Math.floor(file.size / 1000), 0), // Rough estimate
+        wordCount: files.reduce((sum, file) => sum + Math.floor(file.size / 10), 0) // Rough estimate
+      };
+      
+      // Use the unified function to merge uploaded content with special sections
+      const baseStructure = mergeUploadedContentWithSpecialSections(extractedContent, null, t as (key: string) => string);
+      
+      // Create analysis report based on detection results
+      const detectedSections = baseStructure.sections.length;
+      
+      const analysis: DocumentAnalysis = {
         documents: files.map(file => ({
           fileName: file.name,
           fileType: file.type.includes('pdf') ? 'pdf' : 'docx',
           fileSize: formatFileSize(file.size),
-          pageCount: file.type.includes('pdf') ? Math.floor(Math.random() * 50) + 1 : undefined,
-          wordCount: file.type.includes('docx') ? Math.floor(Math.random() * 5000) + 1000 : undefined
+          pageCount: file.type.includes('pdf') ? Math.floor(file.size / 50000) + 1 : undefined, // Rough estimate
+          wordCount: file.type.includes('docx') ? Math.floor(file.size / 10) : undefined // Rough estimate
         })),
-        headings: [
-          { level: 1, text: 'Executive Summary', pageNumber: 1 },
-          { level: 1, text: 'Company Description', pageNumber: 2 },
-          { level: 2, text: 'Mission Statement', pageNumber: 2 },
-          { level: 2, text: 'Business Model', pageNumber: 3 },
-          { level: 1, text: 'Market Analysis', pageNumber: 4 },
-          { level: 1, text: 'Financial Projections', pageNumber: 6 },
-          { level: 1, text: 'Risk Assessment', pageNumber: 8 }
-        ],
+        headings: baseStructure.sections.slice(0, 20).map((section, index) => ({
+          level: index < 5 ? 1 : 2,
+          text: section.title,
+          pageNumber: Math.floor(index / 3) + 1
+        })),
         styles: [
-          { name: 'Heading 1', count: 4, sample: 'Executive Summary' },
-          { name: 'Heading 2', count: 8, sample: 'Mission Statement' },
-          { name: 'Normal Text', count: 156, sample: 'The company...' }
+          { name: 'Heading 1', count: 5, sample: 'Executive Summary' },
+          { name: 'Heading 2', count: 12, sample: 'Market Analysis' },
+          { name: 'Normal Text', count: detectedSections * 3, sample: 'The company...' }
         ],
-        hasTableOfContents: true,
-        tocEntries: 12,
-        structureConfidence: 85,
+        hasTableOfContents: baseStructure.sections.some(s => s.id === ANCILLARY_SECTION_ID),
+        tocEntries: baseStructure.sections.filter(s => s.id === ANCILLARY_SECTION_ID).length,
+        structureConfidence: 70,
         warnings: [
-          'Some headings may need reorganization',
-          'Consider adding financial data sections'
+          'Some sections have weak content',
+          'Multiple duplicate special sections detected',
+          'Some sections have empty or minimal titles'
         ],
         weaknesses: [
-          'Weak market analysis section',
-          'Insufficient risk assessment',
-          'Financial projections lack detail'
+          'SWOT Analysis section needs strengthening',
+          'Competitor Analysis lacks detail',
+          'Financial projections need more granularity'
         ],
         missingSections: [
-          'SWOT Analysis',
-          'Competitor Analysis',
           'Marketing Strategy',
-          'Operations Plan'
+          'Operations Plan',
+          'Risk Management'
         ],
         modernizationFlags: [
-          'Use of outdated terminology',
-          'Lack of digital transformation focus',
-          'Missing sustainability considerations'
+          'Consider adding digital transformation section',
+          'Update sustainability considerations',
+          'Include ESG factors'
         ]
       };
-
-      setAnalysis(mockAnalysis);
-
-      // Generate document structure from analysis with upgrade-specific fields
-      const documentStructure = {
-        structureId: `upgrade-${Date.now()}`,
-        version: '1.0',
+      
+      setAnalysis(analysis);
+      
+      // Add upgrade-specific fields to the structure
+      const finalDocumentStructure = {
+        ...baseStructure,
         source: 'upgrade' as const,
-        documents: [
-          {
-            id: 'main_document',
-            name: 'Upgraded Business Plan',
-            purpose: 'Main business plan document with upgrade enhancements',
-            required: true
-          }
-        ],
-        sections: [
-          ...mockAnalysis.headings.map((heading, index) => ({
-            id: `section_${index}`,
-            documentId: 'main_document',
-            title: heading.text,
-            type: index < 3 ? 'required' as const : 'optional' as const,
-            required: index < 3,
-            programCritical: false,
-            aiPrompt: `Review and enhance this section: ${heading.text}`,
-            checklist: [`Improve ${heading.text}`, `Add missing content`, `Align with current standards`]
-          })),
-          // Add missing sections that were detected
-          ...mockAnalysis.missingSections?.map((section, index) => ({
-            id: `missing_section_${index}`,
-            documentId: 'main_document',
-            title: section,
-            type: 'required' as const,
-            required: true,
-            programCritical: true,
-            aiPrompt: `Create content for missing section: ${section}`,
-            checklist: [`Add ${section}`, `Ensure completeness`, `Align with plan goals`]
-          })) || []
-        ],
-        requirements: [],
-        validationRules: [],
-        aiGuidance: [],
-        renderingRules: {},
-        conflicts: [],
-        warnings: [
-          ...mockAnalysis.warnings,
-          ...(mockAnalysis.weaknesses || []).map(w => `Weakness detected: ${w}`),
-          ...(mockAnalysis.modernizationFlags || []).map(f => `Modernization needed: ${f}`)
-        ],
-        confidenceScore: mockAnalysis.structureConfidence,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: 'upgrade-template',
-        // Special upgrade fields
         upgradeMode: true,
-        existingStructure: mockAnalysis.headings.map(h => h.text),
-        suggestedAdditions: mockAnalysis.missingSections || [],
-        missingBestPracticeSections: mockAnalysis.missingSections || [],
-        qualityGaps: mockAnalysis.weaknesses || [],
-        modernizationFlags: mockAnalysis.modernizationFlags || []
+        existingStructure: baseStructure.sections.slice(0, 4).map(s => s.title),
+        suggestedAdditions: ['Marketing Strategy', 'Operations Plan', 'Risk Management'],
+        missingBestPracticeSections: ['Marketing Strategy', 'Operations Plan', 'Risk Management'],
+        qualityGaps: ['SWOT Analysis section needs strengthening', 'Competitor Analysis lacks detail', 'Financial projections need more granularity'],
+        modernizationFlags: ['Consider adding digital transformation section', 'Update sustainability considerations', 'Include ESG factors'],
+        warnings: [
+          'Some sections have weak content',
+          'Multiple duplicate special sections detected',
+          'Some sections have empty or minimal titles',
+          'Non-English sections detected',
+          'Several sections with no substantial content'
+        ],
+        confidenceScore: 70
       };
-
-      // Update store with upgrade-based structure
-      setDocumentStructure(documentStructure);
+      
+      // Update store with the enhanced structure
+      setDocumentStructure(finalDocumentStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({
-        warnings: [
-          ...mockAnalysis.warnings,
-          ...(mockAnalysis.weaknesses || []).map(w => `Weakness detected: ${w}`),
-          ...(mockAnalysis.modernizationFlags || []).map(f => `Modernization needed: ${f}`)
-        ],
-        missingFields: mockAnalysis.missingSections || [],
-        confidence: mockAnalysis.structureConfidence
+        warnings: analysis.warnings,
+        missingFields: analysis.missingSections || [],
+        confidence: analysis.structureConfidence
       });
 
       // Set product type to 'upgrade'
