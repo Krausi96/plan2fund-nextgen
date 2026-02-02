@@ -220,9 +220,45 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
       rawText: '' // Initially empty, will be filled by the AI or user
     }));
     
+    // Determine appropriate document for this section based on content
+    let sectionDocumentId = primaryDocumentId; // Default to primary document
+    
+    // Map sections to appropriate documents based on keywords
+    const sectionLower = section.title.toLowerCase();
+    
+    if (sectionLower.includes('financial') || sectionLower.includes('finance')) {
+      // Try to find Financial Statements document
+      const financialDoc = documents.find(doc => 
+        doc.name.toLowerCase().includes('financial') || 
+        doc.name.toLowerCase().includes('statement')
+      );
+      if (financialDoc) {
+        sectionDocumentId = financialDoc.id;
+      }
+    } else if (sectionLower.includes('project') || sectionLower.includes('business') || sectionLower.includes('description')) {
+      // Try to find Business Plan document
+      const businessPlanDoc = documents.find(doc => 
+        doc.name.toLowerCase().includes('business') || 
+        doc.name.toLowerCase().includes('plan')
+      );
+      if (businessPlanDoc) {
+        sectionDocumentId = businessPlanDoc.id;
+      }
+    } else if (sectionLower.includes('market') || sectionLower.includes('competition')) {
+      // Try to find a suitable document for market sections
+      const marketDoc = documents.find(doc => 
+        doc.name.toLowerCase().includes('business') || 
+        doc.name.toLowerCase().includes('plan') ||
+        doc.name.toLowerCase().includes('marketing')
+      );
+      if (marketDoc) {
+        sectionDocumentId = marketDoc.id;
+      }
+    }
+    
     return {
       id: `sec_${sectionIndex}_${section.title.replace(/\s+/g, '_').toLowerCase()}`,
-      documentId: primaryDocumentId, // Associate all sections with primary document
+      documentId: sectionDocumentId, // Associate section with appropriate document
       title: section.title,
       type: section.required ? 'required' : 'optional' as 'required' | 'optional' | 'conditional',
       required: section.required,
