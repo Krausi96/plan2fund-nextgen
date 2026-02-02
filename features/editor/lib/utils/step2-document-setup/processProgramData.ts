@@ -193,13 +193,23 @@ export function generateProgramBlueprint(programData: any): ProgramSummary {
  */
 export function generateDocumentStructureFromProfile(profile: FundingProgram): DocumentStructure {
   // Generate documents from parsed requirements
-  const documents = profile.applicationRequirements.documents.map((doc, index) => ({
-    id: `doc_${index}_${doc.document_name.replace(/\s+/g, '_').toLowerCase()}`,
-    name: doc.document_name,
-    purpose: `Required for ${profile.name}`,
-    required: doc.required,
-    templateId: doc.format === 'pdf' ? 'pdf_template' : 'default_template'
-  }));
+  const documents = profile.applicationRequirements.documents.length > 0 
+    ? profile.applicationRequirements.documents.map((doc, index) => ({
+        id: `doc_${index}_${doc.document_name.replace(/\s+/g, '_').toLowerCase()}`,
+        name: doc.document_name,
+        purpose: `Required for ${profile.name}`,
+        required: doc.required,
+        templateId: doc.format === 'pdf' ? 'pdf_template' : 'default_template'
+      }))
+    : [{
+        id: 'main_document',
+        name: `${profile.name} Application`,
+        purpose: `Main document for ${profile.name}`,
+        required: true
+      }];
+
+  // Determine the primary document ID for sections
+  const primaryDocumentId = documents[0].id;
   
   // Generate sections from parsed requirements
   const sections = profile.applicationRequirements.sections.map((section, sectionIndex) => {
@@ -212,7 +222,7 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
     
     return {
       id: `sec_${sectionIndex}_${section.title.replace(/\s+/g, '_').toLowerCase()}`,
-      documentId: 'main_document',
+      documentId: primaryDocumentId, // Associate all sections with primary document
       title: section.title,
       type: section.required ? 'required' : 'optional' as 'required' | 'optional' | 'conditional',
       required: section.required,
