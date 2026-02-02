@@ -38,10 +38,14 @@ interface ProgramFinderProps {
   onClose: () => void;
 }
 
-// Use the mock program repository instead of hardcoded catalog
+// Use the individual program templates directly
 const loadProgramCatalog = async (): Promise<Program[]> => {
-  const { MOCK_FUNDING_PROGRAMS } = await import('@/features/editor/lib/templates');
-  return MOCK_FUNDING_PROGRAMS.map((program: any) => ({
+  // Import individual program templates
+  const { awsSeedfinancing, ffgBasisprogramm, eicAccelerator } = await import('@/features/editor/lib/templates');
+  
+  const individualTemplates = [awsSeedfinancing, ffgBasisprogramm, eicAccelerator];
+  
+  return individualTemplates.map((program: any) => ({
     id: program.id,
     name: program.name,
     type: program.type || 'grant',

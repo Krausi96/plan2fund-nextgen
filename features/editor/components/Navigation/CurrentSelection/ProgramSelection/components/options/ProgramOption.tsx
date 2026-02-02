@@ -39,8 +39,6 @@ export function ProgramOption({
   const [manualError, setManualError] = useState<string | null>(null);
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualInputPosition, setManualInputPosition] = useState<{ top: number; left: number; width: number } | null>(null);
-  const [useMockTemplate, setUseMockTemplate] = useState(false);
-  
   // Access editor store for document setup management
   const setProgramProfile = useEditorStore((state) => state.setProgramProfile);
   const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
@@ -81,197 +79,29 @@ export function ProgramOption({
       return;
     }
     
-    let programData: any;
+    // Fetch from individual templates if available
+    const { awsSeedfinancing, ffgBasisprogramm, eicAccelerator } = await import('@/features/editor/lib/templates');
     
-    if (useMockTemplate) {
-      // Try to find a mock program that matches the input
-      const { MOCK_FUNDING_PROGRAMS } = await import('@/features/editor/lib/templates/catalog/programs');
-      const mockProgram = MOCK_FUNDING_PROGRAMS.find(
-        (p: any) => p.id.toLowerCase().includes(normalized.toLowerCase()) || 
-                   p.name.toLowerCase().includes(normalized.toLowerCase())
-      );
-      
-      if (mockProgram) {
-        // Use the found mock program with the user-provided ID
-        programData = {
-          ...mockProgram,
-          id: normalized,  // Use the user-provided ID
-          name: `Program: ${DOMPurify.sanitize(normalized)}`,  // Use the user-provided name
-        };
-      } else {
-        // If no match found, use a standard template
-        programData = {
-          id: normalized,
-          name: `Program: ${DOMPurify.sanitize(normalized)}`,
-          type: 'grant',
-          organization: 'Manual Entry',
-          // Add program characteristics
-          funding_types: ['grant'],
-          focus_areas: ['general_business'],
-          use_of_funds: ['general_business_purposes'],
-          co_financing_required: false,
-          deliverables: ['business_plan'],
-          requirements: ['executive_summary', 'financial_plan'],
-          evidence_required: [],
-          // Use a rich template with comprehensive requirements
-          application_requirements: {
-            documents: [
-              {
-                document_name: 'Business Plan',
-                required: true,
-                format: 'pdf',
-                authority: 'Manual Entry',
-                reuseable: false
-              },
-              {
-                document_name: 'Financial Statements',
-                required: false,
-                format: 'pdf',
-                authority: 'applicant',
-                reuseable: true
-              },
-              {
-                document_name: 'Project Budget',
-                required: true,
-                format: 'xlsx',
-                authority: 'applicant',
-                reuseable: false
-              }
-            ],
-            sections: [
-              {
-                title: 'Executive Summary',
-                required: true,
-                subsections: [
-                  { title: 'Project Overview', required: true },
-                  { title: 'Problem Statement', required: true },
-                  { title: 'Solution Concept', required: true }
-                ]
-              },
-              {
-                title: 'Market Analysis',
-                required: false,
-                subsections: [
-                  { title: 'Target Market', required: true },
-                  { title: 'Competition', required: true },
-                  { title: 'Market Size', required: true }
-                ]
-              },
-              {
-                title: 'Financial Plan',
-                required: true,
-                subsections: [
-                  { title: 'Revenue Model', required: true },
-                  { title: 'Cost Structure', required: true },
-                  { title: 'Financial Projections', required: true }
-                ]
-              },
-              {
-                title: 'Team & Management',
-                required: true,
-                subsections: [
-                  { title: 'Management Team', required: true },
-                  { title: 'Organizational Structure', required: true },
-                  { title: 'Key Personnel', required: true }
-                ]
-              }
-            ],
-            financial_requirements: {
-              financial_statements_required: ['balance_sheet', 'income_statement', 'cash_flow_statement'],
-              years_required: [1, 2, 3],
-              co_financing_proof_required: false,
-              own_funds_proof_required: false
-            }
-          }
-        };
-      }
-    } else {
-      // Standard manual entry approach
-      programData = {
-        id: normalized,
-        name: `Program: ${DOMPurify.sanitize(normalized)}`,
-        type: 'grant',
-        organization: 'Manual Entry',
-        // Add program characteristics
-        funding_types: ['grant'],
-        focus_areas: ['general_business'],
-        use_of_funds: ['general_business_purposes'],
-        co_financing_required: false,
-        deliverables: ['business_plan'],
-        requirements: ['executive_summary', 'financial_plan'],
-        evidence_required: [],
-        // Use a rich template with comprehensive requirements
-        application_requirements: {
-          documents: [
-            {
-              document_name: 'Business Plan',
-              required: true,
-              format: 'pdf',
-              authority: 'Manual Entry',
-              reuseable: false
-            },
-            {
-              document_name: 'Financial Statements',
-              required: false,
-              format: 'pdf',
-              authority: 'applicant',
-              reuseable: true
-            },
-            {
-              document_name: 'Project Budget',
-              required: true,
-              format: 'xlsx',
-              authority: 'applicant',
-              reuseable: false
-            }
-          ],
-          sections: [
-            {
-              title: 'Executive Summary',
-              required: true,
-              subsections: [
-                { title: 'Project Overview', required: true },
-                { title: 'Problem Statement', required: true },
-                { title: 'Solution Concept', required: true }
-              ]
-            },
-            {
-              title: 'Market Analysis',
-              required: false,
-              subsections: [
-                { title: 'Target Market', required: true },
-                { title: 'Competition', required: true },
-                { title: 'Market Size', required: true }
-              ]
-            },
-            {
-              title: 'Financial Plan',
-              required: true,
-              subsections: [
-                { title: 'Revenue Model', required: true },
-                { title: 'Cost Structure', required: true },
-                { title: 'Financial Projections', required: true }
-              ]
-            },
-            {
-              title: 'Team & Management',
-              required: true,
-              subsections: [
-                { title: 'Management Team', required: true },
-                { title: 'Organizational Structure', required: true },
-                { title: 'Key Personnel', required: true }
-              ]
-            }
-          ],
-          financial_requirements: {
-            financial_statements_required: ['balance_sheet', 'income_statement', 'cash_flow_statement'],
-            years_required: [1, 2, 3],
-            co_financing_proof_required: false,
-            own_funds_proof_required: false
-          }
-        }
-      };
+    const individualTemplates = [awsSeedfinancing, ffgBasisprogramm, eicAccelerator];
+    
+    // Try to find a matching program in individual templates
+    let programData = individualTemplates.find(
+      (p: any) => p.id.toLowerCase().includes(normalized.toLowerCase()) || 
+                 p.name.toLowerCase().includes(normalized.toLowerCase())
+    );
+    
+    if (!programData) {
+      // If no match found in individual templates, return error
+      setManualError('No matching program found. Please select from ProgramFinder or enter a valid program identifier.');
+      return;
     }
+    
+    // Use the found program with the user-provided ID
+    programData = {
+      ...programData,
+      id: normalized,  // Use the user-provided ID
+      name: `Program: ${DOMPurify.sanitize(normalized)}`,  // Use the user-provided name
+    };
     
     // Save program selection using shared persistence helper
     saveSelectedProgram({
@@ -358,7 +188,7 @@ export function ProgramOption({
           blueprintStatus: 'fallback' as const,
           blueprintSource: 'myproject' as const,
           blueprintDiagnostics: {
-            warnings: ['Enhanced blueprint generation failed - using comprehensive fallback structure'],
+            warnings: ['Enhanced blueprint generation failed - using available program template structure'],
             missingFields: ['Detailed program requirements from official sources'],
             confidence: fallbackBlueprint.diagnostics.confidenceScore
           }
@@ -377,7 +207,7 @@ export function ProgramOption({
         });
         
         // Show user-friendly feedback
-        setManualError('Program connected successfully with standard template structure. Enhanced details will be available when official program data is accessible.');
+        setManualError('Program connected successfully. Enhanced details will be available when official program data is accessible.');
         setTimeout(() => setManualError(null), 8000); // Clear after 8 seconds
       }
       
@@ -512,20 +342,6 @@ export function ProgramOption({
               >
                 {programLoading ? '...' : (connectCopy?.submit || t('editor.desktop.config.connectProgram.submit' as any) || 'Connect')}
               </Button>
-            </div>
-            
-            {/* Toggle for mock template usage */}
-            <div className="flex items-center gap-2 mt-2">
-              <input
-                type="checkbox"
-                id="useMockTemplate"
-                checked={useMockTemplate}
-                onChange={(e) => setUseMockTemplate(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <label htmlFor="useMockTemplate" className="text-[9px] text-white/80">
-                Use detailed template from program repository
-              </label>
             </div>
             
             <p className="text-[9px] text-white/60">{connectCopy?.example || t('editor.desktop.config.connectProgram.example' as any) || 'e.g., AWS-2024-001 or https://...'}</p>

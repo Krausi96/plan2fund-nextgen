@@ -1,9 +1,12 @@
 /**
  * Program Manager
- * Utility functions to manage the mock funding program repository
+ * Utility functions to manage the individual funding program repository
  */
 
-import { MOCK_FUNDING_PROGRAMS } from '../../index';
+// Import individual program templates
+import { awsSeedfinancing } from './individual/aws-seedfinancing';
+import { ffgBasisprogramm } from './individual/ffg-basisprogramm';
+import { eicAccelerator } from './individual/eic-accelerator';
 
 export interface ProgramManager {
   /**
@@ -38,7 +41,7 @@ export interface ProgramManager {
 }
 
 // In-memory storage for programs (in a real scenario, this would be persistent)
-let programsDb = [...MOCK_FUNDING_PROGRAMS];
+let programsDb = [awsSeedfinancing, ffgBasisprogramm, eicAccelerator];
 
 export const programManager: ProgramManager = {
   getAllPrograms: (): any[] => {
@@ -87,7 +90,7 @@ export const programManager: ProgramManager = {
 
       for (const [key, value] of Object.entries(criteria)) {
         if (value !== undefined && value !== null) {
-          const programValue = program[key];
+          const programValue = (program as any)[key];
           
           if (typeof value === 'string' && typeof programValue === 'string') {
             // Case-insensitive partial match for strings
@@ -118,7 +121,7 @@ export const programManager: ProgramManager = {
  * Reset the program database to initial state
  */
 export const resetProgramDatabase = (): void => {
-  programsDb = [...MOCK_FUNDING_PROGRAMS];
+  programsDb = [awsSeedfinancing, ffgBasisprogramm, eicAccelerator];
 };
 
 /**
