@@ -3,14 +3,31 @@ import type { SectionTemplate } from '../../../types/types';
 
 export const UPGRADE_SECTIONS: SectionTemplate[] = [
   {
+    id: 'executive_summary',
+    title: 'Executive Summary',
+    description: 'Provide a concise overview of the upgrade analysis and recommendations.',
+    required: true,
+    wordCountMin: 200,
+    wordCountMax: 500,
+    order: 1,
+    category: 'general',
+    origin: 'template',
+    sectionIntro: `
+Generate a professional executive summary that synthesizes key information from all completed sections of the upgrade plan only after all content is filled.
+`,
+  },
+  {
     id: 'upgrade_analysis',
     title: 'Upgrade Analysis',
     description: 'Analysis of existing plan structure and identification of gaps.',
     required: true,
+    wordCountMin: 300,
+    wordCountMax: 600,
+    order: 2,
     category: 'general',
     origin: 'template',
     sectionIntro: `
-This section analyzes the existing plan structure and identifies gaps and improvement opportunities.
+Summarize this section and its subsections professionally.
 `,
     rawSubsections: [
       {
@@ -33,12 +50,6 @@ What could be improved?
 Prioritize the most critical gaps.
 `
       }
-    ],
-    prompts: [
-      'Analyze the existing plan structure',
-      'Identify missing sections',
-      'Highlight weak areas',
-      'Suggest improvements'
     ]
   },
   {
@@ -46,10 +57,13 @@ Prioritize the most critical gaps.
     title: 'Upgrade Strategy',
     description: 'Strategy for upgrading the existing plan.',
     required: true,
+    wordCountMin: 300,
+    wordCountMax: 600,
+    order: 3,
     category: 'general',
     origin: 'template',
     sectionIntro: `
-This section defines the strategy for upgrading the existing plan.
+Summarize this section and its subsections professionally.
 `,
     rawSubsections: [
       {
@@ -72,11 +86,6 @@ What is the timeline?
 How will you measure success?
 `
       }
-    ],
-    prompts: [
-      'Choose upgrade approach',
-      'Define migration plan',
-      'Set priorities for improvements'
     ]
   }
 ];

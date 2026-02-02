@@ -13,21 +13,8 @@ export const BUSINESS_PLAN_SECTIONS: SectionTemplate[] = [
     category: 'general',
     origin: 'template',
     sectionIntro: `
-We recommend writing the executive summary only after completing the full
-business plan. It should concisely summarise the most important points from
-all sections of the plan.
+Generate a professional executive summary that synthesizes key information from all completed sections of the business plan only after all content is filled.
 `,
-    rawSubsections: [
-      {
-        id: "exec_summary_overview",
-        title: "Overall Project Summary",
-        rawText: `
-Provide a concise summary of the project, including the business idea,
-target market, solution approach, and expected impact.
-`
-      }
-    ],
-
   },
   
   {
@@ -41,9 +28,7 @@ target market, solution approach, and expected impact.
     category: 'project',
     origin: 'template',
     sectionIntro: `
-This section describes the core product or service of the project, its current
-development status, the value it creates for customers, and its differentiation
-from competing solutions.
+Summarize this section and its subsections professionally.
 `,
     rawSubsections: [
       {
@@ -117,19 +102,19 @@ What work do you carry out yourself? What work is carried out by partners? Descr
     category: 'team',
     origin: 'template',
     sectionIntro: `
-This section covers company structure, management team, and governance aspects.
+Summarize this section and its subsections professionally.
 `,
     rawSubsections: [
       {
         id: "management_team",
-        title: "Management and (founding) team",
+        title: "Management and (Founding) Team",
         rawText: `
 Who are the members of the founding team and what previous experience do they have? What roles do they play in the company? Is there any expertise that you do not have within the team? If so, how will you fill this gap? By outsourcing? By hiring additional staff or bringing in additional partners? Also show how the management team integrates sustainability into the company's management and what training and measures are being implemented to promote sustainable practices.
 `
       },
       {
         id: "company_information",
-        title: "Information about the company",
+        title: "company Information",
         rawText: `
 What is the company name and, if applicable, the date the company was founded? What legal form are you planning? Company headquarters: Where do you plan to locate the company and what advantages or challenges does this present? What are the planned ownership structures (who holds what shares in the company)? Are there already relevant contracts (articles of association, etc.)? Are there external cooperation partners and what are the possible advantages and disadvantages in this regard? Status of company formation: What essential steps have already been taken to set up the company (trademark registration, entry in the commercial register, application for a business license, any advance commitments, etc.)?
 `
@@ -161,6 +146,24 @@ Set goals (short-, medium-, and long-term) against which you can measure your pr
         rawText: `
 What individual steps have you planned for the successful establishment of your company over the next few years (personnel, location, etc.)? What milestones have you set? By what dates do you want to have your planning measures implemented (product completion, financing finalized, business license obtained, etc.)? Which tasks and milestones are directly dependent on each other? What is the critical path during the implementation or start-up phase? What milestones have you planned for the post-start-up phase?
 `
+      },
+      {
+        id: "team_structure_key_roles",
+        title: "Team Structure & Key Roles",
+        rawText: `
+Who are the key members of your team?
+What are their roles and responsibilities?
+What is their background and experience?
+`
+      },
+      {
+        id: "advisors_partnerships",
+        title: "Advisors & Strategic Partnerships",
+        rawText: `
+Who are your advisors and board members?
+What strategic partnerships do you have?
+How do these relationships strengthen your business?
+`
       }
     ]
   },
@@ -175,7 +178,7 @@ What individual steps have you planned for the successful establishment of your 
     category: 'market',
     origin: 'template',
     sectionIntro: `
-This section covers the industry analysis, market potential, and competitive landscape.
+Summarize this section and its subsections professionally.
 `,
     rawSubsections: [
       {
@@ -219,6 +222,24 @@ Compare your product/service with the offerings of your main competitors. Use th
         rawText: `
 Are there any legal, economic, regional, or other market entry barriers, and how do you intend to deal with them? Are there any dependencies on suppliers, customers, or competitors, e.g., that only one production company can manufacture your product?
 `
+      },
+      {
+        id: "market_regulatory_risks",
+        title: "Market & Regulatory Risks",
+        rawText: `
+What are the key market risks?
+What regulatory challenges do you face?
+How will you mitigate these risks?
+`
+      },
+      {
+        id: "operational_financial_risks",
+        title: "Operational & Financial Risks",
+        rawText: `
+What are the operational risks?
+What are the financial risks?
+What contingency plans do you have?
+`
       }
     ]
   },
@@ -233,7 +254,7 @@ Are there any legal, economic, regional, or other market entry barriers, and how
     category: 'market',
     origin: 'template',
     sectionIntro: `
-This section covers marketing and sales strategies, pricing, and customer service approaches.
+Summarize this section and its subsections professionally.
 `,
     rawSubsections: [
       {
@@ -277,7 +298,7 @@ What payment terms do you set (payment deadlines, discounts, reminder fees, etc.
     category: 'financial',
     origin: 'template',
     sectionIntro: `
-This section covers financial planning including investment costs, cost planning, revenue planning, and capital requirements.
+Summarize this section and its subsections professionally.
 `,
     rawSubsections: [
       {
@@ -314,6 +335,24 @@ Compare revenue with costs.
         rawText: `
 How high is your total capital requirement based on the calculations carried out above? What sources of financing can you use to cover the financing requirement?
 `
+      },
+      {
+        id: "revenue_model_projection",
+        title: "Revenue Model & Projections",
+        rawText: `
+What is your revenue model?
+What are your projected revenues for the next 3-5 years?
+What are the key assumptions behind your projections?
+`
+      },
+      {
+        id: "funding_requirements_use",
+        title: "Funding Requirements & Use of Funds",
+        rawText: `
+How much funding do you require?
+How will you use the funds?
+What are the key milestones the funding will achieve?
+`
       }
     ]
   },
@@ -328,8 +367,7 @@ How high is your total capital requirement based on the calculations carried out
     category: 'financial',
     origin: 'template',
     sectionIntro: `
-This section presents your financial projections, funding requirements,
-and expected returns for investors.
+Summarize this section and its subsections professionally.
 `,
     rawSubsections: [
       {
@@ -363,8 +401,7 @@ What are the key milestones the funding will achieve?
     category: 'team',
     origin: 'template',
     sectionIntro: `
-This section presents your team, their qualifications, and their ability
-to execute the business plan.
+Summarize this section and its subsections professionally.
 `,
     rawSubsections: [
       {
@@ -398,7 +435,7 @@ How do these relationships strengthen your business?
     category: 'risk',
     origin: 'template',
     sectionIntro: `
-This section identifies key risks to your business and outlines mitigation strategies.
+Summarize this section and its subsections professionally.
 `,
     rawSubsections: [
       {
