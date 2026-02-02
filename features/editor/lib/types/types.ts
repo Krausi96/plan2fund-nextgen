@@ -191,7 +191,7 @@ export interface SectionTemplate {
   wordCountMin?: number;
   wordCountMax?: number;
   order?: number;
-  category: 'general' | 'project' | 'impact' | 'financial' | 'market' | 'team' | 'risk';
+  category: 'general' | 'project' | 'impact' | 'financial' | 'market' | 'team' | 'risk' | 'submission' | 'strategy' | 'review' | 'business';
   prompts?: string[];
   validationRules?: {
     requiredFields?: string[];
@@ -221,7 +221,7 @@ export interface DocumentTemplate {
   instructions?: string[];
   examples?: string[];
   commonMistakes?: string[];
-  category: 'submission' | 'strategy' | 'review' | 'business' | 'market' | 'financial' | 'general' | 'project' | 'team' | 'risk';
+  category: 'general' | 'project' | 'impact' | 'financial' | 'market' | 'team' | 'risk' | 'submission' | 'strategy' | 'review' | 'business';
   fundingTypes?: string[];
   origin?: 'template' | 'custom';
   [key: string]: any;
@@ -305,7 +305,7 @@ export interface ProjectProfile {
  * DocumentTemplateId - Output of Step 3 (Document Type)
  * Final document template selection
  */
-export type DocumentTemplateId = 'business-plan' | 'pitch-deck' | 'executive-summary' | 'custom';
+export type DocumentTemplateId = 'business-plan' | 'pitch-deck' | 'executive-summary' | 'strategy' | 'upgrade' | 'custom';
 
 /**
  * SetupWizardState - Tracks progress through the 3-step wizard
