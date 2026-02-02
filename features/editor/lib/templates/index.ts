@@ -11,7 +11,21 @@ export { STRATEGY_SECTIONS } from './catalog/products/strategy';
 export { UPGRADE_SECTIONS } from './catalog/products/upgrade';
 
 // Export program catalogs
-export { MOCK_FUNDING_PROGRAMS } from './catalog/programs';
+import { awsSeedfinancing } from './catalog/programs/individual/aws-seedfinancing';
+import { ffgBasisprogramm } from './catalog/programs/individual/ffg-basisprogramm';
+import { eicAccelerator } from './catalog/programs/individual/eic-accelerator';
+
+export { 
+  awsSeedfinancing,
+  ffgBasisprogramm,
+  eicAccelerator
+};
+
+export const MOCK_FUNDING_PROGRAMS = [
+  awsSeedfinancing,
+  ffgBasisprogramm,
+  eicAccelerator
+];
 
 // Export action functions
 export { addCustomDocument } from './actions/addCustomDocument';
