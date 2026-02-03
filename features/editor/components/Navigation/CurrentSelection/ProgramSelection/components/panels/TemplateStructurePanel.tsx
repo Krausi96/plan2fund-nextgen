@@ -13,11 +13,11 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
   const { t } = useI18n();
   const setupWizard = useEditorStore((state) => state.setupWizard);
   const documentStructure = setupWizard.documentStructure;
-  
+
   // Group sections by document
   const getSectionsByDocument = useCallback(() => {
     if (!documentStructure?.sections) return {};
-    
+
     const grouped: Record<string, any[]> = {};
     documentStructure.sections.forEach(section => {
       const docId = section.documentId || 'main_document';
@@ -29,12 +29,13 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
     return grouped;
   }, [documentStructure]);
 
-
-
   const sectionsByDoc = getSectionsByDocument();
   // Only show template data when template option is selected AND we have template data
   const hasTemplateData = selectedOption === 'template' && !!documentStructure?.source && documentStructure.source === 'template';
-  
+
+  // Collapsible state management
+  const [expandedDocuments, setExpandedDocuments] = React.useState<Record<string, boolean>>({});
+
   // Toggle document expansion
   const toggleDocument = (docId: string) => {
     setExpandedDocuments(prev => ({
@@ -43,6 +44,11 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
     }));
   };
 
+  // Access store actions
+  const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
+  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
+  const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
+
   // Actual clear functionality - UPDATE TO EMPTY STATE WITHOUT CLOSING
   const handleClear = () => {
     if (onClearTemplate) {
@@ -50,17 +56,12 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
     } else {
       // Default clear behavior - reset to empty state
       console.log('🗑️ Clearing template structure - updating to empty state');
-      // Clear the document structure using direct store access
-      const store = useEditorStore.getState();
-      store.setDocumentStructure(null);
-      store.setSetupStatus('none');
-      store.setSetupDiagnostics(null);
+      setDocumentStructure(null);
+      setSetupStatus('none');
+      setSetupDiagnostics(null);
       // DO NOT clear selectedOption - keep panel open and selection intact
     }
   };
-  
-  // Collapsible state management
-  const [expandedDocuments, setExpandedDocuments] = React.useState<Record<string, boolean>>({});
 
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
@@ -71,7 +72,7 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
             <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
               <span className="text-white text-lg">🔍</span>
             </div>
-            <h3 className="text-white font-bold text-lg">{t('editor.desktop.program.panels.templateAnalysis')}</h3>
+            <h3 className="text-white font-bold text-lg">{t('editor.desktop.program.panels.templateAnalysis' as any)}</h3>
           </div>
           
           {/* Action Buttons - Top Right (REFRESH REMOVED) */}
@@ -86,6 +87,19 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
             </button>
           </div>
         </div>
+        
+        {hasTemplateData ? (
+          <h4 className="text-white font-semibold text-base mb-2 truncate" title={documentStructure?.documents?.[0]?.name}>
+            {documentStructure?.documents?.[0]?.name || 'Document structure detected'}
+          </h4>
+        ) : (
+          <div className="bg-slate-700/50 rounded-lg p-6 text-center">
+            <div className="text-white/60 text-2xl mb-2">🧩</div>
+            <p className="text-white/80 text-sm">
+              {t('editor.desktop.program.uploadTemplateHint' as any)}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Template Content */}
@@ -97,7 +111,7 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
               <span className="text-purple-300 text-lg">📁</span>
               <h4 className="text-purple-200 font-semibold text-base flex-1">{t('editor.desktop.program.panels.requiredDocuments')}</h4>
             </div>
-                      
+                        
             <div className="space-y-2 ml-2">
               {Object.entries(sectionsByDoc).map(([docId, sections]) => {
                 const isExpanded = expandedDocuments[docId] ?? true; // Default to expanded
@@ -147,16 +161,11 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
                 );
               })}
                         
-
             </div>
           </div>
             
-
-            
-
         </div>
       )}
-
 
     </div>
   );

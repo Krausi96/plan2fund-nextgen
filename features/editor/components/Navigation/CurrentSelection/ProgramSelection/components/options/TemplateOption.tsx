@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import {
@@ -49,6 +49,18 @@ export function TemplateOption({ onDocumentAnalyzed, onNavigateToBlueprint }: Te
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [needsManualSplit, setNeedsManualSplit] = useState(false);
   const [splitSections, setSplitSections] = useState<number[]>([]);
+  
+  // Check if we have a template uploaded and analyzed
+  const hasTemplate = uploadedFiles.length > 0 || analysis !== null;
+  
+  // Debug logging for template state
+  useEffect(() => {
+    console.log('🔍 TemplateOption hasTemplate:', hasTemplate, {
+      uploadedFilesCount: uploadedFiles.length,
+      hasAnalysis: analysis !== null,
+      isAnalyzing
+    });
+  }, [hasTemplate, uploadedFiles, analysis, isAnalyzing]);
   
   // Access editor store for document setup management
   const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
