@@ -86,19 +86,6 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
             </button>
           </div>
         </div>
-        
-        {hasTemplateData ? (
-          <h4 className="text-white font-semibold text-base mb-2 truncate" title={documentStructure?.documents?.[0]?.name}>
-            {documentStructure?.documents?.[0]?.name || 'Document structure detected'}
-          </h4>
-        ) : (
-          <div className="bg-slate-700/50 rounded-lg p-6 text-center">
-            <div className="text-white/60 text-2xl mb-2">🧩</div>
-            <p className="text-white/80 text-sm">
-              {t('editor.desktop.program.uploadTemplateHint')}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Template Content */}

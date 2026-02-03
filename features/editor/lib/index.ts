@@ -203,6 +203,8 @@ export { detectSpecialSections } from './utils/section-flows/detection/detectSpe
 export { enhanceWithSpecialSections } from './utils/section-flows/enhancement/enhanceWithSpecialSections';
 export { applyDetectionResults } from './utils/section-flows/application/applyDetectionResults';
 export { normalizeDocumentStructure, mergeUploadedContentWithSpecialSections } from './utils/document-flows/normalization/normalizeDocumentStructure';
+export { processDocumentSecurely, splitDocumentIntoParts } from './utils/document-flows/processing/documentProcessor';
+export { validateDocumentContent } from './utils/document-flows/security/contentSecurityValidator';
 
 // ============================================================================
 // AI CLIENT - Section AI functionality

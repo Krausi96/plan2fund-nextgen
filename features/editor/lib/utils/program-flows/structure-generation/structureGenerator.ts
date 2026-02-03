@@ -174,7 +174,9 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
       
       sections = redistributedSections;
     }
-  }  const requirements = [
+  }
+  
+  const requirements = [
     // Financial requirements
     ...profile.applicationRequirements.financialRequirements.financial_statements_required.map((stmt, index) => ({
       id: `req_financial_${index}`,

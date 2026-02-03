@@ -1,11 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
-import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/utils/document-flows/normalization/normalizeDocumentStructure';
 import {
   ANCILLARY_SECTION_ID
 } from '@/features/editor/lib/constants';
-import { extractContentFromFiles } from '@/features/editor/lib/utils/document-flows/processing/documentProcessor';
+import { processDocumentSecurely } from '@/features/editor/lib/utils/document-flows/processing/documentProcessor';
 
 interface DetectedDocument {
   fileName: string;
@@ -48,6 +47,8 @@ export function TemplateOption({ onDocumentAnalyzed, onNavigateToBlueprint }: Te
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [analysis, setAnalysis] = useState<DocumentAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [needsManualSplit, setNeedsManualSplit] = useState(false);
+  const [splitSections, setSplitSections] = useState<number[]>([]);
   
   // Access editor store for document setup management
   const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
@@ -100,66 +101,88 @@ export function TemplateOption({ onDocumentAnalyzed, onNavigateToBlueprint }: Te
     setIsAnalyzing(true);
     
     try {
-      // Extract content from uploaded files using real processing
-      const extractedContent = await extractContentFromFiles(files);
-      
-      // Use the unified function to merge uploaded content with special sections
-      const finalStructure = mergeUploadedContentWithSpecialSections(extractedContent, null, t as (key: string) => string);
-      
-      // Create analysis report based on detection results
-      // We'll use a simpler analysis for the merged structure
-      const detectedSections = finalStructure.sections.length;
-      
-      const analysis: DocumentAnalysis = {
-        documents: files.map(file => ({
-          fileName: file.name,
-          fileType: file.type.includes('pdf') ? 'pdf' : 'docx',
-          fileSize: formatFileSize(file.size),
-          pageCount: file.type.includes('pdf') ? Math.floor(Math.random() * 50) + 1 : undefined,
-          wordCount: file.type.includes('docx') ? Math.floor(Math.random() * 5000) + 1000 : undefined
-        })),
-        headings: extractedContent.sections.map((section: any, index: number) => ({
-          level: section.type.startsWith('executive') || index === 0 ? 1 : 2,
-          text: section.title,
-          pageNumber: Math.floor(index / 3) + 1
-        })),
-        styles: [
-          { name: 'Heading 1', count: 4, sample: 'Executive Summary' },
-          { name: 'Heading 2', count: 8, sample: 'Market Analysis' },
-          { name: 'Normal Text', count: 156, sample: 'The company...' }
-        ],
-        hasTableOfContents: finalStructure.sections.some(s => s.id === ANCILLARY_SECTION_ID),
-        tocEntries: finalStructure.sections.filter(s => s.id === ANCILLARY_SECTION_ID).length,
-        structureConfidence: 85,
-        warnings: [
-          ...(detectedSections > 0 ? [] : ['No sections detected in template']),
-          'Consider adding financial data sections'
-        ]
-      };
-      
-      setAnalysis(analysis);
-      onDocumentAnalyzed?.(analysis);
-      
-      // Update store with the enhanced structure
-      setDocumentStructure(finalStructure);
-      setSetupStatus('draft');
-      setSetupDiagnostics({
-        warnings: analysis.warnings,
-        missingFields: [],
-        confidence: analysis.structureConfidence
-      });
-      
-      // Default to submission for template uploads
-      setInferredProductType('submission');
-
-      setIsAnalyzing(false);
-      
-      // Navigate to blueprint if callback is provided
-      if (onNavigateToBlueprint) {
-        setTimeout(() => {
-          onNavigateToBlueprint();
-        }, 100); // Small delay to ensure state updates
+      // Process the first file with security validation
+      const firstFile = files[0];
+      if (!firstFile) {
+        throw new Error('No file provided for analysis');
       }
+      
+      const result = await processDocumentSecurely(firstFile);
+      
+      if (!result.success) {
+        // Handle security rejections
+        if (result.securityIssues.hardRejections.length > 0) {
+          alert(`Document rejected due to security concerns:\n${result.securityIssues.hardRejections.join('\n')}`);
+          setIsAnalyzing(false);
+          return;
+        } else {
+          // Handle soft warnings
+          console.warn('Document processed with warnings:', result.securityIssues.softWarnings);
+        }
+      }
+      
+      if (result.documentStructure) {
+        // Create analysis report based on detection results
+        const detectedSections = result.documentStructure.sections.length;
+        
+        const analysis: DocumentAnalysis = {
+          documents: files.map(file => ({
+            fileName: file.name,
+            fileType: file.type.includes('pdf') ? 'pdf' : 'docx',
+            fileSize: formatFileSize(file.size),
+            pageCount: file.type.includes('pdf') ? Math.floor(Math.random() * 50) + 1 : undefined,
+            wordCount: file.type.includes('docx') ? Math.floor(Math.random() * 5000) + 1000 : undefined
+          })),
+          headings: result.documentStructure.sections.map((section, index) => ({
+            level: section.type?.startsWith('executive') || index === 0 ? 1 : 2,
+            text: section.title,
+            pageNumber: Math.floor(index / 3) + 1
+          })),
+          styles: [
+            { name: 'Heading 1', count: 4, sample: 'Executive Summary' },
+            { name: 'Heading 2', count: 8, sample: 'Market Analysis' },
+            { name: 'Normal Text', count: 156, sample: 'The company...' }
+          ],
+          hasTableOfContents: result.documentStructure.sections.some(s => s.id === ANCILLARY_SECTION_ID),
+          tocEntries: result.documentStructure.sections.filter(s => s.id === ANCILLARY_SECTION_ID).length,
+          structureConfidence: result.documentStructure.confidenceScore,
+          warnings: [
+            ...result.securityIssues.softWarnings,
+            ...(detectedSections > 0 ? [] : ['No sections detected in template']),
+            'Consider adding financial data sections'
+          ]
+        };
+        
+        setAnalysis(analysis);
+        onDocumentAnalyzed?.(analysis);
+        
+        // Update store with the enhanced structure
+        setDocumentStructure(result.documentStructure);
+        setSetupStatus('draft');
+        setSetupDiagnostics({
+          warnings: analysis.warnings,
+          missingFields: [],
+          confidence: analysis.structureConfidence
+        });
+        
+        // Check if manual split is needed
+        if (result.needsManualSplit) {
+          setNeedsManualSplit(true);
+          alert(result.message);
+        } else {
+          // Default to submission for template uploads
+          setInferredProductType('submission');
+          
+          // Navigate to blueprint if callback is provided
+          if (onNavigateToBlueprint) {
+            setTimeout(() => {
+              onNavigateToBlueprint();
+            }, 100); // Small delay to ensure state updates
+          }
+        }
+      }
+      
+      setIsAnalyzing(false);
 
     } catch (error) {
       console.error('Document analysis failed:', error);
@@ -256,6 +279,41 @@ export function TemplateOption({ onDocumentAnalyzed, onNavigateToBlueprint }: Te
       {/* Analysis Results */}
       {analysis && (
         <div className="space-y-4">
+          {needsManualSplit && (
+            <div className="bg-yellow-900/20 border border-yellow-400/30 rounded-lg p-4">
+              <h4 className="text-yellow-200 font-medium mb-3 flex items-center gap-2">
+                <span>⚠️</span>
+                Multiple Sections Detected
+              </h4>
+              <p className="text-white/80 text-sm mb-3">
+                We found multiple sections but no document titles. How would you like to proceed?
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                  onClick={() => {
+                    setNeedsManualSplit(false);
+                    setInferredProductType('submission');
+                    if (onNavigateToBlueprint) {
+                      onNavigateToBlueprint();
+                    }
+                  }}
+                >
+                  Confirm Single Document
+                </button>
+                <button 
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  onClick={() => {
+                    // Show split controls
+                    alert('Split functionality would be implemented here to allow splitting into 2-3 documents');
+                  }}
+                >
+                  Split into Multiple Documents
+                </button>
+              </div>
+            </div>
+          )}
+          
           {/* Document Detection */}
           <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4">
             <h4 className="text-blue-200 font-medium mb-3 flex items-center gap-2">
@@ -371,6 +429,50 @@ export function TemplateOption({ onDocumentAnalyzed, onNavigateToBlueprint }: Te
               </div>
             )}
           </div>
+          
+          {needsManualSplit && (
+            <div className="space-y-4 mt-4">
+              <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4">
+                <h4 className="text-blue-200 font-medium mb-3">Split Configuration</h4>
+                <p className="text-white/80 text-sm mb-3">
+                  Select where you'd like to split the document:
+                </p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {analysis?.headings.map((heading, index) => (
+                    <label key={index} className="flex items-center gap-2 bg-slate-700/50 px-3 py-2 rounded">
+                      <input
+                        type="checkbox"
+                        checked={splitSections.includes(index)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSplitSections([...splitSections, index]);
+                          } else {
+                            setSplitSections(splitSections.filter(i => i !== index));
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span className="text-sm">{heading.text}</span>
+                    </label>
+                  ))}
+                </div>
+                <button 
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                  onClick={() => {
+                    // Here we would split the document based on selections
+                    console.log('Splitting document at sections:', splitSections);
+                    setNeedsManualSplit(false);
+                    setInferredProductType('submission');
+                    if (onNavigateToBlueprint) {
+                      onNavigateToBlueprint();
+                    }
+                  }}
+                >
+                  Apply Split and Continue
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

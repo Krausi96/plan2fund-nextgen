@@ -122,7 +122,7 @@ export default function BlueprintInstantiationStep({
     if (!documentStructure?.sections) return {};
     
     // Sort sections by canonical order first
-    const sortedSections = sortSectionsByCanonicalOrder(documentStructure.sections);
+    const sortedSections = sortSectionsByCanonicalOrder(documentStructure.sections, documentStructure.documents || []);
     
     const grouped: Record<string, any[]> = {};
     sortedSections.forEach(section => {
@@ -144,11 +144,13 @@ export default function BlueprintInstantiationStep({
     // If no sections are grouped by documentId, show all sections under the single document
     if (Object.keys(sectionsByDoc).length === 0 && documentStructure?.sections?.length) {
       return sortSectionsByCanonicalOrder(
-        documentStructure.sections.filter(section => section.required !== false)
+        documentStructure.sections.filter(section => section.required !== false),
+        documentStructure.documents || []
       );
     }
     return sortSectionsByCanonicalOrder(
-      sectionsByDoc[documentId]?.filter(section => section.required !== false) || []
+      sectionsByDoc[documentId]?.filter(section => section.required !== false) || [],
+      documentStructure?.documents || []
     );
   };
 
@@ -157,11 +159,13 @@ export default function BlueprintInstantiationStep({
     // If no sections are grouped by documentId, show all sections under the single document
     if (Object.keys(sectionsByDoc).length === 0 && documentStructure?.sections?.length) {
       return sortSectionsByCanonicalOrder(
-        documentStructure.sections.filter(section => section.required === false)
+        documentStructure.sections.filter(section => section.required === false),
+        documentStructure.documents || []
       );
     }
     return sortSectionsByCanonicalOrder(
-      sectionsByDoc[documentId]?.filter(section => section.required === false) || []
+      sectionsByDoc[documentId]?.filter(section => section.required === false) || [],
+      documentStructure?.documents || []
     );
   };
 

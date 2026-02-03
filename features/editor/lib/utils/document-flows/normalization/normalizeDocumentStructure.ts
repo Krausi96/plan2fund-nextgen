@@ -65,7 +65,7 @@ export function normalizeDocumentStructure(
     };
     
     // Apply canonical ordering to ensure sections are in the proper order
-    const orderedSections = sortSectionsByCanonicalOrder(enhancedStructure.sections);
+    const orderedSections = sortSectionsByCanonicalOrder(enhancedStructure.sections, enhancedStructure.documents);
     
     return {
       ...enhancedStructure,
@@ -87,7 +87,7 @@ export function normalizeDocumentStructure(
   };
   
   // Apply canonical ordering to ensure sections are in the proper order
-  const orderedSections = sortSectionsByCanonicalOrder(structureWithCorrectDocuments.sections);
+  const orderedSections = sortSectionsByCanonicalOrder(structureWithCorrectDocuments.sections, structureWithCorrectDocuments.documents);
   
   return {
     ...structureWithCorrectDocuments,
@@ -170,7 +170,7 @@ export function mergeUploadedContentWithSpecialSections(
   const deduplicatedStructure = deduplicateSections(enhancedStructure);
   
   // Apply canonical ordering AFTER deduplication to ensure proper final order
-  const orderedSections = sortSectionsByCanonicalOrder(deduplicatedStructure.sections);
+  const orderedSections = sortSectionsByCanonicalOrder(deduplicatedStructure.sections, deduplicatedStructure.documents);
   
   const finalStructure = {
     ...deduplicatedStructure,

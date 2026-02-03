@@ -66,7 +66,7 @@ export default function TreeNavigator() {
   // Get sections from document structure and sort them
   const sections = React.useMemo(() => {
     const rawSections = documentStructure?.sections || [];
-    return sortSectionsByCanonicalOrder(rawSections);
+    return sortSectionsByCanonicalOrder(rawSections, documentStructure?.documents || []);
   }, [documentStructure]);
   
   // State for tree expansion/collapse
