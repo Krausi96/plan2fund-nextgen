@@ -9,10 +9,14 @@ export {
   normalizeProgramSetup,
 } from './program-flows/data-processing/programNormalizer';
 export {
-  generateProgramBlueprint,
-  migrateLegacySetup,
   generateDocumentStructureFromProfile,
 } from './program-flows/structure-generation/structureGenerator';
+
+// Export conversion functions
+export { generateProgramBlueprint } from './program-flows/conversion/programConverter';
+
+// Export legacy conversion functions
+export { migrateLegacySetup } from './legacy-conversion/legacyMigrator';
 
 // Additional utilities from other modules
 export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from './blueprint-flows/document-instantiation/instantiateFromBlueprint';

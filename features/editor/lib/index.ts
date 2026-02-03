@@ -193,10 +193,14 @@ export {
   normalizeFundingProgram,
 } from './utils/program-flows/data-processing/programNormalizer';
 export {
-  generateProgramBlueprint,
-  migrateLegacySetup,
   generateDocumentStructureFromProfile,
 } from './utils/program-flows/structure-generation/structureGenerator';
+
+// Conversion utilities
+export { generateProgramBlueprint } from './utils/program-flows/conversion/programConverter';
+
+// Legacy conversion utilities
+export { migrateLegacySetup } from './utils/legacy-conversion/legacyMigrator';
 
 // Blueprint Instantiation utilities
 export {
