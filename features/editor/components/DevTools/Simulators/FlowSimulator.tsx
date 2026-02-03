@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useEditorStore, useConfiguratorState, mergeUploadedContentWithSpecialSections } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
-type SimulationType = 'templateUpload' | 'recoWizard' | 'urlParsing' | 'freeOption' | 'badTemplateUpload' | 'debugCanonicalOrdering';
+type SimulationType = 'templateUpload' | 'recoWizard' | 'urlParsing' | 'freeOption';
 
 interface SimulationResult {
   type: SimulationType;
@@ -169,6 +169,209 @@ export function FlowSimulator() {
               { id: 'canvas_val_prop', title: 'Value Propositions', content: 'Value proposition details' },
               { id: 'canvas_key_act', title: 'Key Activities', content: 'Key business activities' }
             ]
+          },
+          // Additional documents with intentional mistakes
+          { 
+            title: '', 
+            content: 'Section with no name', 
+            type: 'unknown_type',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Duplicate Section', 
+            content: 'First occurrence', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Duplicate Section', 
+            content: 'Second occurrence', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Very Long Section Name That Exceeds Reasonable Limits And Might Cause Display Issues In The UI Because It Is Extremely Long And Unwieldy', 
+            content: 'Long name test content', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Section with <script>alert("xss")</script> malicious content', 
+            content: 'Malicious content test', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: '   ', 
+            content: 'Section with only whitespace name', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Another Duplicate Section', 
+            content: 'First occurrence', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Another Duplicate Section', 
+            content: 'Second occurrence', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Tabbed	Section', 
+            content: 'Section with tab character in title', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Newlined\nSection', 
+            content: 'Section with newline character in title', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Special!@#$%Section', 
+            content: 'Section with special characters in title', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'HTML&Entity;Section', 
+            content: 'Section with HTML entities in title', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Empty Content Section', 
+            content: '', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Extremely Long Content Section', 
+            content: 'A'.repeat(10000), 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Zero Width Space Section​', 
+            content: 'Section with zero-width space character', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Multiple    Spaces    In    Title', 
+            content: 'Section with multiple spaces in title', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'UTF-8: café résumé naïve', 
+            content: 'Section with UTF-8 characters', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Emoji Section 😂🚀🎉', 
+            content: 'Section with emoji characters', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Non-breaking Space Section ', 
+            content: 'Section with non-breaking space character', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Chinese Characters 漢字', 
+            content: 'Section with Chinese characters', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Arabic Text عربي', 
+            content: 'Section with Arabic text', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Russian Text Русский', 
+            content: 'Section with Russian text', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Binary Data \x00\x01\x02\x03', 
+            content: 'Section with binary-like data in title', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'SQL Injection Attempt', 
+            content: "SELECT * FROM users WHERE name = 'admin'; DROP TABLE users; --", 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'JavaScript Injection Attempt', 
+            content: '<img src=x onerror=alert("XSS")>', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'CSS Injection Attempt', 
+            content: 'color: red; background-image: url(javascript:alert("XSS"));', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'XML External Entity Attempt', 
+            content: '<?xml version="1.0" encoding="ISO-8859-1"?><!DOCTYPE foo [ <!ELEMENT foo ANY ><!ENTITY xxe SYSTEM "file:///etc/passwd" >]><foo>&xxe;</foo>', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Command Injection Attempt', 
+            content: 'rm -rf / && echo "dangerous command"', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Path Traversal Attempt', 
+            content: '../../../../etc/passwd', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Long Unicode Sequence', 
+            content: 'U+0000 U+0001 U+0002 U+0003 U+0004 U+0005 U+0006 U+0007 U+0008 U+0009', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Control Characters \x00\x01\x02\x03\x04\x05\x06\x07\x08\x09', 
+            content: 'Section with control characters', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Invalid UTF-8 Sequence', 
+            content: '\xFF\xFE\xFD', 
+            type: 'general',
+            rawSubsections: [] 
+          },
+          { 
+            title: 'Very Long Subsections Section', 
+            content: 'Section with many subsections', 
+            type: 'general',
+            rawSubsections: Array.from({length: 100}, (_, i) => ({
+              id: `subsec_${i}`, 
+              title: `Subsection ${i}`, 
+              content: `Content for subsection ${i}`
+            }))
           },
           { 
             title: 'Tables and Data', 
@@ -698,213 +901,11 @@ export function FlowSimulator() {
   
 
   
-  const simulateBadTemplateUpload = async () => {
-    setIsRunning(true);
-    addResult({ type: 'badTemplateUpload', status: 'running', message: 'Starting bad template upload simulation with comprehensive bad examples...' });
-    
-    try {
-      // Simulate file upload with problematic data
-      const mockFile = {
-        name: 'problematic_template.docx',
-        size: 102400, // 0.1 MB
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      };
-      
-      // Simulate problematic extracted content from the document
-      // Including various edge cases
-      const extractedContent = {
-        title: 'Problematic Business Plan',
-        sections: [
-          { title: 'Section 1', content: 'Just some random content...', type: 'unknown_type', rawSubsections: [] },
-          { title: 'Section 2', content: 'Content with minimal issues', type: 'general', rawSubsections: [] },
-          { title: 'Executive Summary', content: 'Executive summary content', type: 'executive_summary', rawSubsections: [] },
-          { title: 'Company Overview', content: 'Company overview content', type: 'company_description', rawSubsections: [] },
-          { title: 'Market Analysis', content: 'Market analysis content', type: 'market_analysis', rawSubsections: [] },
-          { title: 'Financial Plan', content: 'Financial plan content', type: 'financial_plan', rawSubsections: [] },
-          // Standard special sections
-          { title: 'References', content: 'Some references', type: 'references', rawSubsections: [] },
-          { title: 'Appendices', content: 'Some appendices', type: 'appendices', rawSubsections: [] },
-          { title: 'Tables and Data', content: 'Table content', type: 'tables_data', rawSubsections: [] },
-          { title: 'Figures and Images', content: 'Figure content', type: 'figures_images', rawSubsections: [] },
-          // Intentionally problematic sections
-          { title: '', content: 'Section with no name', type: 'general', rawSubsections: [] }, // No section name
-          { title: 'Duplicate Section', content: 'First occurrence', type: 'general', rawSubsections: [] },
-          { title: 'Duplicate Section', content: 'Second occurrence', type: 'general', rawSubsections: [] }, // Duplicate section
-          { title: 'Very Long Section Name That Exceeds Reasonable Limits And Might Cause Display Issues In The UI Because It Is Extremely Long And Unwieldy', content: 'Long name test', type: 'general', rawSubsections: [] }, // Very long name
-          { title: 'Section with <script>alert("xss")</script> malicious content', content: 'Malicious content test', type: 'general', rawSubsections: [] }, // Potential XSS
-          { title: '   ', content: 'Section with only whitespace name', type: 'general', rawSubsections: [] }, // Whitespace-only name
-          { title: 'Normal Section Again', content: 'Another normal section', type: 'general', rawSubsections: [] },
-          { title: 'Another Duplicate Section', content: 'First occurrence', type: 'general', rawSubsections: [] },
-          { title: 'Another Duplicate Section', content: 'Second occurrence', type: 'general', rawSubsections: [] }  // Another duplicate
-        ],
-        hasTitlePage: true,
-        hasTOC: true,
-        totalPages: 10,
-        wordCount: 2000
-      };
-      
-      // Use the unified function to merge problematic content with special sections
-      const finalStructure = mergeUploadedContentWithSpecialSections(extractedContent, null, t as (key: string) => string);
-      
-      setDocumentStructure(finalStructure);
-      setSetupStatus('draft');
-      setSetupDiagnostics({
-        warnings: finalStructure.warnings,
-        missingFields: [],
-        confidence: finalStructure.confidenceScore
-      });
-      
-      // Update configurator state to reflect template upload
-      configuratorActions.setProgramSummary({
-        id: 'template-upload-' + Date.now(),
-        name: 'Template Upload',
-        type: 'template',
-        organization: 'Local File',
-        setupStatus: 'draft' as const
-      });
-      
-      // Count special sections in the final structure
-      const specialSectionsAdded = finalStructure.sections.filter((s: any) => ['metadata', 'ancillary', 'references', 'appendices', 'tables_data', 'figures_images'].includes(s.id)).length;
-      
-      addResult({ 
-        type: 'badTemplateUpload', 
-        status: 'success', 
-        message: 'Bad template upload simulation completed - tested comprehensive error handling',
-        details: { 
-          fileName: mockFile.name, 
-          fileSize: `${(mockFile.size / 1024 / 1024).toFixed(1)} MB`, 
-          sections: finalStructure.sections.length,
-          specialSectionsAdded: specialSectionsAdded,
-          source: finalStructure.source,
-          confidenceScore: finalStructure.confidenceScore,
-          warnings: finalStructure.warnings.length
-        }
-      });
-    } catch (error) {
-      addResult({ 
-        type: 'badTemplateUpload', 
-        status: 'error', 
-        message: `Bad template upload simulation failed: ${(error as Error).message}`
-      });
-    } finally {
-      setIsRunning(false);
-    }
-  };
+
   
-  const simulateDebugCanonicalOrdering = async () => {
-    setIsRunning(true);
-    addResult({ type: 'debugCanonicalOrdering', status: 'running', message: 'Starting comprehensive canonical ordering debug simulation with all bad examples...' });
-    
-    try {
-      // Simulate content that should demonstrate canonical ordering with all bad examples
-      const mockContentWithSpecialSections = {
-        title: 'Test Business Plan',
-        sections: [
-          // Core business plan sections
-          { title: 'Executive Summary', content: 'Executive summary...', type: 'executive_summary' },
-          { title: 'Company Overview', content: 'About the company...', type: 'company_description' },
-          { title: 'Market Analysis', content: 'Market research...', type: 'market_analysis' },
-          { title: 'Financial Plan', content: 'Financial details...', type: 'financial_plan' },
-          { title: 'Team Qualifications', content: 'Team member details...', type: 'team_qualifications' },
-          // Special sections
-          { title: 'References', content: 'Sources and citations...', type: 'references' },
-          { title: 'Appendices', content: 'Additional supporting materials...', type: 'appendices' },
-          { title: 'Tables and Data', content: 'Detailed tables...', type: 'tables_data' },
-          { title: 'Figures and Images', content: 'Charts and diagrams...', type: 'figures_images' },
-          { title: 'Title Page', content: 'Document title page...', type: 'metadata' },
-          { title: 'Table of Contents', content: 'Table of contents...', type: 'ancillary' },
-        ],
-        hasTitlePage: true,
-        hasTOC: true,
-        totalPages: 30,
-        wordCount: 8000
-      };
-      
-      // Log the original order before processing
-      console.log('DEBUG: Original section order:', mockContentWithSpecialSections.sections.map(s => s.title));
-      
-      // Apply the unified merge function
-      const processedStructure = mergeUploadedContentWithSpecialSections(mockContentWithSpecialSections, null, t as (key: string) => string);
-      
-      // Log the final order after processing
-      console.log('DEBUG: Final section order after mergeUploadedContentWithSpecialSections:', processedStructure.sections.map((s: any) => ({ title: s.title, id: s.id })));
-      
-      // Analyze the canonical ordering
-      const sectionOrderAnalysis = processedStructure.sections.map((section: any, index: number) => ({
-        index,
-        id: section.id,
-        title: section.title,
-        canonicalPosition: getCanonicalPosition(section.id)
-      }));
-      
-      setDocumentStructure(processedStructure);
-      setSetupStatus('draft');
-      setSetupDiagnostics({
-        warnings: processedStructure.warnings,
-        missingFields: [],
-        confidence: processedStructure.confidenceScore
-      });
-      
-      // Update configurator state to reflect debug canonical ordering results
-      configuratorActions.setProgramSummary({
-        id: 'debug-canonical-ordering-' + Date.now(),
-        name: 'Debug Canonical Ordering',
-        type: 'debug',
-        organization: 'Testing Framework',
-        setupStatus: 'draft' as const
-      });
-      
-      addResult({ 
-        type: 'debugCanonicalOrdering', 
-        status: 'success', 
-        message: 'Debug canonical ordering simulation completed - see console for details',
-        details: { 
-          originalSections: mockContentWithSpecialSections.sections.length,
-          finalSections: processedStructure.sections.length,
-          confidenceScore: processedStructure.confidenceScore,
-          warnings: processedStructure.warnings.length,
-          sectionOrderAnalysis: sectionOrderAnalysis
-        }
-      });
-    } catch (error) {
-      addResult({ 
-        type: 'debugCanonicalOrdering', 
-        status: 'error', 
-        message: `Debug canonical ordering simulation failed: ${(error as Error).message}`
-      });
-    } finally {
-      setIsRunning(false);
-    }
-  };
+
   
-  // Helper function to determine canonical position
-  const getCanonicalPosition = (sectionId: string): number => {
-    const canonicalOrder = [
-      'metadata',      // Title Page
-      'ancillary',     // Table of Contents
-      'executive_summary',
-      'company_description',
-      'project_description',
-      'market_analysis',
-      'financial_plan',
-      'team_qualifications',
-      'risk_assessment',
-      'business_model_canvas',
-      'go_to_market_strategy',
-      'unit_economics',
-      'milestones_next_steps',
-      'company_overview',
-      'about_company',
-      'company_information',
-      'references',    // References
-      'tables_data',   // Tables/Data
-      'figures_images',// Figures/Images
-      'appendices'     // Appendices
-    ];
-    
-    const position = canonicalOrder.indexOf(sectionId);
-    return position !== -1 ? position : 999; // Regular sections get high position
-  };
+
   
   const runSelectedSimulation = async () => {
     switch (selectedSimulation) {
@@ -922,12 +923,7 @@ export function FlowSimulator() {
       case 'freeOption':
         await simulateFreeOption();
         break;
-      case 'badTemplateUpload':
-        await simulateBadTemplateUpload();
-        break;
-      case 'debugCanonicalOrdering':
-        await simulateDebugCanonicalOrdering();
-        break;
+
       default:
         addResult({ 
           type: selectedSimulation, 
@@ -955,8 +951,7 @@ export function FlowSimulator() {
           <option value="recoWizard">Reco Wizard</option>
           <option value="urlParsing">URL Parsing</option>
           <option value="freeOption">Free Option</option>
-          <option value="badTemplateUpload">Bad Template Upload (Error Test)</option>
-          <option value="debugCanonicalOrdering">Debug Canonical Ordering</option>
+
         </select>
         
         <button 
