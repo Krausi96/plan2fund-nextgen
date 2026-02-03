@@ -16,7 +16,6 @@ export {
   normalizeProgramInput,
   normalizeFundingProgram,
   normalizeProgramSetup,
-  generateProgramBlueprint,
   generateDocumentStructureFromProfile,
 } from './step2-document-setup/processProgramData';
 
