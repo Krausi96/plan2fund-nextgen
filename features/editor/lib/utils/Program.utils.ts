@@ -18,8 +18,6 @@ export {
   normalizeProgramSetup,
   generateProgramBlueprint,
   generateDocumentStructureFromProfile,
-  parseProgramFromUrl,
-  migrateLegacySetup,
 } from './step2-document-setup/processProgramData';
 
 // Re-export blueprint instantiation functions from their new location
