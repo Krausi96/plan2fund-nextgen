@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useEditorStore, useConfiguratorState, mergeUploadedContentWithSpecialSections } from '@/features/editor/lib';
+import { useEditorStore, useConfiguratorState, mergeUploadedContentWithSpecialSections, detectSpecialSections } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 type SimulationType = 'templateUpload' | 'recoWizard' | 'urlParsing' | 'freeOption';
@@ -40,9 +40,12 @@ export function FlowSimulator() {
   
 
   
-  // Function to simulate detection logic processing
+  // Function to simulate comprehensive detection logic processing
   const processStructureWithDetectionLogic = (structure: any) => {
     const warnings: string[] = [];
+    
+    // Use the real detection logic to detect special sections
+    const detectionResults = detectSpecialSections(structure);
     
     // Identify and flag sections with no names
     const unnamedSections = structure.sections.filter((s: any) => !s.title.trim());
@@ -97,13 +100,16 @@ export function FlowSimulator() {
     
     // Calculate confidence score based on issues found
     const totalIssues = unnamedSections.length + duplicates.length + longNames.length + xssSections.length + whitespaceOnlySections.length + specialCharSections.length;
-    const confidenceScore = Math.max(10, 100 - (totalIssues * 2)); // Each issue reduces confidence by 2 points
+    const baseConfidence = Math.max(10, 100 - (totalIssues * 2)); // Each issue reduces confidence by 2 points
+    
+    // Adjust confidence based on special section detection results
+    const adjustedConfidence = Math.min(baseConfidence, 95); // Cap at 95% for realistic values
     
     // Return processed structure with warnings and updated confidence
     return {
       ...structure,
       warnings: [...structure.warnings, ...warnings],
-      confidenceScore,
+      confidenceScore: adjustedConfidence,
       // Optionally, we could also "fix" some issues here in a real implementation
       sections: structure.sections.map((section: any) => {
         // Sanitize potential XSS content
@@ -130,7 +136,9 @@ export function FlowSimulator() {
           title: sanitizedTitle,
           content: sanitizedContent
         };
-      })
+      }),
+      // Include detection results for debugging
+      detectionResults
     };
   };
   
@@ -517,19 +525,53 @@ export function FlowSimulator() {
         setupStatus: 'draft' as const
       });
       
-      // Count special sections in the final structure
-      const specialSectionsAdded = finalStructure.sections.filter((s: any) => ['metadata', 'ancillary', 'references', 'appendices', 'tables_data', 'figures_images'].includes(s.id)).length;
+      // Count special sections in the processed structure
+      const specialSectionsAdded = processedStructure.sections.filter((s: any) => ['metadata', 'ancillary', 'references', 'appendices', 'tables_data', 'figures_images'].includes(s.id)).length;
+      
+      // Extract detection results info
+      const detectionResultsInfo = processedStructure.detectionResults || {};
+      const detectedSpecialSections = Object.keys(detectionResultsInfo).filter(key => detectionResultsInfo[key]?.found).length;
       
       addResult({ 
         type: 'templateUpload', 
         status: 'success', 
-        message: 'Template upload simulation completed with unified merge flow',
+        message: 'Template upload simulation completed with comprehensive detection logic',
         details: { 
           fileName: mockFile.name, 
           fileSize: `${(mockFile.size / 1024 / 1024).toFixed(1)} MB`, 
-          sections: finalStructure.sections.length,
+          sections: processedStructure.sections.length,
           specialSectionsAdded: specialSectionsAdded,
-          source: finalStructure.source
+          source: processedStructure.source,
+          confidenceScore: processedStructure.confidenceScore,
+          warningsCount: processedStructure.warnings.length,
+          detectedSpecialSections: detectedSpecialSections,
+          detectionResults: detectionResultsInfo,
+          issuesFound: {
+            unnamedSections: extractedContent.sections.filter((s: any) => !s.title.trim()).length,
+            duplicateSections: (() => {
+              const sectionTitles = extractedContent.sections.map((s: any) => s.title);
+              const duplicates = sectionTitles.filter((title: string, index: number) => 
+                sectionTitles.indexOf(title) !== index && title.trim()
+              );
+              return new Set(duplicates).size;
+            })(),
+            longNameSections: extractedContent.sections.filter((s: any) => s.title.length > 100).length,
+            xssAttempts: extractedContent.sections.filter((s: any) => 
+              s.title?.includes('<script>') || 
+              s.content?.includes('<script>') ||
+              s.title?.includes('javascript:') ||
+              s.content?.includes('javascript:')
+            ).length,
+            whitespaceOnlySections: extractedContent.sections.filter((s: any) => s.title.trim() === '' && s.title !== '').length,
+            injectionAttempts: extractedContent.sections.filter((s: any) => 
+              s.title?.includes('DROP TABLE') ||
+              s.title?.includes('SELECT * FROM') ||
+              s.content?.includes('DROP TABLE') ||
+              s.content?.includes('SELECT * FROM') ||
+              s.title?.includes('../../') ||
+              s.content?.includes('../../')
+            ).length
+          }
         }
       });
     } catch (error) {
