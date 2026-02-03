@@ -67,10 +67,10 @@ export function FlowSimulator() {
     
     // Identify and flag potential XSS attempts
     const xssSections = structure.sections.filter((s: any) => 
-      s.title.includes('<script>') || 
-      s.content.includes('<script>') ||
-      s.title.includes('javascript:') ||
-      s.content.includes('javascript:')
+      s.title?.includes('<script>') || 
+      s.content?.includes('<script>') ||
+      s.title?.includes('javascript:') ||
+      s.content?.includes('javascript:')
     );
     if (xssSections.length > 0) {
       warnings.push(`Detected ${xssSections.length} sections with potential XSS attempts - these should be sanitized`);
@@ -84,12 +84,12 @@ export function FlowSimulator() {
     
     // Identify and flag sections with special characters that might be injection attempts
     const specialCharSections = structure.sections.filter((s: any) => 
-      s.title.includes('DROP TABLE') ||
-      s.title.includes('SELECT * FROM') ||
-      s.content.includes('DROP TABLE') ||
-      s.content.includes('SELECT * FROM') ||
-      s.title.includes('../../') ||
-      s.content.includes('../../')
+      s.title?.includes('DROP TABLE') ||
+      s.title?.includes('SELECT * FROM') ||
+      s.content?.includes('DROP TABLE') ||
+      s.content?.includes('SELECT * FROM') ||
+      s.title?.includes('../../') ||
+      s.content?.includes('../../')
     );
     if (specialCharSections.length > 0) {
       warnings.push(`Detected ${specialCharSections.length} sections with potential injection attempts - these should be sanitized`);
@@ -118,6 +118,11 @@ export function FlowSimulator() {
         if (typeof sanitizedContent === 'string') {
           sanitizedContent = sanitizedContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '[SCRIPT TAG REMOVED]');
           sanitizedContent = sanitizedContent.replace(/javascript:/gi, '[JAVASCRIPT PROTOCOL REMOVED]');
+        }
+        
+        // Handle null or undefined content
+        if (sanitizedContent == null) {
+          sanitizedContent = '';
         }
         
         return {
