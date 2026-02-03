@@ -40,6 +40,95 @@ export function FlowSimulator() {
   
 
   
+  // Function to simulate detection logic processing
+  const processStructureWithDetectionLogic = (structure: any) => {
+    const warnings: string[] = [];
+    
+    // Identify and flag sections with no names
+    const unnamedSections = structure.sections.filter((s: any) => !s.title.trim());
+    if (unnamedSections.length > 0) {
+      warnings.push(`Detected ${unnamedSections.length} unnamed sections - these should have descriptive titles`);
+    }
+    
+    // Identify and flag duplicate section names
+    const sectionTitles = structure.sections.map((s: any) => s.title);
+    const duplicates = sectionTitles.filter((title: string, index: number) => 
+      sectionTitles.indexOf(title) !== index && title.trim()
+    );
+    if (duplicates.length > 0) {
+      warnings.push(`Detected ${new Set(duplicates).size} duplicate section titles - these should be unique`);
+    }
+    
+    // Identify and flag very long section names
+    const longNames = structure.sections.filter((s: any) => s.title.length > 100);
+    if (longNames.length > 0) {
+      warnings.push(`Detected ${longNames.length} sections with very long names (>100 chars) - these may cause display issues`);
+    }
+    
+    // Identify and flag potential XSS attempts
+    const xssSections = structure.sections.filter((s: any) => 
+      s.title.includes('<script>') || 
+      s.content.includes('<script>') ||
+      s.title.includes('javascript:') ||
+      s.content.includes('javascript:')
+    );
+    if (xssSections.length > 0) {
+      warnings.push(`Detected ${xssSections.length} sections with potential XSS attempts - these should be sanitized`);
+    }
+    
+    // Identify and flag sections with only whitespace names
+    const whitespaceOnlySections = structure.sections.filter((s: any) => s.title.trim() === '' && s.title !== '');
+    if (whitespaceOnlySections.length > 0) {
+      warnings.push(`Detected ${whitespaceOnlySections.length} sections with only whitespace in titles - these should be corrected`);
+    }
+    
+    // Identify and flag sections with special characters that might be injection attempts
+    const specialCharSections = structure.sections.filter((s: any) => 
+      s.title.includes('DROP TABLE') ||
+      s.title.includes('SELECT * FROM') ||
+      s.content.includes('DROP TABLE') ||
+      s.content.includes('SELECT * FROM') ||
+      s.title.includes('../../') ||
+      s.content.includes('../../')
+    );
+    if (specialCharSections.length > 0) {
+      warnings.push(`Detected ${specialCharSections.length} sections with potential injection attempts - these should be sanitized`);
+    }
+    
+    // Calculate confidence score based on issues found
+    const totalIssues = unnamedSections.length + duplicates.length + longNames.length + xssSections.length + whitespaceOnlySections.length + specialCharSections.length;
+    const confidenceScore = Math.max(10, 100 - (totalIssues * 2)); // Each issue reduces confidence by 2 points
+    
+    // Return processed structure with warnings and updated confidence
+    return {
+      ...structure,
+      warnings: [...structure.warnings, ...warnings],
+      confidenceScore,
+      // Optionally, we could also "fix" some issues here in a real implementation
+      sections: structure.sections.map((section: any) => {
+        // Sanitize potential XSS content
+        let sanitizedTitle = section.title;
+        let sanitizedContent = section.content;
+        
+        if (typeof sanitizedTitle === 'string') {
+          sanitizedTitle = sanitizedTitle.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '[SCRIPT TAG REMOVED]');
+          sanitizedTitle = sanitizedTitle.replace(/javascript:/gi, '[JAVASCRIPT PROTOCOL REMOVED]');
+        }
+        
+        if (typeof sanitizedContent === 'string') {
+          sanitizedContent = sanitizedContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '[SCRIPT TAG REMOVED]');
+          sanitizedContent = sanitizedContent.replace(/javascript:/gi, '[JAVASCRIPT PROTOCOL REMOVED]');
+        }
+        
+        return {
+          ...section,
+          title: sanitizedTitle,
+          content: sanitizedContent
+        };
+      })
+    };
+  };
+  
   const simulateTemplateUpload = async () => {
     setIsRunning(true);
     addResult({ type: 'templateUpload', status: 'running', message: 'Starting template upload simulation with comprehensive test cases...' });
@@ -403,12 +492,15 @@ export function FlowSimulator() {
       // Use the unified function to merge uploaded content with special sections
       const finalStructure = mergeUploadedContentWithSpecialSections(extractedContent, null, t as (key: string) => string);
       
-      setDocumentStructure(finalStructure);
+      // Process the structure through detection logic to identify and handle bad examples
+      const processedStructure = processStructureWithDetectionLogic(finalStructure);
+      
+      setDocumentStructure(processedStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({
-        warnings: finalStructure.warnings,
+        warnings: processedStructure.warnings,
         missingFields: [],
-        confidence: finalStructure.confidenceScore
+        confidence: processedStructure.confidenceScore
       });
       
       // Update configurator state to reflect template upload
