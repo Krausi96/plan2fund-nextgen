@@ -6,7 +6,7 @@
  * This file only attaches detected content to existing sections - no new sections are created.
  */
 
-import type { DocumentStructure } from '../../../types/Program-Types';
+import type { DocumentStructure } from '../../../types/program/program-types';
 import type { DetectionMap } from '../types';
 import {
   METADATA_SECTION_ID,

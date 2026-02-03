@@ -5,7 +5,7 @@
  */
 
 import type { ProgramSummary } from '../../../types/types';
-import type { FundingProgram } from '../../../types/Program-Types';
+import type { FundingProgram } from '../../../types/program/program-types';
 
 /**
  * Normalize raw program data into FundingProgram format

@@ -5,7 +5,7 @@
  */
 
 import type { ProductType, PlanSection, PlanDocument } from '../../../types/types';
-import type { DocumentStructure } from '../../../types/Program-Types';
+import type { DocumentStructure } from '../../../types/program/program-types';
 
 /**
  * Infer ProductType from DocumentStructure characteristics

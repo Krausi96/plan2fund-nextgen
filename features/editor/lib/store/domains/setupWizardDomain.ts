@@ -4,7 +4,7 @@ import type {
   DocumentTemplateId,
   ProductType
 } from '../../types/types';
-import type { DocumentStructure, SetupDiagnostics, FundingProgram } from '../../types/Program-Types';
+import type { DocumentStructure, SetupDiagnostics, FundingProgram } from '../../types/program/program-types';
 
 export interface SetupWizardStateExtended extends SetupWizardState {
   // Extended with any additional properties if needed

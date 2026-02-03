@@ -49,36 +49,28 @@
 // TYPES - Type definitions only
 // ============================================================================
 
-export type {
-  ProductType,
-  ProductOption,
-  TitlePage,
-  PlanSection,
-  PlanDocument,
-  BusinessPlan,
-  ProgramSummary,
-  ConversationMessage,
-  QuestionStatus,
-  SectionTemplate,
-  DocumentTemplate,
-  DropdownPosition,
-  DropdownPositionOptions,
-  EditHandlers,
-  ToggleHandlers,
-  ConnectCopy,
-  ProjectProfile,
-  DocumentTemplateId,
-  SetupWizardState,
-} from './types/types';
+// Core types
+export type { ProductType, ProductOption } from './types/core/product-types';
+export type { SubsectionTemplate, SectionTemplate, DocumentTemplate } from './types/core/template-types';
 
-// Document Setup types
-export type {
-  FundingProgram,
-  DocumentStructure,
-  SetupDiagnostics,
-  SetupStatus,
-  SetupSource,
-} from './types/Program-Types';
+// Document types
+export type { TitlePage, PlanSection, PlanDocument, BusinessPlan, SectionWithMetadata, DocumentWithMetadata } from './types/documents/document-types';
+
+// Program types
+export type { FundingProgram, DocumentStructure, ProgramSummary } from './types/program/program-types';
+
+// Workflow types
+export type { ProjectProfile, DocumentTemplateId, SetupWizardState } from './types/workflow/setup-types';
+
+// UI types
+export type { DropdownPosition, DropdownPositionOptions, EditHandlers, ToggleHandlers, ConnectCopy } from './types/ui/ui-components';
+export type { TreeNode } from './types/ui/navigation-types';
+
+// AI types
+export type { ConversationMessage, QuestionStatus } from './types/ai/ai-types';
+
+// Diagnostic types
+export type { SetupDiagnostics, SetupStatus, SetupSource } from './types/ai/diagnostics-types';
 
 // ============================================================================
 // STORE - Zustand store + types
@@ -94,10 +86,7 @@ export type {
   EditorState,
 } from './store/editorStore';
 
-export type {
-  SectionWithMetadata,
-  DocumentWithMetadata,
-} from './types/types';
+// SectionWithMetadata and DocumentWithMetadata are already exported above in the TYPES section
 
 // ============================================================================
 // CONSTANTS - Constants and IDs

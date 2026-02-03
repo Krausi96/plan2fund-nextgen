@@ -7,7 +7,7 @@
  * This file handles section creation - ensuring system sections exist in document structures.
  */
 
-import type { DocumentStructure } from '../../../types/Program-Types';
+import type { DocumentStructure } from '../../../types/program/program-types';
 import type { TranslationFunction } from '../types';
 import {
   METADATA_SECTION_ID,
