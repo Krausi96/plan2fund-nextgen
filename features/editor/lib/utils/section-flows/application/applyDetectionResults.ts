@@ -6,8 +6,8 @@
  * This file only attaches detected content to existing sections - no new sections are created.
  */
 
-import type { DocumentStructure } from '../../types/Program-Types';
-import type { DetectionMap } from './types';
+import type { DocumentStructure } from '../../../types/Program-Types';
+import type { DetectionMap } from '../types';
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
@@ -15,7 +15,7 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../constants';
+} from '../../../constants';
 
 /**
  * Apply detection results to a document structure

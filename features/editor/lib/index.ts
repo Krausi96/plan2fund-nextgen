@@ -183,39 +183,33 @@ export {
   shouldIgnoreClick,
 } from './utils';
 
-// Program utilities (now in Program.utils.ts)
+// Program utilities
 export {
   normalizeProgramInput,
-} from './utils/Program.utils';
+} from './utils/program-flows/input-handling/urlParser';
 
 // Document Setup utilities
 export {
   normalizeFundingProgram,
+} from './utils/program-flows/data-processing/programNormalizer';
+export {
+  generateProgramBlueprint,
   migrateLegacySetup,
   generateDocumentStructureFromProfile,
+} from './utils/program-flows/structure-generation/structureGenerator';
+
+// Blueprint Instantiation utilities
+export {
   inferProductTypeFromBlueprint,
   instantiateFromBlueprint,
-  // Simplified/deprecated functions
-  parseProgramFromUrl, // @deprecated - use direct program input
-  generateProgramBlueprint, // @deprecated - use normalizeFundingProgram instead
-} from './utils/Program.utils';
+} from './utils/blueprint-flows/document-instantiation/instantiateFromBlueprint';
 
 // Section Detection utilities
-export {
-  detectSpecialSections,
-  enhanceWithSpecialSections,
-  applyDetectionResults,
-  sortSectionsByCanonicalOrder,
-  getCompleteSectionList,
-  getSectionIcon,
-  isSpecialSection,
-} from './utils/Program.utils';
-
-// Document normalization utilities
-export {
-  normalizeDocumentStructure,
-  mergeUploadedContentWithSpecialSections,
-} from './utils/Program.utils';
+export { sortSectionsByCanonicalOrder, getCompleteSectionList, getSectionIcon, isSpecialSection } from './utils/section-flows/utilities/sectionUtilities';
+export { detectSpecialSections } from './utils/section-flows/detection/detectSpecialSections';
+export { enhanceWithSpecialSections } from './utils/section-flows/enhancement/enhanceWithSpecialSections';
+export { applyDetectionResults } from './utils/section-flows/application/applyDetectionResults';
+export { normalizeDocumentStructure, mergeUploadedContentWithSpecialSections } from './utils/document-flows/normalization/normalizeDocumentStructure';
 
 // ============================================================================
 // AI CLIENT - Section AI functionality
@@ -250,10 +244,4 @@ export {
   addCustomDocument,
   addCustomSection,
   addCustomSubsection,
-  // Service functions
-  createBlueprint,
-  normalizeTemplate,
-  // State interfaces
-  initialBlueprintState,
-  initialPlanInstanceState,
 } from './templates';

@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/utils/Program.utils';
+import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/utils/document-flows/normalization/normalizeDocumentStructure';
 import { ANCILLARY_SECTION_ID } from '@/features/editor/lib/constants';
-import { extractContentFromFiles } from '@/features/editor/lib/utils/document-processing/documentProcessor';
+import { extractContentFromFiles } from '@/features/editor/lib/utils/document-flows/processing/documentProcessor';
 
 // Types for UpgradeOption component
 interface DetectedDocument {
@@ -120,7 +120,7 @@ export function UpgradeOption({ onNavigateToBlueprint }: UpgradeOptionProps) {
           pageCount: file.type.includes('pdf') ? Math.floor(file.size / 50000) + 1 : undefined, // Rough estimate
           wordCount: file.type.includes('docx') ? Math.floor(file.size / 10) : undefined // Rough estimate
         })),
-        headings: baseStructure.sections.slice(0, 20).map((section, index) => ({
+        headings: baseStructure.sections.slice(0, 20).map((section: any, index: number) => ({
           level: index < 5 ? 1 : 2,
           text: section.title,
           pageNumber: Math.floor(index / 3) + 1

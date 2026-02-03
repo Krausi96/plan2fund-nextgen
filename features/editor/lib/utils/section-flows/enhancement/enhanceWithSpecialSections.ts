@@ -7,8 +7,8 @@
  * This file handles section creation - ensuring system sections exist in document structures.
  */
 
-import type { DocumentStructure } from '../../types/Program-Types';
-import type { TranslationFunction } from './types';
+import type { DocumentStructure } from '../../../types/Program-Types';
+import type { TranslationFunction } from '../types';
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
@@ -16,7 +16,7 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../constants';
+} from '../../../constants';
 
 /**
  * Convert SectionTemplate to document structure section format

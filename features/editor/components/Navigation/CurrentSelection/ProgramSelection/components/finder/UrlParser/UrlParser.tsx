@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { parseProgramFromUrl } from '@/features/editor/lib';
+import { normalizeProgramInput } from '@/features/editor/lib';
 
 interface UrlParserProps {
   onProgramSelect: (program: any) => void;
@@ -23,8 +23,8 @@ export function UrlParser({ onProgramSelect, onBackToFinder }: UrlParserProps) {
     setError(null);
 
     try {
-      // Parse program information using external utility
-      const parsedProgram = await parseProgramFromUrl(url.trim());
+      // Normalize program input from URL
+      const parsedProgram = normalizeProgramInput(url.trim());
       
       if (parsedProgram) {
         onProgramSelect(parsedProgram);

@@ -7,7 +7,7 @@
  * This file contains detection logic only - no mutations or additions to document structures.
  */
 
-import type { DetectionMap, DetectionResult } from './types';
+import type { DetectionMap, DetectionResult } from '../types';
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
@@ -15,7 +15,7 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../constants';
+} from '../../../constants';
 
 /**
  * Detect special sections in document content using keyword and positional heuristics

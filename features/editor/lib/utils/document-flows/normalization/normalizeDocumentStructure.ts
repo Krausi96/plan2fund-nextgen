@@ -5,11 +5,11 @@
  * (programs, templates, uploads) into a consistent format.
  */
 
-import type { DocumentStructure } from '../../types/types';
-import { enhanceWithSpecialSections } from '../sectionDetection/enhanceWithSpecialSections';
-import { detectSpecialSections } from '../sectionDetection/detectSpecialSections';
-import { applyDetectionResults } from '../sectionDetection/applyDetectionResults';
-import { sortSectionsByCanonicalOrder } from '../sectionDetection/sectionUtilities';
+import type { DocumentStructure } from '../../../types/types';
+import { enhanceWithSpecialSections } from '../../section-flows/enhancement/enhanceWithSpecialSections';
+import { detectSpecialSections } from '../../section-flows/detection/detectSpecialSections';
+import { applyDetectionResults } from '../../section-flows/application/applyDetectionResults';
+import { sortSectionsByCanonicalOrder } from '../../section-flows/utilities/sectionUtilities';
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
@@ -17,7 +17,7 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../constants';
+} from '../../../constants';
 
 /**
  * Normalize document structure to ensure consistency across all sources
@@ -163,7 +163,6 @@ export function mergeUploadedContentWithSpecialSections(
   // First, apply detection results to enrich existing sections with detected content
   let structureWithDetectedContent = applyDetectionResults(baseStructure, detectionResults);
   
-  // Then enhance with special sections (ensures title page, TOC, references, etc. exist)
   // But avoid duplicating sections that were already detected
   const enhancedStructure = enhanceWithSpecialSections(structureWithDetectedContent, t) || structureWithDetectedContent;
   

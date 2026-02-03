@@ -32,12 +32,3 @@ export { addCustomDocument } from './actions/addCustomDocument';
 export { addCustomSection } from './actions/addCustomSection';
 export { addCustomSubsection } from './actions/addCustomSubsection';
 
-// Export service functions
-export { createBlueprint } from './services/blueprint/createBlueprint';
-export { normalizeTemplate } from './services/blueprint/normalizeTemplate';
-
-// Export state interfaces
-export type { BlueprintState, BlueprintStore } from './state/blueprint';
-export { initialBlueprintState } from './state/blueprint';
-export type { PlanInstanceState, PlanInstanceStore } from './state/planInstance';
-export { initialPlanInstanceState } from './state/planInstance';

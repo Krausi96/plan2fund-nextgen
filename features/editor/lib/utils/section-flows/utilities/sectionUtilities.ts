@@ -11,9 +11,9 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../constants';
+} from '../../../constants';
 
-import type { SectionTemplate } from '../../types/types';
+import type { SectionTemplate } from '../../../types/types';
 
 // Define the canonical section order
 const CANONICAL_SECTION_ORDER = [

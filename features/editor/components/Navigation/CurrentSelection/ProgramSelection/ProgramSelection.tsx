@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
+import { migrateLegacySetup, useConfiguratorState, useEditorStore } from '@/features/editor/lib';
 import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
 import { StandardStructurePanel } from './components/panels/StandardStructurePanel';
 import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
 import { ProgramFinder, UrlParser, EditorProgramFinder } from './components/finder';
 import { TemplateOption } from './components/options/TemplateOption';
 import { FreeOption } from './components/options/free-option/FreeOption';
-import { normalizeFundingProgram, generateProgramBlueprint, migrateLegacySetup, generateDocumentStructureFromProfile } from '@/features/editor/lib';
+import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
 import { FlowSimulator } from '@/features/editor/components/DevTools';
 
 interface OptionSelectorProps {

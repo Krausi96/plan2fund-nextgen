@@ -1,11 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
-import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/utils/Program.utils';
+import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/utils/document-flows/normalization/normalizeDocumentStructure';
 import {
   ANCILLARY_SECTION_ID
 } from '@/features/editor/lib/constants';
-import { extractContentFromFiles } from '@/features/editor/lib/utils/document-processing/documentProcessor';
+import { extractContentFromFiles } from '@/features/editor/lib/utils/document-flows/processing/documentProcessor';
 
 interface DetectedDocument {
   fileName: string;
@@ -118,7 +118,7 @@ export function TemplateOption({ onDocumentAnalyzed, onNavigateToBlueprint }: Te
           pageCount: file.type.includes('pdf') ? Math.floor(Math.random() * 50) + 1 : undefined,
           wordCount: file.type.includes('docx') ? Math.floor(Math.random() * 5000) + 1000 : undefined
         })),
-        headings: extractedContent.sections.map((section, index) => ({
+        headings: extractedContent.sections.map((section: any, index: number) => ({
           level: section.type.startsWith('executive') || index === 0 ? 1 : 2,
           text: section.title,
           pageNumber: Math.floor(index / 3) + 1
