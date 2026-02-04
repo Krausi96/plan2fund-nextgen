@@ -4,7 +4,7 @@ import { z } from 'zod';
 import DOMPurify from 'isomorphic-dompurify';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { normalizeProgramInput, generateProgramBlueprint, normalizeFundingProgram, generateDocumentStructureFromProfile } from '@/features/editor/lib';
+import { normalizeProgramInput, generateProgramBlueprint, normalizeFundingProgram, generateDocumentStructureFromProfile, enhanceWithSpecialSections } from '@/features/editor/lib';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import { createFallbackBlueprint } from '@/features/ai/lib/blueprintUtils';
 import { saveSelectedProgram } from '@/features/reco/lib/programPersistence';
@@ -211,9 +211,12 @@ export function ProgramOption({
         setTimeout(() => setManualError(null), 8000); // Clear after 8 seconds
       }
       
-      // Step 4: Update store with complete data
+      // Step 4: Enhance document structure with special sections (Title Page, TOC, References, etc.)
+      const enhancedDocumentStructure = enhanceWithSpecialSections(documentStructure, t);
+      
+      // Update store with complete data
       setProgramProfile(fundingProgram);
-      setDocumentStructure(documentStructure);
+      setDocumentStructure(enhancedDocumentStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({
         warnings: ['Program data entered manually - limited information available'],

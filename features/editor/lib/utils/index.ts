@@ -27,6 +27,8 @@ export { sortSectionsByCanonicalOrder, getCompleteSectionList, getSectionIcon, i
 export { detectSpecialSections } from './section-flows/detection/detectSpecialSections';
 export { enhanceWithSpecialSections } from './section-flows/enhancement/enhanceWithSpecialSections';
 export { applyDetectionResults } from './section-flows/application/applyDetectionResults';
+export { organizeDocumentStructureForUi, getFlatDocumentView } from './document-flows/organizeForUiRendering';
+export type { HierarchicalDocumentView } from './document-flows/organizeForUiRendering';
 
 // Export types
 

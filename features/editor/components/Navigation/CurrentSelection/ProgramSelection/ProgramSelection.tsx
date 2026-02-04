@@ -7,7 +7,7 @@ import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
 import { ProgramFinder, UrlParser, EditorProgramFinder } from './components/finder';
 import { TemplateOption } from './components/options/TemplateOption';
 import { FreeOption } from './components/options/free-option/FreeOption';
-import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
+import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile, enhanceWithSpecialSections } from '@/features/editor/lib';
 import { FlowSimulator } from '@/features/editor/components/DevTools';
 
 interface OptionSelectorProps {
@@ -177,9 +177,12 @@ export default function ProgramSelection({
       // Step 2: Generate DocumentStructure from parsed application requirements
       const documentStructure = generateDocumentStructureFromProfile(fundingProgram);
       
-      // Step 3: Update wizard state with document setup data
+      // Step 3: Enhance document structure with special sections (Title Page, TOC, References, etc.)
+      const enhancedDocumentStructure = enhanceWithSpecialSections(documentStructure, t);
+      
+      // Update wizard state with document setup data
       setProgramProfile(fundingProgram);
-      setDocumentStructure(documentStructure);
+      setDocumentStructure(enhancedDocumentStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({
         warnings: program.confidenceScore < 80 ? ['Limited program information available'] : [],

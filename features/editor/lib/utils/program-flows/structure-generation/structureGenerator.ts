@@ -138,10 +138,10 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
     };
   });
   
-  // After initial assignment, redistribute sections more evenly if some documents are empty
+  // After initial assignment, handle empty documents without disrupting semantic assignments
   const documentIds = documents.map(doc => doc.id);
   if (documentIds.length > 1 && sections.length > 0) {
-    // Group sections by document
+    // Group sections by document to identify empty documents
     const sectionsByDocument: Record<string, any[]> = {};
     documentIds.forEach(id => sectionsByDocument[id] = []);
     
@@ -157,22 +157,29 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
     // Identify documents with no sections
     const emptyDocuments = documentIds.filter(id => sectionsByDocument[id].length === 0);
     
-    // If there are documents without sections, redistribute sections more evenly
-    if (emptyDocuments.length > 0 && sections.length >= documentIds.length) {
-      // Create a new sections array with more even distribution
-      const redistributedSections: any[] = [];
-      
-      // Create copies of sections to avoid mutation issues
-      const allSections = sections.map(s => ({ ...s }));
-      
-      // Distribute sections more evenly among documents
-      allSections.forEach((section, index) => {
-        const targetDocumentId = documentIds[index % documentIds.length];
-        const updatedSection = { ...section, documentId: targetDocumentId };
-        redistributedSections.push(updatedSection);
+    // Only add placeholder sections to truly empty documents without disturbing semantic assignments
+    if (emptyDocuments.length > 0) {
+      // For each empty document, add a placeholder section if needed
+      emptyDocuments.forEach(emptyDocId => {
+        const emptyDoc = documents.find(doc => doc.id === emptyDocId);
+        if (emptyDoc) {
+          // Add a placeholder section that makes sense for this document type
+          const placeholderSection = {
+            id: `placeholder_${emptyDocId}_intro`,
+            documentId: emptyDocId,
+            title: `Introduction to ${emptyDoc.name}`,
+            type: 'optional' as const,
+            required: false,
+            programCritical: false,
+            aiPrompt: `Provide introductory content for the ${emptyDoc.name} document`,
+            checklist: [`Introduce the purpose of ${emptyDoc.name}`, `Outline key considerations for this document`],
+            rawSubsections: []
+          };
+          
+          // Add the placeholder section to the sections array
+          sections.push(placeholderSection);
+        }
       });
-      
-      sections = redistributedSections;
     }
   }
   

@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { useEditorStore, getSectionIcon } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
+import {
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
+  TABLES_DATA_SECTION_ID,
+  FIGURES_IMAGES_SECTION_ID
+} from '@/features/editor/lib/constants';
 
 interface ProgramSummaryPanelProps {
   onClear?: () => void;
@@ -18,16 +24,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
     return 'No program selected';
   };
 
-  const getFundingType = () => {
-    if (programProfile) return programProfile.fundingTypes?.join(', ') || 'N/A';
-    if (programSummary) return programSummary.type || 'N/A';
-    return 'N/A';
-  };
 
-  const getRegion = () => {
-    if (programProfile) return programProfile.region || 'N/A';
-    return 'N/A';
-  };
 
   const getRequiredDocuments = () => {
     // Only return documents if we actually have program data
@@ -180,7 +177,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
       {/* Improved Header with Action Buttons */}
-      <div className="mb-4">
+      <div className="mb-2">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
@@ -203,17 +200,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
         </div>
         
         {hasProgramData ? (
-          <>
-            <h4 className="text-white font-semibold text-base mb-2 truncate" title={getProgramName()}>
-              Program: {getProgramName()}
-            </h4>
-            <div className="w-full h-px bg-white my-1"></div>
-            <div className="space-y-3">
-              <div className="text-white/80 text-sm">📜 Funding Type: {getFundingType()}</div>
-              <div className="text-white/80 text-sm">🌎 Region: {getRegion()}</div>
-            </div>
-            <div className="w-full h-px bg-white/20 my-1"></div>
-          </>
+          <div className="h-0"></div>
         ) : (
           <div className="bg-slate-700/50 rounded-lg p-6 text-center">
             <div className="text-white/60 text-2xl mb-2">📋</div>
@@ -224,72 +211,215 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
         )}
       </div>
 
-      {/* Show document structure when available */}
+      {/* Program Content */}
       {hasProgramData && documentStructure && (
-        <div className="space-y-3 mt-2">
-          <div className="text-white font-semibold text-sm border-b border-white/20 pb-1">Documents & Structure:</div>
+        <div className="space-y-3 mb-4 flex-1">
           
-          {/* Documents Tree */}
-          {documentStructure.documents && documentStructure.documents.length > 0 && (
-            <div className="space-y-2">
-              {documentStructure.documents.map((doc) => {
-                // Find sections that belong to this document
-                const docSections = documentStructure.sections?.filter(
-                  (section: any) => section.documentId === doc.id
-                ) || [];
-                
-                const isExpanded = expandedDocuments[doc.id] ?? true; // Default to expanded
-                
-                return (
-                  <div key={doc.id} className="border border-white/10 rounded-lg bg-slate-700/20">
-                    {/* Document Header */}
+          {/* Document Tree Structure - WITH SELECTED INDICATOR */}
+          <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-blue-300 text-base">📁</span>
+              <h4 className="text-blue-200 font-semibold text-sm flex-1">{t('editor.desktop.program.panels.requiredDocuments')}</h4>
+              <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full font-medium">
+                {t('editor.desktop.program.panels.documents.selected')}
+              </span>
+            </div>
+                        
+            <div className="space-y-2 ml-2">
+              {/* Handle program structure when no documents exist */}
+              {/* Check if we have multiple documents to determine display strategy */}
+              {(!documentStructure.documents || documentStructure.documents.length === 0 || documentStructure.documents.length === 1) ? (
+                <div>
+                  {/* Document Header */}
+                  <div className="flex items-center gap-2 text-white font-medium mb-2">
+                    <span className="truncate flex-1">
+                      {programSummary?.name || programProfile?.name || 'Program Document'}
+                    </span>
+                  </div>
+                  
+                  {/* Program Sections */}
+                  <div className="ml-6 border-l-2 border-blue-500/30 pl-3 max-h-[1000px]">
+                    <div className="space-y-2 py-1">
+                      {/* Actual Program Sections - dynamically rendered with proper icons */}
+                      {documentStructure.sections && documentStructure.sections.length > 0 ? (
+                        documentStructure.sections.map((section: any, idx: number) => {
+                          const sectionId = section.id || idx;
+                          const sectionTitle = section.title || section.name || section;
+                          const icon = getSectionIcon(sectionId);
+                          
+                          return (
+                            <div key={idx} className="text-blue-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
+                              <span>{icon}</span>
+                              <span className="truncate flex-1">
+                                {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
+                              </span>
+                              {section.required && (
+                                <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-blue-200 text-sm flex items-center gap-2">
+                          <span>No sections defined</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Multiple documents - treat additional documents as appendices */
+                <div className="space-y-3">
+                  {/* Main Document */}
+                  {documentStructure.documents.slice(0, 1).map((doc: any, index: number) => {
+                    const docId = doc.id || `doc-${index}`;
+                    const isExpanded = expandedDocuments[docId] ?? true; // Default to expanded
+                    
+                    return (
+                      <div key={docId}>
+                        {/* Document Header with Collapse Toggle */}
+                        <div 
+                          className="flex items-center gap-2 text-white font-medium mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
+                          onClick={() => toggleDocument(docId)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span>📋</span>
+                            <span className="truncate flex-1 font-semibold" title={doc.name}>
+                              {doc.name} (Main)
+                            </span>
+                          </div>
+                          <span className="text-blue-300 transform transition-transform duration-200 ml-2">
+                            {isExpanded ? '▼' : '▶'}
+                          </span>
+                        </div>
+                        
+                        {/* Collapsible Nested Sections for Main Document */}
+                        <div 
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-blue-500/30 pl-3 ${isExpanded ? 'max-h-[1000px]' : 'max-h-0'}`}
+                        >
+                          <div className="space-y-2 py-1">
+                            {/* Show main document sections excluding special sections that should appear elsewhere */}
+                            {documentStructure.sections
+                              .filter((section: any) => 
+                                section.documentId === doc.id && 
+                                ![APPENDICES_SECTION_ID, REFERENCES_SECTION_ID, TABLES_DATA_SECTION_ID, FIGURES_IMAGES_SECTION_ID].includes(section.id)
+                              )
+                              .map((section: any, idx: number) => (
+                                <div key={`${section.id}-${idx}`} className="text-blue-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
+                                  <span>
+                                    {getSectionIcon(section.id)}
+                                  </span>
+                                  <span className="truncate flex-1">
+                                    {t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : (section.title || section.name)}
+                                  </span>
+                                  {section.required && (
+                                    <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                                  )}
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Appendices Section - for additional documents */}
+                  {documentStructure.documents.length > 1 && (
+                    <div>
+                      <div 
+                        className="flex items-center gap-2 text-white font-medium mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
+                        onClick={() => toggleDocument('appendices')}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>📎</span>
+                          <span className="truncate flex-1 font-semibold">
+                            Appendices
+                          </span>
+                        </div>
+                        <span className="text-blue-300 transform transition-transform duration-200 ml-2">
+                          {(expandedDocuments['appendices'] ?? true) ? '▼' : '▶'}
+                        </span>
+                      </div>
+                      
+                      <div 
+                        className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-blue-500/30 pl-3 ${(expandedDocuments['appendices'] ?? true) ? 'max-h-[1000px]' : 'max-h-0'}`}
+                      >
+                        <div className="space-y-2 py-1">
+                          {/* Additional documents treated as appendices */}
+                          {documentStructure.documents.slice(1).map((doc: any, index: number) => {
+                            const appendixLetter = String.fromCharCode(65 + index); // A, B, C...
+                            return (
+                              <div key={`appendix-${doc.id}`} className="text-blue-200 text-sm flex items-center gap-2 truncate" title={`Appendix ${appendixLetter}: ${doc.name}`}>
+                                <span>🧾</span>
+                                <span className="truncate flex-1">
+                                  Appendix {appendixLetter}: {doc.name}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Shared Sections Group */}
+                  <div>
                     <div 
-                      className="flex items-center gap-2 p-2 cursor-pointer hover:bg-white/5 rounded-t-lg"
-                      onClick={() => toggleDocument(doc.id)}
+                      className="flex items-center gap-2 text-white font-semibold mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
+                      onClick={() => toggleDocument('shared-sections')}
                     >
-                      <span className="text-blue-400">📄</span>
-                      <span className="text-white font-medium flex-1 truncate" title={doc.name}>{doc.name}</span>
-                      <span className="text-white/70 transform transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
-                        ▼
+                      <div className="flex items-center gap-2">
+                        <span>📝</span>
+                        <span className="truncate flex-1 font-semibold">
+                          {t('editor.section.sharedSections' as any) !== 'editor.section.sharedSections' ? t('editor.section.sharedSections' as any) : 'Shared Sections'}
+                        </span>
+                      </div>
+                      <span className="text-blue-300 transform transition-transform duration-200 ml-2">
+                        {(expandedDocuments['shared-sections'] ?? true) ? '▼' : '▶'}
                       </span>
                     </div>
                     
-                    {/* Sections List */}
-                    {isExpanded && docSections.length > 0 && (
-                      <div className="p-2 pt-0 border-t border-white/10">
-                        <div className="space-y-1 ml-4">
-                          {docSections.map((section: any) => (
-                            <div key={section.id} className="flex items-center gap-2 text-white/80 text-sm">
-                              <span className="text-red-400">{getSectionIcon(section.id)}</span>
-                              <span className="flex-1 truncate">{section.title}</span>
-                              <span className={`text-xs px-1.5 py-0.5 rounded ${section.required ? 'bg-red-500/30 text-red-300' : 'bg-gray-500/30 text-gray-300'}`}>
-                                {section.required ? 'Req' : 'Opt'}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                    <div 
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-blue-500/30 pl-3 ${(expandedDocuments['shared-sections'] ?? true) ? 'max-h-[1000px]' : 'max-h-0'}`}
+                    >
+                      <div className="space-y-1 py-1">
+                        {/* References */}
+                        {documentStructure.sections.some((section: any) => section.id === REFERENCES_SECTION_ID) && (
+                          <div className="flex items-center gap-2 text-blue-200 text-sm">
+                            <span>📚</span>
+                            <span className="font-semibold">
+                              {t('editor.section.references' as any) !== 'editor.section.references' ? t('editor.section.references' as any) : 'References'}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Tables/Data */}
+                        {documentStructure.sections.some((section: any) => section.id === TABLES_DATA_SECTION_ID) && (
+                          <div className="flex items-center gap-2 text-blue-200 text-sm">
+                            <span>📊</span>
+                            <span className="font-semibold">
+                              {t('editor.section.tablesData' as any) !== 'editor.section.tablesData' ? t('editor.section.tablesData' as any) : 'Tables and Data'}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Figures/Images */}
+                        {documentStructure.sections.some((section: any) => section.id === FIGURES_IMAGES_SECTION_ID) && (
+                          <div className="flex items-center gap-2 text-blue-200 text-sm">
+                            <span>🖼️</span>
+                            <span className="font-semibold">
+                              {t('editor.section.figuresImages' as any) !== 'editor.section.figuresImages' ? t('editor.section.figuresImages' as any) : 'Figures and Images'}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                );
-              })}
+                </div>
+              )}
             </div>
-          )}
+          </div>
           
-          {/* Show requirements if available */}
-          {documentStructure.requirements && documentStructure.requirements.length > 0 && (
-            <div className="space-y-2 mt-3">
-              <div className="text-white/70 text-xs uppercase tracking-wide">Requirements ({documentStructure.requirements.length}):</div>
-              <div className="space-y-1 ml-2 max-h-32 overflow-y-auto">
-                {documentStructure.requirements.map((requirement: any, index: number) => (
-                  <div key={index} className="flex items-center gap-2 text-white/70 text-xs">
-                    <span className="text-blue-400">•</span>
-                    <span className="truncate">{requirement.rule || `Requirement ${index + 1}`}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
