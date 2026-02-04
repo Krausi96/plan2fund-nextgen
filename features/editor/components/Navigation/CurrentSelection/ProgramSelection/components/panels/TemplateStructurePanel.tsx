@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
-import { useEditorStore } from '@/features/editor/lib';
-import { getSectionIcon } from '@/features/editor/lib';
+import React from 'react';
+import { useEditorStore, getSectionIcon } from '@/features/editor/lib';
+import { organizeDocumentStructureForUi } from '@/features/editor/lib/utils/document-flows/organizeForUiRendering';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface TemplateStructurePanelProps {
@@ -14,22 +14,10 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
   const setupWizard = useEditorStore((state) => state.setupWizard);
   const documentStructure = setupWizard.documentStructure;
 
-  // Group sections by document
-  const getSectionsByDocument = useCallback(() => {
-    if (!documentStructure?.sections) return {};
-
-    const grouped: Record<string, any[]> = {};
-    documentStructure.sections.forEach(section => {
-      const docId = section.documentId || 'main_document';
-      if (!grouped[docId]) {
-        grouped[docId] = [];
-      }
-      grouped[docId].push(section);
-    });
-    return grouped;
-  }, [documentStructure]);
-
-  const sectionsByDoc = getSectionsByDocument();
+  // Use hierarchical organization for proper document structure display
+  const organizedStructure = organizeDocumentStructureForUi(documentStructure, t);
+  
+  // Get sections by document from organized structure
   // Only show template data when template option is selected AND we have template data
   const hasTemplateData = selectedOption === 'template' && !!documentStructure?.source && documentStructure.source === 'template';
 
@@ -88,11 +76,7 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
           </div>
         </div>
         
-        {hasTemplateData ? (
-          <h4 className="text-white font-semibold text-base mb-2 truncate" title={documentStructure?.documents?.[0]?.name}>
-            {documentStructure?.documents?.[0]?.name || 'Document structure detected'}
-          </h4>
-        ) : (
+        {!hasTemplateData && (
           <div className="bg-slate-700/50 rounded-lg p-6 text-center">
             <div className="text-white/60 text-2xl mb-2">🧩</div>
             <p className="text-white/80 text-sm">
@@ -113,55 +97,143 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
             </div>
                         
             <div className="space-y-2 ml-2">
-              {Object.entries(sectionsByDoc).map(([docId, sections]) => {
-                const isExpanded = expandedDocuments[docId] ?? true; // Default to expanded
-                const docName = documentStructure?.documents?.find(d => d.id === docId)?.name || docId;
-                
-                return (
-                  <div key={docId}>
-                    {/* Document Header with Collapse Toggle */}
-                    <div 
-                      className="flex items-center gap-2 text-white font-medium mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
-                      onClick={() => toggleDocument(docId)}
-                    >
-                      <span className="truncate flex-1" title={docName}>
-                        {docName}
-                      </span>
-                      <span className="text-purple-300 transform transition-transform duration-200 ml-2">
-                        {isExpanded ? '▼' : '▶'}
-                      </span>
-                    </div>
-                            
-                    {/* Collapsible Nested Sections */}
-                    <div 
-                      className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-purple-500/30 pl-3 ${isExpanded ? 'max-h-[1000px]' : 'max-h-0'}`}
-                    >
-                      <div className="space-y-2 py-1">
-                        {/* Document Sections - dynamically rendered with proper icons */}
-                        {sections.map((section: any, idx: number) => {
-                          const sectionId = section.id || idx;
-                          const sectionTitle = section.title || section.name || section;
-                          const icon = getSectionIcon(sectionId);
-                                                  
-                          return (
-                            <div key={idx} className="text-purple-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
-                              <span>{icon}</span>
-                              <span className="truncate flex-1">
-                                {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
-                              </span>
-                              {section.required && (
-                                <span className="text-red-400 font-bold flex-shrink-0">*</span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+              {/* Main Document */}
+              {organizedStructure && (
+                <div>
+                  <div 
+                    className="flex items-center gap-2 text-white font-medium mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
+                    onClick={() => toggleDocument(organizedStructure.mainDocument.id)}
+                  >
+                    <span className="text-purple-300 text-lg">📋</span>
+                    <span className="truncate flex-1" title={`${organizedStructure.mainDocument.name} (Main document)`}>
+                      {organizedStructure.mainDocument.name} (Main document)
+                    </span>
+                    <span className="text-purple-300 transform transition-transform duration-200 ml-2">
+                      {(expandedDocuments[organizedStructure.mainDocument.id] ?? true) ? '▼' : '▶'}
+                    </span>
+                  </div>
+                  
+                  {/* Collapsible Main Document Sections */}
+                  <div 
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-purple-500/30 pl-3 ${(expandedDocuments[organizedStructure.mainDocument.id] ?? true) ? 'max-h-[1000px]' : 'max-h-0'}`}
+                  >
+                    <div className="space-y-2 py-1">
+                      {organizedStructure.mainDocument.sections.map((section: any, idx: number) => {
+                        const sectionId = section.id || idx;
+                        const sectionTitle = section.title || section.name || section;
+                        const icon = getSectionIcon(sectionId);
+
+                        return (
+                          <div key={idx} className="text-purple-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
+                            <span>{icon}</span>
+                            <span className="truncate flex-1">
+                              {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
+                            </span>
+                            {section.required && (
+                              <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                );
-              })}
-                        
+                </div>
+              )}
+              
+              {/* Appendices */}
+              {organizedStructure && organizedStructure.appendices.length > 0 && (
+                <div>
+                  <div 
+                    className="flex items-center gap-2 text-white font-medium mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
+                    onClick={() => toggleDocument('appendices')}
+                  >
+                    <span className="text-purple-300 text-lg">📎</span>
+                    <span className="truncate flex-1" title="Appendices">
+                      Appendices
+                    </span>
+                    <span className="text-purple-300 transform transition-transform duration-200 ml-2">
+                      {(expandedDocuments['appendices'] ?? true) ? '▼' : '▶'}
+                    </span>
+                  </div>
+                  
+                  <div 
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-purple-500/30 pl-3 ${(expandedDocuments['appendices'] ?? true) ? 'max-h-[1000px]' : 'max-h-0'}`}
+                  >
+                    <div className="space-y-2 py-1">
+                      {organizedStructure.appendices.map((appendix, appendixIdx) => (
+                        <div key={appendix.id}>
+                          <div 
+                            className="flex items-center gap-2 text-purple-200 text-sm font-medium mb-1"
+                          >
+                            <span>🧾</span>
+                            <span className="truncate flex-1" title={`Appendix ${String.fromCharCode(65 + appendixIdx)}: ${appendix.name}`}>
+                              Appendix {String.fromCharCode(65 + appendixIdx)}: {appendix.name}
+                            </span>
+                          </div>
+                          
+                          <div className="ml-4 space-y-1">
+                            {appendix.sections.map((section: any, idx: number) => {
+                              const sectionId = section.id || idx;
+                              const sectionTitle = section.title || section.name || section;
+                              const icon = getSectionIcon(sectionId);
+
+                              return (
+                                <div key={idx} className="text-purple-200 text-xs flex items-center gap-2 truncate" title={sectionTitle}>
+                                  <span>{icon}</span>
+                                  <span className="truncate flex-1">
+                                    {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Shared Sections */}
+              {organizedStructure && organizedStructure.sharedSections.length > 0 && (
+                <div>
+                  <div 
+                    className="flex items-center gap-2 text-white font-medium mb-2 cursor-pointer hover:bg-white/5 rounded p-1 -ml-1"
+                    onClick={() => toggleDocument('shared-sections')}
+                  >
+                    <span className="text-purple-300 text-lg">📝</span>
+                    <span className="truncate flex-1" title="Shared Sections">
+                      Shared Sections
+                    </span>
+                    <span className="text-purple-300 transform transition-transform duration-200 ml-2">
+                      {(expandedDocuments['shared-sections'] ?? true) ? '▼' : '▶'}
+                    </span>
+                  </div>
+                  
+                  <div 
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-purple-500/30 pl-3 ${(expandedDocuments['shared-sections'] ?? true) ? 'max-h-[1000px]' : 'max-h-0'}`}
+                  >
+                    <div className="space-y-2 py-1">
+                      {organizedStructure.sharedSections.map((section: any, idx: number) => {
+                        const sectionId = section.id || idx;
+                        const sectionTitle = section.title || section.name || section;
+                        const icon = getSectionIcon(sectionId);
+
+                        return (
+                          <div key={idx} className="text-purple-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
+                            <span>{icon}</span>
+                            <span className="truncate flex-1">
+                              {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
+
           </div>
             
         </div>

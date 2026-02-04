@@ -40,12 +40,12 @@ interface ProgramFinderProps {
 
 // Use the individual program templates directly
 const loadProgramCatalog = async (): Promise<Program[]> => {
-  // Import individual program templates
-  const { awsSeedfinancing, ffgBasisprogramm, eicAccelerator } = await import('@/features/editor/lib/templates');
+  // Import program manager to get all programs
+  const { programManager } = await import('@/features/editor/lib/templates');
   
-  const individualTemplates = [awsSeedfinancing, ffgBasisprogramm, eicAccelerator];
+  const allPrograms = programManager.getAllPrograms();
   
-  return individualTemplates.map((program: any) => ({
+  return allPrograms.map((program: any) => ({
     id: program.id,
     name: program.name,
     type: program.type || 'grant',

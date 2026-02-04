@@ -172,13 +172,43 @@ Section with malicious content
       // Apply the same detection logic as used in the simulation function to the bad structure
       processedStructureBad = processStructureWithDetectionLogic(processedStructureBad);
       
+      // Fix document structure to properly assign sections to documents
+      const mainDocumentId = processedStructureGood.documents[0]?.id || 'main_document';
+      const appendixDocumentId = processedStructureBad.documents[0]?.id || `appendix-${Date.now()}`;
+      
+      // Update document names to match the expected format
+      const fixedGoodDocument = {
+        ...processedStructureGood.documents[0],
+        id: mainDocumentId,
+        name: 'good_business_plan',
+        purpose: 'Main document with proper content'
+      };
+      
+      const fixedBadDocument = {
+        ...processedStructureBad.documents[0],
+        id: appendixDocumentId,
+        name: 'bad_document',
+        purpose: 'Document with intentional mistakes'
+      };
+      
+      // Assign sections to correct documents
+      const fixedGoodSections = processedStructureGood.sections.map((section: any) => ({
+        ...section,
+        documentId: mainDocumentId
+      }));
+      
+      const fixedBadSections = processedStructureBad.sections.map((section: any) => ({
+        ...section,
+        documentId: appendixDocumentId
+      }));
+      
       // Combine both structures into a single document structure for the simulation
       const combinedStructureBase: any = {
         structureId: `combined-${Date.now()}`,
         version: '1.0',
         source: 'template' as const,
-        documents: [...processedStructureGood.documents, ...processedStructureBad.documents],
-        sections: [...processedStructureGood.sections, ...processedStructureBad.sections],
+        documents: [fixedGoodDocument, fixedBadDocument],
+        sections: [...fixedGoodSections, ...fixedBadSections],
         requirements: processedStructureGood.requirements || [],
         validationRules: processedStructureGood.validationRules || [],
         aiGuidance: processedStructureGood.aiGuidance || [],

@@ -5,6 +5,14 @@ import { enhanceWithSpecialSections } from '../../section-flows/enhancement/enha
 import { detectSpecialSections } from '../../section-flows/detection/detectSpecialSections';
 import { applyDetectionResults } from '../../section-flows/application/applyDetectionResults';
 import { sortSectionsByCanonicalOrder } from '../../section-flows/utilities/sectionUtilities';
+import {
+  METADATA_SECTION_ID,
+  ANCILLARY_SECTION_ID,
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
+  TABLES_DATA_SECTION_ID,
+  FIGURES_IMAGES_SECTION_ID
+} from '../../../constants';
 
 /**
  * Extracts text from a PDF file in browser environment
@@ -142,8 +150,18 @@ export async function processDocumentSecurely(file: File) {
     // Enhance with special sections (title page, TOC, references, etc.)
     const enhancedStructure = enhanceWithSpecialSections(structureWithDetectedContent, (key: string) => key) || structureWithDetectedContent;
     
+    // Remove duplicate sections to prevent duplication
+    const seenIds = new Set();
+    const uniqueSections = enhancedStructure.sections.filter(section => {
+      if (seenIds.has(section.id)) {
+        return false; // Skip duplicate
+      }
+      seenIds.add(section.id);
+      return true;
+    });
+    
     // Apply canonical ordering to ensure sections are in the proper order
-    const orderedSections = sortSectionsByCanonicalOrder(enhancedStructure.sections, enhancedStructure.documents);
+    const orderedSections = sortSectionsByCanonicalOrder(uniqueSections, enhancedStructure.documents);
     
     // Create final document structure with all enhancements
     const documentStructure: DocumentStructure = {
@@ -358,9 +376,36 @@ function extractSectionsFromFileContent(content: string, fileName: string) {
  * Creates a PlanSection object with proper structure
  */
 function createPlanSection(sectionData: { title: string; content: string; type: string }): PlanSection {
+  // Map special section types to their canonical IDs
+  let sectionId: string;
+  
+  switch (sectionData.type) {
+    case 'metadata':
+      sectionId = METADATA_SECTION_ID;
+      break;
+    case 'ancillary':
+      sectionId = ANCILLARY_SECTION_ID;
+      break;
+    case 'references':
+      sectionId = REFERENCES_SECTION_ID;
+      break;
+    case 'appendices':
+      sectionId = APPENDICES_SECTION_ID;
+      break;
+    case 'tables_data':
+      sectionId = TABLES_DATA_SECTION_ID;
+      break;
+    case 'figures_images':
+      sectionId = FIGURES_IMAGES_SECTION_ID;
+      break;
+    default:
+      sectionId = `${sectionData.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+      break;
+  }
+  
   return {
-    key: `${sectionData.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-    id: `${sectionData.type}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+    key: sectionId,
+    id: sectionId,
     title: sectionData.title,
     content: sectionData.content,
     rawSubsections: [

@@ -16,6 +16,7 @@ import {
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
 } from '../../constants';
+import { sortSectionsByCanonicalOrder } from '../section-flows/utilities/sectionUtilities';
 
 /**
  * Represents the hierarchical structure for UI rendering
@@ -142,8 +143,8 @@ export function organizeDocumentStructureForUi(
     }
   }
   
-  // Use deduplicated sections
-  const organizedMainDocumentSections = deduplicatedMainSections;
+  // Apply canonical ordering to the deduplicated sections to ensure proper order
+  const organizedMainDocumentSections = sortSectionsByCanonicalOrder(deduplicatedMainSections, documentStructure.documents || []);
 
   // Organize appendices (additional documents)
   console.log('🔍 DEBUG: Starting to organize appendices for document structure:', documentStructure.documents.length, 'documents total');
@@ -339,6 +340,9 @@ export function organizeDocumentStructureForUi(
     }
   }
   
+  // Apply canonical ordering to shared sections
+  sharedSections = sortSectionsByCanonicalOrder(sharedSections, documentStructure.documents || []);
+
   // FINAL SAFETY CHECK: Ensure APPENDICES_SECTION_ID is not in shared sections if individual appendices exist
   // This addresses the case where it might have been added back inappropriately
   if (HAS_INDIVIDUAL_APPENDICES) {

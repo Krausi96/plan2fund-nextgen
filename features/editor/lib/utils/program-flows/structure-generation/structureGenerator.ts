@@ -132,6 +132,7 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
       type: section.required ? 'required' : 'optional' as 'required' | 'optional' | 'conditional',
       required: section.required,
       programCritical: true,
+      isRequirement: true, // Mark this section as a requirement
       aiPrompt: `Write detailed content for ${section.title} in the context of ${profile.name}`,
       checklist: [`Address ${section.title} requirements`, `Include relevant details`, `Follow program guidelines`],
       rawSubsections: rawSubsections
@@ -171,6 +172,7 @@ export function generateDocumentStructureFromProfile(profile: FundingProgram): D
             type: 'optional' as const,
             required: false,
             programCritical: false,
+            isRequirement: false, // This is not a requirement
             aiPrompt: `Provide introductory content for the ${emptyDoc.name} document`,
             checklist: [`Introduce the purpose of ${emptyDoc.name}`, `Outline key considerations for this document`],
             rawSubsections: []

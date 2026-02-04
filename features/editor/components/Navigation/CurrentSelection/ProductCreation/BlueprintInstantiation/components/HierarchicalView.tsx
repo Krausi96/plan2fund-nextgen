@@ -50,8 +50,23 @@ export function HierarchicalView({
         {/* Main Document Sections List */}
         <div className="p-3 pt-0 border-t border-white/10">
           <div className="space-y-2 ml-4">
-            {/* Main Document Sections */}
-            {hierarchicalView.mainDocument.sections.map((section: any) => {
+            {/* Main Document Sections - filter out empty special sections */}
+            {hierarchicalView.mainDocument.sections.filter((section: any) => {
+              // Don't show appendices section in main document if it's empty or should be in shared sections
+              if (section.id === 'appendices') {
+                // If we have individual appendices, don't show generic appendices in main document
+                const hasIndividualAppendices = hierarchicalView.appendices.length > 0;
+                if (hasIndividualAppendices) {
+                  return false;
+                }
+                // If there are no subsections/content, hide empty appendices section
+                const hasContent = section.rawSubsections && section.rawSubsections.length > 0;
+                if (!hasContent) {
+                  return false;
+                }
+              }
+              return true;
+            }).map((section: any) => {
               const isSubsectionsExpanded = expandedSubsections[section.id] ?? false;
               const showAllSubsections = expandedSubsectionDetails[section.id] ?? false;
               
@@ -81,7 +96,9 @@ export function HierarchicalView({
                       {getSectionIcon(section.id)}
                     </span>
                     <span className="flex-1 truncate" title={t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : section.title}>{t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : section.title}</span>
-                    <span className="text-xs bg-red-500/20 text-red-300 px-2 py-0.5 rounded">Required</span>
+                    <span className="text-xs bg-red-500/20 text-red-300 px-2 py-0.5 rounded">
+                      {section.isRequirement ? 'Requirement' : 'Required'}
+                    </span>
                   </div>
                   {/* Display subsections if they exist */}
                   {section.rawSubsections && section.rawSubsections.length > 0 && (
@@ -196,7 +213,9 @@ export function HierarchicalView({
                                       {getSectionIcon(section.id)}
                                     </span>
                                     <span className="flex-1 truncate" title={t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : section.title}>{t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : section.title}</span>
-                                    <span className="text-xs bg-orange-500/20 text-orange-300 px-1 py-0.5 rounded text-[0.6rem]">Appx</span>
+                                    <span className="text-xs bg-orange-500/20 text-orange-300 px-1 py-0.5 rounded text-[0.6rem]">
+                                      {section.isRequirement ? 'Req' : 'Appx'}
+                                    </span>
                                   </div>
                                   {/* Display subsections if they exist */}
                                   {section.rawSubsections && section.rawSubsections.length > 0 && (
@@ -275,10 +294,17 @@ export function HierarchicalView({
                   className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-blue-500/30 pl-3 ${(expandedDocuments['shared-sections'] ?? true) ? 'max-h-[1000px]' : 'max-h-0'}`}
                 >
                   <div className="space-y-1 py-1">
-                    {/* Shared sections like References, Tables, Figures */}
-                    {hierarchicalView.sharedSections.map((section: any) => (
+                    {/* Shared sections like References, Tables, Figures - excluding appendices if individual appendices exist */}
+                    {hierarchicalView.sharedSections.filter((section: any) => {
+                      // Don't show the generic 'appendices' section if there are individual appendices (multiple documents)
+                      const hasIndividualAppendices = hierarchicalView.appendices.length > 0;
+                      if (hasIndividualAppendices && section.id === 'appendices') {
+                        return false;
+                      }
+                      return true;
+                    }).map((section: any) => (
                       <div key={section.id} className="flex items-center gap-2 text-blue-200 text-sm">
-                        <span>{section.icon || '📚'}</span>
+                        <span>{getSectionIcon(section.id)}</span>
                         <span className="font-semibold">
                           {t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : section.title}
                         </span>

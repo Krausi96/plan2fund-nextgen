@@ -79,10 +79,10 @@ export function ProgramOption({
       return;
     }
     
-    // Fetch from individual templates if available
-    const { awsSeedfinancing, ffgBasisprogramm, eicAccelerator } = await import('@/features/editor/lib/templates');
+    // Fetch all programs from the program manager
+    const { programManager } = await import('@/features/editor/lib/templates');
     
-    const individualTemplates = [awsSeedfinancing, ffgBasisprogramm, eicAccelerator];
+    const individualTemplates = programManager.getAllPrograms();
     
     // Try to find a matching program in individual templates
     let programData = individualTemplates.find(

@@ -7,6 +7,7 @@
 import { awsSeedfinancing } from './individual/aws-seedfinancing';
 import { ffgBasisprogramm } from './individual/ffg-basisprogramm';
 import { eicAccelerator } from './individual/eic-accelerator';
+import { individualTemplate } from './individual/individual-grant';
 
 export interface ProgramManager {
   /**
@@ -41,7 +42,7 @@ export interface ProgramManager {
 }
 
 // In-memory storage for programs (in a real scenario, this would be persistent)
-let programsDb = [awsSeedfinancing, ffgBasisprogramm, eicAccelerator];
+let programsDb = [awsSeedfinancing, ffgBasisprogramm, eicAccelerator, individualTemplate];
 
 export const programManager: ProgramManager = {
   getAllPrograms: (): any[] => {
@@ -121,7 +122,7 @@ export const programManager: ProgramManager = {
  * Reset the program database to initial state
  */
 export const resetProgramDatabase = (): void => {
-  programsDb = [awsSeedfinancing, ffgBasisprogramm, eicAccelerator];
+  programsDb = [awsSeedfinancing, ffgBasisprogramm, eicAccelerator, individualTemplate];
 };
 
 /**

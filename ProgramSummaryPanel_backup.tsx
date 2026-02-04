@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useEditorStore, getSectionIcon } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import {
@@ -95,7 +95,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
   
   // Debug logging for panel state
   React.useEffect(() => {
-    console.log('🔍 ProgramSummaryPanel DATA DEBUG:', {
+    console.log('���� ProgramSummaryPanel DATA DEBUG:', {
       programProfileExists: !!programProfile,
       programProfileName: programProfile?.name,
       programProfileData: programProfile,
@@ -121,7 +121,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
   // Debug logs to see what data is available
   React.useEffect(() => {
     const keyReqs = getKeyRequirements();
-    console.log('🔍 ProgramSummaryPanel RENDER TRIGGERED:', {
+    console.log('���� ProgramSummaryPanel RENDER TRIGGERED:', {
       timestamp: new Date().toISOString(),
       hasProgramData,
       programProfileExists: !!programProfile,
@@ -156,7 +156,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
     
     // Log the actual requirements content
     if (keyReqs.length > 0) {
-      console.log('📋 ACTUAL REQUIREMENTS CONTENT:', keyReqs);
+      console.log('���� ACTUAL REQUIREMENTS CONTENT:', keyReqs);
     }
   }, [hasProgramData, programProfile, programSummary]);
 
@@ -174,27 +174,22 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
     }));
   };
   
-  // Get program requirements grouped by type
+  // Get program requirements
   const getProgramRequirements = () => {
-    if (!hasProgramData) return { sections: [], documents: [], financial: [], general: [] };
+    if (!hasProgramData) return [];
     
-    const requirements = {
-      sections: [] as string[],
-      documents: [] as string[],
-      financial: [] as string[],
-      general: [] as string[]
-    };
+    const requirements: string[] = [];
     
     // Extract from programProfile.applicationRequirements.sections
     if (programProfile?.applicationRequirements?.sections) {
       programProfile.applicationRequirements.sections.forEach((section: any) => {
         if (section.required) {
-          requirements.sections.push(section.title);
+          requirements.push(section.title);
         }
         if (section.subsections) {
           section.subsections.forEach((subsection: any) => {
             if (subsection.required) {
-              requirements.sections.push(`  • ${subsection.title}`);
+              requirements.push(`  � ${subsection.title}`);
             }
           });
         }
@@ -204,7 +199,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
     // Extract from programProfile.requirements
     if (programProfile?.requirements) {
       if (Array.isArray(programProfile.requirements)) {
-        requirements.general.push(...programProfile.requirements);
+        requirements.push(...programProfile.requirements);
       }
     }
     
@@ -213,45 +208,20 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
       const financialReqs = programProfile.applicationRequirements.financialRequirements;
       if (financialReqs.financial_statements_required) {
         financialReqs.financial_statements_required.forEach((req: string) => {
-          requirements.financial.push(req);
+          requirements.push(`Financial: ${req}`);
         });
       }
-      
-      // Extract other financial requirements
-      if (financialReqs.years_required && financialReqs.years_required.length > 0) {
-        requirements.financial.push(`Years of financial data required: ${financialReqs.years_required.join(', ')}`);
-      }
-      
-      if (financialReqs.co_financing_proof_required) {
-        requirements.financial.push('Co-financing proof required');
-      }
-      
-      if (financialReqs.own_funds_proof_required) {
-        requirements.financial.push('Own funds proof required');
-      }
-    }
-    
-    // Extract from programProfile.applicationRequirements.documents
-    if (programProfile?.applicationRequirements?.documents) {
-      programProfile.applicationRequirements.documents.forEach((doc: any) => {
-        if (doc.required) {
-          requirements.documents.push(`${doc.document_name} (${doc.format})`);
-        }
-      });
     }
     
     // Extract from programSummary.keyRequirements
     if (programSummary?.keyRequirements) {
-      requirements.general.push(...programSummary.keyRequirements);
+      requirements.push(...programSummary.keyRequirements);
     }
     
     return requirements;
   };
   
   const programRequirements = getProgramRequirements();
-  
-  // Calculate total requirements count
-  const totalRequirements = programRequirements.sections.length + programRequirements.documents.length + programRequirements.financial.length + programRequirements.general.length;
   
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
@@ -260,7 +230,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-lg">📄</span>
+              <span className="text-white text-lg">�</span>
             </div>
             <h3 className="text-white font-bold text-lg">{t('editor.desktop.program.panels.programSummary')}</h3>
           </div>
@@ -273,7 +243,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
               className="w-8 h-8 bg-red-600/80 hover:bg-red-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded-lg transition-colors flex items-center justify-center"
               title="Clear"
             >
-              <span>🗑️</span>
+              <span>���洩�</span>
             </button>
           </div>
         </div>
@@ -282,7 +252,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
           <div className="h-0"></div>
         ) : (
           <div className="bg-slate-700/50 rounded-lg p-6 text-center">
-            <div className="text-white/60 text-2xl mb-2">📋</div>
+            <div className="text-white/60 text-2xl mb-2">����</div>
             <p className="text-white/80 text-sm">
               {t('requirementsChecker.selectProgram')}
             </p>
@@ -297,7 +267,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
           {/* Document Tree Structure - WITH SELECTED INDICATOR */}
           <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-blue-300 text-base">📁</span>
+              <span className="text-blue-300 text-base">����</span>
               <h4 className="text-blue-200 font-semibold text-sm flex-1">{t('editor.desktop.program.panels.requiredDocuments')}</h4>
               <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full font-medium">
                 {t('editor.desktop.program.panels.documents.selected')}
@@ -311,8 +281,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                 <div>
                   {/* Document Header */}
                   <div className="flex items-center gap-2 text-white font-medium mb-2">
-                    <span className="text-blue-300 text-base">📋</span>
-                    <span className="truncate flex-1 font-semibold">
+                    <span className="truncate flex-1">
                       {programSummary?.name || programProfile?.name || 'Program Document'}
                     </span>
                   </div>
@@ -322,35 +291,23 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                     <div className="space-y-2 py-1">
                       {/* Actual Program Sections - dynamically rendered with proper icons */}
                       {documentStructure.sections && documentStructure.sections.length > 0 ? (
-                        (() => {
-                          // Deduplicate sections by ID to prevent rendering duplicates
-                          const seenIds = new Set();
-                          const uniqueSections = documentStructure.sections.filter((section: any) => {
-                            if (seenIds.has(section.id)) {
-                              return false; // Skip duplicate
-                            }
-                            seenIds.add(section.id);
-                            return true;
-                          });
+                        documentStructure.sections.map((section: any, idx: number) => {
+                          const sectionId = section.id || idx;
+                          const sectionTitle = section.title || section.name || section;
+                          const icon = getSectionIcon(sectionId);
                           
-                          return uniqueSections.map((section: any, idx: number) => {
-                            const sectionId = section.id || idx;
-                            const sectionTitle = section.title || section.name || section;
-                            const icon = getSectionIcon(sectionId);
-                            
-                            return (
-                              <div key={idx} className="text-blue-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
-                                <span>{icon}</span>
-                                <span className="truncate flex-1">
-                                  {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
-                                </span>
-                                {section.required && (
-                                  <span className="text-red-400 font-bold flex-shrink-0">*</span>
-                                )}
-                              </div>
-                            );
-                          });
-                        })()
+                          return (
+                            <div key={idx} className="text-blue-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
+                              <span>{icon}</span>
+                              <span className="truncate flex-1">
+                                {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
+                              </span>
+                              {section.required && (
+                                <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                              )}
+                            </div>
+                          );
+                        })
                       ) : (
                         <div className="text-blue-200 text-sm flex items-center gap-2">
                           <span>No sections defined</span>
@@ -375,13 +332,13 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                           onClick={() => toggleDocument(docId)}
                         >
                           <div className="flex items-center gap-2">
-                            <span>📋</span>
+                            <span>����</span>
                             <span className="truncate flex-1 font-semibold" title={doc.name}>
                               {doc.name} (Main)
                             </span>
                           </div>
                           <span className="text-blue-300 transform transition-transform duration-200 ml-2">
-                            {isExpanded ? '▼' : '▶'}
+                            {isExpanded ? '��+' : '���'}
                           </span>
                         </div>
                         
@@ -391,23 +348,12 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                         >
                           <div className="space-y-2 py-1">
                             {/* Show main document sections excluding special sections that should appear elsewhere */}
-                            {(() => {
-                              // Filter sections for this document and deduplicate
-                              const seenIds = new Set();
-                              const filteredUniqueSections = documentStructure.sections
-                                .filter((section: any) => 
-                                  section.documentId === doc.id && 
-                                  ![APPENDICES_SECTION_ID, REFERENCES_SECTION_ID, TABLES_DATA_SECTION_ID, FIGURES_IMAGES_SECTION_ID].includes(section.id)
-                                )
-                                .filter((section: any) => {
-                                  if (seenIds.has(section.id)) {
-                                    return false; // Skip duplicate
-                                  }
-                                  seenIds.add(section.id);
-                                  return true;
-                                });
-                              
-                              return filteredUniqueSections.map((section: any, idx: number) => (
+                            {documentStructure.sections
+                              .filter((section: any) => 
+                                section.documentId === doc.id && 
+                                ![APPENDICES_SECTION_ID, REFERENCES_SECTION_ID, TABLES_DATA_SECTION_ID, FIGURES_IMAGES_SECTION_ID].includes(section.id)
+                              )
+                              .map((section: any, idx: number) => (
                                 <div key={`${section.id}-${idx}`} className="text-blue-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
                                   <span>
                                     {getSectionIcon(section.id)}
@@ -419,8 +365,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                                     <span className="text-red-400 font-bold flex-shrink-0">*</span>
                                   )}
                                 </div>
-                              ));
-                            })()}
+                              ))}
                           </div>
                         </div>
                       </div>
@@ -435,13 +380,13 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                         onClick={() => toggleDocument('appendices')}
                       >
                         <div className="flex items-center gap-2">
-                          <span>📎</span>
+                          <span>�</span>
                           <span className="truncate flex-1 font-semibold">
                             Appendices
                           </span>
                         </div>
                         <span className="text-blue-300 transform transition-transform duration-200 ml-2">
-                          {(expandedDocuments['appendices'] ?? true) ? '▼' : '▶'}
+                          {(expandedDocuments['appendices'] ?? true) ? '��+' : '���'}
                         </span>
                       </div>
                       
@@ -454,7 +399,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                             const appendixLetter = String.fromCharCode(65 + index); // A, B, C...
                             return (
                               <div key={`appendix-${doc.id}`} className="text-blue-200 text-sm flex items-center gap-2 truncate" title={`Appendix ${appendixLetter}: ${doc.name}`}>
-                                <span>🧾</span>
+                                <span>����</span>
                                 <span className="truncate flex-1">
                                   Appendix {appendixLetter}: {doc.name}
                                 </span>
@@ -473,13 +418,13 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                       onClick={() => toggleDocument('shared-sections')}
                     >
                       <div className="flex items-center gap-2">
-                        <span>📝</span>
+                        <span>����</span>
                         <span className="truncate flex-1 font-semibold">
                           {t('editor.section.sharedSections' as any) !== 'editor.section.sharedSections' ? t('editor.section.sharedSections' as any) : 'Shared Sections'}
                         </span>
                       </div>
                       <span className="text-blue-300 transform transition-transform duration-200 ml-2">
-                        {(expandedDocuments['shared-sections'] ?? true) ? '▼' : '▶'}
+                        {(expandedDocuments['shared-sections'] ?? true) ? '��+' : '���'}
                       </span>
                     </div>
                     
@@ -490,7 +435,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                         {/* References */}
                         {documentStructure.sections.some((section: any) => section.id === REFERENCES_SECTION_ID) && (
                           <div className="flex items-center gap-2 text-blue-200 text-sm">
-                            <span>📚</span>
+                            <span>����</span>
                             <span className="font-semibold">
                               {t('editor.section.references' as any) !== 'editor.section.references' ? t('editor.section.references' as any) : 'References'}
                             </span>
@@ -500,7 +445,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                         {/* Tables/Data */}
                         {documentStructure.sections.some((section: any) => section.id === TABLES_DATA_SECTION_ID) && (
                           <div className="flex items-center gap-2 text-blue-200 text-sm">
-                            <span>📊</span>
+                            <span>����</span>
                             <span className="font-semibold">
                               {t('editor.section.tablesData' as any) !== 'editor.section.tablesData' ? t('editor.section.tablesData' as any) : 'Tables and Data'}
                             </span>
@@ -510,7 +455,7 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
                         {/* Figures/Images */}
                         {documentStructure.sections.some((section: any) => section.id === FIGURES_IMAGES_SECTION_ID) && (
                           <div className="flex items-center gap-2 text-blue-200 text-sm">
-                            <span>🖼️</span>
+                            <span>���+���</span>
                             <span className="font-semibold">
                               {t('editor.section.figuresImages' as any) !== 'editor.section.figuresImages' ? t('editor.section.figuresImages' as any) : 'Figures and Images'}
                             </span>
@@ -525,88 +470,23 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
           </div>
           
           {/* Program Requirements Section */}
-          {totalRequirements > 0 && (
+          {programRequirements.length > 0 && (
             <div className="bg-red-900/20 border border-red-700/30 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-red-300 text-base">⚠️</span>
+                <span className="text-red-300 text-base">??</span>
                 <h4 className="text-red-200 font-semibold text-sm flex-1">Program Requirements</h4>
                 <span className="px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded-full font-medium">
-                  {totalRequirements} items
+                  {programRequirements.length} items
                 </span>
               </div>
               
-              <div className="space-y-3">
-                {/* Sections Requirements */}
-                {programRequirements.sections.length > 0 && (
-                  <div>
-                    <h5 className="text-red-200 font-medium text-xs flex items-center gap-1 mb-1">
-                      <span>📝</span>
-                      <span>Section Requirements</span>
-                    </h5>
-                    <div className="space-y-1 ml-2">
-                      {programRequirements.sections.map((req: string, index: number) => (
-                        <div key={`section-${index}`} className="text-red-200 text-sm flex items-start gap-2">
-                          <span className="text-red-400 mt-1">•</span>
-                          <span className="flex-1">{req}</span>
-                        </div>
-                      ))}
-                    </div>
+              <div className="space-y-1 ml-2">
+                {programRequirements.map((req, index) => (
+                  <div key={index} className="text-red-200 text-sm flex items-start gap-2">
+                    <span className="text-red-400 mt-1">�</span>
+                    <span className="flex-1">{req}</span>
                   </div>
-                )}
-                
-                {/* Document Requirements */}
-                {programRequirements.documents.length > 0 && (
-                  <div>
-                    <h5 className="text-red-200 font-medium text-xs flex items-center gap-1 mb-1">
-                      <span>📄</span>
-                      <span>Document Requirements</span>
-                    </h5>
-                    <div className="space-y-1 ml-2">
-                      {programRequirements.documents.map((req: string, index: number) => (
-                        <div key={`doc-${index}`} className="text-red-200 text-sm flex items-start gap-2">
-                          <span className="text-red-400 mt-1">•</span>
-                          <span className="flex-1">{req}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Financial Requirements */}
-                {programRequirements.financial.length > 0 && (
-                  <div>
-                    <h5 className="text-red-200 font-medium text-xs flex items-center gap-1 mb-1">
-                      <span>💰</span>
-                      <span>Financial Requirements</span>
-                    </h5>
-                    <div className="space-y-1 ml-2">
-                      {programRequirements.financial.map((req: string, index: number) => (
-                        <div key={`fin-${index}`} className="text-red-200 text-sm flex items-start gap-2">
-                          <span className="text-red-400 mt-1">•</span>
-                          <span className="flex-1">{req}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {/* General Requirements */}
-                {programRequirements.general.length > 0 && (
-                  <div>
-                    <h5 className="text-red-200 font-medium text-xs flex items-center gap-1 mb-1">
-                      <span>📋</span>
-                      <span>General Requirements</span>
-                    </h5>
-                    <div className="space-y-1 ml-2">
-                      {programRequirements.general.map((req: string, index: number) => (
-                        <div key={`gen-${index}`} className="text-red-200 text-sm flex items-start gap-2">
-                          <span className="text-red-400 mt-1">•</span>
-                          <span className="flex-1">{req}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                ))}
               </div>
             </div>
           )}

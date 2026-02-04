@@ -15,17 +15,22 @@ import { awsSeedfinancing } from './catalog/programs/individual/aws-seedfinancin
 import { ffgBasisprogramm } from './catalog/programs/individual/ffg-basisprogramm';
 import { eicAccelerator } from './catalog/programs/individual/eic-accelerator';
 
+// Import program manager that includes all programs
+import { programManager, resetProgramDatabase, getProgramCountByRegion, getProgramCountByType } from './catalog/programs/programManager';
+
 export { 
   awsSeedfinancing,
   ffgBasisprogramm,
-  eicAccelerator
+  eicAccelerator,
+  // Export program manager and utilities
+  programManager,
+  resetProgramDatabase,
+  getProgramCountByRegion,
+  getProgramCountByType
 };
 
-export const MOCK_FUNDING_PROGRAMS = [
-  awsSeedfinancing,
-  ffgBasisprogramm,
-  eicAccelerator
-];
+// Use program manager to get all programs
+export const MOCK_FUNDING_PROGRAMS = programManager.getAllPrograms();
 
 // Export action functions
 export { addCustomDocument } from './actions/addCustomDocument';
