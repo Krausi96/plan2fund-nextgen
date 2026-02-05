@@ -20,7 +20,7 @@ export interface ProgramInfo {
  * Responsibility: Provide consistent default blueprint structure
  * Used by: blueprintGenerator.ts (error fallback), ProgramOption.tsx (manual connections)
  * 
- * @param program - Basic program information
+ * @param _program - Basic program information (unused, kept for API compatibility)
  * @returns Complete EnhancedBlueprint with sensible defaults
  */
 export function createFallbackBlueprint(_program: ProgramInfo): EnhancedBlueprint {

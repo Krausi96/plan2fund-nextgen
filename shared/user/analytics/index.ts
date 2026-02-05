@@ -11,7 +11,7 @@ function safeWindow(): Window | null {
 function logToConsole(event: string, payload: any) {
   // Keep logging very lightweight to avoid flooding the console in production.
   if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
+     
     console.debug("[analytics]", event, payload);
   }
 }

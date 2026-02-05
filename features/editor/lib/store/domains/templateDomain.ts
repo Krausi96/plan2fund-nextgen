@@ -78,7 +78,7 @@ export const createTemplateDomain = (set: any, get: any): TemplateActions => ({
     
     set({ showAddSection: false, newSectionTitle: '' });
   },
-  
+
   removeCustomSection: (sectionId: string) => {
     const plan = get().plan;
     const customSections = get().customSections;
@@ -106,11 +106,11 @@ export const createTemplateDomain = (set: any, get: any): TemplateActions => ({
       set({ activeSectionId: null });
     }
   },
-  
+
   setActiveSectionId: (id: string | null, _source: 'sidebar' | 'scroll' | 'editor' | 'direct' = 'direct') => {
     set({ activeSectionId: id });
   },
-  
+
   setSelectedProduct: (product: ProductType | null) => {
     let allSections: SectionTemplate[] = [];
     let allDocuments: DocumentTemplate[] = [];
@@ -162,31 +162,31 @@ export const createTemplateDomain = (set: any, get: any): TemplateActions => ({
       set({ selectedProduct: product, plan: null });
     }
   },
-  
+
   setDisabledSectionIds: (ids: string[]) => {
     set({ disabledSectionIds: ids });
     const plan = get().plan;
     if (plan?.metadata) plan.metadata.disabledSectionIds = ids;
   },
-  
+
   setDisabledDocumentIds: (ids: string[]) => {
     set({ disabledDocumentIds: ids });
     const plan = get().plan;
     if (plan?.metadata) plan.metadata.disabledDocumentIds = ids;
   },
-  
+
   setCustomSections: (sections: SectionTemplate[]) => {
     set({ customSections: sections });
     const plan = get().plan;
     if (plan?.metadata) plan.metadata.customSections = sections;
   },
-  
+
   setCustomDocuments: (documents: DocumentTemplate[]) => {
     set({ customDocuments: documents });
     const plan = get().plan;
     if (plan?.metadata) plan.metadata.customDocuments = documents;
   },
-  
+
   setAllSections: (sections: SectionTemplate[]) => set({ allSections: sections }),
   setAllDocuments: (documents: DocumentTemplate[]) => set({ allDocuments: documents }),
 });
