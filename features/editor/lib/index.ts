@@ -199,12 +199,12 @@ export {
 
 // Section Detection utilities
 export { sortSectionsByCanonicalOrder, getCompleteSectionList, getSectionIcon, isSpecialSection } from './utils/1-document-flows/document-flows/sections/utilities/sectionUtilities';
-export { detectSpecialSections } from './utils/1-document-flows/document-flows/sections/detection/detectSpecialSections';
+export { detectSpecialSections } from './utils/1-document-flows/document-flows/processing/detection/detectSpecialSections';
 export { enhanceWithSpecialSections } from './utils/1-document-flows/document-flows/sections/enhancement/enhanceWithSpecialSections';
-export { applyDetectionResults } from './utils/1-document-flows/document-flows/sections/application/applyDetectionResults';
+export { applyDetectionResults } from './utils/1-document-flows/document-flows/processing/structure/applyDetectionResults';
 export { normalizeDocumentStructure, mergeUploadedContentWithSpecialSections } from './utils/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
 export { processDocumentSecurely, splitDocumentIntoParts } from './utils/1-document-flows/document-flows/processing/documentProcessor';
-export { validateDocumentContent } from './utils/1-document-flows/document-flows/security/contentSecurityValidator';
+export { validateDocumentContent } from './utils/1-document-flows/document-flows/processing/security/contentSecurityValidator';
 
 // ============================================================================
 // AI CLIENT - Section AI functionality

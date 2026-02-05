@@ -7,7 +7,7 @@
  * This file contains detection logic only - no mutations or additions to document structures.
  */
 
-import type { DetectionMap, DetectionResult } from '../types';
+import type { DetectionMap, DetectionResult } from '../../sections/types';
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,

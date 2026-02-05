@@ -7,7 +7,7 @@
  */
 
 import type { DocumentStructure } from '@/features/editor/lib/types/program/program-types';
-import type { DetectionMap } from '../types';
+import type { DetectionMap } from '../../sections/types';
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,

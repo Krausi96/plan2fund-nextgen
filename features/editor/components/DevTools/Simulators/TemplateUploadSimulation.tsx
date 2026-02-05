@@ -1,5 +1,5 @@
 import { processDocumentSecurely } from '@/features/editor/lib';
-import { detectSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/detection/detectSpecialSections';
+import { detectSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/processing/detection/detectSpecialSections';
 import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/enhanceWithSpecialSections';
 
 interface SimulationResult {

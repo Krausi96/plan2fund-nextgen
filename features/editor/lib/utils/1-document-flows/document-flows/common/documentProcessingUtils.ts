@@ -6,8 +6,8 @@
  */
 
 import type { DocumentStructure } from '../../../../types/program/program-types';
-import { detectSpecialSections } from '../sections/detection/detectSpecialSections';
-import { applyDetectionResults } from '../sections/application/applyDetectionResults';
+import { detectSpecialSections } from '../processing/detection/detectSpecialSections';
+import { applyDetectionResults } from '../processing/structure/applyDetectionResults';
 import { enhanceWithSpecialSections } from '../sections/enhancement/enhanceWithSpecialSections';
 import { sortSectionsByCanonicalOrder } from '../sections/utilities/sectionUtilities';
 
