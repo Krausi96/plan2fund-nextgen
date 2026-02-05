@@ -6,7 +6,7 @@
  */
 
 import type { DocumentStructure } from '../../../../types/program/program-types';
-import { detectSpecialSections } from '../processing/detection/detectSpecialSections';
+import { detectDocumentStructure } from '../processing/detection/documentStructureDetector';
 import { applyDetectionResults } from '../processing/structure/applyDetectionResults';
 import { enhanceWithSpecialSections } from '../sections/enhancement/sectionEnhancement';
 import { sortSectionsByCanonicalOrder } from '../sections/utilities/sectionUtilities';
@@ -29,7 +29,7 @@ export function unifiedDeduplicateSections<T extends { id: string }>(sections: T
  * Unified detection and application function
  */
 export function unifiedDetectAndApply(structure: DocumentStructure, content: any): DocumentStructure {
-  const detectionResults = detectSpecialSections(content);
+  const detectionResults = detectDocumentStructure(content);
   return applyDetectionResults(structure, detectionResults);
 }
 

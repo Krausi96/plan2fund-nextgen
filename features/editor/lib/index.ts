@@ -199,7 +199,7 @@ export {
 
 // Section Detection utilities
 export { sortSectionsByCanonicalOrder, getCompleteSectionList, getSectionIcon, isSpecialSection } from './utils/1-document-flows/document-flows/sections/utilities/sectionUtilities';
-export { detectSpecialSections } from './utils/1-document-flows/document-flows/processing/detection/detectSpecialSections';
+export { detectDocumentStructure } from './utils/1-document-flows/document-flows/processing/detection/documentStructureDetector';
 export { enhanceWithSpecialSections } from './utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 export { applyDetectionResults } from './utils/1-document-flows/document-flows/processing/structure/applyDetectionResults';
 export { normalizeDocumentStructure, mergeUploadedContentWithSpecialSections } from './utils/1-document-flows/document-flows/normalization/normalizeDocumentStructure';

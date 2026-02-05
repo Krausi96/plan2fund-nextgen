@@ -3,7 +3,7 @@ import type { DocumentStructure } from '../../../../types/types';
 import { processDocumentStructure } from '../common/documentProcessingUtils';
 import { buildInitialStructure } from './structure/buildInitialStructure';
 import { applyDetectionResults } from './structure/applyDetectionResults';
-import { detectSpecialSections } from './detection/detectSpecialSections';
+import { detectDocumentStructure } from './detection/documentStructureDetector';
 import { splitDocumentIntoParts } from './structure/splitDocument';
 import { extractTextFromPDF } from './extractors/pdfExtractor';
 import { extractTextFromDOCX } from './extractors/docxExtractor';
@@ -110,7 +110,7 @@ export async function processDocumentSecurely(file: File) {
       
       if (sectionValidation.shouldReject) {
         // Hard rejection - this section should be completely dropped
-        sectionSecurityIssues.push(`Section '${section.title}' removed for security reasons: ${sectionValidation.hardRejections.join(', ')}`);
+        sectionSecurityIssues.push(`Section '${section.title}' removed for security reasons: ${sectionValidation.warnings.join(', ')}`);
       } else {
         // Section passed security validation, add it with sanitized content
         validatedSections.push({
@@ -150,7 +150,7 @@ export async function processDocumentSecurely(file: File) {
     }, (key: string) => key);
 
     // Apply detection results to enrich the structure
-    const detectionResults = detectSpecialSections(fileContent);
+    const detectionResults = detectDocumentStructure(fileContent);
     const structureWithDetections = applyDetectionResults(processedStructure, detectionResults);
     
     // Integrate detectMultipleSectionsWithoutTitles to check for manual split requirement

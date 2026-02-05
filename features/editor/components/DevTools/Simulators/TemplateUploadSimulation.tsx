@@ -1,6 +1,29 @@
 import { processDocumentSecurely } from '@/features/editor/lib';
-import { detectSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/processing/detection/detectSpecialSections';
 import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
+import { detectDocumentStructure } from '@/features/editor/lib/utils/1-document-flows/document-flows/processing/detection/documentStructureDetector';
+
+export function TemplateUploadSimulation() {
+  const simulateTemplateUpload = () => {
+    // Simulate structure detection
+    const structure = "Business Plan\n1. Executive Summary\n2. Company Description\n3. Market Analysis";
+    const detectionResults = detectDocumentStructure(structure);
+    
+    console.log("Detection results:", detectionResults);
+    alert("Template upload simulation completed with structure detection");
+  };
+
+  return (
+    <div className="p-4 border rounded-lg bg-gray-50">
+      <h3 className="font-semibold mb-2">Template Upload Simulation</h3>
+      <button 
+        onClick={simulateTemplateUpload}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Simulate Template Upload
+      </button>
+    </div>
+  );
+}
 
 interface SimulationResult {
   type: 'templateUpload';
@@ -14,7 +37,7 @@ const processStructureWithDetectionLogic = (structure: any) => {
   const warnings: string[] = [];
   
   // Use the real detection logic to detect special sections
-  const detectionResults = detectSpecialSections(structure);
+  const detectionResults = detectDocumentStructure(structure);
   
   // Identify and flag sections with no names
   const unnamedSections = structure.sections.filter((s: any) => !s.title.trim());
