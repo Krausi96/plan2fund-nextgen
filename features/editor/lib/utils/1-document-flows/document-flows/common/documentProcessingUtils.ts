@@ -8,7 +8,7 @@
 import type { DocumentStructure } from '../../../../types/program/program-types';
 import { detectSpecialSections } from '../processing/detection/detectSpecialSections';
 import { applyDetectionResults } from '../processing/structure/applyDetectionResults';
-import { enhanceWithSpecialSections } from '../sections/enhancement/enhanceWithSpecialSections';
+import { enhanceWithSpecialSections } from '../sections/enhancement/sectionEnhancement';
 import { sortSectionsByCanonicalOrder } from '../sections/utilities/sectionUtilities';
 
 /**

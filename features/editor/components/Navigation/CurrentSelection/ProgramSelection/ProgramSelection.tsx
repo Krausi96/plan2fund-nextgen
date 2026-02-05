@@ -8,7 +8,7 @@ import { ProgramFinder, UrlParser, EditorProgramFinder } from './components/find
 import { TemplateOption } from './components/options/TemplateOption';
 import { FreeOption } from './components/options/free-option/FreeOption';
 import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
-import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/enhanceWithSpecialSections';
+import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 import { FlowSimulator } from '@/features/editor/components/DevTools';
 
 interface OptionSelectorProps {

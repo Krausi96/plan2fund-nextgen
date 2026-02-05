@@ -1,6 +1,6 @@
 import { processDocumentSecurely } from '@/features/editor/lib';
 import { detectSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/processing/detection/detectSpecialSections';
-import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/enhanceWithSpecialSections';
+import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 
 interface SimulationResult {
   type: 'templateUpload';

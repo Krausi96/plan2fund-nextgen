@@ -170,7 +170,7 @@ export {
 
 export {
   shouldIgnoreClick,
-} from './utils/1-document-flows/document-flows/utils';
+} from './utils/1-document-flows/document-flows/utils/editorUtils';
 
 // Program utilities
 export {
@@ -200,7 +200,7 @@ export {
 // Section Detection utilities
 export { sortSectionsByCanonicalOrder, getCompleteSectionList, getSectionIcon, isSpecialSection } from './utils/1-document-flows/document-flows/sections/utilities/sectionUtilities';
 export { detectSpecialSections } from './utils/1-document-flows/document-flows/processing/detection/detectSpecialSections';
-export { enhanceWithSpecialSections } from './utils/1-document-flows/document-flows/sections/enhancement/enhanceWithSpecialSections';
+export { enhanceWithSpecialSections } from './utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 export { applyDetectionResults } from './utils/1-document-flows/document-flows/processing/structure/applyDetectionResults';
 export { normalizeDocumentStructure, mergeUploadedContentWithSpecialSections } from './utils/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
 export { processDocumentSecurely, splitDocumentIntoParts } from './utils/1-document-flows/document-flows/processing/documentProcessor';

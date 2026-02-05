@@ -1,5 +1,5 @@
 /**
- * Enhance With Special Sections
+ * SECTION ENHANCEMENT
  * 
  * Contains functions for enhancing document structures with special sections
  */
@@ -9,67 +9,9 @@ import {
   ANCILLARY_SECTION_ID,
   REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
-  TABLES_DATA_SECTION_ID,
-  FIGURES_IMAGES_SECTION_ID
-} from '@/features/editor/lib/constants';
+} from '../../../../../constants';
 
-// Define special section types
-export type SpecialSectionType = 'metadata' | 'ancillary' | 'references' | 'appendices' | 'tables_data' | 'figures_images';
-
-// Interface for special section configuration
-interface SpecialSectionConfig {
-  id: string;
-  type: 'required' | 'optional';
-  icon: string;
-  titleKey: string;
-}
-
-// Mapping of special section types to their configurations
-const SPECIAL_SECTION_CONFIG: Record<SpecialSectionType, SpecialSectionConfig> = {
-  metadata: {
-    id: METADATA_SECTION_ID,
-    type: 'required',
-    icon: '📕',
-    titleKey: 'editor.section.metadata'
-  },
-  ancillary: {
-    id: ANCILLARY_SECTION_ID,
-    type: 'required',
-    icon: '📑',
-    titleKey: 'editor.section.ancillary'
-  },
-  references: {
-    id: REFERENCES_SECTION_ID,
-    type: 'optional',
-    icon: '📚',
-    titleKey: 'editor.section.references'
-  },
-  appendices: {
-    id: APPENDICES_SECTION_ID,
-    type: 'optional',
-    icon: '📎',
-    titleKey: 'editor.section.appendices'
-  },
-  tables_data: {
-    id: TABLES_DATA_SECTION_ID,
-    type: 'optional',
-    icon: '📊',
-    titleKey: 'editor.section.tablesData'
-  },
-  figures_images: {
-    id: FIGURES_IMAGES_SECTION_ID,
-    type: 'optional',
-    icon: '🖼️',
-    titleKey: 'editor.section.figuresImages'
-  }
-};
-
-/**
- * Get special section configuration by type
- */
-export function getSpecialSectionConfig(type: SpecialSectionType): SpecialSectionConfig {
-  return SPECIAL_SECTION_CONFIG[type];
-}
+import { SpecialSectionType, getSpecialSectionConfig } from './sectionDetection';
 
 /**
  * Create a special section object
@@ -80,7 +22,7 @@ export function createSpecialSection(
   t: (key: any) => string,
   customTitle?: string
 ): any {
-  const config = SPECIAL_SECTION_CONFIG[type];
+  const config = getSpecialSectionConfig(type);
   
   return {
     id: config.id,
@@ -133,8 +75,8 @@ export function enhanceWithSpecialSections(
     const specialSectionsToAdd = [];
     
     // Check each special section type
-    (Object.keys(SPECIAL_SECTION_CONFIG) as SpecialSectionType[]).forEach(type => {
-      const config = SPECIAL_SECTION_CONFIG[type];
+    (Object.keys(getSpecialSectionConfig) as SpecialSectionType[]).forEach(type => {
+      const config = getSpecialSectionConfig(type);
       if (!existingSectionIds.has(config.id)) {
         specialSectionsToAdd.push(
           createSpecialSection(type, 'main_document', t)
@@ -190,7 +132,7 @@ export function enhanceWithSpecialSections(
     // Only add metadata and ancillary to main document
     ['metadata', 'ancillary'].forEach(type => {
       const typedType = type as SpecialSectionType;
-      const config = SPECIAL_SECTION_CONFIG[typedType];
+      const config = getSpecialSectionConfig(typedType);
       if (!mainDocumentSectionIds.has(config.id)) {
         mainSpecialSectionsToAdd.push(
           createSpecialSection(typedType, mainDocumentId, t)
@@ -253,7 +195,7 @@ export function enhanceWithSpecialSections(
     // Add shared special sections
     ['references', 'tables_data', 'figures_images'].forEach(type => {
       const typedType = type as SpecialSectionType;
-      const config = SPECIAL_SECTION_CONFIG[typedType];
+      const config = getSpecialSectionConfig(typedType);
       if (!allSectionIds.has(config.id)) {
         sharedSectionsToAdd.push(
           createSpecialSection(typedType, mainDocumentId, t)

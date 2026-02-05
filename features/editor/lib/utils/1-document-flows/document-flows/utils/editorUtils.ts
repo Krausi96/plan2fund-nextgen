@@ -1,7 +1,14 @@
 /**
  * ============================================================================  
- * EDITOR UTILITIES
+ * EDITOR DOM UTILITIES
  * ============================================================================  
+ * Utility functions for DOM interactions and event handling
+ */
+
+/**
+ * Determines whether a click event on an element should be ignored
+ * (e.g., if it's on an interactive element that should handle its own clicks)
+ * 
  * @param element - The HTML element that was clicked
  * @returns true if the click should be ignored, false otherwise
  */

@@ -6,7 +6,7 @@
  */
 
 import type { DocumentStructure } from '../../../../types/types';
-import { enhanceWithSpecialSections } from '../../document-flows/sections/enhancement/enhanceWithSpecialSections';
+import { enhanceWithSpecialSections } from '../../document-flows/sections/enhancement/sectionEnhancement';
 import { sortSectionsByCanonicalOrder } from '../../document-flows/sections/utilities/sectionUtilities';
 import { unifiedDetectAndApply, unifiedDeduplicateSections } from '../common/documentProcessingUtils';
 import {

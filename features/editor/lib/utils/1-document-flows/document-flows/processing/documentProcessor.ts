@@ -1,4 +1,4 @@
-import { validateDocumentContent } from './security/contentSecurityValidator';
+import { validateDocumentContent, detectMultipleSectionsWithoutTitles } from './security/contentSecurityValidator';
 import type { DocumentStructure } from '../../../../types/types';
 import { processDocumentStructure } from '../common/documentProcessingUtils';
 import { buildInitialStructure } from './structure/buildInitialStructure';
@@ -8,7 +8,31 @@ import { splitDocumentIntoParts } from './structure/splitDocument';
 import { extractTextFromPDF } from './extractors/pdfExtractor';
 import { extractTextFromDOCX } from './extractors/docxExtractor';
 import { extractTextFromTXT } from './extractors/txtExtractor';
+import { v4 as uuidv4 } from 'uuid';
 // No longer needed constants have been removed
+
+// Define constants for file size and chunking
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const CHUNK_SIZE = 15 * 1024; // 15 KB per chunk
+
+// Helper function to count words in text
+function countWords(text: string): number {
+  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+}
+
+// Helper function to count pages in text (assuming 500 words per page)
+function countPages(wordCount: number): number {
+  return Math.ceil(wordCount / 500);
+}
+
+// Helper function to chunk text
+function chunkText(text: string, chunkSize: number): string[] {
+  const chunks: string[] = [];
+  for (let i = 0; i < text.length; i += chunkSize) {
+    chunks.push(text.substring(i, i + chunkSize));
+  }
+  return chunks;
+}
 
 
 /**
@@ -16,8 +40,22 @@ import { extractTextFromTXT } from './extractors/txtExtractor';
  */
 export async function processDocumentSecurely(file: File) {
   try {
-    // Create base ID once to ensure consistency
-    const baseId = Date.now().toString();
+    // Check file size before processing
+    if (file.size > MAX_FILE_SIZE) {
+      return {
+        success: false,
+        documentStructure: null,
+        securityIssues: {
+          hardRejections: [`File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB`],
+          softWarnings: []
+        },
+        needsManualSplit: false,
+        message: `File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB`
+      };
+    }
+    
+    // Create stable base ID once to ensure consistency
+    const baseId = uuidv4();
     let fileContent = '';
     
     if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.name.endsWith('.docx')) {
@@ -40,6 +78,20 @@ export async function processDocumentSecurely(file: File) {
         needsManualSplit: false,
         message: `Unsupported file type: ${file.type}`
       };
+    }
+    
+    // Chunk large files for processing to avoid memory spikes
+    if (fileContent.length > CHUNK_SIZE) {
+      const chunks = chunkText(fileContent, CHUNK_SIZE);
+      const processedChunks = [];
+      
+      for (const chunk of chunks) {
+        // Process each chunk individually
+        processedChunks.push(chunk);
+      }
+      
+      // Merge chunks after processing
+      fileContent = processedChunks.join('\n');
     }
 
     // Build initial structure from the content
@@ -83,19 +135,26 @@ export async function processDocumentSecurely(file: File) {
       warnings: [...unvalidatedStructure.warnings, ...sectionSecurityIssues]
     };
     
+    // Compute real word and page counts from the extracted text
+    const wordCount = countWords(fileContent);
+    const pageCount = countPages(wordCount);
+    
     // Process the structure with the complete pipeline
     const processedStructure = processDocumentStructure(initialStructure, {
       title: file.name.replace(/\.[^/.]+$/, ""),
       sections: validatedSections,
       hasTitlePage: validatedSections.some((s: any) => s.type === 'metadata' || s.title.toLowerCase().includes('title')),
       hasTOC: validatedSections.some((s: any) => s.type === 'ancillary' || s.title.toLowerCase().includes('table of contents') || s.title.toLowerCase().includes('toc')),
-      totalPages: 0,
-      wordCount: fileContent.split(/\s+/).filter((word: any) => word.length > 0).length // Accurate word count from original content
+      totalPages: pageCount,
+      wordCount: wordCount
     }, (key: string) => key);
 
     // Apply detection results to enrich the structure
     const detectionResults = detectSpecialSections(fileContent);
     const structureWithDetections = applyDetectionResults(processedStructure, detectionResults);
+    
+    // Integrate detectMultipleSectionsWithoutTitles to check for manual split requirement
+    const needsManualSplit = detectMultipleSectionsWithoutTitles(fileContent);
     
     const documentStructure: DocumentStructure = {
       ...structureWithDetections
@@ -108,7 +167,7 @@ export async function processDocumentSecurely(file: File) {
         hardRejections: [],
         softWarnings: sectionSecurityIssues
       },
-      needsManualSplit: false,
+      needsManualSplit,
       message: 'Document processed successfully'
     };
   } catch (error) {

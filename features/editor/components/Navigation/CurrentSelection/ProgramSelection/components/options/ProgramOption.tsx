@@ -5,7 +5,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { normalizeProgramInput, generateProgramBlueprint, normalizeFundingProgram, generateDocumentStructureFromProfile } from '@/features/editor/lib';
-import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/enhanceWithSpecialSections';
+import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import { createFallbackBlueprint } from '@/features/ai/lib/blueprintUtils';
 import { saveSelectedProgram } from '@/features/reco/lib/programPersistence';

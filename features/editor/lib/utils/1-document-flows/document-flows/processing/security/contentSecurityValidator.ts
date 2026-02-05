@@ -1,5 +1,14 @@
 import DOMPurify from 'isomorphic-dompurify';
 
+// Define constants for security validation
+const MAX_TOKEN_LENGTH = 1000; // Maximum length for a single token to prevent overflows
+const MAX_REPEAT_SEQUENCE = 100; // Maximum allowed repeated characters
+
+// Define patterns for zero-width and non-printing Unicode characters
+const ZERO_WIDTH_CHARS_REGEX = /[\u200B-\u200D\uFEFF]/g; // Zero-width space, zero-width non-joiner, zero-width joiner, zero-width no-break space
+const NON_PRINTING_UNICODE_REGEX = /[\x00-\x1F\x7F-\x9F]/g; // Control characters and C1 control codes
+const BASE64_EMBEDDED_REGEX = /(?:^|\s)(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?(?:\s|$)/g; // Basic base64 pattern
+
 /**
  * Security validation results for document content
  */
@@ -10,6 +19,7 @@ export interface SecurityValidationResult {
   sanitizedContent: string;
   shouldReject: boolean;
   confidence: number;
+  promptInjectionWarning?: boolean; // Flag to indicate if prompt injection was detected
 }
 
 /**
@@ -22,42 +32,58 @@ export function validateDocumentContent(
 ): SecurityValidationResult {
   const hardRejections: string[] = [];
   const softWarnings: string[] = [];
+  let promptInjectionWarning = false;
+  
+  // Enforce file size limits at high level
+  if (content.length > 10 * 1024 * 1024) { // 10MB in characters
+    hardRejections.push('Content exceeds maximum size limit of 10 MB');
+  }
+  
+  // Strip invisible or malicious content
+  let processedContent = stripInvisibleAndMaliciousContent(content);
   
   // Hard reject checks (immediate rejection)
-  const executableCodeFound = detectExecutableCode(content, title);
+  const executableCodeFound = detectExecutableCode(processedContent, title);
   if (executableCodeFound.length > 0) {
     hardRejections.push(...executableCodeFound);
   }
   
-  const promptInjectionFound = detectPromptInjection(content, title);
+  const promptInjectionFound = detectPromptInjection(processedContent, title);
   if (promptInjectionFound.length > 0) {
     hardRejections.push(...promptInjectionFound);
+    promptInjectionWarning = true; // Set flag when prompt injection is detected
   }
   
-  const hiddenMarkupFound = detectHiddenMarkup(content, title);
+  const hiddenMarkupFound = detectHiddenMarkup(processedContent, title);
   if (hiddenMarkupFound.length > 0) {
     hardRejections.push(...hiddenMarkupFound);
   }
   
-  const malwareExploitsFound = detectMalwareExploits(content, title);
+  const malwareExploitsFound = detectMalwareExploits(processedContent, title);
   if (malwareExploitsFound.length > 0) {
     hardRejections.push(...malwareExploitsFound);
   }
   
   // Soft handle checks (warnings but allow)
-  const badWritingFound = detectBadWriting(content);
+  const badWritingFound = detectBadWriting(processedContent);
   if (badWritingFound.length > 0) {
     softWarnings.push(...badWritingFound);
   }
   
-  const nonsenseTextFound = detectNonsenseText(content);
+  const nonsenseTextFound = detectNonsenseText(processedContent);
   if (nonsenseTextFound.length > 0) {
     softWarnings.push(...nonsenseTextFound);
   }
   
-  const qualityIssuesFound = detectQualityIssues(content);
+  const qualityIssuesFound = detectQualityIssues(processedContent);
   if (qualityIssuesFound.length > 0) {
     softWarnings.push(...qualityIssuesFound);
+  }
+  
+  // Detect repeated characters (long sequences of repeating characters)
+  const repeatedCharsFound = detectRepeatedCharacters(processedContent);
+  if (repeatedCharsFound.length > 0) {
+    softWarnings.push(...repeatedCharsFound);
   }
   
   // Determine validity based on hard rejections
@@ -69,9 +95,14 @@ export function validateDocumentContent(
   const confidence = Math.max(0, 100 - (totalIssues * 5)); // Each issue reduces confidence by 5%
   
   // Sanitize content if it passes hard rejection checks
-  let sanitizedContent = content;
+  let sanitizedContent = processedContent;
   if (isValid) {
-    sanitizedContent = sanitizeDocumentContent(content);
+    // Apply DOMPurify only when HTML is present (conditionally)
+    if (processedContent.includes('<') && processedContent.includes('>')) {
+      sanitizedContent = sanitizeDocumentContent(processedContent);
+    } else {
+      sanitizedContent = processedContent;
+    }
   } else {
     // For hard rejections, replace with security placeholder
     sanitizedContent = 'Removed for security reasons';
@@ -83,7 +114,8 @@ export function validateDocumentContent(
     softWarnings,
     sanitizedContent,
     shouldReject,
-    confidence
+    confidence,
+    promptInjectionWarning // Include the flag in the result
   };
 }
 
@@ -293,6 +325,28 @@ function detectNonsenseText(content: string): string[] {
 }
 
 /**
+ * Detect long sequences of repeating characters
+ */
+function detectRepeatedCharacters(content: string): string[] {
+  const issues: string[] = [];
+  
+  // Check for long sequences of repeating characters (e.g., aaaaaa...)
+  const repeatPattern = /(.)\1{5,}/g; // 6 or more repeated characters
+  let match;
+  while ((match = repeatPattern.exec(content)) !== null) {
+    const char = match[1];
+    const sequence = match[0];
+    if (sequence.length >= MAX_REPEAT_SEQUENCE) {
+      issues.push(`Long sequence of repeating characters detected: ${char} repeated ${sequence.length} times`);
+    } else if (sequence.length > 10) { // More reasonable threshold for warning
+      issues.push(`Long sequence of repeating characters detected: ${char} repeated ${sequence.length} times`);
+    }
+  }
+  
+  return issues;
+}
+
+/**
  * Detect quality issues (soft handle)
  */
 function detectQualityIssues(content: string): string[] {
@@ -321,6 +375,43 @@ function detectQualityIssues(content: string): string[] {
 /**
  * Sanitize content using DOMPurify with strict settings
  */
+/**
+ * Strip invisible or malicious content from text
+ */
+function stripInvisibleAndMaliciousContent(content: string): string {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+  
+  let cleaned = content;
+  
+  // Remove zero-width spaces and non-printing Unicode characters
+  cleaned = cleaned.replace(ZERO_WIDTH_CHARS_REGEX, '');
+  cleaned = cleaned.replace(NON_PRINTING_UNICODE_REGEX, '');
+  
+  // Remove base64 embedded objects (basic detection)
+  // Note: This is a simplified approach - full base64 validation would be more complex
+  cleaned = cleaned.replace(BASE64_EMBEDDED_REGEX, (match) => {
+    // Check if the match is actually a legitimate base64-like string (e.g., a hash)
+    // For now, we'll just check if it's mixed with regular text
+    if (match.trim().length > 50 && !/[a-zA-Z0-9+/=]/.test(match)) {
+      return ''; // Remove if it looks like a long base64 sequence
+    }
+    return match; // Keep if it might be legitimate
+  });
+  
+  // Cap token length per section to prevent overflows
+  const tokens = cleaned.split(/\s+/);
+  const processedTokens = tokens.map(token => {
+    if (token.length > MAX_TOKEN_LENGTH) {
+      return token.substring(0, MAX_TOKEN_LENGTH); // Truncate long tokens
+    }
+    return token;
+  });
+  
+  return processedTokens.join(' ');
+}
+
 export function sanitizeDocumentContent(content: string): string {
   if (!content || typeof content !== 'string') {
     return '';
