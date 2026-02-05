@@ -15,7 +15,7 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../../constants';
+} from '@/features/editor/lib/constants';
 
 /**
  * Detect special sections in document content using keyword and positional heuristics

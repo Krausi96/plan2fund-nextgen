@@ -6,7 +6,7 @@
  * This file only attaches detected content to existing sections - no new sections are created.
  */
 
-import type { DocumentStructure } from '../../../types/program/program-types';
+import type { DocumentStructure } from '@/features/editor/lib/types/program/program-types';
 import type { DetectionMap } from '../types';
 import {
   METADATA_SECTION_ID,
@@ -15,7 +15,7 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../../constants';
+} from '@/features/editor/lib/constants';
 
 /**
  * Apply detection results to a document structure

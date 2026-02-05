@@ -170,41 +170,41 @@ export {
 
 export {
   shouldIgnoreClick,
-} from './utils';
+} from './utils/1-document-flows/document-flows/utils';
 
 // Program utilities
 export {
   normalizeProgramInput,
-} from './utils/program-flows/input-handling/urlParser';
+} from './utils/2-program-flows/program-flows/input-handling/urlParser';
 
 // Document Setup utilities
 export {
   normalizeFundingProgram,
-} from './utils/program-flows/data-processing/programNormalizer';
+} from './utils/2-program-flows/program-flows/data-processing/programNormalizer';
 export {
   generateDocumentStructureFromProfile,
-} from './utils/program-flows/structure-generation/structureGenerator';
+} from './utils/2-program-flows/program-flows/structure-generation/structureGenerator';
 
 // Conversion utilities
-export { generateProgramBlueprint } from './utils/program-flows/conversion/programConverter';
+export { generateProgramBlueprint } from './utils/2-program-flows/program-flows/conversion/programConverter';
 
 // Legacy conversion utilities
-export { migrateLegacySetup } from './utils/legacy-conversion/legacyMigrator';
+export { migrateLegacySetup } from './utils/3-legacy-conversion/legacy-conversion/legacyMigrator';
 
 // Blueprint Instantiation utilities
 export {
   inferProductTypeFromBlueprint,
   instantiateFromBlueprint,
-} from './utils/blueprint-flows/document-instantiation/instantiateFromBlueprint';
+} from './utils/4-blueprint-flows/blueprint-flows/document-instantiation/instantiateFromBlueprint';
 
 // Section Detection utilities
-export { sortSectionsByCanonicalOrder, getCompleteSectionList, getSectionIcon, isSpecialSection } from './utils/section-flows/utilities/sectionUtilities';
-export { detectSpecialSections } from './utils/section-flows/detection/detectSpecialSections';
-export { enhanceWithSpecialSections } from './utils/section-flows/enhancement/enhanceWithSpecialSections';
-export { applyDetectionResults } from './utils/section-flows/application/applyDetectionResults';
-export { normalizeDocumentStructure, mergeUploadedContentWithSpecialSections } from './utils/document-flows/normalization/normalizeDocumentStructure';
-export { processDocumentSecurely, splitDocumentIntoParts } from './utils/document-flows/processing/documentProcessor';
-export { validateDocumentContent } from './utils/document-flows/security/contentSecurityValidator';
+export { sortSectionsByCanonicalOrder, getCompleteSectionList, getSectionIcon, isSpecialSection } from './utils/1-document-flows/document-flows/sections/utilities/sectionUtilities';
+export { detectSpecialSections } from './utils/1-document-flows/document-flows/sections/detection/detectSpecialSections';
+export { enhanceWithSpecialSections } from './utils/1-document-flows/document-flows/sections/enhancement/enhanceWithSpecialSections';
+export { applyDetectionResults } from './utils/1-document-flows/document-flows/sections/application/applyDetectionResults';
+export { normalizeDocumentStructure, mergeUploadedContentWithSpecialSections } from './utils/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
+export { processDocumentSecurely, splitDocumentIntoParts } from './utils/1-document-flows/document-flows/processing/documentProcessor';
+export { validateDocumentContent } from './utils/1-document-flows/document-flows/security/contentSecurityValidator';
 
 // ============================================================================
 // AI CLIENT - Section AI functionality

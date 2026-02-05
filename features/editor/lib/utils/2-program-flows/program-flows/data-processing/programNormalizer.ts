@@ -4,8 +4,8 @@
  * Contains functions for normalizing raw program data into standardized FundingProgram format.
  */
 
-import type { ProgramSummary } from '../../../types/types';
-import type { FundingProgram } from '../../../types/program/program-types';
+import type { ProgramSummary } from '../../../../types/types';
+import type { FundingProgram } from '../../../../types/program/program-types';
 
 /**
  * Normalize raw program data into FundingProgram format

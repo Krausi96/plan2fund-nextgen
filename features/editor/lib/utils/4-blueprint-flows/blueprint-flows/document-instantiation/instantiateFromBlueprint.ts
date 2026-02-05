@@ -4,8 +4,8 @@
  * Contains functions for instantiating PlanDocuments from DocumentStructures.
  */
 
-import type { ProductType, PlanSection, PlanDocument } from '../../../types/types';
-import type { DocumentStructure } from '../../../types/program/program-types';
+import type { ProductType, PlanSection, PlanDocument } from '../../../../types/types';
+import type { DocumentStructure } from '../../../../types/program/program-types';
 
 /**
  * Infer ProductType from DocumentStructure characteristics

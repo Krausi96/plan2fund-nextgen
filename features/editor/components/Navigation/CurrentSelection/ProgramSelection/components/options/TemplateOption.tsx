@@ -4,7 +4,8 @@ import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import {
   ANCILLARY_SECTION_ID
 } from '@/features/editor/lib/constants';
-import { processDocumentSecurely } from '@/features/editor/lib/utils/document-flows/processing/documentProcessor';
+import { processDocumentSecurely } from '@/features/editor/lib/utils/1-document-flows/document-flows/processing/documentProcessor';
+
 
 interface DetectedDocument {
   fileName: string;
@@ -155,8 +156,8 @@ export function TemplateOption({ onDocumentAnalyzed, onNavigateToBlueprint }: Te
             { name: 'Heading 2', count: 8, sample: 'Market Analysis' },
             { name: 'Normal Text', count: 156, sample: 'The company...' }
           ],
-          hasTableOfContents: result.documentStructure.sections.some(s => s.id === ANCILLARY_SECTION_ID),
-          tocEntries: result.documentStructure.sections.filter(s => s.id === ANCILLARY_SECTION_ID).length,
+          hasTableOfContents: result.documentStructure.sections.some((s: any) => s.id === ANCILLARY_SECTION_ID),
+          tocEntries: result.documentStructure.sections.filter((s: any) => s.id === ANCILLARY_SECTION_ID).length,
           structureConfidence: result.documentStructure.confidenceScore,
           warnings: [
             ...result.securityIssues.softWarnings,

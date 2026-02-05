@@ -3,32 +3,33 @@
 // Export document setup utilities
 export {
   normalizeProgramInput,
-} from './program-flows/input-handling/urlParser';
+} from './2-program-flows/program-flows/input-handling/urlParser';
 export {
   normalizeFundingProgram,
   normalizeProgramSetup,
-} from './program-flows/data-processing/programNormalizer';
+} from './2-program-flows/program-flows/data-processing/programNormalizer';
 export {
   generateDocumentStructureFromProfile,
-} from './program-flows/structure-generation/structureGenerator';
+} from './2-program-flows/program-flows/structure-generation/structureGenerator';
 
 // Export conversion functions
-export { generateProgramBlueprint } from './program-flows/conversion/programConverter';
+export { generateProgramBlueprint } from './2-program-flows/program-flows/conversion/programConverter';
 
 // Export legacy conversion functions
-export { migrateLegacySetup } from './legacy-conversion/legacyMigrator';
+export { migrateLegacySetup } from './3-legacy-conversion/legacy-conversion/legacyMigrator';
 
 // Additional utilities from other modules
-export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from './blueprint-flows/document-instantiation/instantiateFromBlueprint';
-export { normalizeDocumentStructure } from './document-flows/normalization/normalizeDocumentStructure';
-export { processDocumentSecurely, splitDocumentIntoParts } from './document-flows/processing/documentProcessor';
-export { validateDocumentContent } from './document-flows/security/contentSecurityValidator';
-export { sortSectionsByCanonicalOrder, getCompleteSectionList, getSectionIcon, isSpecialSection } from './section-flows/utilities/sectionUtilities';
-export { detectSpecialSections } from './section-flows/detection/detectSpecialSections';
-export { enhanceWithSpecialSections } from './section-flows/enhancement/enhanceWithSpecialSections';
-export { applyDetectionResults } from './section-flows/application/applyDetectionResults';
-export { organizeDocumentStructureForUi, getFlatDocumentView } from './document-flows/organizeForUiRendering';
-export type { HierarchicalDocumentView } from './document-flows/organizeForUiRendering';
+export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from './4-blueprint-flows/blueprint-flows/document-instantiation/instantiateFromBlueprint';
+export { normalizeDocumentStructure } from './1-document-flows/document-flows/normalization/normalizeDocumentStructure';
+export { processDocumentSecurely, splitDocumentIntoParts } from './1-document-flows/document-flows/processing/documentProcessor';
+export { validateDocumentContent } from './1-document-flows/document-flows/security/contentSecurityValidator';
+export { sortSectionsByCanonicalOrder, getCompleteSectionList, getSectionIcon, isSpecialSection, getSpecialSectionConfig, createSpecialSection, enhanceWithSpecialSectionsCentralized } from './1-document-flows/document-flows/sections/utilities/sectionUtilities';
+export { detectSpecialSections } from './1-document-flows/document-flows/sections/detection/detectSpecialSections';
+export { enhanceWithSpecialSections } from './1-document-flows/document-flows/sections/enhancement/enhanceWithSpecialSections';
+export { applyDetectionResults } from './1-document-flows/document-flows/sections/application/applyDetectionResults';
+export { organizeDocumentStructureForUi, getFlatDocumentView } from './1-document-flows/document-flows/organizeForUiRendering';
+export type { HierarchicalDocumentView } from './1-document-flows/document-flows/organizeForUiRendering';
+export { unifiedDeduplicateSections, unifiedDetectAndApply, processDocumentStructure, createUnifiedDocumentStructure } from './1-document-flows/document-flows/common/documentProcessingUtils';
 
 // Export types
 
@@ -40,4 +41,4 @@ export type {
   FundingProgram,
   DocumentStructure,
   SetupDiagnostics,
-} from './types';
+} from '../types/types';

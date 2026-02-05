@@ -1,4 +1,4 @@
-import type { ProgramSummary, FundingProgram, DocumentStructure, SetupDiagnostics } from '../../types/types';
+import type { ProgramSummary, FundingProgram, DocumentStructure, SetupDiagnostics } from '../../../types/types';
 
 /**
  * Migrate legacy ProgramSummary to new document setup system

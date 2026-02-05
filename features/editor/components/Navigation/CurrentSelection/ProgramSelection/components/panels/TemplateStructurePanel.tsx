@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEditorStore, getSectionIcon } from '@/features/editor/lib';
-import { organizeDocumentStructureForUi } from '@/features/editor/lib/utils/document-flows/organizeForUiRendering';
+import { organizeDocumentStructureForUi } from '@/features/editor/lib/utils/1-document-flows/document-flows/organizeForUiRendering';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface TemplateStructurePanelProps {

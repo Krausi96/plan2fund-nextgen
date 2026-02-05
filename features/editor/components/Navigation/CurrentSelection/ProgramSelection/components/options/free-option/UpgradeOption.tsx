@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/utils/document-flows/normalization/normalizeDocumentStructure';
+import { mergeUploadedContentWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
 import { ANCILLARY_SECTION_ID } from '@/features/editor/lib/constants';
-import { extractContentFromFiles } from '@/features/editor/lib/utils/document-flows/processing/documentProcessor';
+import { extractContentFromFiles } from '@/features/editor/lib/utils/1-document-flows/document-flows/processing/documentProcessor';
 
 // Types for UpgradeOption component
 interface DetectedDocument {
@@ -130,8 +130,8 @@ export function UpgradeOption({ onNavigateToBlueprint }: UpgradeOptionProps) {
           { name: 'Heading 2', count: 12, sample: 'Market Analysis' },
           { name: 'Normal Text', count: detectedSections * 3, sample: 'The company...' }
         ],
-        hasTableOfContents: baseStructure.sections.some(s => s.id === ANCILLARY_SECTION_ID),
-        tocEntries: baseStructure.sections.filter(s => s.id === ANCILLARY_SECTION_ID).length,
+        hasTableOfContents: baseStructure.sections.some((s: any) => s.id === ANCILLARY_SECTION_ID),
+        tocEntries: baseStructure.sections.filter((s: any) => s.id === ANCILLARY_SECTION_ID).length,
         structureConfidence: 70,
         warnings: [
           'Some sections have weak content',
@@ -162,7 +162,7 @@ export function UpgradeOption({ onNavigateToBlueprint }: UpgradeOptionProps) {
         ...baseStructure,
         source: 'upgrade' as const,
         upgradeMode: true,
-        existingStructure: baseStructure.sections.slice(0, 4).map(s => s.title),
+        existingStructure: baseStructure.sections.slice(0, 4).map((s: any) => s.title),
         suggestedAdditions: ['Marketing Strategy', 'Operations Plan', 'Risk Management'],
         missingBestPracticeSections: ['Marketing Strategy', 'Operations Plan', 'Risk Management'],
         qualityGaps: ['SWOT Analysis section needs strengthening', 'Competitor Analysis lacks detail', 'Financial projections need more granularity'],

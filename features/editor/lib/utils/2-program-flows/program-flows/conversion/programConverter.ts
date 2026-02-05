@@ -1,4 +1,4 @@
-import type { ProgramSummary } from '../../../types/types';
+import type { ProgramSummary } from '@/features/editor/lib/types/types';
 
 /**
  * Create minimal ProgramSummary from program data (backward compatibility)

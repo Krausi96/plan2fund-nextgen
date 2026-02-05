@@ -6,8 +6,8 @@
  * components like BlueprintInstantiator, ProgramSummaryPanel, etc.
  */
 
-import type { DocumentStructure } from '../../types/program/program-types';
-import type { TranslationFunction } from '../section-flows/types';
+import type { DocumentStructure } from '@/features/editor/lib/types/program/program-types';
+import type { TranslationFunction } from './sections/types';
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
@@ -15,8 +15,8 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../constants';
-import { sortSectionsByCanonicalOrder } from '../section-flows/utilities/sectionUtilities';
+} from '@/features/editor/lib/constants';
+import { sortSectionsByCanonicalOrder } from './sections/utilities/sectionUtilities';
 
 /**
  * Represents the hierarchical structure for UI rendering
@@ -69,12 +69,12 @@ export function organizeDocumentStructureForUi(
   
   // Separate sections by document
   const sectionsByDocument: Record<string, any[]> = {};
-  documentStructure.documents.forEach(doc => sectionsByDocument[doc.id] = []);
+  documentStructure.documents.forEach((doc: any) => sectionsByDocument[doc.id] = []);
   
 
   
   // Assign sections to their respective documents
-  documentStructure.sections.forEach(section => {
+  documentStructure.sections.forEach((section: any) => {
     const targetDocumentId = section.documentId || mainDocumentId;
     if (sectionsByDocument[targetDocumentId]) {
       sectionsByDocument[targetDocumentId].push(section);
@@ -150,7 +150,7 @@ export function organizeDocumentStructureForUi(
   console.log('🔍 DEBUG: Starting to organize appendices for document structure:', documentStructure.documents.length, 'documents total');
   console.log('🔍 DEBUG: All documents in structure:', documentStructure.documents.map(d => ({id: d.id, name: d.name})));  
   
-  const appendices = documentStructure.documents.slice(1).map((doc, index) => {
+  const appendices = documentStructure.documents.slice(1).map((doc: any, index: number) => {
     const appendixLetter = String.fromCharCode(65 + index); // A, B, C...
     // Filter out shared sections from appendix sections so they only appear in shared sections
     let appendixSections = (sectionsByDocument[doc.id] || []).filter(section => 
@@ -271,7 +271,7 @@ export function organizeDocumentStructureForUi(
 
   // Add default shared sections if none exist in the document structure
   if (!sharedSections.some(s => s.id === REFERENCES_SECTION_ID)) {
-    const existingReferenceSection = documentStructure.sections.find(s => s.id === REFERENCES_SECTION_ID);
+    const existingReferenceSection = documentStructure.sections.find((s: any) => s.id === REFERENCES_SECTION_ID);
     if (existingReferenceSection) {
       sharedSections.push(existingReferenceSection);
     } else {
@@ -288,7 +288,7 @@ export function organizeDocumentStructureForUi(
   }
 
   if (!sharedSections.some(s => s.id === TABLES_DATA_SECTION_ID)) {
-    const existingTablesSection = documentStructure.sections.find(s => s.id === TABLES_DATA_SECTION_ID);
+    const existingTablesSection = documentStructure.sections.find((s: any) => s.id === TABLES_DATA_SECTION_ID);
     if (existingTablesSection) {
       sharedSections.push(existingTablesSection);
     } else {
@@ -305,7 +305,7 @@ export function organizeDocumentStructureForUi(
   }
 
   if (!sharedSections.some(s => s.id === FIGURES_IMAGES_SECTION_ID)) {
-    const existingFiguresSection = documentStructure.sections.find(s => s.id === FIGURES_IMAGES_SECTION_ID);
+    const existingFiguresSection = documentStructure.sections.find((s: any) => s.id === FIGURES_IMAGES_SECTION_ID);
     if (existingFiguresSection) {
       sharedSections.push(existingFiguresSection);
     } else {
@@ -324,7 +324,7 @@ export function organizeDocumentStructureForUi(
   // Add default appendices section only if no individual appendices exist
   // Also ensure we don't add it if it would create duplication
   if (!HAS_INDIVIDUAL_APPENDICES && !sharedSections.some(s => s.id === APPENDICES_SECTION_ID)) {
-    const existingAppendicesSection = documentStructure.sections.find(s => s.id === APPENDICES_SECTION_ID);
+    const existingAppendicesSection = documentStructure.sections.find((s: any) => s.id === APPENDICES_SECTION_ID);
     if (existingAppendicesSection) {
       sharedSections.push(existingAppendicesSection);
     } else {
@@ -340,7 +340,7 @@ export function organizeDocumentStructureForUi(
     }
   }
   
-  // Apply canonical ordering to shared sections
+  // Apply canonical ordering to shared sections using centralized utility
   sharedSections = sortSectionsByCanonicalOrder(sharedSections, documentStructure.documents || []);
 
   // FINAL SAFETY CHECK: Ensure APPENDICES_SECTION_ID is not in shared sections if individual appendices exist

@@ -1,10 +1,7 @@
 import * as mammoth from 'mammoth';
 import { validateDocumentContent } from '../security/contentSecurityValidator';
-import type { DocumentStructure, PlanSection } from '../../../types/types';
-import { enhanceWithSpecialSections } from '../../section-flows/enhancement/enhanceWithSpecialSections';
-import { detectSpecialSections } from '../../section-flows/detection/detectSpecialSections';
-import { applyDetectionResults } from '../../section-flows/application/applyDetectionResults';
-import { sortSectionsByCanonicalOrder } from '../../section-flows/utilities/sectionUtilities';
+import type { DocumentStructure, PlanSection } from '../../../../types/types';
+import { processDocumentStructure } from '../common/documentProcessingUtils';
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
@@ -12,7 +9,7 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../../constants';
+} from '../../../../constants';
 
 /**
  * Extracts text from a PDF file in browser environment
@@ -134,38 +131,21 @@ export async function processDocumentSecurely(file: File) {
       createdBy: 'user'
     };
     
-    // Detect special sections in the validated content
-    const detectionResults = detectSpecialSections({
+    // Process the structure with the complete pipeline
+    const processedStructure = processDocumentStructure(initialStructure, {
       title: file.name.replace(/\.[^/.]+$/, ""),
       sections: validatedSections,
       hasTitlePage: validatedSections.some((s: any) => s.type === 'metadata' || s.title.toLowerCase().includes('title')),
       hasTOC: validatedSections.some((s: any) => s.type === 'ancillary' || s.title.toLowerCase().includes('table of contents') || s.title.toLowerCase().includes('toc')),
       totalPages: 0,
       wordCount: validatedSections.reduce((total, section) => total + (section.content || '').split(/\s+/).filter(word => word.length > 0).length, 0)
-    });
+    }, (key: string) => key);
     
-    // Apply detection results to enrich existing sections with detected content
-    let structureWithDetectedContent = applyDetectionResults(initialStructure, detectionResults);
-    
-    // Enhance with special sections (title page, TOC, references, etc.)
-    const enhancedStructure = enhanceWithSpecialSections(structureWithDetectedContent, (key: string) => key) || structureWithDetectedContent;
-    
-    // Remove duplicate sections to prevent duplication
-    const seenIds = new Set();
-    const uniqueSections = enhancedStructure.sections.filter(section => {
-      if (seenIds.has(section.id)) {
-        return false; // Skip duplicate
-      }
-      seenIds.add(section.id);
-      return true;
-    });
-    
-    // Apply canonical ordering to ensure sections are in the proper order
-    const orderedSections = sortSectionsByCanonicalOrder(uniqueSections, enhancedStructure.documents);
+    const orderedSections = processedStructure.sections;
     
     // Create final document structure with all enhancements
     const documentStructure: DocumentStructure = {
-      ...enhancedStructure,
+      ...processedStructure,
       sections: orderedSections
     };
 

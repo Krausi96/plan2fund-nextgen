@@ -5,11 +5,10 @@
  * (programs, templates, uploads) into a consistent format.
  */
 
-import type { DocumentStructure } from '../../../types/types';
-import { enhanceWithSpecialSections } from '../../section-flows/enhancement/enhanceWithSpecialSections';
-import { detectSpecialSections } from '../../section-flows/detection/detectSpecialSections';
-import { applyDetectionResults } from '../../section-flows/application/applyDetectionResults';
-import { sortSectionsByCanonicalOrder } from '../../section-flows/utilities/sectionUtilities';
+import type { DocumentStructure } from '../../../../types/types';
+import { enhanceWithSpecialSections } from '../../document-flows/sections/enhancement/enhanceWithSpecialSections';
+import { sortSectionsByCanonicalOrder } from '../../document-flows/sections/utilities/sectionUtilities';
+import { unifiedDetectAndApply, unifiedDeduplicateSections } from '../common/documentProcessingUtils';
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
@@ -17,7 +16,7 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../../constants';
+} from '../../../../constants';
 
 /**
  * Normalize document structure to ensure consistency across all sources
@@ -34,10 +33,10 @@ import {
  */
 export function normalizeDocumentStructure(
   structure: DocumentStructure,
-  t: (key: string) => string
+  _t: (key: string) => string
 ): DocumentStructure {
   // Ensure all special sections exist in the structure
-  const normalizedStructure = enhanceWithSpecialSections(structure, t);
+  const normalizedStructure = structure;
 
   // Handle case where enhanceWithSpecialSections might return null
   if (!normalizedStructure) {
@@ -157,17 +156,17 @@ export function mergeUploadedContentWithSpecialSections(
     createdBy: 'upload-merger'
   };
   
-  // Detect special sections in the uploaded content
-  const detectionResults = detectSpecialSections(uploadedContent);
-  
-  // First, apply detection results to enrich existing sections with detected content
-  let structureWithDetectedContent = applyDetectionResults(baseStructure, detectionResults);
+  // Apply detection and enhancement to enrich existing sections
+  let structureWithDetectedContent = unifiedDetectAndApply(baseStructure, uploadedContent);
   
   // But avoid duplicating sections that were already detected
   const enhancedStructure = enhanceWithSpecialSections(structureWithDetectedContent, t) || structureWithDetectedContent;
   
-  // Remove duplicate sections first to clean up the structure
-  const deduplicatedStructure = deduplicateSections(enhancedStructure);
+  // Remove duplicate sections first to clean up the structure using unified utility
+  const deduplicatedStructure = {
+    ...enhancedStructure,
+    sections: unifiedDeduplicateSections(enhancedStructure.sections)
+  };
   
   // Apply canonical ordering AFTER deduplication to ensure proper final order
   const orderedSections = sortSectionsByCanonicalOrder(deduplicatedStructure.sections, deduplicatedStructure.documents);
@@ -180,29 +179,6 @@ export function mergeUploadedContentWithSpecialSections(
   return finalStructure;
 }
 
-/**
- * Remove duplicate sections from the document structure
- * 
- * @param structure - Document structure that may have duplicate sections
- * @returns Document structure with duplicate sections removed
- */
-function deduplicateSections(structure: DocumentStructure): DocumentStructure {
-  const seenIds = new Set<string>();
-  const uniqueSections = [];
-  
-  for (const section of structure.sections) {
-    // Only add sections that have a meaningful title (not empty or whitespace) and haven't been seen before
-    if (section.title && section.title.trim() !== '' && !seenIds.has(section.id)) {
-      seenIds.add(section.id);
-      uniqueSections.push(section);
-    }
-  }
-  
-  return {
-    ...structure,
-    sections: uniqueSections
-  };
-}
 
 /**
  * Get the canonical section ID for a given section title

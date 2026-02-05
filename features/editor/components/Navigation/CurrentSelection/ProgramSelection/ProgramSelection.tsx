@@ -7,7 +7,8 @@ import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
 import { ProgramFinder, UrlParser, EditorProgramFinder } from './components/finder';
 import { TemplateOption } from './components/options/TemplateOption';
 import { FreeOption } from './components/options/free-option/FreeOption';
-import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile, enhanceWithSpecialSections } from '@/features/editor/lib';
+import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
+import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/enhanceWithSpecialSections';
 import { FlowSimulator } from '@/features/editor/components/DevTools';
 
 interface OptionSelectorProps {
