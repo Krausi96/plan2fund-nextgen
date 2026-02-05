@@ -5,9 +5,9 @@
  * - Detect headings
  * - Detect structural special sections (TOC, appendix etc.)
  * - Provide fallback chunking
+ * - Provide template-based hints about document type
  *
- * NO semantic interpretation
- * NO business/domain guessing
+ * NO business/domain guessing beyond template alignment
  */
 
 import type { DetectionMap, DetectionResult } from '../../sections/types';
@@ -19,6 +19,7 @@ import {
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
 } from '@/features/editor/lib/constants';
+import { BUSINESS_PLAN_SECTIONS, STRATEGY_SECTIONS, UPGRADE_SECTIONS } from '@/features/editor/lib/templates';
 
 /* -------------------------------------------------------
  * CONFIG
@@ -68,6 +69,12 @@ export function detectDocumentStructure(content: any): DetectionMap {
   result[TABLES_DATA_SECTION_ID] = detectTables(text);
   result[FIGURES_IMAGES_SECTION_ID] = detectFigures(text);
   result['special-section-executive-summary'] = detectExecutiveSummary(text);
+
+  /* -----------------------------
+   * TEMPLATE-BASED HINTS
+   * --------------------------- */
+
+  result['template-document-hint'] = detectTemplateDocumentHint(text);
 
   /* -----------------------------
    * FALLBACK CHUNKING
@@ -242,6 +249,54 @@ function detectExecutiveSummary(text: string): DetectionResult {
       found:true,
       confidence:0.8,
       content:{ type:'executive_summary' }
+    };
+  }
+
+  return { found:false, confidence:0.1 };
+}
+
+/* =======================================================
+   TEMPLATE DOCUMENT TYPE HINT (SIMPLIFIED + SAFE)
+======================================================= */
+
+function detectTemplateDocumentHint(text: string): DetectionResult {
+
+  const textLower = text.toLowerCase();
+
+  const templates = [
+    { type:'business_plan', sections: BUSINESS_PLAN_SECTIONS },
+    { type:'strategy', sections: STRATEGY_SECTIONS },
+    { type:'upgrade', sections: UPGRADE_SECTIONS }
+  ];
+
+  let bestType = 'general';
+  let bestScore = 0;
+  let bestMatches = 0;
+
+  for (const tpl of templates) {
+    const matches = tpl.sections.filter(s =>
+      textLower.includes(s.title.toLowerCase())
+    ).length;
+
+    const score = matches / tpl.sections.length;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestType = tpl.type;
+      bestMatches = matches;
+    }
+  }
+
+  // only trigger if meaningful
+  if (bestScore > 0.25 && bestMatches >= 2) {
+    return {
+      found: true,
+      confidence: Math.min(0.85, bestScore + 0.3),
+      content: {
+        type: 'document_type_hint',
+        documentType: bestType,
+        matchScore: Math.round(bestScore * 100)
+      }
     };
   }
 

@@ -109,18 +109,3 @@ export function getSectionIcon(sectionId: string): string {
   
   return iconMap[sectionId] || iconMap['default'];
 }
-
-/**
- * Get default title for special section type
- */
-function getDefaultTitle(type: SpecialSectionType): string {
-  const titles: Record<SpecialSectionType, string> = {
-    metadata: 'Title Page',
-    ancillary: 'Table of Contents',
-    references: 'References',
-    appendices: 'Appendices',
-    tables_data: 'Tables and Data',
-    figures_images: 'Figures and Images'
-  };
-  return titles[type];
-}

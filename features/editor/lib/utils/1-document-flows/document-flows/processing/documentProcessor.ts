@@ -9,11 +9,11 @@ import { extractTextFromPDF } from './extractors/pdfExtractor';
 import { extractTextFromDOCX } from './extractors/docxExtractor';
 import { extractTextFromTXT } from './extractors/txtExtractor';
 import { v4 as uuidv4 } from 'uuid';
+import { enrichSectionsWithMeaning } from './semantic/documentMeaningEnricher';
 // No longer needed constants have been removed
 
 // Define constants for file size and chunking
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-const CHUNK_SIZE = 15 * 1024; // 15 KB per chunk
 
 // Helper function to count words in text
 function countWords(text: string): number {
@@ -25,20 +25,10 @@ function countPages(wordCount: number): number {
   return Math.ceil(wordCount / 500);
 }
 
-// Helper function to chunk text
-function chunkText(text: string, chunkSize: number): string[] {
-  const chunks: string[] = [];
-  for (let i = 0; i < text.length; i += chunkSize) {
-    chunks.push(text.substring(i, i + chunkSize));
-  }
-  return chunks;
-}
-
-
 /**
  * Processes a document securely with validation and detection capabilities
  */
-export async function processDocumentSecurely(file: File) {
+export async function processDocumentSecurely(file: File, template?: any) {
   try {
     // Check file size before processing
     if (file.size > MAX_FILE_SIZE) {
@@ -80,20 +70,9 @@ export async function processDocumentSecurely(file: File) {
       };
     }
     
-    // Chunk large files for processing to avoid memory spikes
-    if (fileContent.length > CHUNK_SIZE) {
-      const chunks = chunkText(fileContent, CHUNK_SIZE);
-      const processedChunks = [];
-      
-      for (const chunk of chunks) {
-        // Process each chunk individually
-        processedChunks.push(chunk);
-      }
-      
-      // Merge chunks after processing
-      fileContent = processedChunks.join('\n');
-    }
-
+    // Detect document structure right after extraction (cleaner pipeline)
+    const detectionResults = detectDocumentStructure(fileContent);
+    
     // Build initial structure from the content
     const unvalidatedStructure = buildInitialStructure(fileContent, file.name, baseId);
     
@@ -149,15 +128,26 @@ export async function processDocumentSecurely(file: File) {
       wordCount: wordCount
     }, (key: string) => key);
 
-    // Apply detection results to enrich the structure
-    const detectionResults = detectDocumentStructure(fileContent);
+    // Apply detection results to enrich the structure (using results from earlier)
     const structureWithDetections = applyDetectionResults(processedStructure, detectionResults);
+
+    // Get template section names if a template is provided
+    const templateSectionNames =
+      template?.sections?.map((s: any) => s.title) || [];
+
+    // Apply semantic enrichment to add meaning to sections using template data
+    const enrichedStructure =
+      await enrichSectionsWithMeaning(structureWithDetections, {
+        templateSections: templateSectionNames,
+        language: undefined, // This would be passed from the calling context if available
+        t: undefined       // This would be passed from the calling context if available
+      });
     
     // Integrate detectMultipleSectionsWithoutTitles to check for manual split requirement
     const needsManualSplit = detectMultipleSectionsWithoutTitles(fileContent);
     
     const documentStructure: DocumentStructure = {
-      ...structureWithDetections
+      ...enrichedStructure
     };
 
     return {

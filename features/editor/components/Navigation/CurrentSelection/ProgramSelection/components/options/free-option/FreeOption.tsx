@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
-import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/enhanceWithSpecialSections';
+import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 import { UpgradeOption } from './UpgradeOption';
 
 interface FreeOptionProps {
@@ -13,7 +13,7 @@ interface FreeOptionProps {
 
 export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeOptionProps) {
   const [selectedStructure, setSelectedStructure] = useState<string | null>(null);
-  
+
 
   const { t } = useI18n();
   
@@ -179,7 +179,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
                     <p className="text-white/80 text-xs leading-relaxed">
                     </p>
                   </div>
-                                
+                  
                   {selectedStructure === option.id && (
                     <div className="mt-4 flex items-center justify-center">
                       <div className="text-green-400 text-xs font-medium flex items-center gap-1">

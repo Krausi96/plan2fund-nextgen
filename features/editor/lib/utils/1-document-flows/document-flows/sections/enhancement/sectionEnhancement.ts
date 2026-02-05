@@ -1,5 +1,5 @@
 /**
- * SECTION ENHANCEMENT
+ * SECTION ENhANCEMENT
  * 
  * Contains functions for enhancing document structures with special sections
  */
@@ -7,7 +7,6 @@
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
-  REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
 } from '../../../../../constants';
 
