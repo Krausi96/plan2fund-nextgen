@@ -120,7 +120,7 @@ export function organizeDocumentStructureForUi(
     type: 'required',
     required: true,
     programCritical: true,
-    icon: '📄'
+    icon: '📕'
   };
   
   const defaultTocSection = {
@@ -130,7 +130,7 @@ export function organizeDocumentStructureForUi(
     type: 'required',
     required: true,
     programCritical: true,
-    icon: '📋'
+    icon: '📑'
   };
   
   const initialOrganizedMainDocumentSections = [
@@ -174,9 +174,13 @@ export function organizeDocumentStructureForUi(
   // Organize appendices (additional documents)
   const appendices = documentStructure.documents.slice(1).map((doc: any, index: number) => {
     const appendixLetter = String.fromCharCode(65 + index); // A, B, C...
-    // Filter out shared sections from appendix sections so they only appear in shared sections
+    // Filter out shared sections and special sections (metadata, ancillary, appendices) from appendix sections 
+    // so they only appear in main document or shared sections, not in individual appendices
     let appendixSections = (sectionsByDocument[doc.id] || []).filter(section => 
-      !SHARED_SECTION_IDS.includes(section.id)
+      !SHARED_SECTION_IDS.includes(section.id) &&
+      section.id !== METADATA_SECTION_ID &&
+      section.id !== ANCILLARY_SECTION_ID &&
+      section.id !== APPENDICES_SECTION_ID
     );
     
     // Additional deduplication: Remove sections that have similar titles where one has 'Appx' suffix

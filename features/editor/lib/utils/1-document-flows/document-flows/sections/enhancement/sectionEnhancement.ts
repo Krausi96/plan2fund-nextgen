@@ -76,8 +76,11 @@ export function enhanceWithSpecialSections(
     const existingSectionIds = new Set(baseSections.map((s: any) => s.id));
     const specialSectionsToAdd = [];
     
+    // Define all special section types to check
+    const specialSectionTypes: SpecialSectionType[] = ['metadata', 'ancillary', 'references', 'tables_data', 'figures_images', 'appendices'];
+    
     // Check each special section type
-    (Object.keys(getSpecialSectionConfig) as SpecialSectionType[]).forEach(type => {
+    specialSectionTypes.forEach(type => {
       const config = getSpecialSectionConfig(type);
       if (!existingSectionIds.has(config.id)) {
         specialSectionsToAdd.push(
@@ -86,17 +89,20 @@ export function enhanceWithSpecialSections(
       }
     });
     
-    // Don't add appendices section if we have multiple documents or existing appendices
+    // Don't add appendices section if we have existing appendices
     const hasExistingAppendices = baseSections.some((section: any) =>
       section.title.toLowerCase().includes('appendix') ||
       section.title.toLowerCase().includes('appendices') ||
       section.id.startsWith('appendix_')
     );
     
-    if (!existingSectionIds.has(APPENDICES_SECTION_ID) && !hasMultipleDocuments && !hasExistingAppendices) {
-      specialSectionsToAdd.push(
-        createSpecialSection('appendices', 'main_document', t)
-      );
+    if (!existingSectionIds.has(APPENDICES_SECTION_ID) && !hasExistingAppendices) {
+      // Only add appendices if it's not already in the list
+      if (!specialSectionsToAdd.some(s => s.id === APPENDICES_SECTION_ID)) {
+        specialSectionsToAdd.push(
+          createSpecialSection('appendices', 'main_document', t)
+        );
+      }
     }
     
     return {
