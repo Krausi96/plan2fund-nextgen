@@ -7,10 +7,7 @@
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
-  REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
-  TABLES_DATA_SECTION_ID,
-  FIGURES_IMAGES_SECTION_ID,
 } from '../../../../../constants';
 
 import { SpecialSectionType, getSpecialSectionConfig } from './sectionDetection';
@@ -74,7 +71,7 @@ export function enhanceWithSpecialSections(
   if (!hasMultipleDocuments) {
     // For single document, ensure all special sections exist
     const existingSectionIds = new Set(baseSections.map((s: any) => s.id));
-    const specialSectionsToAdd = [];
+    const specialSectionsToAdd: any[] = [];
     
     // Define all special section types to check
     const specialSectionTypes: SpecialSectionType[] = ['metadata', 'ancillary', 'references', 'tables_data', 'figures_images', 'appendices'];
