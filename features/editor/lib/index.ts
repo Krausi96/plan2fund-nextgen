@@ -173,9 +173,7 @@ export {
 } from './utils/1-document-flows/document-flows/utils/editorUtils';
 
 // Program utilities
-export {
-  normalizeProgramInput,
-} from './utils/2-program-flows/program-flows/input-handling/urlParser';
+
 
 // Document Setup utilities
 export {

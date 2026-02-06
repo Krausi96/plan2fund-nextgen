@@ -1,9 +1,7 @@
 // Export functions from the new organized structure
 
 // Export document setup utilities
-export {
-  normalizeProgramInput,
-} from './2-program-flows/program-flows/input-handling/urlParser';
+
 export {
   normalizeFundingProgram,
   normalizeProgramSetup,

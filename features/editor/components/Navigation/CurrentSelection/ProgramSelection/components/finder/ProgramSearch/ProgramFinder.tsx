@@ -271,23 +271,6 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
                       </span>
                     </div>
                   )}
-                  
-                  {/* Display requirements if available */}
-                  {program.requirements && program.requirements.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-white/10">
-                      <div className="text-xs text-white/60 mb-1">Requirements:</div>
-                      <div className="flex flex-wrap gap-1">
-                        {program.requirements.slice(0, 3).map((req, idx) => (
-                          <span key={idx} className="text-xs px-2 py-0.5 bg-purple-500/30 text-purple-200 rounded">
-                            {req}
-                          </span>
-                        ))}
-                        {program.requirements.length > 3 && (
-                          <span className="text-xs text-white/50">+{program.requirements.length - 3} more</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
                 
                 <button className="w-full px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded transition-colors mt-2">

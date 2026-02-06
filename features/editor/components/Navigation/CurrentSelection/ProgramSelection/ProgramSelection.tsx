@@ -4,12 +4,12 @@ import { migrateLegacySetup, useConfiguratorState, useEditorStore } from '@/feat
 import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
 import { StandardStructurePanel } from './components/panels/StandardStructurePanel';
 import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
-import { ProgramFinder, UrlParser, EditorProgramFinder } from './components/finder';
+import { ProgramFinder, EditorProgramFinder } from './components/finder';
 import { TemplateOption } from './components/options/TemplateOption';
 import { FreeOption } from './components/options/free-option/FreeOption';
 import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
 import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
-import { FlowSimulator } from '@/features/editor/components/DevTools';
+
 
 interface OptionSelectorProps {
   selectedOption: 'program' | 'template' | 'free' | null;
@@ -109,7 +109,7 @@ export default function ProgramSelection({
   
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
-  const [activeTab, setActiveTab] = useState<'search' | 'paste' | 'wizard'>('search');
+  const [activeTab, setActiveTab] = useState<'search' | 'wizard'>('search');
 
 
 
@@ -214,10 +214,7 @@ export default function ProgramSelection({
 
   return (
     <div className="relative mb-6 pb-6">
-      {/* Flow Simulator - Added for testing purposes */}
-      <div className="mb-6 p-4 bg-slate-900/50 rounded-lg border border-blue-500/30">
-        <FlowSimulator />
-      </div>
+
       
       {/* Header */}
       <div className="mb-6">
@@ -283,13 +280,7 @@ export default function ProgramSelection({
                       <span>🔍</span>
                       {t('editor.desktop.program.searchPrograms' as any) || 'Search Programs'}
                     </button>
-                    <button
-                      onClick={() => setActiveTab('paste')}
-                      className={`inline-flex items-center gap-2 px-4 py-1.5 font-medium rounded-lg transition-colors text-sm ${activeTab === 'paste' ? 'bg-blue-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
-                    >
-                      <span>🔗</span>
-                      {t('editor.desktop.program.pasteUrl' as any) || 'Paste URL'}
-                    </button>
+
                     <button
                       onClick={() => setActiveTab('wizard')}
                       className={`inline-flex items-center gap-2 px-4 py-1.5 font-medium rounded-lg transition-colors text-sm ${activeTab === 'wizard' ? 'bg-purple-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
@@ -313,17 +304,7 @@ export default function ProgramSelection({
                       </div>
                     )}
                     
-                    {activeTab === 'paste' && (
-                      <div>
-                        <h4 className="text-white font-medium mb-4 mt-2">
-                          {t('editor.desktop.program.pasteUrl' as any) || 'Paste Program URL'}
-                        </h4>
-                        <UrlParser 
-                          onProgramSelect={handleProgramSelect}
-                          onBackToFinder={() => setActiveTab('search')}
-                        />
-                      </div>
-                    )}
+
                     
                     {activeTab === 'wizard' && (
                       <div>
