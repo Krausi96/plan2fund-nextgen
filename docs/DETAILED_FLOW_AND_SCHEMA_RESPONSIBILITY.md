@@ -206,7 +206,7 @@ const handleProgramSelect = async (selectedProgram) => {
 ```
 
 #### Blueprint Generation Output:
-- **API Response**: `/api/programs/blueprint` returns `EnhancedBlueprint`
+- **API Response**: `/api/programs/blueprint` returns `Blueprint`
 - **Structure Contains**:
   - `documents`: Required document list with purposes
   - `sections`: Hierarchical section structure

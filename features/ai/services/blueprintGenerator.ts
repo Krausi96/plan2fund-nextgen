@@ -1,68 +1,73 @@
 /**
- * Blueprint Generator Service
- * Core responsibility: Generate detailed application requirements from program + user context
+ * Blueprint Generator Service (Lean + Self-Learning)
+ * Generates structured funding blueprint from program + context
  */
 
 import { callCustomLLM, ChatRequest } from '../clients/customLLM';
 import { parseBlueprintResponse } from '../lib/llmUtils';
 import { createFallbackBlueprint } from '../lib/blueprintUtils';
 
-// Export interfaces for external use
-export interface EnhancedBlueprint {
-  documents: Array<{
-    name: string;
-    purpose: string;
-    required: boolean;
-  }>;
-  sections: Array<{
-    documentId: string;
-    title: string;
-    required: boolean;
-    programCritical: boolean;
-  }>;
-  structuredRequirements: Array<{
-    category: 'financial' | 'market' | 'team' | 'risk' | 'formatting' | 'evidence';
-    scope: 'global' | 'document' | 'section';
-    severity: 'blocker' | 'major' | 'minor';
-    description: string;
-    evidenceType: string;
-    validationLogic: string;
-  }>;
-  financial: {
-    modelsRequired: string[];
-    yearsRequired: number[];
-    coFinancingChecks: string[];
-    budgetStructure: string;
+/* =========================================================
+   TYPES
+========================================================= */
+
+export interface RequirementItem {
+  id: string;
+  description: string;
+  severity: 'critical' | 'major' | 'minor';
+  evidence?: string;
+}
+
+export interface Blueprint {
+  programId: string;
+  programName: string;
+
+  structure: {
+    documents: Array<{
+      id: string;
+      name: string;
+      required: boolean;
+    }>;
+    sections: Array<{
+      id: string;
+      documentId: string;
+      title: string;
+      required: boolean;
+      parentId?: string;
+      critical?: boolean;
+    }>;
   };
-  market: {
-    tamSamSom: boolean;
-    competitionDepth: string;
-    customerProof: string[];
+
+  requirements: {
+    global: RequirementItem[];
+    bySection: Record<string, RequirementItem[]>;
   };
-  team: {
-    orgStructure: string;
-    cvRules: string[];
-    keyRoles: string[];
+
+  validation: {
+    financial?: {
+      yearsRequired?: number;
+      coFinancingRequired?: boolean;
+      currency?: string;
+    };
+    formatting?: {
+      maxPages?: number;
+      language?: string;
+      annexRequired?: boolean;
+    };
+    submission?: {
+      mandatoryDocuments?: string[];
+    };
   };
-  risk: {
-    categories: string[];
-    mitigation: string[];
-    regulatoryRisks: string[];
+
+  guidance?: {
+    sectionTips?: Record<string, string[]>;
+    generationPrompts?: Record<string, string>;
   };
-  formatting: {
-    pageLimits: string;
-    language: string;
-    annexRules: string;
-  };
-  aiGuidance: {
-    perSectionChecklist: Array<{ section: string; items: string[] }>;
-    perSectionPrompts: Array<{ section: string; prompt: string }>;
-  };
-  diagnostics: {
-    confidenceScore: number;
-    conflicts: string[];
-    assumptions: string[];
-    missingDataFlags: string[];
+
+  diagnostics?: {
+    confidence?: number;
+    assumptions?: string[];
+    missingInfo?: string[];
   };
 }
 
@@ -74,113 +79,141 @@ interface ProgramInfo {
   application_requirements?: any;
 }
 
-export async function generateEnhancedBlueprint(
+/* =========================================================
+   MAIN GENERATOR
+========================================================= */
+
+export async function generateBlueprint(
   program: ProgramInfo,
   userContext: Record<string, any>
-): Promise<EnhancedBlueprint> {
+): Promise<Blueprint> {
   try {
-    console.log(`[blueprint] Generating enhanced blueprint for: ${program.name}`);
+    console.log(`[blueprint] generating for ${program.name}`);
+
     
-    // Build detailed prompt for blueprint generation
-    const prompt = buildBlueprintPrompt(program, userContext);
-    
+    const prompt = buildBlueprintPrompt(program, userContext, '');
+
     const request: ChatRequest = {
       messages: [
-        { 
-          role: 'system', 
-          content: 'You are an expert funding program analyst. Generate detailed structured requirements for document blueprints.' 
+        {
+          role: 'system',
+          content:
+            'You generate professional funding application blueprints from program requirements.'
         },
-        { 
-          role: 'user', 
-          content: prompt 
+        {
+          role: 'user',
+          content: prompt
         }
       ],
       responseFormat: 'json',
-      temperature: 0.3,
-      maxTokens: 8000,
+      temperature: 0.2,
+      maxTokens: 5000,
       taskType: 'blueprint_generation'
     };
-    
+
     const response = await callCustomLLM(request);
-    
-    // Parse and validate the response
     const parsed = parseBlueprintResponseLocal(response.output);
-    
-    console.log(`[blueprint] Successfully generated blueprint for ${program.name}`);
+
+    console.log(`[blueprint] generated successfully for ${program.name}`);
     return parsed;
-    
-  } catch (error) {
-    console.error(`[blueprint] Failed to generate blueprint for ${program.name}:`, error);
-    // Return fallback blueprint structure
+
+  } catch (err) {
+    console.error(`[blueprint] failed for ${program.name}`, err);
     return createFallbackBlueprint(program);
   }
 }
 
-/**
- * Build optimized blueprint generation prompt with token budget prioritization
- * Priority order: Core structure > Financial > User context > Detailed guidance
- */
-function buildBlueprintPrompt(program: ProgramInfo, userContext: Record<string, any>): string {
-  // PRIORITY 1: Core program information (always included)
-  const coreSection = `TASK: BLUEPRINT GENERATION FOR "${program.name}"
+/* =========================================================
+   PROMPT BUILDER (SHORT + STRONG)
+========================================================= */
 
-PROGRAM:
-Name: ${program.name}
-Description: ${program.description || 'Not specified'}
-Funding Types: ${program.funding_types?.join(', ') || 'Not specified'}`;
+function buildBlueprintPrompt(
+  program: ProgramInfo,
+  userContext: Record<string, any>,
+  learnedHints: string
+): string {
 
-  // PRIORITY 2: User context (include if available, keep concise)
-  const userSection = userContext && Object.keys(userContext).length > 0
-    ? `\nUSER CONTEXT: Location=${userContext.location || 'N/A'}, Stage=${userContext.company_stage || 'N/A'}, Funding=${userContext.funding_amount ? '€' + userContext.funding_amount : 'N/A'}`
-    : '';
+return `
+Create a COMPLETE funding application blueprint.
 
-  // PRIORITY 3: Essential requirements structure (always included)
-  const structureSection = `
+PROGRAM
+${program.name}
+${program.description || ''}
 
-GENERATE STRUCTURED BLUEPRINT:
+CONTEXT
+Location: ${userContext?.location || 'N/A'}
+Stage: ${userContext?.company_stage || 'N/A'}
+Funding: ${userContext?.funding_amount || 'N/A'}
 
-DOCUMENTS: Required documents with name, purpose, required flag
-SECTIONS: Hierarchical sections with documentId, title, required, programCritical flags
-STRUCTURED REQUIREMENTS: Category (financial|market|team|risk|formatting|evidence), scope, severity, description, evidenceType, validationLogic
+${learnedHints}
 
-FINANCIAL: modelsRequired, yearsRequired, coFinancingChecks, budgetStructure
-MARKET: tamSamSom, competitionDepth, customerProof
-TEAM: orgStructure, cvRules, keyRoles
-RISK: categories, mitigation, regulatoryRisks
-FORMATTING: pageLimits, language, annexRules`;
+EXTRACT ALL REAL REQUIREMENTS:
+- required documents
+- required sections + subsections
+- required content per section
+- innovation / market / tech expectations
+- evidence required (tables, CVs, proof, annex)
+- financial expectations
+- formatting or submission constraints
 
-  // PRIORITY 4: AI Guidance (include if token budget allows)
-  const guidanceSection = `
-AI GUIDANCE: perSectionChecklist, perSectionPrompts
-DIAGNOSTICS: confidenceScore (0-100), conflicts, assumptions, missingDataFlags`;
+The examples above are illustrative only.
+Include ANY additional requirements found.
+Be precise and professional.
 
-  // PRIORITY 5: Example structure (minimal, essential fields only)
-  const exampleSection = `
+RETURN JSON:
 
-RETURN VALID JSON:
 {
-  "documents": [{"name": "string", "purpose": "string", "required": true}],
-  "sections": [{"documentId": "string", "title": "string", "required": true, "programCritical": true}],
-  "structuredRequirements": [{"category": "financial", "scope": "document", "severity": "major", "description": "...", "evidenceType": "...", "validationLogic": "..."}],
-  "financial": {"modelsRequired": [], "yearsRequired": [], "coFinancingChecks": [], "budgetStructure": ""},
-  "market": {"tamSamSom": true, "competitionDepth": "", "customerProof": []},
-  "team": {"orgStructure": "", "cvRules": [], "keyRoles": []},
-  "risk": {"categories": [], "mitigation": [], "regulatoryRisks": []},
-  "formatting": {"pageLimits": "", "language": "", "annexRules": ""},
-  "aiGuidance": {"perSectionChecklist": [], "perSectionPrompts": []},
-  "diagnostics": {"confidenceScore": 0, "conflicts": [], "assumptions": [], "missingDataFlags": []}
-}`;
+ "programId": "${program.id}",
+ "programName": "${program.name}",
 
-  // Combine sections in priority order
-  // Total estimated tokens: ~500-600 (vs 800-900 previously)
-  return coreSection + userSection + structureSection + guidanceSection + exampleSection;
+ "structure":{
+  "documents":[{"id":"main","name":"Application","required":true}],
+  "sections":[
+    {"id":"market","documentId":"main","title":"Market","required":true}
+  ]
+ },
+
+ "requirements":{
+  "global":[],
+  "bySection":{
+   "market":[
+    {"id":"tam","description":"Provide TAM/SAM/SOM","severity":"major"}
+   ]
+  }
+ },
+
+ "validation":{
+  "financial":{"yearsRequired":3},
+  "formatting":{"maxPages":30}
+ },
+
+ "guidance":{
+  "sectionTips":{
+   "market":["Be specific and use numbers"]
+  }
+ },
+
+ "diagnostics":{"confidence":80}
+}
+`;
 }
 
-function parseBlueprintResponseLocal(responseText: string): EnhancedBlueprint {
+/* =========================================================
+   PARSER
+========================================================= */
+
+function parseBlueprintResponseLocal(responseText: string): Blueprint {
   try {
-    return parseBlueprintResponse(responseText) as EnhancedBlueprint;
+    const parsed = parseBlueprintResponse(responseText);
+
+    if (!parsed?.structure?.sections) {
+      throw new Error('Invalid blueprint structure');
+    }
+
+    return parsed as Blueprint;
+
   } catch (error) {
-    console.error('[blueprint] Failed to parse blueprint response:', error);
+    console.error('[blueprint] parse failed:', error);
     throw new Error('Invalid blueprint response format');
   }
 }

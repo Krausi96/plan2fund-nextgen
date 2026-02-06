@@ -153,19 +153,19 @@ export function ProgramOption({
             blueprintDiagnostics: {
               warnings: [],
               missingFields: [],
-              confidence: blueprint.diagnostics?.confidenceScore || 85
+              confidence: blueprint.diagnostics?.confidence || 85
             }
           });
           
           // Merge with document structure
           Object.assign(documentStructure, {
-            enhancedRequirements: blueprint.structuredRequirements || [],
-            financialDetails: blueprint.financial || {},
-            marketAnalysis: blueprint.market || {},
-            teamRequirements: blueprint.team || {},
-            riskAssessment: blueprint.risk || {},
-            formattingRules: blueprint.formatting || {},
-            aiGuidance: blueprint.aiGuidance || {},
+            enhancedRequirements: [],
+            financialDetails: blueprint.validation?.financial || {},
+            marketAnalysis: {},
+            teamRequirements: {},
+            riskAssessment: {},
+            formattingRules: blueprint.validation?.formatting || {},
+            aiGuidance: blueprint.guidance || {},
             diagnostics: blueprint.diagnostics || {}
           });
         } else {
@@ -191,19 +191,19 @@ export function ProgramOption({
           blueprintDiagnostics: {
             warnings: ['Enhanced blueprint generation failed - using available program template structure'],
             missingFields: ['Detailed program requirements from official sources'],
-            confidence: fallbackBlueprint.diagnostics.confidenceScore
+            confidence: fallbackBlueprint.diagnostics?.confidence || 70
           }
         });
         
         // Merge fallback structure with document structure
         Object.assign(documentStructure, {
-          enhancedRequirements: fallbackBlueprint.structuredRequirements || [],
-          financialDetails: fallbackBlueprint.financial || {},
-          marketAnalysis: fallbackBlueprint.market || {},
-          teamRequirements: fallbackBlueprint.team || {},
-          riskAssessment: fallbackBlueprint.risk || {},
-          formattingRules: fallbackBlueprint.formatting || {},
-          aiGuidance: fallbackBlueprint.aiGuidance || {},
+          enhancedRequirements: [],
+          financialDetails: fallbackBlueprint.validation?.financial || {},
+          marketAnalysis: {},
+          teamRequirements: {},
+          riskAssessment: {},
+          formattingRules: fallbackBlueprint.validation?.formatting || {},
+          aiGuidance: fallbackBlueprint.guidance || {},
           diagnostics: fallbackBlueprint.diagnostics || {}
         });
         

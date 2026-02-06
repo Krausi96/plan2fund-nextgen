@@ -7,7 +7,10 @@
 import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
+  REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
+  TABLES_DATA_SECTION_ID,
+  FIGURES_IMAGES_SECTION_ID,
 } from '../../../../../constants';
 
 import { SpecialSectionType, getSpecialSectionConfig } from './sectionDetection';

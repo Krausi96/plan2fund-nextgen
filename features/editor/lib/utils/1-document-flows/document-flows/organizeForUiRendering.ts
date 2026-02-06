@@ -100,7 +100,8 @@ export function organizeDocumentStructureForUi(
   const mainContentSections = mainDocumentSections.filter(section => 
     section.id !== METADATA_SECTION_ID &&
     section.id !== ANCILLARY_SECTION_ID &&
-    !SHARED_SECTION_IDS.includes(section.id)
+    !SHARED_SECTION_IDS.includes(section.id) &&
+    section.id !== APPENDICES_SECTION_ID  // Also exclude appendices from main document sections
   );
 
   // Get special sections that should appear at the beginning of main document
@@ -110,11 +111,35 @@ export function organizeDocumentStructureForUi(
   // Apply deduplication to main document sections to prevent 'Appx' suffix duplicates
   const mainTitleMap = new Map();
   const deduplicatedMainSections = [];
+  
+  // Create default title page and TOC sections if they don't exist
+  const defaultTitlePageSection = {
+    id: METADATA_SECTION_ID,
+    documentId: mainDocumentId,
+    title: t('editor.section.metadata' as any) || 'Title Page',
+    type: 'required',
+    required: true,
+    programCritical: true,
+    icon: '📄'
+  };
+  
+  const defaultTocSection = {
+    id: ANCILLARY_SECTION_ID,
+    documentId: mainDocumentId,
+    title: t('editor.section.ancillary' as any) || 'Table of Contents',
+    type: 'required',
+    required: true,
+    programCritical: true,
+    icon: '📋'
+  };
+  
   const initialOrganizedMainDocumentSections = [
-    ...(titlePageSection ? [titlePageSection] : []),
-    ...(tocSection ? [tocSection] : []),
+    ...(titlePageSection ? [titlePageSection] : [defaultTitlePageSection]),
+    ...(tocSection ? [tocSection] : [defaultTocSection]),
     ...mainContentSections
   ];
+  
+  console.log('🔍 DEBUG: Final initialOrganizedMainDocumentSections:', initialOrganizedMainDocumentSections);
   for (const section of initialOrganizedMainDocumentSections) {
     // Normalize title by removing 'Appx' suffix
     const normalizedTitle = section.title.replace(/Appx$/, '');
@@ -147,23 +172,12 @@ export function organizeDocumentStructureForUi(
   const organizedMainDocumentSections = sortSectionsByCanonicalOrder(deduplicatedMainSections, documentStructure.documents || []);
 
   // Organize appendices (additional documents)
-  console.log('🔍 DEBUG: Starting to organize appendices for document structure:', documentStructure.documents.length, 'documents total');
-  console.log('🔍 DEBUG: All documents in structure:', documentStructure.documents.map(d => ({id: d.id, name: d.name})));  
-  
   const appendices = documentStructure.documents.slice(1).map((doc: any, index: number) => {
     const appendixLetter = String.fromCharCode(65 + index); // A, B, C...
     // Filter out shared sections from appendix sections so they only appear in shared sections
     let appendixSections = (sectionsByDocument[doc.id] || []).filter(section => 
       !SHARED_SECTION_IDS.includes(section.id)
     );
-    
-    console.log('🔍 DEBUG: Processing appendix document:', doc.name, 'with', appendixSections.length, 'sections');
-    
-    // Debug: Log any sections with 'Appx' in the title to identify the source
-    const appxSections = appendixSections.filter(section => section.title.includes('Appx'));
-    if (appxSections.length > 0) {
-      console.log('🔍 DEBUG: Found sections with Appx in title in document:', doc.name, appxSections.map(s => ({id: s.id, title: s.title})));  
-    }
     
     // Additional deduplication: Remove sections that have similar titles where one has 'Appx' suffix
     // This prevents duplicates like 'Appendix A: Business Plan' and 'Appendix A: Business PlanAppx'
@@ -177,14 +191,12 @@ export function organizeDocumentStructureForUi(
         
         // If current section has 'Appx' suffix but existing doesn't, skip current
         if (section.title.endsWith('Appx') && !existingSection.title.endsWith('Appx')) {
-          console.log('🔍 DEBUG: Skipping duplicate section with Appx suffix:', section.title);
           return false;
         }
         // If existing has 'Appx' suffix but current doesn't, replace existing
         else if (!section.title.endsWith('Appx') && existingSection.title.endsWith('Appx')) {
           // We need to handle this case differently - remove the old one and add this one
           // For now, we'll keep the one without 'Appx' suffix
-          console.log('🔍 DEBUG: Replacing section with Appx suffix with clean version:', section.title);
           return false;
         }
       } else {
@@ -195,8 +207,6 @@ export function organizeDocumentStructureForUi(
       // Only add if it doesn't have 'Appx' suffix, or if both have it
       return !section.title.endsWith('Appx');
     });
-    
-    console.log('🔍 DEBUG: Final appendix sections for', doc.name, ':', appendixSections.map(s => ({id: s.id, title: s.title})));
     
     return {
       id: doc.id,

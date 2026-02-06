@@ -3,7 +3,7 @@
  * Shared fallback blueprint structure for consistency across blueprint generation
  */
 
-import type { EnhancedBlueprint } from '../services/blueprintGenerator';
+import type { Blueprint } from '../services/blueprintGenerator';
 
 export interface ProgramInfo {
   id: string;
@@ -21,63 +21,65 @@ export interface ProgramInfo {
  * Used by: blueprintGenerator.ts (error fallback), ProgramOption.tsx (manual connections)
  * 
  * @param _program - Basic program information (unused, kept for API compatibility)
- * @returns Complete EnhancedBlueprint with sensible defaults
+ * @returns Complete Blueprint with sensible defaults
  */
-export function createFallbackBlueprint(_program: ProgramInfo): EnhancedBlueprint {
+export function createFallbackBlueprint(_program: ProgramInfo): Blueprint {
   return {
-    documents: [
-      { name: "Business Plan", purpose: "Core project description", required: true },
-      { name: "Financial Projections", purpose: "3-year financial forecast", required: true }
-    ],
-    sections: [
-      { documentId: "main", title: "Executive Summary", required: true, programCritical: true },
-      { documentId: "main", title: "Project Description", required: true, programCritical: true }
-    ],
-    structuredRequirements: [
-      {
-        category: "financial",
-        scope: "document",
-        severity: "major",
-        description: "Provide detailed 3-year financial projections",
-        evidenceType: "Excel spreadsheet",
-        validationLogic: "Must include revenue, costs, and cash flow projections"
+    programId: "fallback",
+    programName: "Fallback Program",
+    structure: {
+      documents: [
+        { id: "main", name: "Business Plan", required: true },
+        { id: "financial", name: "Financial Projections", required: true }
+      ],
+      sections: [
+        { id: "executive-summary", documentId: "main", title: "Executive Summary", required: true, critical: true },
+        { id: "project-description", documentId: "main", title: "Project Description", required: true, critical: true }
+      ]
+    },
+    requirements: {
+      global: [
+        {
+          id: "financial-projections",
+          description: "Provide detailed 3-year financial projections",
+          severity: "major",
+          evidence: "Excel spreadsheet"
+        }
+      ],
+      bySection: {
+        "executive-summary": [
+          { id: "value-prop", description: "Clearly state value proposition", severity: "major" },
+          { id: "market-size", description: "Define target market size", severity: "major" }
+        ]
       }
-    ],
-    financial: {
-      modelsRequired: ["3-year projections", "cash flow analysis"],
-      yearsRequired: [1, 3],
-      coFinancingChecks: ["self-funding verification"],
-      budgetStructure: "detailed line-item breakdown"
     },
-    market: {
-      tamSamSom: true,
-      competitionDepth: "basic competitor analysis",
-      customerProof: ["market research", "customer interviews"]
+    validation: {
+      financial: {
+        yearsRequired: 3,
+        coFinancingRequired: false,
+        currency: "USD"
+      },
+      formatting: {
+        maxPages: 50,
+        language: "en",
+        annexRequired: true
+      },
+      submission: {
+        mandatoryDocuments: ["business-plan", "financial-projections"]
+      }
     },
-    team: {
-      orgStructure: "organizational chart",
-      cvRules: ["key personnel resumes"],
-      keyRoles: ["project lead", "finance manager"]
-    },
-    risk: {
-      categories: ["market", "financial"],
-      mitigation: ["basic risk assessment"],
-      regulatoryRisks: ["standard compliance"]
-    },
-    formatting: {
-      pageLimits: "reasonable length",
-      language: "English",
-      annexRules: "clear labeling"
-    },
-    aiGuidance: {
-      perSectionChecklist: [{ section: "Executive Summary", items: ["value proposition", "market size"] }],
-      perSectionPrompts: [{ section: "Financial Plan", prompt: "Include 3-year projections" }]
+    guidance: {
+      sectionTips: {
+        "executive-summary": ["Keep concise", "Highlight unique value"]
+      },
+      generationPrompts: {
+        "financial-projections": "Generate realistic 3-year financial projections based on market analysis"
+      }
     },
     diagnostics: {
-      confidenceScore: 70,
-      conflicts: [],
-      assumptions: ["standard application process"],
-      missingDataFlags: ["detailed requirements pending"]
+      confidence: 70,
+      assumptions: ["Standard business plan structure"],
+      missingInfo: ["Specific program requirements pending"]
     }
   };
 }

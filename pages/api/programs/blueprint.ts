@@ -7,8 +7,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { createHash } from 'crypto';
-import { generateEnhancedBlueprint } from '../../../features/ai/services/blueprintGenerator';
-import type { EnhancedBlueprint } from '../../../features/ai/services/blueprintGenerator';
+import { generateBlueprint } from '../../../features/ai/services/blueprintGenerator';
+import type { Blueprint } from '../../../features/ai/services/blueprintGenerator';
 import { checkBlueprintRateLimit, rateLimitHeaders, rateLimitExceededResponse } from '@/shared/lib/rateLimit';
 
 // ============================================================================
@@ -48,7 +48,7 @@ const BlueprintRequestSchema = z.object({
  * TTL: 24 hours (blueprints are program-specific, rarely change)
  */
 interface CachedBlueprint {
-  blueprint: EnhancedBlueprint;
+  blueprint: Blueprint;
   timestamp: number;
   programId: string;
   programName: string;
@@ -161,7 +161,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     // Generate enhanced blueprint
-    const blueprint = await generateEnhancedBlueprint(programInfo, userContext || {});
+    const blueprint = await generateBlueprint(programInfo, userContext || {});
 
     console.log(`[blueprint] Successfully generated blueprint for: ${fundingProgram.name}`);
     

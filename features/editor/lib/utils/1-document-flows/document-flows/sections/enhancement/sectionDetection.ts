@@ -83,8 +83,8 @@ export function isSpecialSection(sectionId: string): boolean {
     ANCILLARY_SECTION_ID,
     REFERENCES_SECTION_ID,
     APPENDICES_SECTION_ID,
-    'tables_data',
-    'figures_images'
+    TABLES_DATA_SECTION_ID,
+    FIGURES_IMAGES_SECTION_ID
   ].includes(sectionId);
 }
 
@@ -100,8 +100,8 @@ export function getSectionIcon(sectionId: string): string {
     [METADATA_SECTION_ID]: '📕',
     [ANCILLARY_SECTION_ID]: '📑',
     [REFERENCES_SECTION_ID]: '📚',
-    'tables_data': '📊',
-    'figures_images': '🖼️',
+    [TABLES_DATA_SECTION_ID]: '📊',
+    [FIGURES_IMAGES_SECTION_ID]: '🖼️',
     [APPENDICES_SECTION_ID]: '📎',
     // Default for regular sections
     'default': '🧾'
