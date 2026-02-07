@@ -225,6 +225,12 @@ function CurrentSelection({}: CurrentSelectionProps) {
 
   const handleToggle = () => actions.setIsConfiguratorOpen(!isConfiguratorOpen);
 
+  // Determine completion status for each step
+  const projectValidation = validateCurrentStep();
+  const isProjectCompleted = setupWizard.currentStep > 1 || (setupWizard.currentStep === 1 && projectValidation.isValid);
+  const isProgramCompleted = !!programSummary;
+  const isPlanCompleted = setupWizard.isComplete;
+  
   // Section configuration for dynamic rendering
   const sections = [
     {
@@ -232,6 +238,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
       step: 1,
       label: '💼 ' + (t('editor.desktop.myProject.title') || 'Mein Projekt'),
       isActive: setupWizard.currentStep === 1,
+      isCompleted: isProjectCompleted,
       isAccessible: true, // Always accessible
       onClick: handleMyProjectClick,
       renderContent: () => !isConfiguratorOpen && <MyProject mode="display" />
@@ -241,17 +248,22 @@ function CurrentSelection({}: CurrentSelectionProps) {
       step: 2,
       label: '📚 ' + (t('editor.desktop.selection.programLabel') || 'Programm / Vorlage'),
       isActive: setupWizard.currentStep === 2,
+      isCompleted: isProgramCompleted,
       isAccessible: setupWizard.currentStep >= 2, // Accessible after step 1 completion
       onClick: handleProgramClick,
       renderContent: () => !isConfiguratorOpen && (
         <div className="text-white font-bold truncate flex items-center justify-center gap-1 max-w-[140px]">
           <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={
             documentStructure?.source === 'template' 
-              ? (t('editor.desktop.selection.customTemplate' as any) || 'Custom Template')
+              ? (t('editor.desktop.selection.customUpload' as any) || 'Custom Upload')
+              : documentStructure?.source === 'standard'
+              ? (t('editor.desktop.program.panels.standardStructure' as any) || 'Standard Structure')
               : programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'
           }>
             {documentStructure?.source === 'template' 
-              ? (t('editor.desktop.selection.customTemplate' as any) || 'Custom Template')
+              ? (t('editor.desktop.selection.customUpload' as any) || 'Custom Upload')
+              : documentStructure?.source === 'standard'
+              ? (t('editor.desktop.program.panels.standardStructure' as any) || 'Standard Structure')
               : programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
           </span>
         </div>
@@ -262,19 +274,34 @@ function CurrentSelection({}: CurrentSelectionProps) {
       step: 3,
       label: '📋 ' + (t('editor.desktop.selection.productLabel') || 'Plan'),
       isActive: setupWizard.currentStep === 3,
+      isCompleted: isPlanCompleted,
       isAccessible: setupWizard.currentStep >= 3 && !!programSummary, // Accessible after step 2 completion and program selection
       onClick: handlePlanClick,
       renderContent: () => !isConfiguratorOpen && (
         <div className="text-white font-bold truncate flex items-center justify-center gap-1 max-w-[140px]">
           <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={
-            documentStructure?.source === 'template' 
-              ? ((documentStructure && 'documents' in documentStructure && documentStructure.documents && documentStructure.documents.length > 0 && documentStructure.documents[0]?.name) || 'Corporate Strategy Document')
+            documentStructure?.documents && documentStructure.documents.length > 0
+              ? (() => {
+                  const docCount = documentStructure.documents.length;
+                  if (docCount === 1) {
+                    return documentStructure.documents[0]?.name || t('editor.desktop.selection.corporateStrategyDocument' as any) || 'Corporate Strategy Document';
+                  } else {
+                    return `${docCount} ${t('editor.desktop.selection.documentsLabel' as any) || 'Documents'}`;
+                  }
+                })()
               : selectedProductMeta 
                 ? (t(selectedProductMeta.label as any) || selectedProductMeta.label)
                 : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'
           }>
-            {documentStructure?.source === 'template' 
-              ? ((documentStructure && 'documents' in documentStructure && documentStructure.documents && documentStructure.documents.length > 0 && documentStructure.documents[0]?.name) || 'Corporate Strategy Document')
+            {documentStructure?.documents && documentStructure.documents.length > 0
+              ? (() => {
+                  const docCount = documentStructure.documents.length;
+                  if (docCount === 1) {
+                    return documentStructure.documents[0]?.name || t('editor.desktop.selection.corporateStrategyDocument' as any) || 'Corporate Strategy Document';
+                  } else {
+                    return `${docCount} ${t('editor.desktop.selection.documentsLabel' as any) || 'Documents'}`;
+                  }
+                })()
               : selectedProductMeta 
                 ? (t(selectedProductMeta.label as any) || selectedProductMeta.label)
                 : t('editor.desktop.selection.noPlan' as any) || 'Kein Plan'}
@@ -292,22 +319,25 @@ function CurrentSelection({}: CurrentSelectionProps) {
       <div 
         key={section.key}
         className={`flex flex-col items-center text-center p-2 rounded transition-colors min-w-0 max-w-[160px] flex-shrink-0 ${
-          section.isActive 
+          section.isActive && !section.isCompleted
             ? 'bg-white/20' 
             : section.isAccessible 
               ? 'hover:bg-white/10' 
               : 'opacity-50'
         }`}
         style={{
-          cursor: isAccessibleAndInactive ? 'pointer' : section.isActive ? 'default' : 'pointer',
+          cursor: isAccessibleAndInactive ? 'pointer' : section.isActive && !section.isCompleted ? 'default' : 'pointer',
         }}
         onClick={section.isAccessible ? section.onClick : undefined}
       >
-        <div className="flex items-center gap-2">
-          <span className={`font-medium text-xs mb-1 ${section.isActive ? 'text-white font-bold' : section.isAccessible ? 'text-white/70' : 'text-white/40'}`} title={section.label}>
+        <div className="flex items-center gap-1">
+          <span className={`font-medium text-xs mb-1 ${section.isActive && !section.isCompleted ? 'text-white font-bold' : section.isAccessible ? 'text-white/70' : 'text-white/40'}`} title={section.label}>
             {section.label}
           </span>
-          {section.isActive && isConfiguratorOpen && (
+          {section.isCompleted && (
+            <span className="text-green-500 text-xs" style={{ lineHeight: 'normal', verticalAlign: 'middle' }}>✓</span>
+          )}
+          {section.isActive && isConfiguratorOpen && !section.isCompleted && (
             <span className="relative">
               <span className="relative h-2 w-2 rounded-full bg-green-400 block animate-pulse" ></span>
             </span>
