@@ -10,19 +10,59 @@ interface GeneralInfoStepProps {
 
 const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, onInteraction }) => {
   const { t } = useI18n();
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    generalInfo: true,
-    documentInfo: false,
-    contactInfo: false
-  });
-
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+  
+  // Navigation state - emoji-based step tracking
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  
+  // Navigation helpers
+  const totalSteps = 3;
+  
+  const getStepEmoji = (step: number) => {
+    const emojis = ['📋', '📑', '📞'];
+    return emojis[step - 1] || '❓';
   };
-
+  
+  const getStepTitle = (step: number) => {
+    const titles = [
+      t('editor.desktop.setupWizard.fields.generalInfo') || 'General Information',
+      t('editor.desktop.setupWizard.fields.documentInfo') || 'Document Information',
+      t('editor.desktop.setupWizard.fields.contactInfo') || 'Contact Information'
+    ];
+    return titles[step - 1] || `Step ${step}`;
+  };
+  
+  const isStepRequired = (step: number) => {
+    // Step 1 is required, others are optional
+    return step === 1;
+  };
+  
+  const isStepCompleted = (step: number) => {
+    if (!completedSteps.has(step)) return false;
+    
+    switch(step) {
+      case 1: // General Information - Check if title and author are filled
+        return formData.title && formData.companyName;
+      case 2: // Document Information - Check if any field is filled
+        return formData.subtitle || formData.date || formData.logoUrl;
+      case 3: // Contact Information - Check if any field is filled
+        return formData.contactInfo?.email || formData.contactInfo?.phone || formData.contactInfo?.website || formData.contactInfo?.address;
+      default:
+        return false;
+    }
+  };
+  
+  const goToStep = (step: number) => {
+    // Allow navigation to any step
+    if (step <= totalSteps) {
+      setCurrentStep(step);
+    }
+  };
+  
+  const markStepAsCompleted = (step: number) => {
+    setCompletedSteps(prev => new Set(prev).add(step));
+  };
+  
   // Wrapper function to track user interaction
   const handleChange = (field: string, value: any) => {
     // Notify parent that user has interacted (only once)
@@ -31,31 +71,72 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
     }
     // Call original onChange
     onChange(field, value);
+    // Auto-mark current step as completed when fields are filled
+    setTimeout(() => {
+      if (isStepCompleted(currentStep)) {
+        markStepAsCompleted(currentStep);
+      }
+    }, 100);
   };
 
   return (
     <Card className="bg-slate-800 border-slate-700">
       <CardContent>
-        <div className="space-y-6">
-          {/* General Information Section - Always Expanded */}
-          <div className="border border-slate-600 rounded-lg">
-            <button
-              type="button"
-              onClick={() => toggleSection('generalInfo')}
-              className="w-full px-4 py-3 text-left flex items-center justify-between bg-slate-700/50 hover:bg-slate-700 transition-colors rounded-t-lg"
-            >
-              <div className="flex items-center gap-2">
-                <span>📋</span>
-                <span className="text-white font-bold">{t('editor.desktop.setupWizard.fields.generalInfo') || 'General Information'}</span>
-                <span className="text-white/70 text-sm">({t('editor.desktop.setupWizard.required') || 'Required'})</span>
-              </div>
-              <span className={`transform transition-transform ${expandedSections.generalInfo ? 'rotate-180' : ''} text-white`}>
-                ▼
-              </span>
-            </button>
-            
-            {expandedSections.generalInfo && (
-              <div className="px-4 pb-4 pt-2">
+        {/* Floating Sub Navigation Tabs - Following the same design as ProjectProfileStep */}
+        <div className="mb-2 flex justify-center">
+          <div className="flex gap-2 min-w-[520px]">
+            {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
+              const isCompleted = isStepCompleted(step);
+              const isCurrent = step === currentStep;
+              const isRequired = isStepRequired(step);
+              
+              let buttonClass = '';
+              if (isCurrent) {
+                buttonClass = 'bg-slate-600/40 text-white font-bold flex-1';
+              } else {
+                buttonClass = 'bg-slate-800/50 text-slate-400 font-bold hover:text-slate-200 hover:bg-slate-700/40 flex-1';
+              }
+              
+              return (
+                <button
+                  key={step}
+                  onClick={() => goToStep(step)}
+                  className={`flex flex-col items-center justify-center gap-1 py-3 rounded-sm transition-all duration-200 ${buttonClass}`}
+                >
+                  <div className="relative">
+                    <span className="text-lg">{getStepEmoji(step)}</span>
+                    {isCompleted && (
+                      <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-[8px]">✓</span>
+                      </span>
+                    )}
+                    {isCurrent && (
+                      <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-slate-500 rounded-full animate-pulse"></span>
+                    )}
+                  </div>
+                  <span className="text-xs font-bold text-center">
+                    {getStepTitle(step)}
+                    {isRequired && <span className="text-red-400"> *</span>}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        
+        {/* Step Content */}
+        <div className="space-y-2 pt-4">
+          {/* Step 1: General Information Section - Only show if current step */}
+          {currentStep === 1 && (
+            <div className="border border-slate-600 rounded-lg bg-slate-800/50">
+              <div className="px-3 py-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">📋</span>
+                  <h4 className="text-white font-bold text-sm">
+                    {t('editor.desktop.setupWizard.fields.generalInfo') || 'General Information'}
+                  </h4>
+                  <span className="text-red-400 font-bold text-sm">*</span>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-white text-sm font-bold mb-2">
@@ -118,28 +199,19 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Document Information Section - Expandable */}
-          <div className="border border-slate-600 rounded-lg">
-            <button
-              type="button"
-              onClick={() => toggleSection('documentInfo')}
-              className="w-full px-4 py-3 text-left flex items-center justify-between bg-slate-700/50 hover:bg-slate-700 transition-colors rounded-lg"
-            >
-              <div className="flex items-center gap-2">
-                <span>📑</span>
-                <span className="text-white font-bold">{t('editor.desktop.setupWizard.fields.documentInfo') || 'Document Information'}</span>
-                <span className="text-white/70 text-sm">({t('editor.desktop.setupWizard.optional') || 'Optional'})</span>
-              </div>
-              <span className={`transform transition-transform ${expandedSections.documentInfo ? 'rotate-180' : ''} text-white`}>
-                ▼
-              </span>
-            </button>
-            
-            {expandedSections.documentInfo && (
-              <div className="px-4 pb-4 pt-2">
+            </div>
+          )}
+          
+          {/* Step 2: Document Information Section - Only show if current step */}
+          {currentStep === 2 && (
+            <div className="border border-slate-600 rounded-lg bg-slate-800/50">
+              <div className="px-3 py-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">📑</span>
+                  <h4 className="text-white font-bold text-sm">
+                    {t('editor.desktop.setupWizard.fields.documentInfo') || 'Document Information'}
+                  </h4>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-white text-sm font-bold mb-2">
@@ -193,28 +265,19 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Contact Information Section - Expandable */}
-          <div className="border border-slate-600 rounded-lg">
-            <button
-              type="button"
-              onClick={() => toggleSection('contactInfo')}
-              className="w-full px-4 py-3 text-left flex items-center justify-between bg-slate-700/50 hover:bg-slate-700 transition-colors rounded-lg"
-            >
-              <div className="flex items-center gap-2">
-                <span>📞</span>
-                <span className="text-white font-bold">{t('editor.desktop.setupWizard.fields.contactInfo') || 'Contact Information'}</span>
-                <span className="text-white/70 text-sm">({t('editor.desktop.setupWizard.optional') || 'Optional'})</span>
-              </div>
-              <span className={`transform transition-transform ${expandedSections.contactInfo ? 'rotate-180' : ''} text-white`}>
-                ▼
-              </span>
-            </button>
-            
-            {expandedSections.contactInfo && (
-              <div className="px-4 pb-4 pt-2">
+            </div>
+          )}
+          
+          {/* Step 3: Contact Information Section - Only show if current step */}
+          {currentStep === 3 && (
+            <div className="border border-slate-600 rounded-lg bg-slate-800/50">
+              <div className="px-3 py-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">📞</span>
+                  <h4 className="text-white font-bold text-sm">
+                    {t('editor.desktop.setupWizard.fields.contactInfo') || 'Contact Information'}
+                  </h4>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-white text-sm font-bold mb-2">
@@ -269,8 +332,8 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -1686,7 +1686,7 @@
   "editor.desktop.setupWizard.validation.author": "Author is required",
   "editor.desktop.setupWizard.validation.oneLiner": "One-liner description is required",
   "editor.desktop.setupWizard.validation.country": "Country is required",
-  "editor.desktop.myProject.sections.generalInfo": "Document Basic",
+  "editor.desktop.myProject.sections.generalInfo": "Document Basics",
   "editor.desktop.myProject.sections.generalInfo.subtext": "General: General information about Project & Author",
   "editor.desktop.myProject.sections.projectProfile": "Project Profile",
   "editor.desktop.myProject.sections.projectProfile.subtext": "Profile: Project, Phase, and Team",
