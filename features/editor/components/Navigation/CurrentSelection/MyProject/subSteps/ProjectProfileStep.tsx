@@ -592,7 +592,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
               <div className="px-3 py-2">
                 <div className="flex items-center gap-4 flex-wrap mt-6 mb-6"> {/* Fixed to positive margin top */}
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-lg">👥</span>
+                    <span className="text-2xl mb-1">👥</span>
                     <h4 className="text-white font-bold text-sm">
                       {t('editor.desktop.myProject.fields.teamSize') || 'Team Size'}
                     </h4>

@@ -105,8 +105,8 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
     <Card className="bg-slate-800 border-slate-700">
       <CardContent className="p-0.5">
         {/* Emoji Navigation Bar */}
-        <div className="mb-6 p-3 bg-slate-700/30 rounded-lg border border-slate-600">
-          <div className="flex justify-between gap-2">
+        <div className="mb-4 p-2 bg-slate-700/30 rounded border border-slate-600">
+          <div className="flex justify-center gap-2 max-w-[960px] mx-auto">
             {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
               const isCompleted = isStepCompleted(step);
               const isCurrent = step === currentStep;
@@ -114,31 +114,31 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
               
               let buttonClass = '';
               if (isCompleted) {
-                buttonClass = 'bg-green-600/30 border border-green-500 text-green-200 font-bold';
+                buttonClass = 'bg-slate-600/40 border border-slate-500 text-slate-200 font-bold';
               } else if (isCurrent) {
-                buttonClass = 'bg-blue-600 text-white font-bold shadow-lg';
+                buttonClass = 'bg-blue-500/20 text-white font-bold';
               } else {
-                buttonClass = 'bg-slate-700/50 border border-slate-600 text-white/70 font-bold hover:text-white hover:bg-slate-700/60';
+                buttonClass = 'bg-slate-800/50 border border-transparent text-slate-400 font-bold hover:text-slate-200 hover:bg-slate-700/40';
               }
               
               return (
                 <button
                   key={step}
                   onClick={() => goToStep(step)}
-                  className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-300 ${buttonClass}`}
+                  className={`flex-1 flex flex-col items-center justify-center gap-1 py-1.5 rounded-sm transition-all duration-200 ${buttonClass}`}
                 >
                   <div className="relative">
-                    <span className="text-2xl">{getStepEmoji(step)}</span>
+                    <span className="text-lg">{getStepEmoji(step)}</span>
                     {isCompleted && (
                       <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-[8px]">✓</span>
                       </span>
                     )}
                     {isCurrent && (
-                      <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                      <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
                     )}
                   </div>
-                  <span className="text-sm font-bold text-center truncate w-full">
+                  <span className="text-xs font-bold text-center truncate w-full">
                     {getStepTitle(step)}
                     {isRequired && <span className="text-red-400"> *</span>}
                   </span>
@@ -153,31 +153,28 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
           
           {/* Step 1: Planning Timeline Section */}
           {currentStep === 1 && (
-            <div className="border border-slate-600 rounded-lg bg-slate-800/50">
-              <div className="px-3 py-2">
-                <div className="flex items-center gap-2 mb-2">
+            <div className="px-3 py-2">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-lg">📅</span>
                   <h4 className="text-white font-bold text-sm">
                     {t('editor.desktop.myProject.fields.planningHorizon' as any) || 'Planning Horizon'}
                   </h4>
                   <span className="text-red-400 font-bold text-sm">*</span>
                 </div>
-                <p className="text-white/70 text-sm font-medium mb-5">{getStepDescription(currentStep)}</p>
                 
-                <div className="w-84 mb-5">
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="range"
-                      min="0"
-                      max="48"
-                      step="6"
-                      value={formData.financialBaseline?.planningHorizon ?? 0}
-                      onChange={(e) => handleFieldChange('financialBaseline.planningHorizon', parseInt(e.target.value))}
-                      className="w-96 h-1.5 mt-1 bg-slate-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
-                    />
-                    <span className="text-white text-base font-bold w-20 text-right whitespace-nowrap">
-                      {formData.financialBaseline?.planningHorizon ?? 0} {t(`editor.desktop.myProject.months.${(formData.financialBaseline?.planningHorizon ?? 0) === 1 ? 'singular' : 'plural'}` as any)}
-                    </span>
+                <div className="flex-1 flex items-center gap-3 min-w-[200px]">
+                  <input
+                    type="range"
+                    min="0"
+                    max="48"
+                    step="6"
+                    value={formData.financialBaseline?.planningHorizon ?? 0}
+                    onChange={(e) => handleFieldChange('financialBaseline.planningHorizon', parseInt(e.target.value))}
+                    className="flex-1 h-1.5 bg-slate-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
+                  />
+                  <div className="w-24 text-center bg-slate-700/50 text-white text-sm font-bold rounded border border-slate-600 px-2 py-1">
+                    {formData.financialBaseline?.planningHorizon ?? 0} {t(`editor.desktop.myProject.months.${(formData.financialBaseline?.planningHorizon ?? 0) === 1 ? 'singular' : 'plural'}` as any)}
                   </div>
                 </div>
               </div>
@@ -204,7 +201,7 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                       onClick={() => handleFieldChange('mainObjective', objective.value)}
                       className={`w-full text-left px-4 py-3 border-2 rounded-lg transition-all duration-150 flex items-center gap-3 ${
                         formData.mainObjective === objective.value
-                          ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
+                          ? 'bg-blue-500/20 border-blue-500 text-white font-medium'
                           : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
                       }`}
                     >

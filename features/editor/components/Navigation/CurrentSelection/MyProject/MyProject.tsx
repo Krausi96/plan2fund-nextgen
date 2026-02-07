@@ -271,7 +271,7 @@ const MyProject: React.FC<MyProjectProps> = ({
               <div 
                 className={`group relative flex flex-col items-start p-3 rounded-lg transition-all duration-300 ease-out cursor-pointer flex-1 ${
                   currentSection === 3 
-                    ? 'bg-amber-500/25 ring-2 ring-amber-500/40 ring-offset-2 ring-offset-slate-800/50' 
+                    ? 'bg-blue-500/20 ring-2 ring-blue-500/40 ring-offset-2 ring-offset-slate-800/50' 
                     : 'border border-white/20 opacity-60 hover:opacity-100 backdrop-blur-md'
                 }`}
                 onClick={() => handleNavClick(3)}>
@@ -279,7 +279,7 @@ const MyProject: React.FC<MyProjectProps> = ({
                   <span className="w-2 h-2 bg-white rounded-full animate-pulse absolute top-1.5 right-1.5"></span>
                 )}
                 <div className="flex flex-row items-center">
-                  <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-amber-400/15 border border-amber-400/20 text-amber-300 text-base">
+                  <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-blue-400/15 border border-blue-400/20 text-blue-300 text-base">
                     ✨
                   </div>
                   <div>
