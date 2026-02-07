@@ -102,32 +102,26 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
   return (
     <Card className="bg-slate-800 border-slate-700">
       <CardContent>
-        {/* Emoji Navigation Bar - Smaller and more compact */}
-        <div className="mb-2 p-1 bg-slate-700/30 rounded border border-slate-600">
-          <div className="flex justify-between gap-2">
+        {/* Floating Sub Navigation Tabs */}
+        <div className="mb-2 flex justify-center">
+          <div className="flex gap-2 min-w-[520px]">
             {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
               const isCompleted = isStepCompleted(step);
               const isCurrent = step === currentStep;
               const isRequired = isStepRequired(step);
-              const isUnlocked = true; // Always unlocked - validation disabled
               
               let buttonClass = '';
-              if (isCompleted) {
-                buttonClass = 'bg-green-600/30 border border-green-500 text-green-200 font-bold';
-              } else if (isCurrent) {
-                buttonClass = 'bg-indigo-500/30 text-white font-bold shadow-lg';
-              } else if (isUnlocked) {
-                buttonClass = 'bg-slate-700/50 border border-slate-600 text-white/70 font-bold hover:text-white hover:bg-slate-700/60';
+              if (isCurrent) {
+                buttonClass = 'bg-indigo-500/20 text-white font-bold flex-1';
               } else {
-                buttonClass = 'bg-slate-800/50 border border-slate-700 text-slate-500 cursor-not-allowed';
+                buttonClass = 'bg-slate-800/50 text-slate-400 font-bold hover:text-slate-200 hover:bg-slate-700/40 flex-1';
               }
               
               return (
                 <button
                   key={step}
-                  onClick={() => isUnlocked && goToStep(step)}
-                  disabled={false}
-                  className={`flex-1 flex flex-col items-center gap-1 p-2 rounded transition-all duration-300 ${buttonClass}`}
+                  onClick={() => goToStep(step)}
+                  className={`flex flex-col items-center justify-center gap-1 py-3 rounded-sm transition-all duration-200 ${buttonClass}`}
                 >
                   <div className="relative">
                     <span className="text-lg">{getStepEmoji(step)}</span>
@@ -137,10 +131,10 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       </span>
                     )}
                     {isCurrent && (
-                      <span className="absolute -top-0.5 -right-2 w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                      <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse"></span>
                     )}
                   </div>
-                  <span className="text-xs font-bold text-center truncate w-full">
+                  <span className="text-xs font-bold text-center">
                     {getStepTitle(step)}
                     {isRequired && <span className="text-red-400"> *</span>}
                   </span>

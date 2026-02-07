@@ -27,22 +27,22 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
   
   const getStepTitle = (step: number) => {
     const titles = [
-      t('editor.desktop.myProject.sections.planningTimeline' as any) || 'Planning Timeline',
-      t('editor.desktop.myProject.sections.businessObjective' as any) || 'Main Project Objective'
+      t('editor.desktop.myProject.fields.planningHorizon' as any) || 'Planning Horizon',
+      t('editor.desktop.myProject.fields.mainObjective' as any) || 'Project Goal'
     ];
     return titles[step - 1] || `Step ${step}`;
   };
   
   const getStepDescription = (step: number) => {
     const descriptions = [
-      t('editor.desktop.myProject.descriptions.planningTimeline' as any) || 'Define your project timeline and planning horizon',
-      t('editor.desktop.myProject.descriptions.businessObjective' as any) || 'Select your primary business goal'
+      t('editor.desktop.myProject.descriptions.planningHorizon' as any) || 'Set your planning horizon',
+      t('editor.desktop.myProject.descriptions.mainObjective' as any) || 'Select your primary business goal'
     ];
     return descriptions[step - 1] || '';
   };
   
-  const isStepRequired = () => {
-    return false; // Only step 1 is required
+  const isStepRequired = (step: number) => {
+    return step === 1; // Only step 1 is required
   };
   
   const isStepCompleted = (step: number) => {
@@ -104,47 +104,60 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
   return (
     <Card className="bg-slate-800 border-slate-700">
       <CardContent className="p-0.5">
-        {/* Emoji Navigation Bar */}
-        <div className="mb-4 p-2 bg-slate-700/30 rounded border border-slate-600">
-          <div className="flex justify-center gap-2 max-w-[960px] mx-auto">
-            {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
-              const isCompleted = isStepCompleted(step);
-              const isCurrent = step === currentStep;
-              const isRequired = isStepRequired();
-              
-              let buttonClass = '';
-              if (isCompleted) {
-                buttonClass = 'bg-slate-600/40 border border-slate-500 text-slate-200 font-bold';
-              } else if (isCurrent) {
-                buttonClass = 'bg-blue-500/20 text-white font-bold';
-              } else {
-                buttonClass = 'bg-slate-800/50 border border-transparent text-slate-400 font-bold hover:text-slate-200 hover:bg-slate-700/40';
-              }
-              
-              return (
-                <button
-                  key={step}
-                  onClick={() => goToStep(step)}
-                  className={`flex-1 flex flex-col items-center justify-center gap-1 py-1.5 rounded-sm transition-all duration-200 ${buttonClass}`}
-                >
-                  <div className="relative">
-                    <span className="text-lg">{getStepEmoji(step)}</span>
-                    {isCompleted && (
-                      <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-[8px]">✓</span>
-                      </span>
-                    )}
-                    {isCurrent && (
-                      <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
-                    )}
-                  </div>
-                  <span className="text-xs font-bold text-center truncate w-full">
-                    {getStepTitle(step)}
-                    {isRequired && <span className="text-red-400"> *</span>}
+        {/* Floating 50/50 Tabs */}
+        <div className="mb-4 flex justify-center">
+          <div className="flex gap-2 min-w-[520px]">
+            {/* Planning Horizon Tab */}
+            <button
+              onClick={() => goToStep(1)}
+              className={`flex flex-col items-center justify-center gap-1 py-3 rounded-sm transition-all duration-200 flex-1 ${
+                currentStep === 1
+                  ? 'bg-blue-500/20 text-white font-bold'
+                  : 'bg-slate-800/50 text-slate-400 font-bold hover:text-slate-200 hover:bg-slate-700/40'
+              }`}
+            >
+              <div className="relative">
+                <span className="text-lg">{getStepEmoji(1)}</span>
+                {isStepCompleted(1) && (
+                  <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-[8px]">✓</span>
                   </span>
-                </button>
-              );
-            })}
+                )}
+                {currentStep === 1 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
+                )}
+              </div>
+              <span className="text-xs font-bold text-center">
+                {getStepTitle(1)}
+                {isStepRequired(1) && <span className="text-red-400"> *</span>}
+              </span>
+            </button>
+            
+            {/* Project Goal Tab */}
+            <button
+              onClick={() => goToStep(2)}
+              className={`flex flex-col items-center justify-center gap-1 py-3 rounded-sm transition-all duration-200 flex-1 ${
+                currentStep === 2
+                  ? 'bg-blue-500/20 text-white font-bold'
+                  : 'bg-slate-800/50 text-slate-400 font-bold hover:text-slate-200 hover:bg-slate-700/40'
+              }`}
+            >
+              <div className="relative">
+                <span className="text-lg">{getStepEmoji(2)}</span>
+                {isStepCompleted(2) && (
+                  <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-[8px]">✓</span>
+                  </span>
+                )}
+                {currentStep === 2 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
+                )}
+              </div>
+              <span className="text-xs font-bold text-center">
+                {getStepTitle(2)}
+                {isStepRequired(2) && <span className="text-red-400"> *</span>}
+              </span>
+            </button>
           </div>
         </div>
         
@@ -163,7 +176,7 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                   <span className="text-red-400 font-bold text-sm">*</span>
                 </div>
                 
-                <div className="flex-1 flex items-center gap-3 min-w-[200px]">
+                <div className="flex-1 flex items-center gap-3 min-w-[180px]">
                   <input
                     type="range"
                     min="0"
@@ -171,9 +184,9 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                     step="6"
                     value={formData.financialBaseline?.planningHorizon ?? 0}
                     onChange={(e) => handleFieldChange('financialBaseline.planningHorizon', parseInt(e.target.value))}
-                    className="flex-1 h-1.5 bg-slate-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
+                    className="flex-[2] h-1.5 bg-slate-600 rounded-full appearance-none cursor-pointer mt-1 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
                   />
-                  <div className="w-24 text-center bg-slate-700/50 text-white text-sm font-bold rounded border border-slate-600 px-2 py-1">
+                  <div className="w-20 text-center bg-slate-700/50 text-white text-sm font-bold rounded border border-slate-600 px-2 py-1">
                     {formData.financialBaseline?.planningHorizon ?? 0} {t(`editor.desktop.myProject.months.${(formData.financialBaseline?.planningHorizon ?? 0) === 1 ? 'singular' : 'plural'}` as any)}
                   </div>
                 </div>
