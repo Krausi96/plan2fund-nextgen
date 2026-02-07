@@ -103,8 +103,8 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
     <Card className="bg-slate-800 border-slate-700">
       <CardContent>
         {/* Emoji Navigation Bar - Smaller and more compact */}
-        <div className="mb-4 p-2 bg-slate-700/30 rounded-lg border border-slate-600">
-          <div className="flex justify-between gap-1">
+        <div className="mb-2 p-1 bg-slate-700/30 rounded border border-slate-600">
+          <div className="flex justify-between gap-2">
             {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
               const isCompleted = isStepCompleted(step);
               const isCurrent = step === currentStep;
@@ -115,7 +115,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
               if (isCompleted) {
                 buttonClass = 'bg-green-600/30 border border-green-500 text-green-200 font-bold';
               } else if (isCurrent) {
-                buttonClass = 'bg-blue-600 text-white font-bold shadow-lg';
+                buttonClass = 'bg-indigo-500/30 text-white font-bold shadow-lg';
               } else if (isUnlocked) {
                 buttonClass = 'bg-slate-700/50 border border-slate-600 text-white/70 font-bold hover:text-white hover:bg-slate-700/60';
               } else {
@@ -127,20 +127,20 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   key={step}
                   onClick={() => isUnlocked && goToStep(step)}
                   disabled={false}
-                  className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-300 ${buttonClass}`}
+                  className={`flex-1 flex flex-col items-center gap-1 p-2 rounded transition-all duration-300 ${buttonClass}`}
                 >
                   <div className="relative">
-                    <span className="text-2xl">{getStepEmoji(step)}</span>
+                    <span className="text-lg">{getStepEmoji(step)}</span>
                     {isCompleted && (
                       <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-[8px]">✓</span>
                       </span>
                     )}
                     {isCurrent && (
-                      <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                      <span className="absolute -top-0.5 -right-2 w-2 h-2 bg-white rounded-full animate-pulse"></span>
                     )}
                   </div>
-                  <span className="text-sm font-bold text-center truncate w-full">
+                  <span className="text-xs font-bold text-center truncate w-full">
                     {getStepTitle(step)}
                     {isRequired && <span className="text-red-400"> *</span>}
                   </span>
@@ -151,7 +151,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
         </div>
         
         {/* Step Content */}
-        <div className="space-y-4">
+        <div className="space-y-2">
           
           {/* Step 1: Location Section - Only show if current step */}
           {currentStep === 1 && (
@@ -166,11 +166,11 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <label className="block text-white text-sm font-bold">
+                    <div className="flex items-center gap-1 mb-1">
+                      <label className="block text-white text-xs font-bold">
                         {t('editor.desktop.myProject.fields.country') || 'Country'}
                       </label>
-                      <span className="text-red-400 text-[8px]">*</span>
+                      <span className="text-red-400 text-[6px]">*</span>
                     </div>
                     <select
                       value={formData.country}
@@ -194,7 +194,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   </div>
                   
                   <div>
-                    <label className="block text-white text-sm font-bold mb-2">
+                    <label className="block text-white text-xs font-bold mb-1">
                       Region
                     </label>
                     <input
@@ -204,13 +204,13 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       placeholder="e.g., Vienna, Bavaria"
                       className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm"
                     />
-                    <p className="text-white/50 text-xs mt-1">
+                    <p className="text-white/50 text-[10px] mt-0.5">
                       Optional
                     </p>
                   </div>
                   
                   <div>
-                    <label className="block text-white text-sm font-bold mb-2">
+                    <label className="block text-white text-xs font-bold mb-1">
                       {t('editor.desktop.myProject.fields.currency') || 'Currency'}
                     </label>
                     <input
@@ -220,7 +220,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       className="w-full px-3 py-2 bg-slate-700/50 text-white/70 rounded-lg border border-slate-600 cursor-not-allowed text-sm"
                       placeholder="Auto-detected"
                     />
-                    <p className="text-white/50 text-xs mt-1">
+                    <p className="text-white/50 text-[10px] mt-0.5">
                       Auto
                     </p>
                   </div>
@@ -240,8 +240,8 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   </h4>
                   <span className="text-red-400 font-bold text-sm">*</span>
                 </div>
-                <div className="space-y-3">
-                  <p className="text-white/70 text-sm">{t('editor.desktop.myProject.descriptions.projectStage') || 'Choose your current project stage'}</p>
+                <div className="space-y-2">
+                  <p className="text-white/70 text-xs">{t('editor.desktop.myProject.descriptions.projectStage') || 'Choose your current project stage'}</p>
                   {[
                     { value: 'idea', label: t('editor.desktop.myProject.stages.idea'), icon: '💡' },
                     { value: 'MVP', label: t('editor.desktop.myProject.stages.mvp'), icon: '🧪' },
@@ -252,10 +252,10 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                       key={stage.value}
                       type="button"
                       onClick={() => handleFieldChange('stage', stage.value)}
-                      className={`w-full text-left px-4 py-3 border-2 rounded-lg transition-all duration-150 flex items-center gap-3 ${
+                      className={`w-full text-left px-3 py-2 border-2 rounded-lg transition-all duration-150 flex items-center gap-2 ${
                         formData.stage === stage.value
-                          ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
-                          : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                          ? 'bg-indigo-600 border-indigo-600 text-white font-medium shadow-md'
+                          : 'bg-slate-700 border-slate-600 hover:border-indigo-400 hover:bg-slate-600'
                       }`}
                     >
                       <span className="text-sm">{stage.icon}</span>
@@ -285,11 +285,11 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   <span className="text-white/70 text-xs font-bold">(Optional)</span>
                 </div>
                 <div className="space-y-4">
-                  <p className="text-white/70 text-sm">{t('editor.desktop.myProject.descriptions.industry') || 'Describe your industry and focus areas'}</p>
+                  <p className="text-white/70 text-xs">{t('editor.desktop.myProject.descriptions.industry') || 'Describe your industry and focus areas'}</p>
                   
                   <div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                       {[{ value: 'digital', label: t('editor.desktop.myProject.industries.digital') },
                         { value: 'sustainability', label: t('editor.desktop.myProject.industries.sustainability') },
                         { value: 'health', label: t('editor.desktop.myProject.industries.health') },
@@ -309,32 +309,31 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                                 : [...current, focus.value];
                               handleFieldChange('industryFocus', newValue.length > 0 ? newValue : undefined);
                             }}
-                            className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                            className={`w-full text-left text-white px-2.5 py-1.5 border rounded-lg transition-all duration-150 flex items-center gap-1.5 text-xs ${
                               isSelected
-                                ? 'bg-blue-600 border-blue-600 text-white font-bold'
-                                : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600 font-bold'
+                                ? 'bg-indigo-600 border-indigo-600 text-white font-medium'
+                                : 'bg-slate-700 border-slate-600 hover:border-indigo-400 hover:bg-slate-600 font-medium'
                             }`}
                           >
-                            <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                            <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
                               isSelected ? 'bg-white border-white' : 'border-gray-400'
                             }`}>
                               {isSelected && (
-                                <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <svg className="w-2 h-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
                               )}
                             </span>
-                            <span className="font-bold">{focus.label}</span>
+                            <span className="font-medium">{focus.label}</span>
                           </button>
                         );
                       })}
                     </div>
                     
-                    {/* Sub-categories for selected industries */}
                     {formData.industryFocus?.includes('digital') && (
-                      <div className="mt-4 pt-4 border-t border-slate-600">
-                        <h4 className="text-white text-sm font-bold mb-3">Digital & Software Focus:</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="mt-2 pt-2 border-t border-slate-600">
+                        <h4 className="text-white text-xs font-bold mb-1">Digital & Software Focus:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                           {[{ value: 'ai', label: 'AI & Machine Learning' },
                             { value: 'fintech', label: 'FinTech' },
                             { value: 'healthtech', label: 'HealthTech' },
@@ -357,22 +356,22 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                                     : [...current, sub.value];
                                   handleFieldChange('digitalFocus', newValue.length > 0 ? newValue : undefined);
                                 }}
-                                className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                                className={`w-full text-left text-white px-2.5 py-1.5 border rounded-lg transition-all duration-150 flex items-center gap-1.5 text-xs ${
                                   isSelected
-                                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
-                                    : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                    ? 'bg-indigo-600 border-indigo-600 text-white font-medium'
+                                    : 'bg-slate-700 border-slate-600 hover:border-indigo-400 hover:bg-slate-600'
                                 }`}
                               >
-                                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
                                   isSelected ? 'bg-white border-white' : 'border-gray-400'
                                 }`}>
-                                  {isSelected && (
-                                    <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                  )}
-                                </span>
-                                <span>{sub.label}</span>
+                                {isSelected && (
+                                  <svg className="w-2 h-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </span>
+                                <span className="font-medium">{sub.label}</span>
                               </button>
                             );
                           })}
@@ -381,9 +380,9 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     )}
                     
                     {formData.industryFocus?.includes('sustainability') && (
-                      <div className="mt-4 pt-4 border-t border-slate-600">
-                        <h4 className="text-white text-sm font-bold mb-3">Climate & Sustainability Focus:</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="mt-2 pt-2 border-t border-slate-600">
+                        <h4 className="text-white text-xs font-bold mb-1">Climate & Sustainability Focus:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                           {[{ value: 'greentech', label: 'GreenTech' },
                             { value: 'cleantech', label: 'CleanTech' },
                             { value: 'circular_economy', label: 'Circular Economy' },
@@ -404,22 +403,22 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                                     : [...current, sub.value];
                                   handleFieldChange('sustainabilityFocus', newValue.length > 0 ? newValue : undefined);
                                 }}
-                                className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                                className={`w-full text-left text-white px-2.5 py-1.5 border rounded-lg transition-all duration-150 flex items-center gap-1.5 text-xs ${
                                   isSelected
-                                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
-                                    : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                    ? 'bg-indigo-600 border-indigo-600 text-white font-medium'
+                                    : 'bg-slate-700 border-slate-600 hover:border-indigo-400 hover:bg-slate-600 font-medium'
                                 }`}
                               >
-                                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
                                   isSelected ? 'bg-white border-white' : 'border-gray-400'
                                 }`}>
                                   {isSelected && (
-                                    <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="w-2 h-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                     </svg>
                                   )}
                                 </span>
-                                <span>{sub.label}</span>
+                                <span className="font-medium">{sub.label}</span>
                               </button>
                             );
                           })}
@@ -428,9 +427,9 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     )}
                     
                     {formData.industryFocus?.includes('health') && (
-                      <div className="mt-4 pt-4 border-t border-slate-600">
-                        <h4 className="text-white text-sm font-bold mb-3">Health & Life Sciences Focus:</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="mt-2 pt-2 border-t border-slate-600">
+                        <h4 className="text-white text-xs font-bold mb-1">Health & Life Sciences Focus:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                           {[{ value: 'biotech', label: 'Biotech' },
                             { value: 'medtech', label: 'MedTech' },
                             { value: 'pharma', label: 'Pharmaceuticals' },
@@ -451,22 +450,22 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                                     : [...current, sub.value];
                                   handleFieldChange('healthFocus', newValue.length > 0 ? newValue : undefined);
                                 }}
-                                className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                                className={`w-full text-left text-white px-2.5 py-1.5 border rounded-lg transition-all duration-150 flex items-center gap-1.5 text-xs ${
                                   isSelected
-                                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
-                                    : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                    ? 'bg-indigo-600 border-indigo-600 text-white font-medium'
+                                    : 'bg-slate-700 border-slate-600 hover:border-indigo-400 hover:bg-slate-600 font-medium'
                                 }`}
                               >
-                                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
                                   isSelected ? 'bg-white border-white' : 'border-gray-400'
                                 }`}>
                                   {isSelected && (
-                                    <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="w-2 h-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                     </svg>
                                   )}
                                 </span>
-                                <span>{sub.label}</span>
+                                <span className="font-medium">{sub.label}</span>
                               </button>
                             );
                           })}
@@ -475,9 +474,9 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     )}
                     
                     {formData.industryFocus?.includes('manufacturing') && (
-                      <div className="mt-4 pt-4 border-t border-slate-600">
-                        <h4 className="text-white text-sm font-bold mb-3">Manufacturing & Hardware Focus:</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="mt-2 pt-2 border-t border-slate-600">
+                        <h4 className="text-white text-xs font-bold mb-1">Manufacturing & Hardware Focus:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                           {[{ value: 'industry_4_0', label: 'Industry 4.0' },
                             { value: 'smart_manufacturing', label: 'Smart Manufacturing' },
                             { value: 'robotics', label: 'Robotics' },
@@ -498,17 +497,17 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                                     : [...current, sub.value];
                                   handleFieldChange('manufacturingFocus', newValue.length > 0 ? newValue : undefined);
                                 }}
-                                className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                                className={`w-full text-left text-white px-2.5 py-1.5 border rounded-lg transition-all duration-150 flex items-center gap-1.5 text-xs ${
                                   isSelected
-                                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
-                                    : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                    ? 'bg-indigo-600 border-indigo-600 text-white font-medium'
+                                    : 'bg-slate-700 border-slate-600 hover:border-indigo-400 hover:bg-slate-600'
                                 }`}
                               >
-                                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
                                   isSelected ? 'bg-white border-white' : 'border-gray-400'
                                 }`}>
                                   {isSelected && (
-                                    <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="w-2 h-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                     </svg>
                                   )}
@@ -522,9 +521,9 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     )}
                     
                     {formData.industryFocus?.includes('export') && (
-                      <div className="mt-4 pt-4 border-t border-slate-600">
-                        <h4 className="text-white text-sm font-medium mb-3">Internationalisation Focus:</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="mt-2 pt-2 border-t border-slate-600">
+                        <h4 className="text-white text-xs font-medium mb-1">Internationalisation Focus:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                           {[{ value: 'export_eu', label: 'EU Export' },
                             { value: 'export_global', label: 'Global Export' },
                             { value: 'export_services', label: 'Export Services' },
@@ -543,17 +542,17 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                                     : [...current, sub.value];
                                   handleFieldChange('exportFocus', newValue.length > 0 ? newValue : undefined);
                                 }}
-                                className={`w-full text-left text-white px-3 py-2 border rounded-lg transition-all duration-150 flex items-center gap-2 text-sm ${
+                                className={`w-full text-left text-white px-2.5 py-1.5 border rounded-lg transition-all duration-150 flex items-center gap-1.5 text-xs ${
                                   isSelected
-                                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
-                                    : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                                    ? 'bg-indigo-600 border-indigo-600 text-white font-medium'
+                                    : 'bg-slate-700 border-slate-600 hover:border-indigo-400 hover:bg-slate-600'
                                 }`}
                               >
-                                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
                                   isSelected ? 'bg-white border-white' : 'border-gray-400'
                                 }`}>
                                   {isSelected && (
-                                    <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="w-2 h-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                     </svg>
                                   )}
@@ -568,8 +567,8 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     
                     {/* Custom industry input when 'other' is selected */}
                     {formData.industryFocus?.includes('other') && (
-                      <div className="mt-4 pt-4 border-t border-slate-600">
-                        <label className="block text-white text-sm font-bold mb-2">
+                      <div className="mt-2 pt-2 border-t border-slate-600">
+                        <label className="block text-white text-xs font-bold mb-1">
                           {t('editor.desktop.myProject.fields.customIndustry') || 'Specify your industry'}
                         </label>
                         <input
@@ -591,37 +590,45 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
           {currentStep === 4 && (
             <div className="border border-slate-600 rounded-lg bg-slate-800/50">
               <div className="px-3 py-2">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4 flex-wrap mt-6 mb-6"> {/* Fixed to positive margin top */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="text-lg">👥</span>
                     <h4 className="text-white font-bold text-sm">
-                      {t('editor.desktop.myProject.fields.team') || 'Team Information'}
+                      {t('editor.desktop.myProject.fields.teamSize') || 'Team Size'}
                     </h4>
                   </div>
-                  <span className="text-white/70 text-xs font-bold">(Optional)</span>
-                </div>
-                <div className="space-y-4">
-                  <p className="text-white/70 text-sm">{t('editor.desktop.myProject.descriptions.team') || 'Provide team size and information'}</p>
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <label className="block text-white text-sm font-bold">
-                        {t('editor.desktop.myProject.fields.teamSize') || 'Team Size'}
-                      </label>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="range"
-                        min="1"
-                        max="100"
-                        value={formData.teamSize || 1}
-                        onChange={(e) => handleFieldChange('teamSize', parseInt(e.target.value))}
-                        className="w-96 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
-                      />
-                      <span className="text-white text-sm font-bold w-12 text-center bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600">
-                        {formData.teamSize || 1}
-                      </span>
+                  
+                  <div className="flex-1 flex items-center justify-center gap-2 min-w-[300px]">
+                    <input
+                      type="range"
+                      min="1"
+                      max="100"
+                      value={formData.teamSize || 1}
+                      onChange={(e) => handleFieldChange('teamSize', parseInt(e.target.value))}
+                      className="w-2/3 h-2 bg-slate-600 rounded-full appearance-none cursor-pointer 
+                      [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 
+                      [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 
+                      [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:shadow-none
+                      [&::-webkit-slider-thumb]:hover:bg-indigo-400 [&::-webkit-slider-thumb]:active:bg-indigo-300
+                      [&::-webkit-slider-thumb]:focus:outline-none [&::-webkit-slider-thumb]:focus:ring-0
+                      [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full 
+                      [&::-moz-range-thumb]:bg-indigo-500 [&::-moz-range-thumb]:border-0 
+                      [&::-moz-range-thumb]:hover:bg-indigo-400 [&::-moz-range-thumb]:active:bg-indigo-300
+                      [&::-moz-range-thumb]:focus:outline-none [&::-moz-range-thumb]:focus:ring-0
+                      [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-indigo-500 [&::-webkit-slider-runnable-track]:to-slate-600 
+                      [&::-webkit-slider-runnable-track]:rounded-full 
+                      [&::-webkit-slider-runnable-track]:h-2
+                      [&::-webkit-slider-runnable-track]:border-0
+                      [&::-moz-range-progress]:bg-indigo-500 [&::-moz-range-track]:bg-slate-600
+                      focus:outline-none focus:ring-0 focus:shadow-none"
+                    />
+                    
+                    <div className="w-12 text-center bg-slate-700/50 text-white text-sm font-bold rounded border border-slate-600 px-2 py-1">
+                      {formData.teamSize || 1}
                     </div>
                   </div>
+                  
+                  <span className="text-white/70 text-xs font-bold flex-shrink-0">(Optional)</span>
                 </div>
               </div>
             </div>
@@ -631,7 +638,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
         
         {/* Skip Option for Optional Steps */}
         {!isStepRequired(currentStep) && (
-          <div className="mt-6 pt-4 border-t border-slate-700 flex justify-end">
+          <div className="mt-3 pt-2 border-t border-slate-700 flex justify-end">
             <button
               onClick={() => {
                 markStepAsCompleted(currentStep);
@@ -639,7 +646,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   goToStep(currentStep + 1);
                 }
               }}
-              className="text-white/70 hover:text-white text-sm flex items-center gap-2 transition-colors"
+              className="text-white/70 hover:text-white text-xs flex items-center gap-1 transition-colors"
             >
               <span>⏭️</span>
               {t('editor.desktop.myProject.buttons.skipStep')}

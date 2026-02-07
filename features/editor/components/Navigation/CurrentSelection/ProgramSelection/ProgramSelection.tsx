@@ -24,61 +24,67 @@ function OptionSelector({ selectedOption, onSelect }: OptionSelectorProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Option A: Select Program */}
         <div 
-          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
+          className={`group relative flex flex-col items-start p-4 bg-slate-800/50 rounded-lg transition-all duration-300 ease-out cursor-pointer ${
             selectedOption === 'program' 
-              ? 'border-blue-400 bg-blue-500/40 ring-2 ring-blue-400/50' 
-              : 'border-slate-600 opacity-60 hover:opacity-100 backdrop-blur-sm'
+              ? 'border-blue-500 bg-blue-500/30 ring-2 ring-blue-500/50 ring-offset-2 ring-offset-slate-800/50' 
+              : 'border border-white/20 opacity-60 hover:opacity-100 backdrop-blur-md'
           }`}
           onClick={() => onSelect('program')}
         >
-          <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-blue-500/30 border-2 border-blue-400 text-blue-300 text-xl group-hover:scale-110 transition-transform duration-200">
-            📄
+          <div className="flex flex-row items-center">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 mr-4 rounded-md bg-blue-500/20 border border-blue-400/30 text-blue-200 text-lg">
+              📄
+            </div>
+            <h3 className="text-white font-black text-xl text-left">
+              {t('editor.desktop.program.optionA.title' as any) || 'Select Program'}
+            </h3>
           </div>
-          <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-blue-200 transition-colors duration-200">
-            {t('editor.desktop.program.optionA.title' as any) || 'Select Program'}
-          </h3>
-          <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
+          <p className="text-slate-300/70 text-xs text-left leading-relaxed mt-2 max-w-full line-clamp-3">
             {t('editor.desktop.program.optionA.description' as any) || 'Choose a funding, bank or investor program. The program determines which documents and structure are needed. 📋 Sets up document requirements.'}
           </p>
         </div>
         
         {/* Option B: Use Own Template */}
         <div 
-          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
+          className={`group relative flex flex-col items-start p-4 bg-slate-800/50 rounded-lg transition-all duration-300 ease-out cursor-pointer ${
             selectedOption === 'template' 
-              ? 'border-purple-400 bg-purple-500/40 ring-2 ring-purple-400/50' 
-              : 'border-slate-600 opacity-60 hover:opacity-100 backdrop-blur-sm'
+              ? 'border-purple-500 bg-purple-500/30 ring-2 ring-purple-500/50 ring-offset-2 ring-offset-slate-800/50' 
+              : 'border border-white/20 opacity-60 hover:opacity-100 backdrop-blur-md'
           }`}
           onClick={() => onSelect('template')}
         >
-          <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-purple-500/30 border-2 border-purple-400 text-purple-300 text-xl group-hover:scale-110 transition-transform duration-200">
-            🧩
+          <div className="flex flex-row items-center">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 mr-4 rounded-md bg-purple-500/20 border border-purple-400/30 text-purple-200 text-lg">
+              🧩
+            </div>
+            <h3 className="text-white font-black text-xl text-left">
+              {t('editor.desktop.program.optionB.title' as any) || 'Use Own Template'}
+            </h3>
           </div>
-          <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-purple-200 transition-colors duration-200">
-            {t('editor.desktop.program.optionB.title' as any) || 'Use Own Template'}
-          </h3>
-          <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
+          <p className="text-slate-300/70 text-xs text-left leading-relaxed mt-2 max-w-full line-clamp-3">
             {t('editor.desktop.program.optionB.description' as any) || 'Upload your own template (e.g. DOCX/PDF). The structure of the template will be adopted.'}
           </p>
         </div>
         
         {/* Option C: Start Free (Custom) */}
         <div 
-          className={`group relative flex flex-col items-center p-3 bg-slate-800/50 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
+          className={`group relative flex flex-col items-start p-4 bg-slate-800/50 rounded-lg transition-all duration-300 ease-out cursor-pointer ${
             selectedOption === 'free' 
-              ? 'border-green-400 bg-green-500/40 ring-2 ring-green-400/50' 
-              : 'border-slate-600 opacity-60 hover:opacity-100 backdrop-blur-sm'
+              ? 'border-green-500 bg-green-500/30 ring-2 ring-green-500/50 ring-offset-2 ring-offset-slate-800/50' 
+              : 'border border-white/20 opacity-60 hover:opacity-100 backdrop-blur-md'
           }`}
           onClick={() => onSelect('free')}
         >
-          <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-green-500/30 border-2 border-green-400 text-green-300 text-xl group-hover:scale-110 transition-transform duration-200">
-            📋
+          <div className="flex flex-row items-center">
+            <div className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 mr-4 rounded-md bg-green-500/20 border border-green-400/30 text-green-200 text-lg">
+              📋
+            </div>
+            <h3 className="text-white font-black text-xl text-left">
+              {t('editor.desktop.program.optionC.title' as any) || 'Start Free (Custom)'}
+            </h3>
           </div>
-          <h3 className="text-white font-bold text-base mb-2 text-center group-hover:text-green-200 transition-colors duration-200">
-            {t('editor.desktop.program.optionC.title' as any) || 'Start Free (Custom)'}
-          </h3>
-          <p className="text-slate-300 text-xs text-center leading-relaxed group-hover:text-slate-200 transition-colors duration-200">
-            {t('editor.desktop.program.optionC.description' as any) || 'Start with a neutral standard structure. You can add programs or templates later.'}
+          <p className="text-slate-300/70 text-xs text-left leading-relaxed mt-2 max-w-full line-clamp-3">
+            {t('editor.desktop.program.optionC.description' as any) || 'Start with a neutral standard structure. Build freely without predefined requirements.'}
           </p>
         </div>
       </div>
@@ -220,12 +226,12 @@ export default function ProgramSelection({
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
           <h2 className="text-2xl font-bold text-white">
-            {t('editor.Desktop.program.header' as any) || 'Document Setup'}
+            {t('editor.desktop.program.header' as any) || 'Document Setup'}
           </h2>
         </div>
         <div className="border-b border-white/20 mb-2"></div>
         <p className="text-white/70 text-sm">
-          {t('editor.Desktop.program.subtitle' as any) || 'Choose how your document structure and requirements are defined.'}
+          {t('editor.desktop.program.subtitle' as any) || 'Choose how your document structure and requirements are defined.'}
         </p>
       </div>
       

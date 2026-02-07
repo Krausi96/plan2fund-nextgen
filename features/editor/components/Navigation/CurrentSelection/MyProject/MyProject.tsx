@@ -216,52 +216,82 @@ const MyProject: React.FC<MyProjectProps> = ({
       <>
         <div className={`${className}`}>
           {/* Navigation Buttons - Matching Program/Template Style */}
-          <div className="mb-6">
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleNavClick(1)}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold rounded-lg transition-all duration-200 text-base ${
+          <div className="mb-4">
+            <div className="flex gap-3">
+              <div 
+                className={`group relative flex flex-col items-start p-3 rounded-lg transition-all duration-300 ease-out cursor-pointer flex-1 ${
                   currentSection === 1 
-                    ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'bg-slate-800/30 border border-white/10 text-white/80 hover:border-white/30 hover:text-white hover:bg-slate-800/40 backdrop-blur-sm'
+                    ? 'bg-slate-600/40 ring-2 ring-slate-400/60 ring-offset-2 ring-offset-slate-800/50' 
+                    : 'border border-white/20 opacity-60 hover:opacity-100 backdrop-blur-md'
                 }`}
-              >
-                <span className="text-xl">📋</span>
-                <span>{t('editor.desktop.myProject.sections.generalInfo') || 'General Info'}</span>
+                onClick={() => handleNavClick(1)}>
                 {currentSection === 1 && (
-                  <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse absolute top-1.5 right-1.5"></span>
                 )}
-              </button>
+                <div className="flex flex-row items-center">
+                  <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-slate-400/15 border border-slate-400/20 text-slate-300 text-base">
+                    ⚙️
+                  </div>
+                  <div>
+                    <h3 className="text-white font-black text-lg text-left">
+                      {t('editor.desktop.myProject.sections.generalInfo') || 'General Info'}
+                    </h3>
+                    <p className="text-slate-300/70 text-xs text-left leading-tight mt-0.5 max-w-full">
+                      {t('editor.desktop.myProject.sections.generalInfo.subtext') || 'General: General information about Project & Author'}
+                    </p>
+                  </div>
+                </div>
+              </div>
               
-              <button
-                onClick={() => handleNavClick(2)}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold rounded-lg transition-all duration-200 text-base ${
+              <div 
+                className={`group relative flex flex-col items-start p-3 rounded-lg transition-all duration-300 ease-out cursor-pointer flex-1 ${
                   currentSection === 2 
-                    ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'bg-slate-800/30 border border-white/10 text-white/80 hover:border-white/30 hover:text-white hover:bg-slate-800/40 backdrop-blur-sm'
+                    ? 'bg-indigo-500/30 ring-2 ring-indigo-500/50 ring-offset-2 ring-offset-slate-800/50' 
+                    : 'border border-white/20 opacity-60 hover:opacity-100 backdrop-blur-md'
                 }`}
-              >
-                <span className="text-xl">🏢</span>
-                <span>{t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}</span>
+                onClick={() => handleNavClick(2)}>
                 {currentSection === 2 && (
-                  <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse absolute top-1.5 right-1.5"></span>
                 )}
-              </button>
+                <div className="flex flex-row items-center">
+                  <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-indigo-400/15 border border-indigo-400/20 text-indigo-300 text-base">
+                    🏢
+                  </div>
+                  <div>
+                    <h3 className="text-white font-black text-lg text-left">
+                      {t('editor.desktop.myProject.sections.projectProfile') || 'Project Profile'}
+                    </h3>
+                    <p className="text-slate-300/70 text-xs text-left leading-tight mt-0.5 max-w-full">
+                      {t('editor.desktop.myProject.sections.projectProfile.subtext') || 'Profile: Project, Phase, and Team'}
+                    </p>
+                  </div>
+                </div>
+              </div>
               
-              <button
-                onClick={() => handleNavClick(3)}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 font-bold rounded-lg transition-all duration-200 text-base ${
+              <div 
+                className={`group relative flex flex-col items-start p-3 rounded-lg transition-all duration-300 ease-out cursor-pointer flex-1 ${
                   currentSection === 3 
-                    ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'bg-slate-800/30 border border-white/10 text-white/80 hover:border-white/30 hover:text-white hover:bg-slate-800/40 backdrop-blur-sm'
+                    ? 'bg-amber-500/25 ring-2 ring-amber-500/40 ring-offset-2 ring-offset-slate-800/50' 
+                    : 'border border-white/20 opacity-60 hover:opacity-100 backdrop-blur-md'
                 }`}
-              >
-                <span className="text-xl">✨</span>
-                <span>{t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}</span>
+                onClick={() => handleNavClick(3)}>
                 {currentSection === 3 && (
-                  <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse absolute top-1.5 right-1.5"></span>
                 )}
-              </button>
+                <div className="flex flex-row items-center">
+                  <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-amber-400/15 border border-amber-400/20 text-amber-300 text-base">
+                    ✨
+                  </div>
+                  <div>
+                    <h3 className="text-white font-black text-lg text-left">
+                      {t('editor.desktop.myProject.sections.planningContext') || 'Planning Context'}
+                    </h3>
+                    <p className="text-slate-300/70 text-xs text-left leading-tight mt-0.5 max-w-full">
+                      {t('editor.desktop.myProject.sections.planningContext.subtext') || 'Context: Goals, Timeline, and Project Scope'}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
