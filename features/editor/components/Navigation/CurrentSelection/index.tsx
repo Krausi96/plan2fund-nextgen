@@ -304,7 +304,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
         onClick={section.isAccessible ? section.onClick : undefined}
       >
         <div className="flex items-center gap-2">
-          <span className={`font-medium text-xs mb-1 ${section.isActive ? 'text-white' : section.isAccessible ? 'text-white/70' : 'text-white/40'}`} title={section.label}>
+          <span className={`font-medium text-xs mb-1 ${section.isActive ? 'text-white font-bold' : section.isAccessible ? 'text-white/70' : 'text-white/40'}`} title={section.label}>
             {section.label}
           </span>
           {section.isActive && isConfiguratorOpen && (
@@ -335,7 +335,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
           <React.Fragment key={section.key}>
             {renderSectionCard(section)}
             {(index < sections.length - 1 || sections.length > 0) && (
-              <div className="w-0.5 h-6 bg-white/30 mx-6"></div>
+              <div className="w-0.5 h-6 bg-white/20 mx-6"></div>
             )}
           </React.Fragment>
         ))}
