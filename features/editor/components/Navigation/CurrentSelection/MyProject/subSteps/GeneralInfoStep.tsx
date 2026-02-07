@@ -170,22 +170,26 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
                     <label className="block text-white text-sm font-bold mb-2">
                       {t('editor.desktop.setupWizard.fields.logo')}
                     </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          // Convert file to data URL for preview
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            handleChange('logoUrl', event.target?.result);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
-                    />
+                    <label className="flex items-center gap-2 w-full px-3 py-1 bg-slate-700 border border-slate-600 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors">
+                      <div className="text-yellow-400 text-lg">📁</div>
+                      <span className="text-white text-sm font-medium">{t('editor.ui.upload') || 'Upload'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            // Convert file to data URL for preview
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              handleChange('logoUrl', event.target?.result);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
                   </div>
                 </div>
               </div>

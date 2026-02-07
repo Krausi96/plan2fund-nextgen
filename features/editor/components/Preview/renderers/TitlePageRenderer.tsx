@@ -107,8 +107,8 @@ export function TitlePageRenderer({ planDocument, disabledSections, t, compact =
             {fv('subtitle') || t.subtitlePlaceholder}
           </p>
           <div className="mb-4">
-            <div className={`block font-semibold text-gray-800 ${compact ? 'text-base' : 'text-lg'}`}>
-              {fv('companyName') || t.authorPlaceholder}
+            <div className={`block font-semibold text-gray-800 truncate max-w-full ${compact ? 'text-base' : 'text-lg'}`}>
+              {(fv('companyName') || t.authorPlaceholder).length > 40 ? (fv('companyName') || t.authorPlaceholder).substring(0, 40) + '...' : (fv('companyName') || t.authorPlaceholder)}
             </div>
           </div>
         </div>

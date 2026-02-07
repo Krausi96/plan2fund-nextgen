@@ -137,28 +137,32 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
         >
           <div 
             ref={dragRef}
-            className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg cursor-move select-none"
+            className="w-full bg-slate-700/80 rounded-t-lg cursor-move select-none border-b border-slate-600/30"
             onMouseDown={handleMouseDown}
           >
-            <h3 className="text-white font-medium text-sm">{t.livePreview}</h3>
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsMinimized(!isMinimized);
-                }}
-                className="text-white hover:text-gray-300 transition-colors"
-                title={isMinimized ? t.toggleMaximize : t.toggleMinimize}
-              >
-                {isMinimized ? '□' : '−'}
-              </button>
-              <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+            <div className="flex items-center justify-between w-full px-2 py-1.5">
+              <div className="w-full flex justify-center">
+                <h3 className="text-white/90 font-normal text-xs flex-1 text-center">{t.livePreview}</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMinimized(!isMinimized);
+                  }}
+                  className="text-white hover:text-gray-300 transition-colors"
+                  title={isMinimized ? t.toggleMaximize : t.toggleMinimize}
+                >
+                  {isMinimized ? '□' : '−'}
+                </button>
+                <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+              </div>
             </div>
           </div>
           
           {!isMinimized && (
-            <div className="flex-1 p-6 flex items-center justify-center bg-white">
-              <div className="text-center">
+            <div className="flex-1 p-6 flex items-center justify-center bg-slate-100">
+              <div className="text-center max-w-[80%]">
                 <div className="text-4xl mb-4">📝</div>
                 <h3 className="text-lg font-bold text-gray-700 mb-2">{t.startYourProject}</h3>
                 <p className="text-gray-500 text-sm">{t.enterProjectDetails}</p>
@@ -189,34 +193,38 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
       
       {/* Main preview box */}
       <div 
-        className={`fixed ${isMinimized ? 'w-12 h-12' : 'top-16 right-0 w-[75vw] max-w-[425px] h-[75vh] md:h-[65vh] lg:h-[65vh]'} bg-white rounded-lg shadow-2xl z-[999998] flex flex-col`} 
+        className={`fixed ${isMinimized ? 'w-12 h-12' : 'top-16 right-0 w-[75vw] max-w-[450px] h-[70vh] md:h-[60vh] lg:h-[60vh]'} bg-slate-100 rounded-lg shadow-2xl z-[999998] flex flex-col`} 
         style={!isMinimized ? { transform: `translate(${position.x}px, ${position.y}px)` } : { right: '20px', top: '80px' }}
       >
         <div 
           ref={dragRef}
-          className="flex items-center justify-between p-2 bg-slate-700 rounded-t-lg cursor-move select-none"
+          className="w-full bg-slate-700/80 rounded-t-lg cursor-move select-none border-b border-slate-600/30"
           onMouseDown={handleMouseDown}
         >
-          <h3 className="text-white font-medium text-sm">{t.livePreview}</h3>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsMinimized(!isMinimized);
-              }}
-              className="text-white hover:text-gray-300 transition-colors"
-              title={isMinimized ? t.toggleMaximize : t.toggleMinimize}
-            >
-              {isMinimized ? '□' : '−'}
-            </button>
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+          <div className="flex items-center justify-between px-2 py-1.5 w-full">
+            <div className="w-full flex justify-center">
+              <h3 className="text-white/90 font-normal text-xs flex-1 text-center">{t.livePreview}</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMinimized(!isMinimized);
+                }}
+                className="text-white hover:text-gray-300 transition-colors"
+                title={isMinimized ? t.toggleMaximize : t.toggleMinimize}
+              >
+                {isMinimized ? '□' : '−'}
+              </button>
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+            </div>
           </div>
         </div>
         
         {!isMinimized && (
           <div className="flex-1 p-4 flex items-center justify-center overflow-auto">
-            <div className="preview-content-wrapper" style={{ transform: 'scale(0.80)', transformOrigin: 'center' }}>
-              <div style={{'--preview-padding-top': '1cm', '--preview-padding-right': '1.25cm', '--preview-padding-bottom': '1.125cm', '--preview-padding-left': '1cm'} as React.CSSProperties}>
+            <div className="preview-content-wrapper" style={{ transform: 'scale(0.85)', transformOrigin: 'center' }}>
+              <div style={{'--preview-padding-top': '0.8cm', '--preview-padding-right': '1cm', '--preview-padding-bottom': '0.9cm', '--preview-padding-left': '0.8cm'} as React.CSSProperties} className="shadow-sm border border-slate-200/50 rounded-sm bg-white">
                 <TitlePageRenderer 
                   planDocument={planDocument} 
                   disabledSections={disabledSections} 
