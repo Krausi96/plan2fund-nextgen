@@ -11,7 +11,7 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
   formData, 
   onChange 
 }) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   
   // Navigation state
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -211,7 +211,13 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                     <button
                       key={objective.value}
                       type="button"
-                      onClick={() => handleFieldChange('mainObjective', objective.value)}
+                      onClick={() => {
+                        handleFieldChange('mainObjective', objective.value);
+                        // Clear custom goal when selecting predefined objective
+                        if (formData.mainObjective === 'custom') {
+                          handleFieldChange('customObjective', '');
+                        }
+                      }}
                       className={`w-full text-left px-4 py-3 border-2 rounded-lg transition-all duration-150 flex items-center gap-3 ${
                         formData.mainObjective === objective.value
                           ? 'bg-blue-500/20 border-blue-500 text-white font-medium'
@@ -224,6 +230,36 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                       <span className="font-medium text-sm text-white">{objective.label}</span>
                     </button>
                   ))}
+                  
+                  {/* Custom Goal Option */}
+                  <button
+                    type="button"
+                    onClick={() => handleFieldChange('mainObjective', 'custom')}
+                    className={`w-full text-left px-4 py-3 border-2 rounded-lg transition-all duration-150 flex items-center gap-3 ${
+                      formData.mainObjective === 'custom'
+                        ? 'bg-blue-500/20 border-blue-500 text-white font-medium'
+                        : 'bg-slate-700 border-slate-600 hover:border-blue-400 hover:bg-slate-600'
+                    }`}
+                  >
+                    <span className="text-sm">
+                      {formData.mainObjective === 'custom' ? '●' : '○'}
+                    </span>
+                    <span className="font-medium text-sm text-white">
+                      {t('editor.desktop.myProject.objectives.custom' as any) || (locale === 'de' ? 'Anderes Ziel:' : 'Different goal:')}
+                    </span>
+                  </button>
+                  
+                  {/* Custom Goal Input Field */}
+                  {formData.mainObjective === 'custom' && (
+                    <div className="mt-3 pl-7 pr-4">
+                      <textarea
+                        value={formData.customObjective || ''}
+                        onChange={(e) => handleFieldChange('customObjective', e.target.value)}
+                        placeholder={t('editor.desktop.myProject.placeholders.customObjective' as any) || (locale === 'de' ? 'Ziel kurz beschreiben (1–2 Sätze)' : 'Briefly describe the goal (1–2 sentences)')}
+                        className="w-full px-3 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors text-sm min-h-[80px]"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -15,6 +15,7 @@ export interface ProjectProfile {
   country: string;
   industryTags: string[]; // max 3
   mainObjective?: string;
+  customObjective?: string;
   teamSize?: number;
   customIndustry?: string;
   financialBaseline: {

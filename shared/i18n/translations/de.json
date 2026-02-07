@@ -1822,6 +1822,7 @@
   "editor.desktop.myProject.industries.other": "Etwas anderes",
   "editor.desktop.myProject.fields.customIndustry": "Branche angeben",
   "editor.desktop.myProject.placeholders.customIndustry": "Gib deine Branche ein",
+  "editor.desktop.myProject.placeholders.customObjective": "Ziel kurz beschreiben (1–2 Sätze)",
   "editor.desktop.myProject.placeholders.autoDetected": "Automatisch basierend auf der Länderauswahl",
   
   "editor.desktop.myProject.months.singular": "Monat",
@@ -1844,7 +1845,7 @@
   "editor.desktop.myProject.objectives.improve": "Betrieb optimieren oder restrukturieren",
   "editor.desktop.myProject.objectives.explore": "Neuen Markt / neue Idee erkunden",
   "editor.desktop.myProject.objectives.internal": "Interne Planung / Strategie",
-  
+  "editor.desktop.myProject.objectives.custom": "Anderes Ziel:",
   "editor.desktop.myProject.buttons.selected": "Ausgewählt",
   "editor.desktop.myProject.buttons.skipStep": "Diesen Schritt überspringen",
   

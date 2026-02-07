@@ -63,6 +63,7 @@ const MyProject: React.FC<MyProjectProps> = ({
     mainObjective: projectProfile?.mainObjective || '',
     teamSize: projectProfile?.teamSize || 0,
     customIndustry: projectProfile?.customIndustry || '',
+    customObjective: projectProfile?.customObjective || '',
     contactInfo: {
       email: plan?.settings?.titlePage?.contactInfo?.email || '',
       phone: plan?.settings?.titlePage?.contactInfo?.phone || '',
@@ -105,6 +106,7 @@ const MyProject: React.FC<MyProjectProps> = ({
         mainObjective: projectProfile.mainObjective || prev.mainObjective,
         teamSize: projectProfile.teamSize || prev.teamSize,
         customIndustry: projectProfile.customIndustry || prev.customIndustry,
+        customObjective: projectProfile.customObjective || prev.customObjective,
         financialBaseline: {
           ...prev.financialBaseline,
           fundingNeeded: projectProfile.financialBaseline?.fundingNeeded || prev.financialBaseline.fundingNeeded,
@@ -167,6 +169,7 @@ const MyProject: React.FC<MyProjectProps> = ({
             mainObjective: newData.mainObjective,
             teamSize: newData.teamSize,
             customIndustry: newData.customIndustry,
+            customObjective: newData.customObjective,
             financialBaseline: newData.financialBaseline
           };
           actions.setProjectProfile(projectProfile);
