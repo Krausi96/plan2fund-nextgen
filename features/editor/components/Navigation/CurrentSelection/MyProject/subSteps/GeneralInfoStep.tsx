@@ -83,8 +83,8 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
     <Card className="bg-slate-800 border-slate-700">
       <CardContent>
         {/* Sub Navigation Tabs - Full Width Distribution */}
-        <div className="mb-2">
-          <div className="flex gap-3" style={{display: "flex", gap: "12px", width: "100%"}}>
+        <div className="mb-3">
+          <div className="flex gap-2" style={{display: "flex", gap: "8px", width: "100%"}}>
             {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
               const isCompleted = isStepCompleted(step);
               const isCurrent = step === currentStep;
@@ -126,7 +126,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, onChange, o
         </div>
         
         {/* Step Content */}
-        <div className="space-y-2 pt-3">
+        <div className="space-y-3 pt-3">
           {/* Step 1: General Information Section - Only show if current step */}
           {currentStep === 1 && (
             <div className="border border-slate-600/70 rounded-md bg-slate-800/30">

@@ -79,6 +79,11 @@ const MyProject: React.FC<MyProjectProps> = ({
   };
 
   const [formData, setFormData] = useState(initialFormData);
+  const [completedSections, setCompletedSections] = useState<Record<number, boolean>>({
+    1: false,
+    2: false,
+    3: false,
+  });
 
   // Initialize form data from store on component mount only
   useEffect(() => {
@@ -116,8 +121,35 @@ const MyProject: React.FC<MyProjectProps> = ({
         }
       }));
     }
+    
+    // Initialize completion status
+    updateCompletionStatus(formData);
   }, []); // Empty dependency array - run only once on mount
 
+  // Function to check if section 1 (General Info) is completed
+  const isSection1Complete = (data: typeof initialFormData) => {
+    return !!data.title && !!data.companyName;
+  };
+  
+  // Function to check if section 2 (Project Profile) is completed
+  const isSection2Complete = (data: typeof initialFormData) => {
+    return !!data.oneLiner && !!data.mainObjective && !!data.country && data.industryFocus.length > 0;
+  };
+  
+  // Function to check if section 3 (Planning Context) is completed
+  const isSection3Complete = (data: typeof initialFormData) => {
+    return !!data.financialBaseline.fundingNeeded && data.financialBaseline.planningHorizon > 0;
+  };
+  
+  // Function to update completion status
+  const updateCompletionStatus = (data: typeof initialFormData) => {
+    setCompletedSections({
+      1: isSection1Complete(data),
+      2: isSection2Complete(data),
+      3: isSection3Complete(data)
+    });
+  };
+  
   const handleFieldChange = (field: string, value: any) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
@@ -143,6 +175,9 @@ const MyProject: React.FC<MyProjectProps> = ({
             contactInfo: newData.contactInfo
           });
         });
+        
+        // Update completion status
+        updateCompletionStatus(newData);
         
         return newData;
       });
@@ -189,6 +224,9 @@ const MyProject: React.FC<MyProjectProps> = ({
           });
         });
         
+        // Update completion status
+        updateCompletionStatus(newData);
+        
         return newData;
       });
     }
@@ -222,14 +260,20 @@ const MyProject: React.FC<MyProjectProps> = ({
           <div className="mb-4">
             <div className="flex gap-3">
               <div 
-                className={`group relative flex flex-col items-start p-3 rounded-lg transition-all duration-300 ease-out cursor-pointer flex-1 ${
+                className={`group relative flex flex-col items-start p-2.5 rounded-md transition-all duration-300 ease-out cursor-pointer flex-1 ${
                   currentSection === 1 
-                    ? 'bg-slate-600/40 ring-2 ring-slate-400/60 ring-offset-2 ring-offset-slate-800/50' 
-                    : 'border border-white/20 opacity-60 hover:opacity-100 backdrop-blur-md'
+                    ? 'bg-slate-600/20 ring-1 ring-slate-400/30' 
+                    : completedSections[1] 
+                      ? 'opacity-90' 
+                      : 'border border-white/10  opacity-80 hover:opacity-100'
                 }`}
                 onClick={() => handleNavClick(1)}>
-                {currentSection === 1 && (
-                  <span className="w-2 h-2 bg-white rounded-full animate-pulse absolute top-1.5 right-1.5"></span>
+                {completedSections[1] && currentSection !== 1 && (
+                  <span className="w-4 h-4 flex items-center justify-center absolute top-1 right-1">
+                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </span>
                 )}
                 <div className="flex flex-row items-center">
                   <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-slate-400/15 border border-slate-400/20 text-slate-300 text-base">
@@ -247,14 +291,20 @@ const MyProject: React.FC<MyProjectProps> = ({
               </div>
               
               <div 
-                className={`group relative flex flex-col items-start p-3 rounded-lg transition-all duration-300 ease-out cursor-pointer flex-1 ${
+                className={`group relative flex flex-col items-start p-2.5 rounded-md transition-all duration-300 ease-out cursor-pointer flex-1 ${
                   currentSection === 2 
-                    ? 'bg-indigo-500/30 ring-2 ring-indigo-500/50 ring-offset-2 ring-offset-slate-800/50' 
-                    : 'border border-white/20 opacity-60 hover:opacity-100 backdrop-blur-md'
+                    ? 'bg-indigo-500/15 ring-1 ring-indigo-500/30' 
+                    : completedSections[2] 
+                      ? 'opacity-90' 
+                      : 'border border-white/10 opacity-80 hover:opacity-100'
                 }`}
                 onClick={() => handleNavClick(2)}>
-                {currentSection === 2 && (
-                  <span className="w-2 h-2 bg-white rounded-full animate-pulse absolute top-1.5 right-1.5"></span>
+                {completedSections[2] && currentSection !== 2 && (
+                  <span className="w-4 h-4 flex items-center justify-center absolute top-1 right-1">
+                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </span>
                 )}
                 <div className="flex flex-row items-center">
                   <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-indigo-400/15 border border-indigo-400/20 text-indigo-300 text-base">
@@ -272,14 +322,20 @@ const MyProject: React.FC<MyProjectProps> = ({
               </div>
               
               <div 
-                className={`group relative flex flex-col items-start p-3 rounded-lg transition-all duration-300 ease-out cursor-pointer flex-1 ${
+                className={`group relative flex flex-col items-start p-2.5 rounded-md transition-all duration-300 ease-out cursor-pointer flex-1 ${
                   currentSection === 3 
-                    ? 'bg-blue-500/20 ring-2 ring-blue-500/40 ring-offset-2 ring-offset-slate-800/50' 
-                    : 'border border-white/20 opacity-60 hover:opacity-100 backdrop-blur-md'
+                    ? 'bg-blue-500/10 ring-1 ring-blue-500/30' 
+                    : completedSections[3] 
+                      ? 'opacity-90' 
+                      : 'border border-white/10 opacity-80 hover:opacity-100'
                 }`}
                 onClick={() => handleNavClick(3)}>
-                {currentSection === 3 && (
-                  <span className="w-2 h-2 bg-white rounded-full animate-pulse absolute top-1.5 right-1.5"></span>
+                {completedSections[3] && currentSection !== 3 && (
+                  <span className="w-4 h-4 flex items-center justify-center absolute top-1 right-1">
+                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </span>
                 )}
                 <div className="flex flex-row items-center">
                   <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-blue-400/15 border border-blue-400/20 text-blue-300 text-base">

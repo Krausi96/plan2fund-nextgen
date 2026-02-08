@@ -103,8 +103,8 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
     <Card className="bg-slate-800 border-slate-700">
       <CardContent>
         {/* Sub Navigation Tabs - Full Width Distribution */}
-        <div className="mb-2">
-          <div className="flex gap-3" style={{display: "flex", gap: "12px", width: "100%"}}>
+        <div className="mb-3">
+          <div className="flex gap-2" style={{display: "flex", gap: "8px", width: "100%"}}>
             {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
               const isCompleted = isStepCompleted(step);
               const isCurrent = step === currentStep;
@@ -146,7 +146,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
         </div>
         
         {/* Step Content */}
-        <div className="space-y-2 pt-3">
+        <div className="space-y-3 pt-3">
           
           {/* Step 1: Location Section - Only show if current step */}
           {currentStep === 1 && (
@@ -583,47 +583,44 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
 
           {/* Step 4: Team Section - Only show if current step */}
           {currentStep === 4 && (
-            <div className="border border-slate-600/70 rounded-md bg-slate-800/30">
-              <div className="px-2 py-1.5">
-                <div className="flex items-center gap-4 flex-wrap mt-6 mb-6"> {/* Fixed to positive margin top */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-2xl mb-1">👥</span>
-                    <h4 className="text-white font-bold text-sm">
-                      {t('editor.desktop.myProject.fields.teamSize') || 'Team Size'}
-                    </h4>
-                  </div>
+            <div className="px-2 py-1.5">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xl">👥</span>
+                  <h4 className="text-white font-bold text-sm">
+                    {t('editor.desktop.myProject.fields.teamSize') || 'Team Size'}
+                  </h4>
+                  <span className="text-white/70 text-xs font-bold">(Optional)</span>
+                </div>
+                
+                <div className="flex-1 flex items-center justify-center gap-6 max-w-[70%] mx-auto">
+                  <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    value={formData.teamSize || 1}
+                    onChange={(e) => handleFieldChange('teamSize', parseInt(e.target.value))}
+                    className="w-full h-2 bg-slate-600 rounded-full appearance-none cursor-pointer 
+                    [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 
+                    [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 
+                    [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:shadow-none
+                    [&::-webkit-slider-thumb]:hover:bg-indigo-400 [&::-webkit-slider-thumb]:active:bg-indigo-300
+                    [&::-webkit-slider-thumb]:focus:outline-none [&::-webkit-slider-thumb]:focus:ring-0
+                    [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full 
+                    [&::-moz-range-thumb]:bg-indigo-500 [&::-moz-range-thumb]:border-0 
+                    [&::-moz-range-thumb]:hover:bg-indigo-400 [&::-moz-range-thumb]:active:bg-indigo-300
+                    [&::-moz-range-thumb]:focus:outline-none [&::-moz-range-thumb]:focus:ring-0
+                    [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-indigo-500 [&::-webkit-slider-runnable-track]:to-slate-600 
+                    [&::-webkit-slider-runnable-track]:rounded-full 
+                    [&::-webkit-slider-runnable-track]:h-2
+                    [&::-webkit-slider-runnable-track]:border-0
+                    [&::-moz-range-progress]:bg-indigo-500 [&::-moz-range-track]:bg-slate-600
+                    focus:outline-none focus:ring-0 focus:shadow-none"
+                  />
                   
-                  <div className="flex-1 flex items-center justify-center gap-2 min-w-[300px]">
-                    <input
-                      type="range"
-                      min="1"
-                      max="100"
-                      value={formData.teamSize || 1}
-                      onChange={(e) => handleFieldChange('teamSize', parseInt(e.target.value))}
-                      className="w-2/3 h-2 bg-slate-600 rounded-full appearance-none cursor-pointer 
-                      [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 
-                      [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 
-                      [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:shadow-none
-                      [&::-webkit-slider-thumb]:hover:bg-indigo-400 [&::-webkit-slider-thumb]:active:bg-indigo-300
-                      [&::-webkit-slider-thumb]:focus:outline-none [&::-webkit-slider-thumb]:focus:ring-0
-                      [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full 
-                      [&::-moz-range-thumb]:bg-indigo-500 [&::-moz-range-thumb]:border-0 
-                      [&::-moz-range-thumb]:hover:bg-indigo-400 [&::-moz-range-thumb]:active:bg-indigo-300
-                      [&::-moz-range-thumb]:focus:outline-none [&::-moz-range-thumb]:focus:ring-0
-                      [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-indigo-500 [&::-webkit-slider-runnable-track]:to-slate-600 
-                      [&::-webkit-slider-runnable-track]:rounded-full 
-                      [&::-webkit-slider-runnable-track]:h-2
-                      [&::-webkit-slider-runnable-track]:border-0
-                      [&::-moz-range-progress]:bg-indigo-500 [&::-moz-range-track]:bg-slate-600
-                      focus:outline-none focus:ring-0 focus:shadow-none"
-                    />
-                    
-                    <div className="w-12 text-center bg-slate-700/50 text-white text-sm font-bold rounded border border-slate-600 px-2 py-1">
-                      {formData.teamSize || 1}
-                    </div>
+                  <div className="w-20 text-center bg-slate-700/50 text-white text-sm font-bold rounded border border-slate-600 px-2 py-1">
+                    {formData.teamSize || 1}
                   </div>
-                  
-                  <span className="text-white/70 text-xs font-bold flex-shrink-0">(Optional)</span>
                 </div>
               </div>
             </div>
