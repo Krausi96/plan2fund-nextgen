@@ -3,6 +3,8 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore, inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/features/editor/lib';
 import { ControlsPanel } from './components/ControlsPanel';
 import { ProgramSummaryPanel } from '../../ProgramSelection/components/panels/ProgramSummaryPanel';
+import { TemplateStructurePanel } from '../../ProgramSelection/components/panels/TemplateStructurePanel';
+import { StandardStructurePanel } from '../../ProgramSelection/components/panels/StandardStructurePanel';
 
 interface BlueprintInstantiationStepProps {
   onComplete?: () => void;
@@ -65,6 +67,7 @@ export default function BlueprintInstantiationStep({
   
   // UI state for editing
   const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});
+  const [viewMode, setViewMode] = useState<'hierarchical' | 'flat'>('hierarchical');
   const [newDocumentName, setNewDocumentName] = useState('');
   const [newSectionTitle, setNewSectionTitle] = useState('');
   
@@ -178,16 +181,23 @@ export default function BlueprintInstantiationStep({
           </div>
             
           <div className="space-y-3">
-            <ProgramSummaryPanel documentStructure={documentStructure} onClear={() => {}} showHeader={false} />
+            {documentStructure?.source === 'template' ? (
+              <TemplateStructurePanel documentStructure={documentStructure} showHeader={false} />
+            ) : documentStructure?.source === 'standard' || documentStructure?.source === 'upgrade' ? (
+              <StandardStructurePanel documentStructure={documentStructure} showHeader={false} />
+            ) : (
+              <ProgramSummaryPanel documentStructure={documentStructure} onClear={() => {}} showHeader={false} />
+            )}
           </div>
         </div>
 
         {/* Right Column - Controls Panel */}
         <div className="space-y-4">
           <ControlsPanel 
+            viewMode={viewMode}
+            setViewMode={setViewMode}
             onAddDocument={handleAddDocument}
-            onAddSection={(_name) => handleAddSection('main_document')}
-          />
+            onAddSection={(_name) => handleAddSection('main_document')}          />
         </div>
       </div>
       
