@@ -367,6 +367,7 @@ export default function ProgramSelection({
                   localStorage.removeItem('selectedProgram');
                 }
               }}
+              showHeader={true}
             />
           )}
           {selectedOption === 'template' && (
@@ -378,6 +379,7 @@ export default function ProgramSelection({
                 setSetupStatus('none');
                 setSetupDiagnostics(null);
               }}
+              showHeader={true}
             />
           )}
           {selectedOption === 'free' && (
@@ -390,6 +392,7 @@ export default function ProgramSelection({
                 setSetupDiagnostics(null);
                 setInferredProductType(null);
               }}
+              showHeader={true}
             />
           )}
         </div>

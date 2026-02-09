@@ -7,12 +7,15 @@ interface TemplateStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;
   // Add callback props for actual functionality
   onClearTemplate?: () => void;
+  showHeader?: boolean;
+  headerTitle?: string;
+  documentStructure?: any;
 }
 
-export function TemplateStructurePanel({ selectedOption, onClearTemplate }: TemplateStructurePanelProps) {
+export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHeader = true, headerTitle, documentStructure: propDocumentStructure }: TemplateStructurePanelProps) {
   const { t } = useI18n();
   const setupWizard = useEditorStore((state) => state.setupWizard);
-  const documentStructure = setupWizard.documentStructure;
+  const documentStructure = propDocumentStructure || setupWizard.documentStructure;
 
   // Use hierarchical organization for proper document structure display
   const organizedStructure = organizeDocumentStructureForUi(documentStructure, t);
@@ -55,26 +58,28 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate }: Temp
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
       {/* Improved Header with Action Buttons */}
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-lg">🔍</span>
+        {showHeader && (
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-lg">🔍</span>
+              </div>
+              <h3 className="text-white font-bold text-lg">{headerTitle || t('editor.desktop.program.panels.templateAnalysis' as any)}</h3>
             </div>
-            <h3 className="text-white font-bold text-lg">{t('editor.desktop.program.panels.templateAnalysis' as any)}</h3>
+            
+            {/* Action Buttons - Top Right (REFRESH REMOVED) */}
+            <div className="flex gap-1.5">
+              <button
+                onClick={handleClear}
+                disabled={!hasTemplateData}
+                className="w-8 h-8 bg-red-600/80 hover:bg-red-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded-lg transition-colors flex items-center justify-center"
+                title="Clear"
+              >
+                <span>🗑️</span>
+              </button>
+            </div>
           </div>
-          
-          {/* Action Buttons - Top Right (REFRESH REMOVED) */}
-          <div className="flex gap-1.5">
-            <button
-              onClick={handleClear}
-              disabled={!hasTemplateData}
-              className="w-8 h-8 bg-red-600/80 hover:bg-red-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded-lg transition-colors flex items-center justify-center"
-              title="Clear"
-            >
-              <span>🗑️</span>
-            </button>
-          </div>
-        </div>
+        )}
         
         {!hasTemplateData && (
           <div className="bg-slate-700/50 rounded-lg p-6 text-center">

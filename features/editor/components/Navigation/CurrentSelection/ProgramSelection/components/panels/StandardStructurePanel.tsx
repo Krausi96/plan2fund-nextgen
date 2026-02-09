@@ -9,11 +9,14 @@ interface StandardStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;
   // Add callback props for actual functionality
   onClearStructure?: () => void;
+  showHeader?: boolean;
+  headerTitle?: string;
+  documentStructure?: any;
 }
 
-export function StandardStructurePanel({ selectedOption, onClearStructure }: StandardStructurePanelProps) {
+export function StandardStructurePanel({ selectedOption, onClearStructure, showHeader = true, headerTitle, documentStructure: propDocumentStructure }: StandardStructurePanelProps) {
   const setupWizard = useEditorStore((state) => state.setupWizard);
-  const documentStructure = setupWizard.documentStructure;
+  const documentStructure = propDocumentStructure || setupWizard.documentStructure;
   
   const { t } = useI18n();
   
@@ -93,26 +96,28 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
       
       {/* Improved Header with Action Buttons */}
       <div className="mb-2">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-lg">📋</span>
+        {showHeader && (
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-lg">📋</span>
+              </div>
+              <h3 className="text-white font-bold text-lg">{headerTitle || t('editor.desktop.program.panels.standardStructure')}</h3>
             </div>
-            <h3 className="text-white font-bold text-lg">{t('editor.desktop.program.panels.standardStructure')}</h3>
+            
+            {/* Action Buttons - Top Right (REFRESH REMOVED) */}
+            <div className="flex gap-1.5">
+              <button
+                onClick={handleClear}
+                disabled={!hasStructureData}
+                className="w-8 h-8 bg-red-600/80 hover:bg-red-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded-lg transition-colors flex items-center justify-center"
+                title="Clear"
+              >
+                <span>🗑️</span>
+              </button>
+            </div>
           </div>
-          
-          {/* Action Buttons - Top Right (REFRESH REMOVED) */}
-          <div className="flex gap-1.5">
-            <button
-              onClick={handleClear}
-              disabled={!hasStructureData}
-              className="w-8 h-8 bg-red-600/80 hover:bg-red-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded-lg transition-colors flex items-center justify-center"
-              title="Clear"
-            >
-              <span>🗑️</span>
-            </button>
-          </div>
-        </div>
+        )}
         
         {hasStructureData ? (
           <div className="h-0"></div>

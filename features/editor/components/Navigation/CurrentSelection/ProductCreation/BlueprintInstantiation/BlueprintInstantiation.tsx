@@ -178,7 +178,7 @@ export default function BlueprintInstantiationStep({
           </div>
             
           <div className="space-y-3">
-            <ProgramSummaryPanel documentStructure={documentStructure} onClear={() => {}} />
+            <ProgramSummaryPanel documentStructure={documentStructure} onClear={() => {}} showHeader={false} />
           </div>
         </div>
 
