@@ -9,14 +9,124 @@
 import type { DocumentStructure } from '@/features/editor/lib/types/program/program-types';
 import type { TranslationFunction } from './sections/types';
 import {
+  SPECIAL_SECTION_IDS,
+  SINGLE_DOC_CANONICAL_ORDER,
+  MULTI_DOC_CANONICAL_ORDER,
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
   REFERENCES_SECTION_ID,
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
-  FIGURES_IMAGES_SECTION_ID
-} from '@/features/editor/lib/constants';
-import { sortSectionsByCanonicalOrder } from './sections/utilities/sectionUtilities';
+  FIGURES_IMAGES_SECTION_ID} from '@/features/editor/lib/constants';
+
+/**
+ * Sort sections according to canonical order for single document
+ */
+export function sortSectionsForSingleDocument<T extends { id: string }>(
+  sections: T[]
+): T[] {
+  const orderMap = new Map<string, number>(SINGLE_DOC_CANONICAL_ORDER.map((id, index) => [id, index]));
+  
+  return [...sections].sort((a, b) => {
+    const orderA = orderMap.get(a.id);
+    const orderB = orderMap.get(b.id);
+    
+    // If both have canonical positions, sort by those
+    if (orderA !== undefined && orderB !== undefined) {
+      return orderA - orderB;
+    }
+    
+    // Special sections without canonical positions go to the end
+    const isSpecialA = Object.values(SPECIAL_SECTION_IDS).includes(a.id as any);
+    const isSpecialB = Object.values(SPECIAL_SECTION_IDS).includes(b.id as any);
+    
+    if (isSpecialA && !isSpecialB) return 1;
+    if (!isSpecialA && isSpecialB) return -1;
+    
+    // Both are special or both are regular, maintain relative order
+    return 0;
+  });
+}
+
+/**
+ * Sort sections according to canonical order for multi document
+ */
+export function sortSectionsForMultiDocument<T extends { id: string; documentId: string }>(
+  sections: T[],
+  documents: Array<{ id: string }>
+): T[] {
+  const mainDocumentId = documents[0]?.id || 'main_document';
+  const appendixDocumentIds = new Set(documents.slice(1).map(doc => doc.id));
+  
+  const orderMap = new Map<string, number>(MULTI_DOC_CANONICAL_ORDER.map((id, index) => [id, index]));
+  
+  return [...sections].sort((a, b) => {
+    // Determine document hierarchy position
+    const isMainA = a.documentId === mainDocumentId;
+    const isMainB = b.documentId === mainDocumentId;
+    
+    const isAppendixA = appendixDocumentIds.has(a.documentId);
+    const isAppendixB = appendixDocumentIds.has(b.documentId);
+    
+    // Main document sections come first
+    if (isMainA && !isMainB) return -1;
+    if (!isMainA && isMainB) return 1;
+    
+    // Appendix sections come after main document
+    if (isAppendixA && !isAppendixB) return -1;
+    if (!isAppendixA && isAppendixB) return 1;
+    
+    // Within same document, use canonical order
+    const orderA = orderMap.get(a.id);
+    const orderB = orderMap.get(b.id);
+    
+    if (orderA !== undefined && orderB !== undefined) {
+      return orderA - orderB;
+    }
+    
+    // Default sorting
+    return 0;
+  });
+}
+
+/**
+ * Check if section is special
+ */
+export function isSpecialSection(id: string): boolean {
+  return Object.values(SPECIAL_SECTION_IDS).includes(id as any);
+}
+
+/**
+ * Get section icon by section ID
+ */
+export function getSectionIcon(sectionId: string): string {
+  const iconMap: Record<string, string> = {
+    [SPECIAL_SECTION_IDS.METADATA]: '📕',
+    [SPECIAL_SECTION_IDS.ANCILLARY]: '📑',
+    [SPECIAL_SECTION_IDS.REFERENCES]: '📚',
+    [SPECIAL_SECTION_IDS.TABLES_DATA]: '📊',
+    [SPECIAL_SECTION_IDS.FIGURES_IMAGES]: '🖼️',
+    [SPECIAL_SECTION_IDS.APPENDICES]: '📎',
+    // Default for regular sections
+    'default': '🧾'
+  };
+  
+  return iconMap[sectionId] || iconMap['default'];
+}
+
+
+/**
+ * Get complete section list including special sections for display purposes
+ */
+export function getCompleteSectionList(templateSections: any[]): any[] {
+  // Add icons to all sections
+  const sectionsWithIcons = templateSections.map((section: any) => ({
+    ...section,
+    icon: section.icon || getSectionIcon(section.id) // Default icon for sections without specific icons
+  }));
+  
+  return sectionsWithIcons;
+}
 
 /**
  * Represents the hierarchical structure for UI rendering
@@ -139,7 +249,6 @@ export function organizeDocumentStructureForUi(
     ...mainContentSections
   ];
   
-  console.log('🔍 DEBUG: Final initialOrganizedMainDocumentSections:', initialOrganizedMainDocumentSections);
   for (const section of initialOrganizedMainDocumentSections) {
     // Normalize title by removing 'Appx' suffix
     const normalizedTitle = section.title.replace(/Appx$/, '');
@@ -169,7 +278,7 @@ export function organizeDocumentStructureForUi(
   }
   
   // Apply canonical ordering to the deduplicated sections to ensure proper order
-  const organizedMainDocumentSections = sortSectionsByCanonicalOrder(deduplicatedMainSections, documentStructure.documents || []);
+  const organizedMainDocumentSections = sortSectionsForSingleDocument(deduplicatedMainSections);
 
   // Organize appendices (additional documents)
   const appendices = documentStructure.documents.slice(1).map((doc: any, index: number) => {
@@ -252,34 +361,7 @@ export function organizeDocumentStructureForUi(
     return true;
   });
   
-  // Additional deduplication: Remove sections that have similar titles where one has 'Appx' suffix
-  // This prevents duplicates like 'Appendix A: Business Plan' and 'Appendix A: Business PlanAppx'
-  const titleMap = new Map();
-  sharedSections = sharedSections.filter(section => {
-    // Normalize title by removing 'Appx' suffix
-    const normalizedTitle = section.title.replace(/Appx$/, '');
-    
-    if (titleMap.has(normalizedTitle)) {
-      const existingSection = titleMap.get(normalizedTitle);
-      
-      // If current section has 'Appx' suffix but existing doesn't, skip current
-      if (section.title.endsWith('Appx') && !existingSection.title.endsWith('Appx')) {
-        return false;
-      }
-      // If existing has 'Appx' suffix but current doesn't, replace existing
-      else if (!section.title.endsWith('Appx') && existingSection.title.endsWith('Appx')) {
-        // We need to handle this case differently - remove the old one and add this one
-        // For now, we'll keep the one without 'Appx' suffix
-        return false;
-      }
-    } else {
-      titleMap.set(normalizedTitle, section);
-      return true;
-    }
-    
-    // Only add if it doesn't have 'Appx' suffix, or if both have it
-    return !section.title.endsWith('Appx');
-  });
+
   
 
 
@@ -355,7 +437,7 @@ export function organizeDocumentStructureForUi(
   }
   
   // Apply canonical ordering to shared sections using centralized utility
-  sharedSections = sortSectionsByCanonicalOrder(sharedSections, documentStructure.documents || []);
+  sharedSections = sortSectionsForSingleDocument(sharedSections);
 
   // FINAL SAFETY CHECK: Ensure APPENDICES_SECTION_ID is not in shared sections if individual appendices exist
   // This addresses the case where it might have been added back inappropriately

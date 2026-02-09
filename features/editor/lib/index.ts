@@ -196,9 +196,12 @@ export {
 } from './utils/4-blueprint-flows/blueprint-flows/document-instantiation/instantiateFromBlueprint';
 
 // Section Detection utilities
-export { sortSectionsByCanonicalOrder, getCompleteSectionList, getSectionIcon, isSpecialSection } from './utils/1-document-flows/document-flows/sections/utilities/sectionUtilities';
-export { detectDocumentStructure } from './utils/1-document-flows/document-flows/processing/detection/documentStructureDetector';
+export { getCompleteSectionList, getSectionIcon } from './utils/1-document-flows/document-flows/organizeForUiRendering';
+export { isSpecialSectionId as isSpecialSection } from './constants';
+export { createSpecialSection } from './utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 export { enhanceWithSpecialSections } from './utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
+export { sortSectionsForSingleDocument, sortSectionsForMultiDocument, isSpecialSection as isSpecialSectionUtil } from './utils/1-document-flows/document-flows/organizeForUiRendering';
+export { detectDocumentStructure } from './utils/1-document-flows/document-flows/processing/detection/documentStructureDetector';
 export { applyDetectionResults } from './utils/1-document-flows/document-flows/processing/structure/applyDetectionResults';
 export { normalizeDocumentStructure, mergeUploadedContentWithSpecialSections } from './utils/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
 export { processDocumentSecurely, splitDocumentIntoParts } from './utils/1-document-flows/document-flows/processing/documentProcessor';

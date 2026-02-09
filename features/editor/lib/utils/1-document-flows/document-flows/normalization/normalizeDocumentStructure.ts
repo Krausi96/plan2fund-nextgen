@@ -6,8 +6,8 @@
  */
 
 import type { DocumentStructure } from '../../../../types/types';
-import { enhanceWithSpecialSections } from '../../document-flows/sections/enhancement/sectionEnhancement';
-import { sortSectionsByCanonicalOrder } from '../../document-flows/sections/utilities/sectionUtilities';
+import { sortSectionsForSingleDocument } from '../organizeForUiRendering';
+import { enhanceWithSpecialSections } from '../sections/enhancement/sectionEnhancement';
 import { unifiedDetectAndApply, unifiedDeduplicateSections } from '../common/documentProcessingUtils';
 import {
   METADATA_SECTION_ID,
@@ -64,7 +64,7 @@ export function normalizeDocumentStructure(
     };
     
     // Apply canonical ordering to ensure sections are in the proper order
-    const orderedSections = sortSectionsByCanonicalOrder(enhancedStructure.sections, enhancedStructure.documents);
+    const orderedSections = sortSectionsForSingleDocument(enhancedStructure.sections);
     
     return {
       ...enhancedStructure,
@@ -86,7 +86,7 @@ export function normalizeDocumentStructure(
   };
   
   // Apply canonical ordering to ensure sections are in the proper order
-  const orderedSections = sortSectionsByCanonicalOrder(structureWithCorrectDocuments.sections, structureWithCorrectDocuments.documents);
+  const orderedSections = sortSectionsForSingleDocument(structureWithCorrectDocuments.sections);
   
   return {
     ...structureWithCorrectDocuments,
@@ -169,7 +169,7 @@ export function mergeUploadedContentWithSpecialSections(
   };
   
   // Apply canonical ordering AFTER deduplication to ensure proper final order
-  const orderedSections = sortSectionsByCanonicalOrder(deduplicatedStructure.sections, deduplicatedStructure.documents);
+  const orderedSections = sortSectionsForSingleDocument(deduplicatedStructure.sections);
   
   const finalStructure = {
     ...deduplicatedStructure,

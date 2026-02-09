@@ -1,7 +1,8 @@
 import React from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { getSectionIcon, sortSectionsByCanonicalOrder } from '@/features/editor/lib';
-import { enhanceWithSpecialSectionsCentralized } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/utilities/sectionUtilities';
+import { getSectionIcon } from '@/features/editor/lib';
+import { sortSectionsForMultiDocument } from '@/features/editor/lib/utils/1-document-flows/document-flows/organizeForUiRendering';
+import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 
 interface FlatViewProps {
   documentStructure: any;
@@ -25,7 +26,7 @@ export function FlatView({
   const { t } = useI18n();
   
   // First, apply the centralized enhancement to get the base structure with special sections
-  const baseEnhancedStructure = enhanceWithSpecialSectionsCentralized(documentStructure, t as any, documentStructure?.documents?.length > 1) || documentStructure;
+  const baseEnhancedStructure = enhanceWithSpecialSections(documentStructure, t as any, documentStructure?.documents?.length > 1) || documentStructure;
   
   // For FlatView multidocument scenarios, we need to ensure each document has its own complete set of special sections
   const enhancedDocumentStructure = (() => {
@@ -130,7 +131,7 @@ export function FlatView({
     
     // Apply canonical ordering to each document
     Object.keys(sectionsByDocument).forEach(docId => {
-      sectionsByDocument[docId] = sortSectionsByCanonicalOrder(sectionsByDocument[docId], 
+      sectionsByDocument[docId] = sortSectionsForMultiDocument(sectionsByDocument[docId], 
         enhancedDocumentStructure.documents.filter((doc: any) => doc.id === docId));
     });
     

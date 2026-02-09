@@ -9,7 +9,7 @@ import type { DocumentStructure } from '../../../../types/program/program-types'
 import { detectDocumentStructure } from '../processing/detection/documentStructureDetector';
 import { applyDetectionResults } from '../processing/structure/applyDetectionResults';
 import { enhanceWithSpecialSections } from '../sections/enhancement/sectionEnhancement';
-import { sortSectionsByCanonicalOrder } from '../sections/utilities/sectionUtilities';
+import { sortSectionsForSingleDocument } from '../organizeForUiRendering';
 
 /**
  * Unified deduplication function
@@ -44,7 +44,7 @@ export function processDocumentStructure(structure: DocumentStructure, content: 
   const enhancedStructure = enhanceWithSpecialSections(structureWithDetection, t) || structureWithDetection;
   
   // Apply canonical ordering
-  const orderedSections = sortSectionsByCanonicalOrder(enhancedStructure.sections, enhancedStructure.documents);
+  const orderedSections = sortSectionsForSingleDocument(enhancedStructure.sections);
   
   // Apply deduplication
   const uniqueSections = unifiedDeduplicateSections(orderedSections);

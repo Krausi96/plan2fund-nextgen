@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useEditorStore, inferProductTypeFromBlueprint, instantiateFromBlueprint, sortSectionsByCanonicalOrder } from '@/features/editor/lib';
+import { useEditorStore, inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/features/editor/lib';
+import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/1-document-flows/document-flows/organizeForUiRendering';
 import { ControlsPanel } from './components/ControlsPanel';
 import { HierarchicalView } from './components/HierarchicalView';
 import { FlatView } from './components/FlatView';
@@ -129,7 +130,7 @@ export default function BlueprintInstantiationStep({
     if (!documentStructure?.sections) return {};
     
     // Sort sections by canonical order first
-    const sortedSections = sortSectionsByCanonicalOrder(documentStructure.sections, documentStructure.documents || []);
+    const sortedSections = sortSectionsForSingleDocument(documentStructure.sections);
     
 
     

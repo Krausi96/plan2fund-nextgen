@@ -2,7 +2,8 @@ import React from 'react';
 import { useEditorStore } from '@/features/editor/lib';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { sortSectionsByCanonicalOrder, getSectionIcon } from '@/features/editor/lib';
+import { getSectionIcon } from '@/features/editor/lib';
+import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/1-document-flows/document-flows/organizeForUiRendering';
 
 interface StandardStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;
@@ -31,7 +32,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
     // When document structure exists and has sections (like from upload/upgrade), use those with canonical sorting
     // This ensures real document data is shown instead of template data for upgrade option
     if (documentStructure?.sections && documentStructure.sections.length > 0) {
-      return sortSectionsByCanonicalOrder(documentStructure.sections);
+      return sortSectionsForSingleDocument(documentStructure.sections);
     }
     
     // Otherwise, fall back to template sections based on inferred product type
@@ -43,7 +44,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure }: Sta
     }
     
     // Sort sections according to canonical order
-    return sortSectionsByCanonicalOrder(sections);
+    return sortSectionsForSingleDocument(sections);
   };
 
   // Handle case when no documents exist but we have product type

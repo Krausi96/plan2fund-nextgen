@@ -80,25 +80,104 @@ export function getSelectedProductMeta(
 // SECTION ID CONSTANTS
 // ============================================================================
 
-export const METADATA_SECTION_ID = 'metadata';
-export const ANCILLARY_SECTION_ID = 'ancillary';
-export const REFERENCES_SECTION_ID = 'references';
-export const APPENDICES_SECTION_ID = 'appendices';
-export const TABLES_DATA_SECTION_ID = 'tables_data';
-export const FIGURES_IMAGES_SECTION_ID = 'figures_images';
+// Enhanced Special section IDs and definitions with icons
+export const SPECIAL_SECTION_IDS = {
+  METADATA: 'metadata',
+  ANCILLARY: 'ancillary',
+  REFERENCES: 'references',
+  APPENDICES: 'appendices',
+  TABLES_DATA: 'tables_data',
+  FIGURES_IMAGES: 'figures_images'
+} as const;
+
+// Special section definitions with icons
+export const SPECIAL_SECTIONS = {
+  [SPECIAL_SECTION_IDS.METADATA]: {
+    id: SPECIAL_SECTION_IDS.METADATA,
+    title: 'Title Page',
+    icon: '📕',
+    required: true,
+    category: 'general'
+  },
+  [SPECIAL_SECTION_IDS.ANCILLARY]: {
+    id: SPECIAL_SECTION_IDS.ANCILLARY,
+    title: 'Table of Contents',
+    icon: '📑',
+    required: true,
+    category: 'general'
+  },
+  [SPECIAL_SECTION_IDS.REFERENCES]: {
+    id: SPECIAL_SECTION_IDS.REFERENCES,
+    title: 'References',
+    icon: '📚',
+    required: false,
+    category: 'general'
+  },
+  [SPECIAL_SECTION_IDS.TABLES_DATA]: {
+    id: SPECIAL_SECTION_IDS.TABLES_DATA,
+    title: 'Tables/Data',
+    icon: '📊',
+    required: false,
+    category: 'general'
+  },
+  [SPECIAL_SECTION_IDS.FIGURES_IMAGES]: {
+    id: SPECIAL_SECTION_IDS.FIGURES_IMAGES,
+    title: 'Figures/Images',
+    icon: '🖼️',
+    required: false,
+    category: 'general'
+  },
+  [SPECIAL_SECTION_IDS.APPENDICES]: {
+    id: SPECIAL_SECTION_IDS.APPENDICES,
+    title: 'Appendices',
+    icon: '📎',
+    required: false,
+    category: 'general'
+  }
+} as const;
+
+// Canonical order for single document
+export const SINGLE_DOC_CANONICAL_ORDER = [
+  SPECIAL_SECTION_IDS.METADATA,
+  SPECIAL_SECTION_IDS.ANCILLARY,
+  // Regular sections would go here
+  SPECIAL_SECTION_IDS.REFERENCES,
+  SPECIAL_SECTION_IDS.TABLES_DATA,
+  SPECIAL_SECTION_IDS.FIGURES_IMAGES,
+  SPECIAL_SECTION_IDS.APPENDICES
+];
+
+// Canonical order for multi-document
+export const MULTI_DOC_CANONICAL_ORDER = [
+  SPECIAL_SECTION_IDS.METADATA,
+  SPECIAL_SECTION_IDS.ANCILLARY,
+  // Regular sections would go here in their documents
+  SPECIAL_SECTION_IDS.APPENDICES, // Appendices section comes before shared sections in multi-doc
+  SPECIAL_SECTION_IDS.REFERENCES,
+  SPECIAL_SECTION_IDS.TABLES_DATA,
+  SPECIAL_SECTION_IDS.FIGURES_IMAGES
+];
+
+// Backwards compatibility exports (preserve existing constants)
+export const METADATA_SECTION_ID = SPECIAL_SECTION_IDS.METADATA;
+export const ANCILLARY_SECTION_ID = SPECIAL_SECTION_IDS.ANCILLARY;
+export const REFERENCES_SECTION_ID = SPECIAL_SECTION_IDS.REFERENCES;
+export const APPENDICES_SECTION_ID = SPECIAL_SECTION_IDS.APPENDICES;
+export const TABLES_DATA_SECTION_ID = SPECIAL_SECTION_IDS.TABLES_DATA;
+export const FIGURES_IMAGES_SECTION_ID = SPECIAL_SECTION_IDS.FIGURES_IMAGES;
 
 /**
  * Check if a section ID is a special section (metadata, ancillary, etc.)
  */
 export function isSpecialSectionId(sectionId: string): boolean {
-  return [
-    METADATA_SECTION_ID,
-    ANCILLARY_SECTION_ID,
-    REFERENCES_SECTION_ID,
-    APPENDICES_SECTION_ID,
-    TABLES_DATA_SECTION_ID,
-    FIGURES_IMAGES_SECTION_ID
-  ].includes(sectionId);
+  return Object.values(SPECIAL_SECTION_IDS).includes(sectionId as any);
+}
+
+/**
+ * Get special section by ID
+ */
+export function getSpecialSection(id: string) {
+  return SPECIAL_SECTIONS[id as keyof typeof SPECIAL_SECTIONS] || null;
 }
 
 /**
