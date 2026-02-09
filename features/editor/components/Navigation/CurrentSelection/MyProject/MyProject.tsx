@@ -133,12 +133,12 @@ const MyProject: React.FC<MyProjectProps> = ({
   
   // Function to check if section 2 (Project Profile) is completed
   const isSection2Complete = (data: typeof initialFormData) => {
-    return !!data.oneLiner && !!data.mainObjective && !!data.country && data.industryFocus.length > 0;
+    return !!data.country && !!data.stage;
   };
   
   // Function to check if section 3 (Planning Context) is completed
   const isSection3Complete = (data: typeof initialFormData) => {
-    return !!data.financialBaseline.fundingNeeded && data.financialBaseline.planningHorizon > 0;
+    return data.financialBaseline.planningHorizon > 0;
   };
   
   // Function to update completion status
@@ -275,6 +275,9 @@ const MyProject: React.FC<MyProjectProps> = ({
                     </svg>
                   </span>
                 )}
+                {currentSection === 1 && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
+                )}
                 <div className="flex flex-row items-center">
                   <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-slate-400/15 border border-slate-400/20 text-slate-300 text-base">
                     ⚙️
@@ -306,6 +309,9 @@ const MyProject: React.FC<MyProjectProps> = ({
                     </svg>
                   </span>
                 )}
+                {currentSection === 2 && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
+                )}
                 <div className="flex flex-row items-center">
                   <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-indigo-400/15 border border-indigo-400/20 text-indigo-300 text-base">
                     🏢
@@ -336,6 +342,9 @@ const MyProject: React.FC<MyProjectProps> = ({
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </span>
+                )}
+                {currentSection === 3 && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
                 )}
                 <div className="flex flex-row items-center">
                   <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-blue-400/15 border border-blue-400/20 text-blue-300 text-base">

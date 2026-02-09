@@ -168,7 +168,7 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
           
           {/* Step 1: Planning Timeline Section */}
           {currentStep === 1 && (
-            <div className="px-2 py-1.5">
+            <div className="px-2 py-4 mt-2">
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-lg">📅</span>
@@ -178,7 +178,7 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                   <span className="text-red-400 font-bold text-sm">*</span>
                 </div>
                 
-                <div className="flex-1 flex items-center justify-center gap-6 max-w-[70%] mx-auto">
+                <div className="flex-1 flex items-center justify-start gap-8 max-w-[70%] ml-10">
                   <input
                     type="range"
                     min="0"
@@ -186,9 +186,9 @@ const PlanningContextStep: React.FC<PlanningContextStepProps> = ({
                     step="6"
                     value={formData.financialBaseline?.planningHorizon ?? 0}
                     onChange={(e) => handleFieldChange('financialBaseline.planningHorizon', parseInt(e.target.value))}
-                    className="w-full h-2 bg-slate-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
+                    className="w-full h-2 mt-1 bg-slate-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 [&::-moz-range-thumb]:border-0 [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-blue-500 [&::-webkit-slider-runnable-track]:to-slate-600 [&::-moz-range-progress]:bg-blue-500 [&::-moz-range-track]:bg-slate-600"
                   />
-                  <div className="w-24 text-center bg-slate-700/50 text-white text-sm font-bold rounded border border-slate-600 px-2 py-1">
+                  <div className="w-32 text-center bg-slate-700/50 text-white text-sm font-bold rounded border border-slate-600 px-2 py-1">
                     {formData.financialBaseline?.planningHorizon ?? 0} {t(`editor.desktop.myProject.months.${(formData.financialBaseline?.planningHorizon ?? 0) === 1 ? 'singular' : 'plural'}` as any)}
                   </div>
                 </div>

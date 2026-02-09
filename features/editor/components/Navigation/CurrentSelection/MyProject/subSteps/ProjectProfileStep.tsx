@@ -583,7 +583,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
 
           {/* Step 4: Team Section - Only show if current step */}
           {currentStep === 4 && (
-            <div className="px-2 py-1.5">
+            <div className="px-2 py-4 mt-2">
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-xl">👥</span>
@@ -593,14 +593,14 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                   <span className="text-white/70 text-xs font-bold">(Optional)</span>
                 </div>
                 
-                <div className="flex-1 flex items-center justify-center gap-6 max-w-[70%] mx-auto">
+                <div className="flex-1 flex items-center justify-start gap-8 max-w-[70%] ml-10 mr-10">
                   <input
                     type="range"
                     min="1"
                     max="100"
                     value={formData.teamSize || 1}
                     onChange={(e) => handleFieldChange('teamSize', parseInt(e.target.value))}
-                    className="w-full h-2 bg-slate-600 rounded-full appearance-none cursor-pointer 
+                    className="w-full mt-1 h-2 bg-slate-600 rounded-full appearance-none cursor-pointer 
                     [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 
                     [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 
                     [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:shadow-none
@@ -618,7 +618,7 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
                     focus:outline-none focus:ring-0 focus:shadow-none"
                   />
                   
-                  <div className="w-20 text-center bg-slate-700/50 text-white text-sm font-bold rounded border border-slate-600 px-2 py-1">
+                  <div className="w-32 text-center bg-slate-700/50 text-white text-sm font-bold rounded border border-slate-600 px-2 py-1">
                     {formData.teamSize || 1}
                   </div>
                 </div>
