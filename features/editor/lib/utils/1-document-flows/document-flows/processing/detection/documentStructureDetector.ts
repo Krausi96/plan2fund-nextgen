@@ -21,6 +21,16 @@ import {
 } from '@/features/editor/lib/constants';
 import { BUSINESS_PLAN_SECTIONS, STRATEGY_SECTIONS, UPGRADE_SECTIONS } from '@/features/editor/lib/templates';
 
+const SPECIAL_SECTION_IDS = [
+  METADATA_SECTION_ID,
+  ANCILLARY_SECTION_ID,
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
+  TABLES_DATA_SECTION_ID,
+  FIGURES_IMAGES_SECTION_ID,
+  'special-section-executive-summary'
+];
+
 /* -------------------------------------------------------
  * CONFIG
  * ----------------------------------------------------- */
@@ -340,4 +350,48 @@ function generateFallbackChunks(text: string): DetectionResult {
     confidence:0.6,
     content:{ type:'fallback_chunks', chunks }
   };
+}
+
+/* =======================================================
+  APPLY DETECTION RESULTS TO DOCUMENT STRUCTURE
+======================================================= */
+
+export function applyDetectionResults(
+  structure: any, // Using any type since DocumentStructure might be imported elsewhere
+  detectionResults: DetectionMap
+): any { // Return type as any for same reason
+
+  if (!structure?.sections?.length) return structure;
+
+  const updated = {
+    ...structure,
+    sections: structure.sections.map((section: any) => {
+
+      const id = section.id;
+      const detection = detectionResults?.[id];
+
+      // Only attach if:
+      // - section is known structural section
+      // - detection exists
+      // - detection confident
+      if (
+        SPECIAL_SECTION_IDS.includes(id) &&
+        detection?.found &&
+        (detection.confidence ?? 0) >= 0.5
+      ) {
+        return {
+          ...section,
+          detection: {
+            source: 'upload',
+            confidence: detection.confidence,
+            payload: detection.content ?? null
+          }
+        };
+      }
+
+      return section;
+    })
+  };
+
+  return updated;
 }
