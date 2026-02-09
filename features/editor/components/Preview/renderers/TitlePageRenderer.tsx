@@ -52,7 +52,7 @@ interface TitlePageRendererProps {
 export function TitlePageRenderer({ planDocument, disabledSections, t, compact = false }: TitlePageRendererProps) {
   const { locale } = useI18n(); // Get locale from i18n context
   
-  if (!planDocument.settings.includeTitlePage || disabledSections.has(METADATA_SECTION_ID)) return null;
+  if (!planDocument.settings.includeTitlePage || disabledSections.has(METADATA_SECTION_ID) || !planDocument.productType) return null;
   
   const tp = planDocument.settings.titlePage;
   const fv = (key: string) => getFieldValue(planDocument, key);

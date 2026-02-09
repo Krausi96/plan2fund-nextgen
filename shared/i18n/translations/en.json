@@ -899,7 +899,7 @@
   "editor.desktop.selection.current": "Current selection",
   "editor.desktop.selection.productLabel": "Plan",
   "editor.desktop.selection.programLabel": "Program / Template",
-  "editor.desktop.selection.noProgram": "No program connected",
+  "editor.desktop.selection.noProgram": "No program selected",
   "editor.desktop.selection.noPlan": "-",
   "editor.desktop.selection.customTemplate": "Custom Template",
   "editor.desktop.selection.readiness": "Readiness",

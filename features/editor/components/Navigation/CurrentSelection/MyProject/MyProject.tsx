@@ -6,7 +6,7 @@ import { METADATA_SECTION_ID } from '@/features/editor/lib/constants';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
 import ProjectProfileStep from './subSteps/ProjectProfileStep';
 import PlanningContextStep from './subSteps/PlanningContextStep';
-import LivePreviewBox from './LivePreviewBox';
+// import LivePreviewBox from './LivePreviewBox'; // LEGACY COMPONENT MOVED TO LEGACY FOLDER
 
 interface MyProjectProps {
   className?: string;
@@ -22,7 +22,6 @@ const MyProject: React.FC<MyProjectProps> = ({
   mode = 'display', 
   currentSection = 1,
   onSectionChange,
-  showPreview = false,
   onInteraction
 }) => {
   const { t } = useI18n();
@@ -35,43 +34,45 @@ const MyProject: React.FC<MyProjectProps> = ({
   // Get project profile from store
   const projectProfile = useEditorStore(state => state.setupWizard.projectProfile);
   
-  // Initialize formData with proper precedence: plan settings > projectProfile > defaults
+  // Initialize form data with proper precedence: plan settings > projectProfile > defaults
   const initialFormData = {
     // Title Page fields
     title: plan?.settings?.titlePage?.title || projectProfile?.projectName || '',
     subtitle: plan?.settings?.titlePage?.subtitle || '',
     companyName: plan?.settings?.titlePage?.companyName || projectProfile?.author || '',
-    legalForm: plan?.settings?.titlePage?.legalForm || '',
+    author: plan?.settings?.titlePage?.companyName || projectProfile?.author || '',
     date: plan?.settings?.titlePage?.date || new Date().toISOString().split('T')[0],
     logoUrl: plan?.settings?.titlePage?.logoUrl || '',
-    confidentialityStatement: plan?.settings?.titlePage?.confidentialityStatement || projectProfile?.confidentialityStatement || '',
-    // Other form fields
-    author: plan?.settings?.titlePage?.companyName || projectProfile?.author || '',
     confidentiality: projectProfile?.confidentiality || 'confidential' as 'public' | 'confidential' | 'private',
-    stage: projectProfile?.stage || '' as 'idea' | 'MVP' | 'revenue',
-    country: projectProfile?.country || '',
-    // Region is stored separately in formData, not in ProjectProfile type
-    region: '',
-    industryFocus: projectProfile?.industryTags || [] as string[],
-    // Industry sub-focus fields
-    digitalFocus: [] as string[],
-    sustainabilityFocus: [] as string[],
-    healthFocus: [] as string[],
-    manufacturingFocus: [] as string[],
-    exportFocus: [] as string[],
-    oneLiner: projectProfile?.oneLiner || '',
-    mainObjective: projectProfile?.mainObjective || '',
-    teamSize: projectProfile?.teamSize || 0,
-    customIndustry: projectProfile?.customIndustry || '',
-    customObjective: projectProfile?.customObjective || '',
+    
+    // Contact Information
     contactInfo: {
       email: plan?.settings?.titlePage?.contactInfo?.email || '',
       phone: plan?.settings?.titlePage?.contactInfo?.phone || '',
       website: plan?.settings?.titlePage?.contactInfo?.website || '',
       address: plan?.settings?.titlePage?.contactInfo?.address || '',
     },
+    
+    // Project Profile fields
+    stage: projectProfile?.stage || '' as 'idea' | 'MVP' | 'revenue' | 'growth',
+    country: projectProfile?.country || '',
+    region: '',
+    oneLiner: projectProfile?.oneLiner || '',
+    mainObjective: projectProfile?.mainObjective || '',
+    teamSize: projectProfile?.teamSize || 0,
+    
+    // Industry Focus
+    industryFocus: projectProfile?.industryTags || [] as string[],
+    digitalFocus: [] as string[],
+    sustainabilityFocus: [] as string[],
+    healthFocus: [] as string[],
+    manufacturingFocus: [] as string[],
+    exportFocus: [] as string[],
+    customIndustry: projectProfile?.customIndustry || '',
+    customObjective: projectProfile?.customObjective || '',
+    
+    // Financial Baseline
     financialBaseline: {
-      fundingNeeded: projectProfile?.financialBaseline?.fundingNeeded || 0,
       currency: projectProfile?.financialBaseline?.currency || 'EUR',
       startDate: projectProfile?.financialBaseline?.startDate || new Date().toISOString().split('T')[0],
       planningHorizon: projectProfile?.financialBaseline?.planningHorizon || 0 as 0 | 6 | 12 | 18 | 24 | 30 | 36 | 42 | 48
@@ -88,42 +89,54 @@ const MyProject: React.FC<MyProjectProps> = ({
   // Initialize form data from store on component mount only
   useEffect(() => {
     if (projectProfile) {
-      setFormData(prev => ({
-        ...initialFormData,
-        ...prev,
-        title: plan?.settings?.titlePage?.title || projectProfile.projectName || prev.title,
-        companyName: plan?.settings?.titlePage?.companyName || projectProfile.author || prev.companyName,
-        author: plan?.settings?.titlePage?.companyName || projectProfile.author || prev.author,
-        confidentiality: projectProfile.confidentiality || prev.confidentiality,
-        confidentialityStatement: plan?.settings?.titlePage?.confidentialityStatement || projectProfile.confidentialityStatement || prev.confidentialityStatement,
-        stage: projectProfile.stage || prev.stage,
-        country: projectProfile.country || prev.country,
-        // Region is stored in formData directly, initialize from localStorage or default
-        region: prev.region || localStorage.getItem('myProject_region') || '',
-        industryFocus: projectProfile.industryTags || prev.industryFocus,
-        // Industry sub-focus fields
-        digitalFocus: prev.digitalFocus || [],
-        sustainabilityFocus: prev.sustainabilityFocus || [],
-        healthFocus: prev.healthFocus || [],
-        manufacturingFocus: prev.manufacturingFocus || [],
-        exportFocus: prev.exportFocus || [] as string[],
-        oneLiner: projectProfile.oneLiner || prev.oneLiner,
-        mainObjective: projectProfile.mainObjective || prev.mainObjective,
-        teamSize: projectProfile.teamSize || prev.teamSize,
-        customIndustry: projectProfile.customIndustry || prev.customIndustry,
-        customObjective: projectProfile.customObjective || prev.customObjective,
-        financialBaseline: {
+      setFormData(prev => {
+        const mergedContactInfo = {
+          ...prev.contactInfo,
+          email: plan?.settings?.titlePage?.contactInfo?.email || prev.contactInfo.email,
+          phone: plan?.settings?.titlePage?.contactInfo?.phone || prev.contactInfo.phone,
+          website: plan?.settings?.titlePage?.contactInfo?.website || prev.contactInfo.website,
+          address: plan?.settings?.titlePage?.contactInfo?.address || prev.contactInfo.address,
+        };
+        
+        const mergedFinancialBaseline = {
           ...prev.financialBaseline,
-          fundingNeeded: projectProfile.financialBaseline?.fundingNeeded || prev.financialBaseline.fundingNeeded,
           currency: projectProfile.financialBaseline?.currency || prev.financialBaseline.currency,
           startDate: projectProfile.financialBaseline?.startDate || prev.financialBaseline.startDate,
           planningHorizon: projectProfile.financialBaseline?.planningHorizon || prev.financialBaseline.planningHorizon
-        }
-      }));
+        };
+        
+        return {
+          ...prev,
+          // Title page fields with precedence
+          title: plan?.settings?.titlePage?.title || projectProfile.projectName || prev.title,
+          companyName: plan?.settings?.titlePage?.companyName || projectProfile.author || prev.companyName,
+          author: plan?.settings?.titlePage?.companyName || projectProfile.author || prev.author,
+          
+          // Profile fields
+          confidentiality: projectProfile.confidentiality || prev.confidentiality,
+          stage: projectProfile.stage || prev.stage,
+          country: projectProfile.country || prev.country,
+          oneLiner: projectProfile.oneLiner || prev.oneLiner,
+          mainObjective: projectProfile.mainObjective || prev.mainObjective,
+          teamSize: projectProfile.teamSize || prev.teamSize,
+          
+          // Industry focus
+          industryFocus: projectProfile.industryTags || prev.industryFocus,
+          customIndustry: projectProfile.customIndustry || prev.customIndustry,
+          customObjective: projectProfile.customObjective || prev.customObjective,
+          
+          // Region with localStorage fallback
+          region: prev.region || localStorage.getItem('myProject_region') || '',
+          
+          // Contact and financial info
+          contactInfo: mergedContactInfo,
+          financialBaseline: mergedFinancialBaseline
+        };
+      });
     }
     
     // Initialize completion status
-    updateCompletionStatus(formData);
+    updateCompletionStatus(initialFormData);
   }, []); // Empty dependency array - run only once on mount
 
   // Function to check if section 1 (General Info) is completed
@@ -168,10 +181,8 @@ const MyProject: React.FC<MyProjectProps> = ({
             title: newData.title,
             subtitle: newData.subtitle,
             companyName: newData.companyName,
-            legalForm: newData.legalForm,
             date: newData.date,
             logoUrl: newData.logoUrl,
-            confidentialityStatement: newData.confidentialityStatement,
             contactInfo: newData.contactInfo
           });
         });
@@ -191,12 +202,11 @@ const MyProject: React.FC<MyProjectProps> = ({
         }
         
         // Update project profile for Project Profile fields
-        if (['country', 'stage', 'industryFocus', 'oneLiner', 'teamSize', 'mainObjective', 'customIndustry', 'financialBaseline', 'confidentiality', 'confidentialityStatement', 'region', 'digitalFocus', 'sustainabilityFocus', 'healthFocus', 'manufacturingFocus', 'exportFocus'].includes(field)) {
+        if (['country', 'stage', 'industryFocus', 'oneLiner', 'teamSize', 'mainObjective', 'customIndustry', 'financialBaseline', 'confidentiality', 'region', 'digitalFocus', 'sustainabilityFocus', 'healthFocus', 'manufacturingFocus', 'exportFocus'].includes(field)) {
           const projectProfile = {
             projectName: newData.title,
             author: newData.companyName,
             confidentiality: newData.confidentiality,
-            confidentialityStatement: newData.confidentialityStatement,
             oneLiner: newData.oneLiner,
             stage: newData.stage,
             country: newData.country,
@@ -216,10 +226,8 @@ const MyProject: React.FC<MyProjectProps> = ({
             title: newData.title,
             subtitle: newData.subtitle,
             companyName: newData.companyName,
-            legalForm: newData.legalForm,
             date: newData.date,
             logoUrl: newData.logoUrl,
-            confidentialityStatement: newData.confidentialityStatement,
             contactInfo: newData.contactInfo
           });
         });
@@ -389,8 +397,7 @@ const MyProject: React.FC<MyProjectProps> = ({
             )}
           </div>
         </div>
-        {/* Only show preview when explicitly requested */}
-        {showPreview && <LivePreviewBox show={true} />}
+        {/* <LivePreviewBox show={true} /> */} {/* REMOVED - LEGACY COMPONENT MOVED TO LEGACY FOLDER */}
       </>
     );
   }

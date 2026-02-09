@@ -625,7 +625,6 @@ const ProjectProfileStep: React.FC<ProjectProfileStepProps> = ({
               </div>
             </div>
           )}
-
         </div>
         
         {/* Skip Option for Optional Steps */}

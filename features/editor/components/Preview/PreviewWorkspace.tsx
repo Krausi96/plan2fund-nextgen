@@ -335,7 +335,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
 
   return (
     <>
-      {(isNewUser || !hasPlan) ? (
+      {(isNewUser || !hasPlan || !selectedProduct) ? (
         emptyStateContent
       ) : !planDocument ? (
         noPlanContent

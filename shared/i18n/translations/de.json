@@ -917,7 +917,7 @@
   "editor.desktop.selection.current": "Aktuelle Auswahl",
   "editor.desktop.selection.productLabel": "Plan",
   "editor.desktop.selection.programLabel": "Programm/Vorlage",
-  "editor.desktop.selection.noProgram": "Noch kein Programm verbunden",
+  "editor.desktop.selection.noProgram": "Noch kein Programm ausgewählt",
   "editor.desktop.selection.noPlan": "-",
   "editor.desktop.selection.customTemplate": "Benutzerdefinierte Vorlage",
   "editor.desktop.selection.readiness": "Readiness Check",
