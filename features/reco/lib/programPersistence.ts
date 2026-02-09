@@ -17,6 +17,24 @@ const PersistedProgramSchema = z.object({
   type: z.string().max(100).optional(),
   organization: z.string().max(300).optional(),
   application_requirements: z.any().optional(),
+  
+  // New fields for decision-critical information
+  repayable: z.boolean().nullable().optional(),
+  repayable_percentage: z.number().nullable().optional(),
+  repayable_type: z.enum(['grant', 'loan', 'mixed', 'convertible']).nullable().optional(),
+  
+  timeline: z.object({
+    application_deadline: z.string().nullable().optional(),
+    decision_time: z.string().nullable().optional(),
+    funding_start: z.string().nullable().optional(),
+  }).optional(),
+  
+  effort_level: z.enum(['low', 'medium', 'heavy']).optional(),
+  
+  // Renamed fields (kept for compatibility)
+  organisation_type: z.string().nullable().optional(),
+  eligible_company_types: z.array(z.string()).nullable().optional(),
+  eligible_stage: z.string().nullable().optional(),
 });
 
 /**
@@ -57,7 +75,17 @@ function validateAndSanitize(data: unknown): PersistedProgram | null {
     name: sanitizeString(raw.name, 500),
     type: sanitizeString(raw.type, 100),
     organization: sanitizeString(raw.organization, 300),
-    application_requirements: raw.application_requirements
+    application_requirements: raw.application_requirements,
+    
+    // New fields
+    repayable: raw.repayable,
+    repayable_percentage: raw.repayable_percentage,
+    repayable_type: raw.repayable_type,
+    timeline: raw.timeline,
+    effort_level: raw.effort_level,
+    organisation_type: sanitizeString(raw.organisation_type, 300),
+    eligible_company_types: raw.eligible_company_types,
+    eligible_stage: sanitizeString(raw.eligible_stage, 100),
   };
 
   const result = PersistedProgramSchema.safeParse(preSanitized);
@@ -96,7 +124,17 @@ export function saveSelectedProgram(program: PersistedProgram): boolean {
       name: sanitizeString(program.name, 500),
       type: sanitizeString(program.type, 100),
       organization: sanitizeString(program.organization, 300),
-      application_requirements: program.application_requirements
+      application_requirements: program.application_requirements,
+      
+      // New fields
+      repayable: program.repayable,
+      repayable_percentage: program.repayable_percentage,
+      repayable_type: program.repayable_type,
+      timeline: program.timeline,
+      effort_level: program.effort_level,
+      organisation_type: sanitizeString(program.organisation_type, 300),
+      eligible_company_types: program.eligible_company_types,
+      eligible_stage: sanitizeString(program.eligible_stage, 100),
     };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToStore));

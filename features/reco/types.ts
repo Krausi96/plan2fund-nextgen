@@ -25,6 +25,24 @@ export interface Program {
   company_stage?: string | null;
   categorized_requirements?: Record<string, any[]>;
   metadata?: Record<string, any>;
+  
+  // New fields for decision-critical information
+  repayable?: boolean | null;
+  repayable_percentage?: number | null;
+  repayable_type?: 'grant' | 'loan' | 'mixed' | 'convertible' | null;
+  
+  timeline?: {
+    application_deadline: string | null;
+    decision_time: string | null;
+    funding_start: string | null;
+  };
+  
+  effort_level?: 'low' | 'medium' | 'heavy';
+  
+  // Renamed fields (kept for compatibility)
+  organisation_type?: string | null;  // renamed from company_type
+  eligible_company_types?: string[] | null;  // renamed from organisation_type
+  eligible_stage?: string | null;  // renamed from company_stage
 }
 
 export interface EnhancedProgramResult extends Program {

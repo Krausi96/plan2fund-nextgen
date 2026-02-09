@@ -18,8 +18,20 @@ export const individualTemplate = {
   use_of_funds: ['research_activities', 'equipment', 'travel'],
   co_financing_required: false,
   deliverables: ['research_report', 'presentation'],
-  requirements: ['cv', 'research_proposal', 'budget_plan'],
   evidence_required: ['academic_credentials', 'previous_work'],
+  
+  // New fields
+  repayable: false,
+  repayable_percentage: null,
+  co_financing_percentage: null,
+  timeline: {
+    application_deadline: null,
+    decision_time: null,
+    funding_start: null,
+  },
+  effort_level: 'medium',
+  
+  // Remove requirements field to keep single source of truth
   application_requirements: {
     documents: [
       { document_name: 'Research Proposal', required: true, format: 'pdf', authority: 'applicant', reuseable: false },

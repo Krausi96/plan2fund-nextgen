@@ -20,7 +20,8 @@ export function ProgramSummaryPanel({ onClear, documentStructure: propDocumentSt
   const hasProgramData = !!(programProfile || programSummary);
   
   // Get document structure from props if provided, otherwise from store
-  const documentStructure = propDocumentStructure || useEditorStore((state) => state.setupWizard.documentStructure);
+  const storeDocumentStructure = useEditorStore((state) => state.setupWizard.documentStructure);
+  const documentStructure = propDocumentStructure || storeDocumentStructure;
   
   // Get organized document structure for UI rendering
   const hierarchicalView = documentStructure ? organizeDocumentStructureForUi(documentStructure, t) : null;

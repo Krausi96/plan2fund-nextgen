@@ -22,8 +22,20 @@ export const eicAccelerator = {
   use_of_funds: ['product_development', 'scaling_operations'],
   co_financing_required: false,
   deliverables: ['pitch_deck', 'business_plan', 'technical_documentation'],
-  requirements: ['innovation', 'business_model', 'team_execution'],
   evidence_required: ['patent_applications', 'technical_validation'],
+  
+  // New fields
+  repayable: false,
+  repayable_percentage: null,
+  co_financing_percentage: null,
+  timeline: {
+    application_deadline: null,
+    decision_time: null,
+    funding_start: null,
+  },
+  effort_level: 'medium',
+  
+  // Remove requirements field to keep single source of truth
   application_requirements: {
     documents: [
       { document_name: 'Pitch Deck', required: true, format: 'pdf', authority: 'applicant', reuseable: false },

@@ -8,9 +8,13 @@ interface Program {
   organization: string;
   amountRange?: string;
   deadline?: string;
+  decisionTime?: string;
+  region?: string;
+  companyStage?: string;
   focusAreas?: string[];
   description?: string;
   requirements?: string[];
+  co_financing_required?: boolean;
   application_requirements?: {
     documents?: Array<{
       document_name: string;
@@ -50,13 +54,17 @@ const loadProgramCatalog = async (): Promise<Program[]> => {
     name: program.name,
     type: program.type || 'grant',
     organization: program.organization || 'Unknown',
-    amountRange: program.funding_amount_min && program.funding_amount_max 
+    amountRange: program.funding_range || (program.funding_amount_min && program.funding_amount_max 
       ? `${program.currency || '€'}${program.funding_amount_min.toLocaleString()} - ${program.currency || '€'}${program.funding_amount_max.toLocaleString()}`
-      : undefined,
-    deadline: 'Ongoing',
-    focusAreas: program.focus_areas || [],
+      : undefined),
+    deadline: program.timeline?.application_deadline || program.deadline || 'Ongoing',
+    decisionTime: program.timeline?.decision_time || '~6 weeks',
+    region: program.region || 'Global',
+    companyStage: program.company_stage || program.eligible_stage || 'N/A',
+    focusAreas: program.focus_areas || program.program_focus || [],
     description: program.description,
     requirements: program.requirements || [],
+    co_financing_required: program.co_financing_required || false,
     application_requirements: program.application_requirements || {
       documents: [],
       sections: [],
@@ -77,7 +85,80 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedFocus, setSelectedFocus] = useState<string>('all');
+  const [selectedStage, setSelectedStage] = useState<string>('all');
+  const [selectedRegion, setSelectedRegion] = useState<string>('all');
+  const [selectedFundingSize, setSelectedFundingSize] = useState<string>('any');
+// Funding type is now shown in the Type field, so this is no longer needed
+  // const [selectedFundingType, setSelectedFundingType] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+
+  // Format funding amounts to show as €25k–€250k instead of EUR25.000 - EUR250.000
+  const formatFundingAmount = (amountRange?: string): string | undefined => {
+    if (!amountRange) return undefined;
+
+    // Check if the amountRange already contains "Mio" format
+    const mioRegex = /Mio\s*€([\d.,]+)\s*[-–]\s*Mio\s*€([\d.,]+)/;
+    if (mioRegex.test(amountRange)) {
+      const matches = amountRange.match(mioRegex);
+      if (matches && matches.length >= 3) {
+        const min = parseFloat(matches[1].replace(/,/g, '.'));
+        const max = parseFloat(matches[2].replace(/,/g, '.'));
+        return `€${min}M–€${max}M`;
+      }
+    }
+    
+    // Handle different currency formats and convert to desired format
+    // Example: Convert "EUR25.000 - EUR250.000" to "€25k–€250k"
+    const euroPattern = /(?:EUR|€)([\d.,]+)\s*[-–]\s*(?:EUR|€)([\d.,]+)/;
+    const thousandPattern = /(?:EUR|€)([\d.,]+)\s*[-–]\s*(?:EUR|€)([\d.,]+)\s*\.000/;
+    const millionPattern = /([\d.,]+)\s*M\s*EUR/;
+    
+    if (millionPattern.test(amountRange)) {
+      const matches = amountRange.match(millionPattern);
+      if (matches && matches.length >= 2) {
+        // For million formats, we need to handle differently
+        // This is a simplified approach - adjust as needed based on actual data
+        return amountRange.replace(/M\s*EUR/g, 'M').replace(/EUR/g, '€');
+      }
+    } else if (thousandPattern.test(amountRange)) {
+      // Handle "EUR25.000 - EUR250.000" format -> "€25k–€250k"
+      const matches = amountRange.match(thousandPattern);
+      if (matches && matches.length >= 3) {
+        const min = parseFloat(matches[1].replace(/,/g, ''));
+        const max = parseFloat(matches[2].replace(/,/g, ''));
+        return `€${min}k–€${max}k`;
+      }
+    } else if (euroPattern.test(amountRange)) {
+      const matches = amountRange.match(euroPattern);
+      if (matches && matches.length >= 3) {
+        const min = parseFloat(matches[1].replace(/,/g, ''));
+        const max = parseFloat(matches[2].replace(/,/g, ''));
+        return `€${formatCurrency(min)}–€${formatCurrency(max)}`;
+      }
+    }
+
+    // Handle other formats that might already be in the right format
+    let result = amountRange.replace(/EUR/g, '€').replace(/\.000/g, 'k');
+    
+    // Final check for any remaining Mio format
+    const finalMioMatch = result.match(/Mio\s*€([\d.,]+)\s*[-–]\s*Mio\s*€([\d.,]+)/);
+    if (finalMioMatch) {
+      const min = parseFloat(finalMioMatch[1].replace(/,/g, '.'));
+      const max = parseFloat(finalMioMatch[2].replace(/,/g, '.'));
+      return `€${min}M–€${max}M`;
+    }
+    
+    return result;
+  };
+
+  const formatCurrency = (value: number): string => {
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`;
+    } else if (value >= 1000) {
+      return `${Math.round(value / 1000)}k`;
+    }
+    return value.toString();
+  };
 
   // Load programs from mock repository
   useEffect(() => {
@@ -127,8 +208,47 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
       );
     }
     
+    // Stage filter
+    if (selectedStage !== 'all') {
+      filtered = filtered.filter(program => program.companyStage === selectedStage);
+    }
+    
+    // Region filter
+    if (selectedRegion !== 'all') {
+      filtered = filtered.filter(program => program.region === selectedRegion);
+    }
+    
+    // Funding size filter
+    if (selectedFundingSize !== 'any') {
+      filtered = filtered.filter(program => {
+        if (!program.amountRange) return true;
+        
+        // Extract numeric funding values from amountRange string
+        const numbers = program.amountRange.match(/\d+/g);
+        if (!numbers || numbers.length < 2) return true;
+        
+        const minAmount = parseInt(numbers[0], 10);
+        const maxAmount = parseInt(numbers[numbers.length - 1], 10);
+        
+        switch(selectedFundingSize) {
+          case 'under50k':
+            return maxAmount < 50000;
+          case '50kto250k':
+            return minAmount >= 50000 && maxAmount <= 250000;
+          case '250kto1m':
+            return minAmount >= 250000 && maxAmount <= 1000000;
+          case 'over1m':
+            return minAmount > 1000000;
+          default:
+            return true;
+        }
+      });
+    }
+    
+
+    
     setFilteredPrograms(filtered);
-  }, [programs, searchTerm, selectedType, selectedFocus]);
+  }, [programs, searchTerm, selectedType, selectedFocus, selectedStage, selectedRegion, selectedFundingSize]);
 
   const handleProgramClick = async (program: Program) => {
     // Save program selection
@@ -163,56 +283,94 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
 
   const focusAreas = Array.from(new Set(programs.flatMap(p => p.focusAreas || [])));
   const types = Array.from(new Set(programs.map(p => p.type)));
+  const stages = Array.from(new Set(programs.map(p => p.companyStage).filter(Boolean)));
+  const regions = Array.from(new Set(programs.map(p => p.region).filter(Boolean)));
 
   return (
-    <div className="bg-slate-800/50 rounded-lg border border-white/10 overflow-hidden">
-      {/* Filters */}
-      <div className="p-4 border-b border-white/10 bg-slate-800/30">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div className="bg-slate-800/40 rounded-xl border border-slate-600/50 overflow-hidden shadow-lg">
+      {/* Filters - Centered layout with max-width */}
+      <div className="mx-auto max-w-[1180px] p-2 border-b border-white/10 bg-slate-800/20">
+        {/* Row 1 - Search only */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
           {/* Search */}
-          <div>
-            <label className="block text-xs text-white/70 mb-1">
-              {t('editor.desktop.program.finder.search' as any) || 'Search Programs'}
-            </label>
+          <div className="flex-1 min-w-[300px] max-w-[600px]">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t('editor.desktop.program.finder.searchPlaceholder' as any) || 'Name, organization, or keywords...'}
-              className="w-full rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+              placeholder="Search..."
+              className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10"
             />
+          </div>
+        </div>
+        
+        {/* Row 2 - All filters */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {/* Stage Filter */}
+          <div>
+            <select
+              value={selectedStage}
+              onChange={(e) => setSelectedStage(e.target.value)}
+              className="rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10 min-w-[100px]"
+            >
+              <option value="all">Stage</option>
+              {stages.map(stage => (
+                <option key={stage} value={stage}>{stage}</option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Region Filter */}
+          <div>
+            <select
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              className="rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10 min-w-[100px]"
+            >
+              <option value="all">Region</option>
+              {regions.map(region => (
+                <option key={region} value={region}>{region}</option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Funding Size Dropdown */}
+          <div>
+            <select
+              value={selectedFundingSize}
+              onChange={(e) => setSelectedFundingSize(e.target.value)}
+              className="rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10 min-w-[100px]"
+            >
+              <option value="any">Funding</option>
+              <option value="under50k">&lt;€50k</option>
+              <option value="50kto250k">€50k–€250k</option>
+              <option value="250kto1m">€250k–€1M</option>
+              <option value="over1m">1M+</option>
+            </select>
           </div>
           
           {/* Type Filter */}
           <div>
-            <label className="block text-xs text-white/70 mb-1">
-              {t('editor.desktop.program.finder.type' as any) || 'Program Type'}
-            </label>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+              className="rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10 min-w-[100px]"
             >
-              <option value="all">{t('editor.desktop.program.finder.allTypes' as any) || 'All Types'}</option>
+              <option value="all">Type</option>
               {types.map(type => (
-                <option key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </option>
+                <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
               ))}
             </select>
           </div>
           
           {/* Focus Area Filter */}
           <div>
-            <label className="block text-xs text-white/70 mb-1">
-              {t('editor.desktop.program.finder.focus' as any) || 'Focus Area'}
-            </label>
             <select
               value={selectedFocus}
               onChange={(e) => setSelectedFocus(e.target.value)}
-              className="w-full rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+              className="rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10 min-w-[100px]"
             >
-              <option value="all">{t('editor.desktop.program.finder.allFocusAreas' as any) || 'All Focus Areas'}</option>
+              <option value="all">Focus</option>
               {focusAreas.map(area => (
                 <option key={area} value={area}>{area}</option>
               ))}
@@ -222,7 +380,7 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
       </div>
       
       {/* Results */}
-      <div className="p-4 max-h-96 overflow-y-auto">
+      <div className="p-4 max-h-[500px] overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="text-white/60 text-sm">
@@ -236,48 +394,69 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {filteredPrograms.map((program) => (
+          <div className="mx-auto max-w-[1180px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredPrograms.map((program) => {
+              // Format funding amount
+              const formattedAmount = formatFundingAmount(program.amountRange);
+              
+              // Format focus areas
+              let focusText = 'No focus';
+              if (program.focusAreas && program.focusAreas.length > 0) {
+                if (program.focusAreas.length === 1) {
+                  focusText = program.focusAreas[0];
+                } else {
+                  focusText = `${program.focusAreas[0]} +${program.focusAreas.length - 1}`;
+                }
+              }
+              
+              return (
               <div 
                 key={program.id}
-                className="bg-slate-700/50 rounded border border-white/10 p-3 hover:border-blue-400/50 transition-all cursor-pointer"
+                className="bg-slate-700/50 rounded-lg border border-slate-600 p-4 hover:border-blue-400/70 transition-all cursor-pointer shadow-sm hover:shadow-md"
                 onClick={() => handleProgramClick(program)}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="text-white font-medium text-sm">{program.name}</h4>
-                  <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 text-xs rounded-full capitalize">
-                    {program.type}
+                <div className="font-bold text-white mb-2 text-[15px]">
+                  {formattedAmount || 'Amount varies'}
+                </div>
+                
+                <h4 className="text-white font-semibold text-sm mb-1 truncate">
+                  {program.name}
+                </h4>
+                
+                {(program.organization && program.organization !== 'Unknown') && (
+                  <div className="text-xs text-white/70 mb-1 truncate">
+                    {program.organization}
+                  </div>
+                )}
+                
+                <div className="mb-3">
+                  <span className="font-medium text-xs text-white/70 mr-1">Deadline:</span>
+                  <span className={`text-[11px] px-2 py-1 rounded-md ${program.deadline?.toLowerCase().includes('ongoing') || program.deadline?.toLowerCase().includes('rolling') ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400'}`}>
+                    {program.deadline || 'N/A'}
                   </span>
                 </div>
                 
-                <div className="space-y-1 text-xs text-white/80 mb-2">
-                  <div className="flex items-center">
-                    <span className="w-20 text-white/60">Org:</span>
-                    <span>{program.organization}</span>
-                  </div>
-                  
-                  {program.amountRange && (
-                    <div className="flex items-center">
-                      <span className="w-20 text-white/60">Funding:</span>
-                      <span className="font-medium text-green-300">{program.amountRange}</span>
-                    </div>
-                  )}
-                  
-                  {program.deadline && (
-                    <div className="flex items-center">
-                      <span className="w-20 text-white/60">Deadline:</span>
-                      <span className={program.deadline === 'Ongoing' ? 'text-yellow-300' : 'text-orange-300'}>
-                        {program.deadline}
-                      </span>
-                    </div>
-                  )}
+                <div className="text-xs text-white/70 mb-1">
+                  <span className="font-medium">Region:</span> {program.region || 'No region'}
                 </div>
                 
-                <button className="w-full px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded transition-colors mt-2">
+                <div className="text-xs text-white/70 mb-1">
+                  <span className="font-medium">Stage:</span> {program.companyStage || 'No stage'}
+                </div>
+                
+                <div className="text-xs text-white/70 mb-3">
+                  <span className="font-medium">Focus:</span> {focusText}
+                </div>
+                
+                <div className="text-xs text-white/70 mb-3">
+                  <span className="font-medium">Type:</span> {program.type.charAt(0).toUpperCase() + program.type.slice(1)}
+                </div>
+                
+                <button className="w-full mt-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-md transition-colors font-medium">
                   {t('editor.desktop.program.finder.selectProgram' as any) || 'Select Program'}
                 </button>
               </div>
-            ))}
+            );})}
           </div>
         )}
       </div>

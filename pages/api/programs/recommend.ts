@@ -564,6 +564,25 @@ KEY PROGRAMS:
             open_deadline: program.open_deadline ?? false,
             use_of_funds: Array.isArray(program.use_of_funds) ? program.use_of_funds : null,
             impact_focus: Array.isArray(program.impact_focus) ? program.impact_focus : null,
+            // New fields
+            repayable: program.repayable ?? (Array.isArray(program.funding_types) && program.funding_types.includes('loan')),
+            repayable_percentage: program.repayable_percentage ?? null,
+            repayable_type: program.repayable_type ?? (
+              Array.isArray(program.funding_types) 
+                ? (program.funding_types.includes('grant') && program.funding_types.includes('loan') ? 'mixed' :
+                   program.funding_types.includes('loan') ? 'loan' :
+                   program.funding_types.includes('grant') ? 'grant' : null)
+                : null
+            ),
+            timeline: {
+              application_deadline: program.timeline?.application_deadline || program.application_deadline || null,
+              decision_time: program.timeline?.decision_time || program.decision_time || null,
+              funding_start: program.timeline?.funding_start || program.funding_start || null,
+            },
+            effort_level: program.effort_level || 'medium',
+            // Renamed fields (normalized)
+            eligible_company_types: program.eligible_company_types || [program.organisation_type || program.company_type] || null,
+            eligible_stage: program.eligible_stage || program.company_stage || null,
             metadata: {
               organization: program.organization || program.metadata?.organization || null,
               typical_timeline: program.typical_timeline || program.metadata?.typical_timeline || null,
@@ -573,6 +592,14 @@ KEY PROGRAMS:
             },
             application_requirements: program.application_requirements || null,  // Use actual LLM data or null
             source: 'llm_generated',
+            
+            // Derived fields (computed once)
+            is_grant: Array.isArray(program.funding_types) ? program.funding_types.includes('grant') : false,
+            is_loan: Array.isArray(program.funding_types) ? program.funding_types.includes('loan') : false,
+            funding_range: program.funding_amount_min && program.funding_amount_max 
+              ? `${program.currency || 'EUR'}${program.funding_amount_min.toLocaleString()}–${program.funding_amount_max.toLocaleString()}`
+              : null,
+            deadline_display: program.open_deadline ? "Rolling" : (program.timeline?.application_deadline || program.deadline || null),
           };
         }),
       };

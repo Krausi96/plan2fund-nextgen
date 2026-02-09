@@ -22,8 +22,20 @@ export const ffgBasisprogramm = {
   use_of_funds: ['rd_projects'],
   co_financing_required: false,
   deliverables: ['project_proposal', 'cost_calculation'],
-  requirements: ['project_objectives', 'work_plan', 'results_exploitation'],
   evidence_required: ['technical_documentation', 'partnership_agreements'],
+  
+  // New fields
+  repayable: false,
+  repayable_percentage: null,
+  co_financing_percentage: null,
+  timeline: {
+    application_deadline: null,
+    decision_time: null,
+    funding_start: null,
+  },
+  effort_level: 'medium',
+  
+  // Remove requirements field to keep single source of truth
   application_requirements: {
     documents: [
       { document_name: 'Project Proposal', required: true, format: 'pdf', authority: 'applicant', reuseable: false },

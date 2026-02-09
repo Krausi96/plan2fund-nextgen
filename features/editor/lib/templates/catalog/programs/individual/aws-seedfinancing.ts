@@ -22,8 +22,20 @@ export const awsSeedfinancing = {
   use_of_funds: ['product_development', 'market_entry', 'personnel'],
   co_financing_required: true,
   deliverables: ['business_plan', 'financial_statements'],
-  requirements: ['executive_summary', 'market_analysis', 'financial_plan', 'team_qualifications'],
   evidence_required: ['financial_documents', 'proof_of_innovation'],
+  
+  // New fields
+  repayable: true,
+  repayable_percentage: null,
+  co_financing_percentage: null,
+  timeline: {
+    application_deadline: null,
+    decision_time: null,
+    funding_start: null,
+  },
+  effort_level: 'medium',
+  
+  // Remove requirements field to keep single source of truth
   application_requirements: {
     documents: [
       { document_name: 'Application Form', required: true, format: 'pdf', authority: 'provider', reuseable: false },
