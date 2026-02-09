@@ -1,10 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useEditorStore, inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/features/editor/lib';
-import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/1-document-flows/document-flows/organizeForUiRendering';
 import { ControlsPanel } from './components/ControlsPanel';
-import { HierarchicalView } from './components/HierarchicalView';
-import { FlatView } from './components/FlatView';
+import { ProgramSummaryPanel } from '../../ProgramSelection/components/panels/ProgramSummaryPanel';
 
 interface BlueprintInstantiationStepProps {
   onComplete?: () => void;
@@ -67,30 +65,11 @@ export default function BlueprintInstantiationStep({
   
   // UI state for editing
   const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});
-  const [expandedSubsections, setExpandedSubsections] = useState<Record<string, boolean>>({});
-  const [expandedSubsectionDetails, setExpandedSubsectionDetails] = useState<Record<string, boolean>>({});
   const [newDocumentName, setNewDocumentName] = useState('');
   const [newSectionTitle, setNewSectionTitle] = useState('');
   
-  // View mode state
-  const [viewMode, setViewMode] = useState<'hierarchical' | 'flat'>('flat');
+  // Use existing ProgramSummaryPanel for document structure visualization
   
-  // Initialize subsection expansion state to collapsed by default
-  React.useEffect(() => {
-    if (documentStructure?.sections) {
-      const initialExpandedState: Record<string, boolean> = {};
-      const initialDetailState: Record<string, boolean> = {};
-      documentStructure.sections.forEach(section => {
-        if (section.rawSubsections && section.rawSubsections.length > 0) {
-          initialExpandedState[section.id] = false; // Collapsed by default
-          initialDetailState[section.id] = false; // Show summary by default
-        }
-      });
-      setExpandedSubsections(initialExpandedState);
-      setExpandedSubsectionDetails(initialDetailState);
-    }
-  }, [documentStructure]);
-
   // Get blueprint source information
   const getBlueprintSource = useCallback(() => {
     if (programSummary && documentStructure?.source === 'program') {
@@ -117,38 +96,7 @@ export default function BlueprintInstantiationStep({
     }
   }, [programSummary, documentStructure]);
 
-  // Toggle document expansion
-  const toggleDocument = (documentId: string) => {
-    setExpandedDocuments(prev => ({
-      ...prev,
-      [documentId]: !prev[documentId]
-    }));
-  };
 
-  // Group sections by document and sort them
-  const getSectionsByDocument = useCallback(() => {
-    if (!documentStructure?.sections) return {};
-    
-    // Sort sections by canonical order first
-    const sortedSections = sortSectionsForSingleDocument(documentStructure.sections);
-    
-
-    
-    const grouped: Record<string, any[]> = {};
-    sortedSections.forEach(section => {
-      const docId = section.documentId || 'main_document';
-      if (!grouped[docId]) {
-        grouped[docId] = [];
-      }
-      grouped[docId].push(section);
-    });
-    
-
-    
-    return grouped;
-  }, [documentStructure]);
-
-  getSectionsByDocument();
   
   const blueprintSource = getBlueprintSource();
 
@@ -230,35 +178,13 @@ export default function BlueprintInstantiationStep({
           </div>
             
           <div className="space-y-3">
-            {viewMode === 'hierarchical' ? (
-              <HierarchicalView
-                documentStructure={documentStructure}
-                expandedDocuments={expandedDocuments}
-                expandedSubsections={expandedSubsections}
-                expandedSubsectionDetails={expandedSubsectionDetails}
-                toggleDocument={toggleDocument}
-                setExpandedSubsections={setExpandedSubsections}
-                setExpandedSubsectionDetails={setExpandedSubsectionDetails}
-              />
-            ) : (
-              <FlatView
-                documentStructure={documentStructure}
-                expandedDocuments={expandedDocuments}
-                expandedSubsections={expandedSubsections}
-                expandedSubsectionDetails={expandedSubsectionDetails}
-                toggleDocument={toggleDocument}
-                setExpandedSubsections={setExpandedSubsections}
-                setExpandedSubsectionDetails={setExpandedSubsectionDetails}
-              />
-            )}
+            <ProgramSummaryPanel documentStructure={documentStructure} onClear={() => {}} />
           </div>
         </div>
 
         {/* Right Column - Controls Panel */}
         <div className="space-y-4">
           <ControlsPanel 
-            viewMode={viewMode}
-            setViewMode={setViewMode}
             onAddDocument={handleAddDocument}
             onAddSection={(_name) => handleAddSection('main_document')}
           />

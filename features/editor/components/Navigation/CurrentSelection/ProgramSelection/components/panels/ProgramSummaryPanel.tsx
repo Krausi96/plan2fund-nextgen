@@ -6,9 +6,10 @@ import { organizeDocumentStructureForUi } from '@/features/editor/lib/utils/1-do
 
 interface ProgramSummaryPanelProps {
   onClear?: () => void;
+  documentStructure?: any;
 }
 
-export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
+export function ProgramSummaryPanel({ onClear, documentStructure: propDocumentStructure }: ProgramSummaryPanelProps) {
   const { t } = useI18n();
   const programProfile = useEditorStore((state) => state.setupWizard?.programProfile);
   const programSummary = useEditorStore((state) => state.programSummary);
@@ -16,8 +17,8 @@ export function ProgramSummaryPanel({ onClear }: ProgramSummaryPanelProps) {
 
   const hasProgramData = !!(programProfile || programSummary);
   
-  // Get document structure from store
-  const documentStructure = useEditorStore((state) => state.setupWizard.documentStructure);
+  // Get document structure from props if provided, otherwise from store
+  const documentStructure = propDocumentStructure || useEditorStore((state) => state.setupWizard.documentStructure);
   
   // Get organized document structure for UI rendering
   const hierarchicalView = documentStructure ? organizeDocumentStructureForUi(documentStructure, t) : null;

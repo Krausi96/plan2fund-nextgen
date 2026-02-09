@@ -31,6 +31,22 @@ export function sortSectionsForSingleDocument<T extends { id: string }>(
     const orderA = orderMap.get(a.id);
     const orderB = orderMap.get(b.id);
     
+    // Special handling for title page and TOC to ensure they're first
+    const isTitlePageA = a.id === SPECIAL_SECTION_IDS.METADATA;
+    const isTitlePageB = b.id === SPECIAL_SECTION_IDS.METADATA;
+    const isTocA = a.id === SPECIAL_SECTION_IDS.ANCILLARY;
+    const isTocB = b.id === SPECIAL_SECTION_IDS.ANCILLARY;
+    
+    // Title page always comes first
+    if (isTitlePageA && !isTitlePageB) return -1;
+    if (!isTitlePageA && isTitlePageB) return 1;
+    
+    // TOC always comes second (after title page)
+    if (isTitlePageB && isTocA) return -1;
+    if (isTitlePageA && isTocB) return 1;
+    if (isTocA && !isTocB && !isTitlePageB) return -1;
+    if (isTocB && !isTocA && !isTitlePageA) return 1;
+    
     // If both have canonical positions, sort by those
     if (orderA !== undefined && orderB !== undefined) {
       return orderA - orderB;
