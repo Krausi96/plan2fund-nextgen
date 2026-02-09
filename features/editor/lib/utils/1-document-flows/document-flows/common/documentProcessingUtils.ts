@@ -7,7 +7,7 @@
 
 import type { DocumentStructure } from '../../../../types/program/program-types';
 import { detectDocumentStructure } from '../processing/detection/documentStructureDetector';
-import { applyDetectionResults } from '../processing/structure/applyDetectionResults';
+import { applyDetectionResults } from '../processing/detection/documentStructureDetector';
 import { enhanceWithSpecialSections } from '../sections/enhancement/sectionEnhancement';
 import { sortSectionsForSingleDocument } from '../organizeForUiRendering';
 

@@ -3,7 +3,7 @@ import { useEditorStore } from '@/features/editor/lib/store/editorStore';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
-import { UpgradeOption } from './UpgradeOption';
+import { DocumentUploadPanel } from './DocumentUploadOption';
 
 interface FreeOptionProps {
   onStructureSelected?: (structure: string) => void;
@@ -26,8 +26,8 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
   const handleStructureSelect = (structure: string) => {
     setSelectedStructure(structure);
     
-    // Don't call onStructureSelected for 'upgrade' as it renders the UpgradeOption component
-    // The UpgradeOption component will handle its own document structure and call onStructureSelected when ready
+    // Don't call onStructureSelected for 'upgrade' as it renders the DocumentUploadPanel component
+    // The DocumentUploadPanel component will handle its own document structure and call onStructureSelected when ready
     if (structure !== 'upgrade') {
       onStructureSelected?.(structure);
     }
@@ -111,7 +111,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       createStandardBlueprint();
     }
     
-    // Don't navigate immediately for upgrade - let UpgradeOption handle navigation when ready
+    // Don't navigate immediately for upgrade - let DocumentUploadPanel handle navigation when ready
   };
 
 
@@ -136,7 +136,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
   return (
     <div className="space-y-6">
       {selectedStructure === 'upgrade' ? (
-        // Show UpgradeOption when 'upgrade' is selected
+        // Show DocumentUploadPanel when 'upgrade' is selected
         <div>
           <div className="mb-4">
             <button 
@@ -152,7 +152,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
               <span>{t('editor.desktop.program.backToPlanOptions')}</span>
             </button>
           </div>
-          <UpgradeOption onNavigateToBlueprint={onNavigateToBlueprint} />
+          <DocumentUploadPanel onNavigateToBlueprint={onNavigateToBlueprint} />
         </div>
       ) : (
         <>

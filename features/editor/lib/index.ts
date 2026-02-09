@@ -187,7 +187,6 @@ export {
 export { generateProgramBlueprint } from './utils/2-program-flows/program-flows/conversion/programConverter';
 
 // Legacy conversion utilities
-export { migrateLegacySetup } from './utils/3-legacy-conversion/legacy-conversion/legacyMigrator';
 
 // Blueprint Instantiation utilities
 export {
@@ -199,12 +198,15 @@ export {
 export { getCompleteSectionList, getSectionIcon } from './utils/1-document-flows/document-flows/organizeForUiRendering';
 export { isSpecialSectionId as isSpecialSection } from './constants';
 export { createSpecialSection } from './utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
+// Document processing functions - now available through doc-import module
+// TODO: Eventually migrate these to use doc-import directly
 export { enhanceWithSpecialSections } from './utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 export { sortSectionsForSingleDocument, sortSectionsForMultiDocument, isSpecialSection as isSpecialSectionUtil } from './utils/1-document-flows/document-flows/organizeForUiRendering';
 export { detectDocumentStructure } from './utils/1-document-flows/document-flows/processing/detection/documentStructureDetector';
-export { applyDetectionResults } from './utils/1-document-flows/document-flows/processing/structure/applyDetectionResults';
-export { normalizeDocumentStructure, mergeUploadedContentWithSpecialSections } from './utils/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
-export { processDocumentSecurely, splitDocumentIntoParts } from './utils/1-document-flows/document-flows/processing/documentProcessor';
+export { applyDetectionResults } from './utils/1-document-flows/document-flows/processing/detection/documentStructureDetector';
+export { processUploadedDocument } from './document-flow/processUploadedDocument';
+export { normalizeDocumentStructure } from './utils/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
+export { splitDocumentIntoParts } from './utils/1-document-flows/document-flows/processing/documentProcessor';
 export { validateDocumentContent } from './utils/1-document-flows/document-flows/processing/security/contentSecurityValidator';
 
 // ============================================================================

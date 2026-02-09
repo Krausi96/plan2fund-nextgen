@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { migrateLegacySetup, useConfiguratorState, useEditorStore } from '@/features/editor/lib';
+import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
 import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
 import { StandardStructurePanel } from './components/panels/StandardStructurePanel';
 import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
 import { ProgramFinder, EditorProgramFinder } from './components/finder';
-import { TemplateOption } from './components/options/TemplateOption';
-import { FreeOption } from './components/options/free-option/FreeOption';
+import { DocumentUploadPanel } from './components/options/DocumentUploadOption';
+import { FreeOption } from './components/options/FreeOption';
 import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
 import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 
@@ -111,7 +111,7 @@ export default function ProgramSelection({
   const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
   const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
   const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
-  const documentStructure = useEditorStore((state) => state.setupWizard.documentStructure);
+
   
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
@@ -119,7 +119,7 @@ export default function ProgramSelection({
 
 
 
-  // Handle legacy program migration and automatic initialization
+  // Handle program initialization from Reco/myProject flow
   useEffect(() => {
     // Check for program selected in Reco/myProject flow
     const savedProgram = localStorage.getItem('selectedProgram');
@@ -145,28 +145,7 @@ export default function ProgramSelection({
         console.error('❌ Failed to initialize from saved program:', error);
       }
     }
-    
-    // Handle legacy program migration
-    if (programSummary && !programSummary.documentStructure && !documentStructure) {
-      console.log('🔄 Migrating legacy program to document setup system...');
-      try {
-        const migrationResult = migrateLegacySetup(programSummary);
-        
-        if (migrationResult.fundingProgram) {
-          setProgramProfile(migrationResult.fundingProgram);
-        }
-        
-        if (migrationResult.structure) {
-          setDocumentStructure(migrationResult.structure);
-          setSetupStatus(migrationResult.status);
-          setSetupDiagnostics(migrationResult.diagnostics);
-        }
-        
-      } catch (error) {
-        console.error('❌ Failed to migrate legacy program:', error);
-      }
-    }
-  }, [programSummary, documentStructure, setProgramProfile, setDocumentStructure, setSetupStatus, setSetupDiagnostics, handleConnectProgram]);
+  }, [programSummary, handleConnectProgram]);
 
   const handleCloseProgramFinder = () => {
     setActiveTab('search');
@@ -337,10 +316,7 @@ export default function ProgramSelection({
               
               {/* Template Content */}
               {selectedOption === 'template' && (
-                <TemplateOption 
-                  onDocumentAnalyzed={(analysis) => {
-                    console.log('Template analysis complete:', analysis);
-                  }}
+                <DocumentUploadPanel 
                   onNavigateToBlueprint={onNavigateToBlueprint}
                 />
               )}

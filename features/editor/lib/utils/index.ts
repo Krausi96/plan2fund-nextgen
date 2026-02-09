@@ -14,16 +14,16 @@ export {
 export { generateProgramBlueprint } from './2-program-flows/program-flows/conversion/programConverter';
 
 // Export legacy conversion functions
-export { migrateLegacySetup } from './3-legacy-conversion/legacy-conversion/legacyMigrator';
 
 // Additional utilities from other modules
 export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from './4-blueprint-flows/blueprint-flows/document-instantiation/instantiateFromBlueprint';
 export { normalizeDocumentStructure } from './1-document-flows/document-flows/normalization/normalizeDocumentStructure';
-export { processDocumentSecurely, splitDocumentIntoParts } from './1-document-flows/document-flows/processing/documentProcessor';
+export { processUploadedDocument } from '../document-flow/processUploadedDocument';
+export { splitDocumentIntoParts } from './1-document-flows/document-flows/processing/documentProcessor';
 export { validateDocumentContent, detectMultipleSectionsWithoutTitles } from './1-document-flows/document-flows/processing/security/contentSecurityValidator';
 
 export { detectDocumentStructure } from './1-document-flows/document-flows/processing/detection/documentStructureDetector';
-export { applyDetectionResults } from './1-document-flows/document-flows/processing/structure/applyDetectionResults';
+export { applyDetectionResults } from './1-document-flows/document-flows/processing/detection/documentStructureDetector';
 export { organizeDocumentStructureForUi, getFlatDocumentView } from './1-document-flows/document-flows/organizeForUiRendering';
 export type { HierarchicalDocumentView } from './1-document-flows/document-flows/organizeForUiRendering';
 export { unifiedDeduplicateSections, unifiedDetectAndApply, processDocumentStructure, createUnifiedDocumentStructure } from './1-document-flows/document-flows/common/documentProcessingUtils';
