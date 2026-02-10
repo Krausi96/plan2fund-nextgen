@@ -93,7 +93,7 @@ export {
 } from '@/platform/generation/instantiation';
 
 // Section Detection utilities
-export { getCompleteSectionList } from '@/platform/analysis/internal/document-flows/document-flows/organizeForUiRendering';
+export { getCompleteSectionList } from '@/features/editor/lib/utils/organizeForUiRendering';
 export { getSectionIcon } from './utils/organizeForUiRendering';
 export { isSpecialSectionId as isSpecialSection } from './constants';
 export { createSpecialSection } from '@/platform/analysis/internal/document-flows/document-flows/sections/enhancement/sectionEnhancement';

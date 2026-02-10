@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { getSectionIcon } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { organizeDocumentStructureForUi } from '@/platform/analysis/internal/document-flows/document-flows/organizeForUiRendering';
+import { organizeForUiRendering } from '@/features/editor/lib/utils/organizeForUiRendering';
 
 
 interface ProgramSummaryPanelProps {
@@ -26,7 +26,7 @@ export function ProgramSummaryPanel({ onClear, documentStructure: propDocumentSt
   const hasProgramData = !!(programProfile || programSummary);
   
   // Get organized document structure for UI rendering
-  const hierarchicalView = documentStructure ? organizeDocumentStructureForUi(documentStructure) : null;
+  const hierarchicalView = documentStructure ? organizeForUiRendering(documentStructure) : null;
   
   // State for document expansion
   const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});

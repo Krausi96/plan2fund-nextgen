@@ -23,8 +23,8 @@ export { validateDocumentContent, detectMultipleSectionsWithoutTitles } from '@/
 
 export { detectDocumentStructure } from '@/platform/analysis/internal/document-flows/document-flows/processing/detection/documentStructureDetector';
 export { applyDetectionResults } from '@/platform/analysis/internal/document-flows/document-flows/processing/detection/documentStructureDetector';
-export { organizeDocumentStructureForUi, getFlatDocumentView } from '@/platform/analysis/internal/document-flows/document-flows/organizeForUiRendering';
-export type { HierarchicalDocumentView } from '@/platform/analysis/internal/document-flows/document-flows/organizeForUiRendering';
+export { organizeForUiRendering } from '@/features/editor/lib/utils/organizeForUiRendering';
+export type { HierarchicalDocumentView } from '@/features/editor/lib/utils/organizeForUiRendering';
 // New centralized location
 export { sortSectionsForSingleDocument, getSectionIcon, isSpecialSection } from './organizeForUiRendering';
 export { unifiedDeduplicateSections, unifiedDetectAndApply, processDocumentStructure, createUnifiedDocumentStructure } from '@/platform/analysis/internal/document-flows/document-flows/common/documentProcessingUtils';

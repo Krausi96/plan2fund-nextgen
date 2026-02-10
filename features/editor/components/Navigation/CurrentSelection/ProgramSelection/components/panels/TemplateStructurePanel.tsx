@@ -1,7 +1,7 @@
 import React from 'react';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { getSectionIcon } from '@/features/editor/lib';
-import { organizeDocumentStructureForUi } from '@/platform/analysis/internal/document-flows/document-flows/organizeForUiRendering';
+import { organizeForUiRendering } from '@/features/editor/lib/utils/organizeForUiRendering';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface TemplateStructurePanelProps {
@@ -19,7 +19,7 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHe
   const documentStructure = propDocumentStructure || storeDocumentStructure;
 
   // Use hierarchical organization for proper document structure display
-  const organizedStructure = organizeDocumentStructureForUi(documentStructure);
+  const organizedStructure = organizeForUiRendering(documentStructure);
   
   // Get sections by document from organized structure
   // Only show template data when template option is selected AND we have template data
@@ -166,7 +166,7 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHe
                     className={`overflow-hidden transition-all duration-300 ease-in-out ml-6 border-l-2 border-purple-500/30 pl-3 ${(expandedDocuments['appendices'] ?? true) ? 'max-h-[1000px]' : 'max-h-0'}`}
                   >
                     <div className="space-y-2 py-1">
-                      {organizedStructure.appendices.map((appendix, appendixIdx) => (
+                      {organizedStructure.appendices.map(( appendix: any, appendixIdx: any) => (
                         <div key={appendix.id}>
                           <div 
                             className="flex items-center gap-2 text-purple-200 text-sm font-medium mb-1"
