@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useProject } from '@/platform/core/context/hooks/useProject';
-import { processUploadedDocument } from '@/features/editor/lib/document-flow/processUploadedDocument';
+import { analyzeDocument } from '@/platform/analysis';
+import type { DocumentStructure } from '@/platform/core/types';
 
 interface DocumentUploadPanelProps {
   onNavigateToBlueprint?: () => void;
@@ -63,8 +64,8 @@ export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPan
     setIsProcessing(true);
 
     try {
-      // Process the document using the centralized function
-      const result = await processUploadedDocument(files, uploadMode);
+      // Process the document using the centralized analyzer
+      const result = await analyzeDocument(files, uploadMode);
 
       // Update store with the processed structure
       setDocumentStructure(result.documentStructure);

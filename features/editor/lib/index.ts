@@ -105,7 +105,7 @@ export { sortSectionsForSingleDocument, sortSectionsForMultiDocument } from '@/p
 export { isSpecialSection as isSpecialSectionUtil } from './utils/organizeForUiRendering';
 export { detectDocumentStructure } from '@/platform/analysis/internal/document-flows/processing/detection/documentStructureDetector';
 export { applyDetectionResults } from '@/platform/analysis/internal/document-flows/processing/detection/documentStructureDetector';
-export { processUploadedDocument } from '@/platform/analysis/internal/documentProcessor';
+export { analyzeDocument } from '@/platform/analysis';
 export { normalizeDocumentStructure } from '@/platform/analysis/internal/document-flows/normalization/normalizeDocumentStructure';
 export { splitDocumentIntoParts } from '@/platform/analysis/internal/document-flows/processing/documentProcessor';
 export { validateDocumentContent } from '@/platform/analysis/internal/document-flows/processing/security/contentSecurityValidator';
