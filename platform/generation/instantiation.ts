@@ -26,12 +26,12 @@ import type { DocumentStructure } from '@/platform/core/types';
 export function inferProductTypeFromBlueprint(structure: any): ProductType {
   // Handle new Blueprint interface
   if ('programId' in structure) {
-    const blueprint = structure as any; // Blueprint schema evolved
-    if (blueprint.programName.toLowerCase().includes('strategy')) {
+    const blueprint = structure as Blueprint;
+    if (blueprint.programName?.toLowerCase().includes('strategy')) {
       return 'strategy';
     }
     
-    if (blueprint.programName.toLowerCase().includes('upgrade')) {
+    if (blueprint.programName?.toLowerCase().includes('upgrade')) {
       return 'upgrade';
     }
     
@@ -93,7 +93,7 @@ export function instantiateFromBlueprint(
     const blueprint = structure as Blueprint;
     
     // Convert blueprint sections to plan sections
-    const planSections: PlanSection[] = blueprint.structure.sections.map((section: any) => ({
+    const planSections: PlanSection[] = (blueprint.structure?.sections ?? []).map((section: any) => ({
       key: section.id,
       id: section.id,
       title: section.title,
@@ -104,10 +104,9 @@ export function instantiateFromBlueprint(
         // Store blueprint metadata for AI and validation
         blueprintRequired: section.required,
         blueprintProgramCritical: section.critical,
-        blueprintAiPrompt: blueprint.guidance?.generationPrompts?.[section.id],
-        blueprintChecklist: blueprint.requirements.bySection[section.id]?.map((req: any) => req.description) || [],
-        // Store requirements for this section
-        blueprintRequirements: blueprint.requirements.bySection[section.id] || [],
+        blueprintAiPrompt: (blueprint.guidance as any)?.generationPrompts?.[section.id],
+        blueprintChecklist: blueprint.requirements?.bySection?.[section.id]?.map((req: any) => req.description) || [],
+        blueprintRequirements: blueprint.requirements?.bySection?.[section.id] || [],
       },
       status: 'draft',
     }));

@@ -7,7 +7,12 @@ import type { DocumentStructure } from './project';
 
 export interface Blueprint {
   id: string;
+  programId?: string; // Legacy: ID of source program
+  programName?: string; // Legacy: name of source program
   documentStructureId: string;
+  structure?: { // Legacy: blueprint structure sections
+    sections: BlueprintSection[];
+  };
   sections: BlueprintSection[];
   validation: {
     financial?: ValidationCategory;
@@ -17,7 +22,10 @@ export interface Blueprint {
     formatting?: ValidationCategory;
     evidence?: ValidationCategory;
   };
-  guidance: AIGuidance[];
+  guidance: AIGuidance[] | { generationPrompts?: Record<string, string> }; // Support both formats
+  requirements?: { // Legacy: requirements by section
+    bySection?: Record<string, RequirementItem[]>;
+  } & RequirementItem[];
   diagnostics?: BlueprintDiagnostics;
   createdAt: string;
   updatedAt: string;
