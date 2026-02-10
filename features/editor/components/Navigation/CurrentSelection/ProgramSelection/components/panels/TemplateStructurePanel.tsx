@@ -19,7 +19,7 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHe
   const documentStructure = propDocumentStructure || storeDocumentStructure;
 
   // Use hierarchical organization for proper document structure display
-  const organizedStructure = organizeDocumentStructureForUi(documentStructure, t);
+  const organizedStructure = organizeDocumentStructureForUi(documentStructure);
   
   // Get sections by document from organized structure
   // Only show template data when template option is selected AND we have template data

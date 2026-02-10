@@ -6,7 +6,7 @@
  */
 
 import type { DocumentStructure } from '@/platform/core/types';
-import { sortSectionsForSingleDocument } from '../organizeForUiRendering';
+import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/organizeForUiRendering';
 import { enhanceWithSpecialSections } from '../sections/enhancement/sectionEnhancement';
 import { unifiedDetectAndApply, unifiedDeduplicateSections } from '../common/documentProcessingUtils';
 import {

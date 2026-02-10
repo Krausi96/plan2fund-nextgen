@@ -26,7 +26,7 @@ export function ProgramSummaryPanel({ onClear, documentStructure: propDocumentSt
   const hasProgramData = !!(programProfile || programSummary);
   
   // Get organized document structure for UI rendering
-  const hierarchicalView = documentStructure ? organizeDocumentStructureForUi(documentStructure, t) : null;
+  const hierarchicalView = documentStructure ? organizeDocumentStructureForUi(documentStructure) : null;
   
   // State for document expansion
   const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});

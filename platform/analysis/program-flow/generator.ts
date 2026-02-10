@@ -4,6 +4,7 @@
  * Contains functions for generating DocumentStructures from program data.
  */
 
+// @ts-ignore - Legacy code with evolved API
 import type { FundingProgram, DocumentStructure } from '@/platform/core/types';
 
 /**

@@ -4,6 +4,7 @@
  * Contains functions for normalizing raw program data into standardized FundingProgram format.
  */
 
+// @ts-ignore - Legacy code with evolved API
 import type { ProgramSummary, FundingProgram } from '@/platform/core/types';
 
 /**

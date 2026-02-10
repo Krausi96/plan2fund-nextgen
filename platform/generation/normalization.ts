@@ -5,7 +5,7 @@
 
 import type { DocumentStructure, Section } from '@/platform/core/types';
 
-import { sortSectionsForSingleDocument } from './organizeForUiRendering';
+import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/organizeForUiRendering';
 
 // Special section IDs
 const METADATA_SECTION_ID = 'section_title_page';

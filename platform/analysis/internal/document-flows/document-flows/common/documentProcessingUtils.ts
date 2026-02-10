@@ -9,7 +9,7 @@ import type { DocumentStructure } from '@/platform/core/types';
 import { detectDocumentStructure } from '../processing/detection/documentStructureDetector';
 import { applyDetectionResults } from '../processing/detection/documentStructureDetector';
 import { enhanceWithSpecialSections } from '../sections/enhancement/sectionEnhancement';
-import { sortSectionsForSingleDocument } from '../organizeForUiRendering';
+import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/organizeForUiRendering';
 
 /**
  * Unified deduplication function
