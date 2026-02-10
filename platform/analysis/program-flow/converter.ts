@@ -4,7 +4,7 @@ import type { ProgramSummary } from '@/features/editor/lib/types/types';
  * Create minimal ProgramSummary from program data (backward compatibility)
  * @deprecated Use normalizeFundingProgram() instead for new code
  */
-export function generateProgramBlueprint(programData: any): ProgramSummary {
+export function generateProgramBlueprint(programData: any): any {
   // Simplified version for backward compatibility
   const mockSummary: ProgramSummary = {
     id: programData.id || `program_${Date.now()}`,

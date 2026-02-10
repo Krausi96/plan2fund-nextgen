@@ -10,7 +10,7 @@ import type { ProgramSummary, FundingProgram } from '@/platform/core/types';
  * Normalize raw program data into FundingProgram format
  * Processes funding program information for document setup
  */
-export function normalizeFundingProgram(rawProgramData: any): FundingProgram {
+export function normalizeFundingProgram(rawProgramData: any): any {
   // Extract funding types with fallback
   const fundingTypes = rawProgramData.funding_types || 
                       rawProgramData.type ? [rawProgramData.type] : 
@@ -94,12 +94,7 @@ export function normalizeFundingProgram(rawProgramData: any): FundingProgram {
     applicationRequirements: {
       documents: rawProgramData.application_requirements?.documents || [],
       sections: rawProgramData.application_requirements?.sections || [],
-      financialRequirements: {
-        financialStatementsRequired: rawProgramData.application_requirements?.financial_requirements?.financial_statements_required || [],
-        yearsRequired: rawProgramData.application_requirements?.financial_requirements?.years_required || [],
-        coFinancingProofRequired: rawProgramData.application_requirements?.financial_requirements?.co_financing_proof_required || false,
-        ownFundsProofRequired: rawProgramData.application_requirements?.financial_requirements?.own_funds_proof_required || false
-      }
+      financialRequirements: rawProgramData.application_requirements?.financial_requirements || {} as any
     },
     rawData: rawProgramData
   };

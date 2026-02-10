@@ -1,4 +1,4 @@
-import { normalizeFundingProgram } from './internal/data-processing/programNormalizer';
+import { normalizeFundingProgram } from './program-flow/normalizer';
 import type { FundingProgram } from '../core/types';
 
 /**

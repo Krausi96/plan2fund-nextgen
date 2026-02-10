@@ -5,13 +5,13 @@
 export {
   normalizeFundingProgram,
   normalizeProgramSetup,
-} from '@/platform/analysis/internal/data-processing/programNormalizer';
+} from '@/platform/analysis/program-flow/normalizer';
 export {
   generateDocumentStructureFromProfile,
-} from '@/platform/analysis/internal/structure-generation/structureGenerator';
+} from '@/platform/analysis/program-flow/generator';
 
 // Export conversion functions
-export { generateProgramBlueprint } from '@/platform/analysis/internal/conversion/programConverter';
+export { generateProgramBlueprint } from '@/platform/analysis/program-flow/converter';
 
 // Export legacy conversion functions
 

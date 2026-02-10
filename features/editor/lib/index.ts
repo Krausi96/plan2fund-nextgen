@@ -77,13 +77,13 @@ export {
 // Document Setup utilities
 export {
   normalizeFundingProgram,
-} from '@/platform/analysis/internal/data-processing/programNormalizer';
+} from '@/platform/analysis/program-flow/normalizer';
 export {
   generateDocumentStructureFromProfile,
-} from '@/platform/analysis/internal/structure-generation/structureGenerator';
+} from '@/platform/analysis/program-flow/generator';
 
 // Conversion utilities
-export { generateProgramBlueprint } from '@/platform/analysis/internal/conversion/programConverter';
+export { generateProgramBlueprint } from '@/platform/analysis/program-flow/converter';
 
 // Legacy conversion utilities
 
