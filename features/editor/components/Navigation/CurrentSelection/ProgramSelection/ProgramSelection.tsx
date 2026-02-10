@@ -7,7 +7,7 @@ import { ProgramFinder, EditorProgramFinder } from './components/finder';
 import { DocumentUploadPanel } from './components/options/DocumentUploadOption';
 import { FreeOption } from './components/options/FreeOption';
 import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
-import { enhanceWithSpecialSections } from '@/platform/analysis/internal/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
+import { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/document-flows/sections/enhancement/sectionEnhancement';
 import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
 
 

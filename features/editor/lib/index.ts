@@ -70,7 +70,7 @@ export {
 
 export {
   shouldIgnoreClick,
-} from '@/platform/analysis/internal/1-document-flows/document-flows/utils/editorUtils';
+} from '@/platform/analysis/internal/document-flows/utils/editorUtils';
 
 
 
@@ -91,24 +91,24 @@ export { generateProgramBlueprint } from '@/platform/analysis/program-flow/conve
 export {
   inferProductTypeFromBlueprint,
   instantiateFromBlueprint,
-} from '@/platform/analysis/internal/4-blueprint-flows/blueprint-flows/document-instantiation/instantiateFromBlueprint';
+} from '@/platform/generation/instantiation';
 
 // Section Detection utilities
-export { getCompleteSectionList } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
+export { getCompleteSectionList } from '@/platform/analysis/internal/document-flows/organizeForUiRendering';
 export { getSectionIcon } from './utils/organizeForUiRendering';
 export { isSpecialSectionId as isSpecialSection } from './constants';
-export { createSpecialSection } from '@/platform/analysis/internal/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
+export { createSpecialSection } from '@/platform/analysis/internal/document-flows/sections/enhancement/sectionEnhancement';
 // Document processing functions - now available through doc-import module
 // TODO: Eventually migrate these to use doc-import directly
-export { enhanceWithSpecialSections } from '@/platform/analysis/internal/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
-export { sortSectionsForSingleDocument, sortSectionsForMultiDocument } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
+export { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/sections/enhancement/sectionEnhancement';
+export { sortSectionsForSingleDocument, sortSectionsForMultiDocument } from '@/platform/analysis/internal/document-flows/organizeForUiRendering';
 export { isSpecialSection as isSpecialSectionUtil } from './utils/organizeForUiRendering';
-export { detectDocumentStructure } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/detection/documentStructureDetector';
-export { applyDetectionResults } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/detection/documentStructureDetector';
+export { detectDocumentStructure } from '@/platform/analysis/internal/document-flows/processing/detection/documentStructureDetector';
+export { applyDetectionResults } from '@/platform/analysis/internal/document-flows/processing/detection/documentStructureDetector';
 export { processUploadedDocument } from '@/platform/analysis/internal/documentProcessor';
-export { normalizeDocumentStructure } from '@/platform/analysis/internal/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
-export { splitDocumentIntoParts } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/documentProcessor';
-export { validateDocumentContent } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/security/contentSecurityValidator';
+export { normalizeDocumentStructure } from '@/platform/analysis/internal/document-flows/normalization/normalizeDocumentStructure';
+export { splitDocumentIntoParts } from '@/platform/analysis/internal/document-flows/processing/documentProcessor';
+export { validateDocumentContent } from '@/platform/analysis/internal/document-flows/processing/security/contentSecurityValidator';
 
 // ============================================================================
 // AI CLIENT - Section AI functionality

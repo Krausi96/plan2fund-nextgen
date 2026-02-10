@@ -16,19 +16,19 @@ export { generateProgramBlueprint } from '@/platform/analysis/program-flow/conve
 // Export legacy conversion functions
 
 // Additional utilities from other modules
-export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/platform/analysis/internal/4-blueprint-flows/blueprint-flows/document-instantiation/instantiateFromBlueprint';
-export { normalizeDocumentStructure } from '@/platform/analysis/internal/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
+export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/platform/generation/instantiation';
+export { normalizeDocumentStructure } from '@/platform/analysis/internal/document-flows/normalization/normalizeDocumentStructure';
 export { processUploadedDocument } from '../document-flow/processUploadedDocument';
-export { splitDocumentIntoParts } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/documentProcessor';
-export { validateDocumentContent, detectMultipleSectionsWithoutTitles } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/security/contentSecurityValidator';
+export { splitDocumentIntoParts } from '@/platform/analysis/internal/document-flows/processing/documentProcessor';
+export { validateDocumentContent, detectMultipleSectionsWithoutTitles } from '@/platform/analysis/internal/document-flows/processing/security/contentSecurityValidator';
 
-export { detectDocumentStructure } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/detection/documentStructureDetector';
-export { applyDetectionResults } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/detection/documentStructureDetector';
-export { organizeDocumentStructureForUi, getFlatDocumentView } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
-export type { HierarchicalDocumentView } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
+export { detectDocumentStructure } from '@/platform/analysis/internal/document-flows/processing/detection/documentStructureDetector';
+export { applyDetectionResults } from '@/platform/analysis/internal/document-flows/processing/detection/documentStructureDetector';
+export { organizeDocumentStructureForUi, getFlatDocumentView } from '@/platform/analysis/internal/document-flows/organizeForUiRendering';
+export type { HierarchicalDocumentView } from '@/platform/analysis/internal/document-flows/organizeForUiRendering';
 // New centralized location
 export { sortSectionsForSingleDocument, getSectionIcon, isSpecialSection } from './organizeForUiRendering';
-export { unifiedDeduplicateSections, unifiedDetectAndApply, processDocumentStructure, createUnifiedDocumentStructure } from '@/platform/analysis/internal/1-document-flows/document-flows/common/documentProcessingUtils';
+export { unifiedDeduplicateSections, unifiedDetectAndApply, processDocumentStructure, createUnifiedDocumentStructure } from '@/platform/analysis/internal/document-flows/common/documentProcessingUtils';
 
 // Export types
 

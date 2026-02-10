@@ -4,9 +4,8 @@
  * Contains functions for instantiating PlanDocuments from DocumentStructures.
  */
 
-import type { PlanSection, PlanDocument, ProductType } from '@/platform/core/types';
+import type { PlanSection, PlanDocument, ProductType, Blueprint } from '@/platform/core/types';
 import type { DocumentStructure } from '@/platform/core/types';
-import type { Blueprint } from '@/platform/generation/blueprintGenerator';
 
 
 /**
@@ -24,7 +23,7 @@ import type { Blueprint } from '@/platform/generation/blueprintGenerator';
  * @param structure - Either DocumentStructure or Blueprint
  * @returns ProductType ('submission' | 'strategy' | 'review')
  */
-export function inferProductTypeFromBlueprint(structure: DocumentStructure | Blueprint): ProductType {
+export function inferProductTypeFromBlueprint(structure: any): ProductType {
   // Handle new Blueprint interface
   if ('programId' in structure) {
     const blueprint = structure as Blueprint;
@@ -84,7 +83,7 @@ export function inferProductTypeFromBlueprint(structure: DocumentStructure | Blu
  * @returns Complete PlanDocument ready for editor
  */
 export function instantiateFromBlueprint(
-  structure: DocumentStructure | Blueprint,
+  structure: any,
   productType: ProductType,
   existingTitlePage?: any
 ): PlanDocument {
