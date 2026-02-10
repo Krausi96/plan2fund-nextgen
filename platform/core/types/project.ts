@@ -420,6 +420,8 @@ export interface TemplateDocument {
  */
 export type DocumentTemplateId = 'business-plan' | 'pitch-deck' | 'executive-summary' | 'strategy' | 'upgrade' | 'custom';
 
+export type ProductType = 'submission' | 'strategy' | 'upgrade';
+
 /**
  * Setup wizard state tracking
  */

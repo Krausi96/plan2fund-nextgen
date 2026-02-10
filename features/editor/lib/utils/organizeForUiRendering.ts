@@ -1,6 +1,6 @@
 /**
  * Organize Document Structure for UI Rendering
- * Consolidated from features/editor/lib/document-flow/organizeForUiRendering.ts
+ * Utility for organizing document structure for hierarchical UI display
  */
 
 import type { DocumentStructure } from '@/platform/core/types';

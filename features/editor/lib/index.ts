@@ -3,44 +3,6 @@
  * EDITOR LIBRARY - UNIFIED EXPORTS (Public API)
  * ============================================================================
  * 
- * 📚 QUICK START:
- * 
- *   // ✅ RECOMMENDED: Use combined state hooks (easiest)
- *   import { useSidebarState, useDocumentsBarState } from '@/features/editor/lib';
- * 
- *   // ✅ For specific needs: Use selectors
- *   import { useIsNewUser, useHasPlan, useSectionsForSidebar } from '@/features/editor/lib';
- * 
- *   // ❌ DEPRECATED: Style constants are no longer exported
- *   // All components now use inline Tailwind classes directly
- * 
- *   // ✅ For utilities: Use utility functions
- *   import { shouldIgnoreClick, normalizeProgramInput } from '@/features/editor/lib';
- * 
- *   // ✅ For types: Import types
- *   import type { SectionTemplate, ProductType } from '@/features/editor/lib';
- * 
- * 📁 FOLDER STRUCTURE:
- * 
- *   lib/
- *   ├── types.ts                    # TypeScript type definitions
- *   ├── store/                      # State management & data builders
- *   │   ├── editorStore.ts          # Zustand store (state + actions)
- *   │   ├── sectionBuilders.ts      # Build section lists for views
- *   │   └── documentBuilders.ts     # Build document lists for views
- *   ├── constants/                  # Constants & IDs
- *   │   └── editorConstants.ts      # Product options, section IDs, helpers
- *   ├── renderers/                  # Preview/rendering utilities
- *   │   └── rendererUtils.ts        # Page numbers, translations, formatting
- *   ├── utils/                      # General utility functions
- *   │   └── editorUtils.ts          # Click handling, input normalization
- *   ├── hooks/                      # React hooks
- *   │   ├── useEditorSelectors.ts   # Read state (selectors)
- *   │   ├── useEditorActions.ts     # Write state (actions)
- *   │   ├── useEditorState.ts       # Combined state hooks (RECOMMENDED)
- *   │   └── useEditorHandlers.ts    # Handler creation hooks
- *   └── index.ts                    # This file - unified exports
- * 
  * 📖 For detailed documentation, see: lib/README.md
  * ============================================================================
  */
@@ -57,7 +19,8 @@ export type { SubsectionTemplate, SectionTemplate, DocumentTemplate } from './ty
 export type { TitlePage, PlanSection, PlanDocument, BusinessPlan, SectionWithMetadata, DocumentWithMetadata } from '@/platform/core/types';
 
 // Program types
-export type { FundingProgram, DocumentStructure, ProgramSummary, SetupDiagnostics, SetupStatus, SetupSource } from './types/program/program-types';
+export type { FundingProgram, ProgramSummary } from '@/platform/core/types/program';
+export type { DocumentStructure } from '@/platform/core/types/project';
 
 // Workflow types
 export type { ProjectProfile, DocumentTemplateId, SetupWizardState } from '@/platform/core/types';
@@ -89,20 +52,6 @@ export {
   getSectionTitle,
 } from './constants';
 
-// ============================================================================
-// SELECTORS - Store selectors (read state)
-// ============================================================================
-
-// DEPRECATED: useEditorSelectors has been migrated to useProjectStore selectors
-
-// ============================================================================
-// HOOKS - React hooks for UI interactions
-// ============================================================================
-
-// DEPRECATED: useEditorActions and useEditorState have been migrated to useProjectStore
-
-// Removed deprecated exports - these hooks are now available via useProject
-// (useToggleHandlers, useEditHandlers, useEditorHandlers migrated)
 
 // ============================================================================
 // RENDERERS - Rendering utilities
@@ -121,21 +70,20 @@ export {
 
 export {
   shouldIgnoreClick,
-} from './utils/1-document-flows/document-flows/utils/editorUtils';
+} from '@/platform/analysis/internal/1-document-flows/document-flows/utils/editorUtils';
 
-// Program utilities
 
 
 // Document Setup utilities
 export {
   normalizeFundingProgram,
-} from './utils/2-program-flows/program-flows/data-processing/programNormalizer';
+} from '@/platform/analysis/internal/data-processing/programNormalizer';
 export {
   generateDocumentStructureFromProfile,
-} from './utils/2-program-flows/program-flows/structure-generation/structureGenerator';
+} from '@/platform/analysis/internal/structure-generation/structureGenerator';
 
 // Conversion utilities
-export { generateProgramBlueprint } from './utils/2-program-flows/program-flows/conversion/programConverter';
+export { generateProgramBlueprint } from '@/platform/analysis/internal/conversion/programConverter';
 
 // Legacy conversion utilities
 
@@ -143,22 +91,24 @@ export { generateProgramBlueprint } from './utils/2-program-flows/program-flows/
 export {
   inferProductTypeFromBlueprint,
   instantiateFromBlueprint,
-} from './utils/4-blueprint-flows/blueprint-flows/document-instantiation/instantiateFromBlueprint';
+} from '@/platform/analysis/internal/4-blueprint-flows/blueprint-flows/document-instantiation/instantiateFromBlueprint';
 
 // Section Detection utilities
-export { getCompleteSectionList, getSectionIcon } from './utils/1-document-flows/document-flows/organizeForUiRendering';
+export { getCompleteSectionList } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
+export { getSectionIcon } from './utils/organizeForUiRendering';
 export { isSpecialSectionId as isSpecialSection } from './constants';
-export { createSpecialSection } from './utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
+export { createSpecialSection } from '@/platform/analysis/internal/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
 // Document processing functions - now available through doc-import module
 // TODO: Eventually migrate these to use doc-import directly
-export { enhanceWithSpecialSections } from './utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
-export { sortSectionsForSingleDocument, sortSectionsForMultiDocument, isSpecialSection as isSpecialSectionUtil } from './utils/1-document-flows/document-flows/organizeForUiRendering';
-export { detectDocumentStructure } from './utils/1-document-flows/document-flows/processing/detection/documentStructureDetector';
-export { applyDetectionResults } from './utils/1-document-flows/document-flows/processing/detection/documentStructureDetector';
-export { processUploadedDocument } from './document-flow/processUploadedDocument';
-export { normalizeDocumentStructure } from './utils/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
-export { splitDocumentIntoParts } from './utils/1-document-flows/document-flows/processing/documentProcessor';
-export { validateDocumentContent } from './utils/1-document-flows/document-flows/processing/security/contentSecurityValidator';
+export { enhanceWithSpecialSections } from '@/platform/analysis/internal/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
+export { sortSectionsForSingleDocument, sortSectionsForMultiDocument } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
+export { isSpecialSection as isSpecialSectionUtil } from './utils/organizeForUiRendering';
+export { detectDocumentStructure } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/detection/documentStructureDetector';
+export { applyDetectionResults } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/detection/documentStructureDetector';
+export { processUploadedDocument } from '@/platform/analysis/internal/documentProcessor';
+export { normalizeDocumentStructure } from '@/platform/analysis/internal/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
+export { splitDocumentIntoParts } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/documentProcessor';
+export { validateDocumentContent } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/security/contentSecurityValidator';
 
 // ============================================================================
 // AI CLIENT - Section AI functionality
@@ -194,3 +144,4 @@ export {
   addCustomSection,
   addCustomSubsection,
 } from './templates';
+

@@ -1,4 +1,4 @@
-import { processDocumentSecurely } from '../utils/1-document-flows/document-flows/processing/documentProcessor';
+import { processDocumentSecurely } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/documentProcessor';
 import type { DocumentStructure } from '@/platform/core/types';
 
 /**

@@ -20,7 +20,9 @@ export type { SubsectionTemplate, SectionTemplate, DocumentTemplate } from './co
 export type { TitlePage, PlanSection, PlanDocument, BusinessPlan, SectionWithMetadata, DocumentWithMetadata } from '@/platform/core/types';
 
 // Program types
-export type { FundingProgram, DocumentStructure, ProgramSummary, SetupDiagnostics, SetupStatus, SetupSource } from './program/program-types';
+export type { FundingProgram, ProgramSummary } from '@/platform/core/types/program';
+export type { DocumentStructure } from '@/platform/core/types/project';
+// SetupDiagnostics, SetupStatus, SetupSource - define locally or move to core types
 
 // Workflow types
 export type { ProjectProfile, DocumentTemplateId, SetupWizardState } from '@/platform/core/types';

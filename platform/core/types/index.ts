@@ -24,6 +24,7 @@ export type {
   WarningItem,
   SetupWizardState,
   DocumentTemplateId,
+  ProductType,
 } from './project';
 export type {
   Program,

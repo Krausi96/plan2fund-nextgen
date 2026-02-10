@@ -1,4 +1,4 @@
-import type { DocumentStructure } from '../../../../../types/types';
+import type { DocumentStructure } from '@/platform/core/types';
 
 /**
  * Splits a document into multiple documents based on user selection
@@ -27,19 +27,28 @@ export function splitDocumentIntoParts(
       // Create a new structure with updated metadata for this segment
       const segmentStructure: DocumentStructure = {
         ...originalStructure,
-        structureId: `doc-split-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 9)}`,
         documents: [{
           id: `doc-${Date.now()}-${i}`,
           name: `${originalStructure.documents[0]?.name || 'Untitled'} - Part ${i + 1}`,
           purpose: `Part ${i + 1} of split document`,
           required: true
         }],
-        sections: segmentSections,
+        sections: segmentSections.map(section => ({
+          ...section,
+          documentId: `doc-${Date.now()}-${i}`
+        })),
         // Copy over the lists without filtering to avoid type issues
         requirements: originalStructure.requirements || [],
         validationRules: originalStructure.validationRules || [],
+        aiGuidance: originalStructure.aiGuidance || [],
+        renderingRules: originalStructure.renderingRules || {},
         conflicts: originalStructure.conflicts || [],
-        updatedAt: new Date().toISOString()
+        warnings: originalStructure.warnings || [],
+        confidenceScore: originalStructure.confidenceScore || 0,
+        metadata: {
+          ...originalStructure.metadata,
+          generatedAt: new Date().toISOString()
+        }
       };
       
       parts.push(segmentStructure);

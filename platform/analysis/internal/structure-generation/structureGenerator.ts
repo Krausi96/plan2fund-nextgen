@@ -4,7 +4,7 @@
  * Contains functions for generating DocumentStructures from program data.
  */
 
-import type { FundingProgram, DocumentStructure } from '../../../../types/program/program-types';
+import type { FundingProgram, DocumentStructure } from '@/platform/core/types';
 
 /**
  * Generate DocumentStructure from FundingProgram

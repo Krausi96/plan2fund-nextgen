@@ -5,7 +5,7 @@
  * (programs, templates, uploads) into a consistent format.
  */
 
-import type { DocumentStructure } from '../../../../types/types';
+import type { DocumentStructure } from '@/platform/core/types';
 import { sortSectionsForSingleDocument } from '../organizeForUiRendering';
 import { enhanceWithSpecialSections } from '../sections/enhancement/sectionEnhancement';
 import { unifiedDetectAndApply, unifiedDeduplicateSections } from '../common/documentProcessingUtils';
@@ -16,7 +16,7 @@ import {
   APPENDICES_SECTION_ID,
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
-} from '../../../../constants';
+} from '@/features/editor/lib/constants';
 
 /**
  * Normalize document structure to ensure consistency across all sources
@@ -48,19 +48,21 @@ export function normalizeDocumentStructure(
     // If no documents defined, create a default main document
     const enhancedStructure = {
       ...normalizedStructure,
-      structureId: normalizedStructure.structureId || `normalized-${Date.now()}`,
-      documents: [
-        {
-          id: 'main_document',
-          name: 'Main Document',
-          purpose: 'Primary document',
-          required: true
-        }
-      ],
-      sections: normalizedStructure.sections.map((section: any) => ({
-        ...section,
-        documentId: 'main_document' // Assign all sections to the main document
-      }))
+      documents: normalizedStructure.documents,
+      sections: normalizedStructure.sections,
+      requirements: normalizedStructure.requirements,
+      validationRules: normalizedStructure.validationRules,
+      aiGuidance: normalizedStructure.aiGuidance,
+      renderingRules: normalizedStructure.renderingRules,
+      conflicts: normalizedStructure.conflicts,
+      warnings: normalizedStructure.warnings,
+      confidenceScore: normalizedStructure.confidenceScore,
+      metadata: {
+        ...normalizedStructure.metadata,
+        generatedAt: normalizedStructure.metadata?.generatedAt || new Date().toISOString(),
+        version: normalizedStructure.metadata?.version || '1.0',
+        source: normalizedStructure.metadata?.source || 'normalized'
+      }
     };
     
     // Apply canonical ordering to ensure sections are in the proper order
@@ -78,11 +80,24 @@ export function normalizeDocumentStructure(
   
   const structureWithCorrectDocuments = {
     ...normalizedStructure,
-    structureId: normalizedStructure.structureId || `normalized-${Date.now()}`,
+    documents: normalizedStructure.documents,
     sections: normalizedStructure.sections.map((section: any) => ({
       ...section,
       documentId: section.documentId || mainDocumentId
-    }))
+    })),
+    requirements: normalizedStructure.requirements,
+    validationRules: normalizedStructure.validationRules,
+    aiGuidance: normalizedStructure.aiGuidance,
+    renderingRules: normalizedStructure.renderingRules,
+    conflicts: normalizedStructure.conflicts,
+    warnings: normalizedStructure.warnings,
+    confidenceScore: normalizedStructure.confidenceScore,
+    metadata: {
+      ...normalizedStructure.metadata,
+      generatedAt: normalizedStructure.metadata?.generatedAt || new Date().toISOString(),
+      version: normalizedStructure.metadata?.version || '1.0',
+      source: normalizedStructure.metadata?.source || 'normalized'
+    }
   };
   
   // Apply canonical ordering to ensure sections are in the proper order
@@ -119,9 +134,6 @@ export function mergeUploadedContentWithSpecialSections(
 ): DocumentStructure {
   // Create initial structure from uploaded content
   const baseStructure: DocumentStructure = existingStructure || {
-    structureId: `merged-${Date.now()}`,
-    version: '1.0',
-    source: 'template' as const,
     documents: [
       { 
         id: 'main_document', 
@@ -151,9 +163,11 @@ export function mergeUploadedContentWithSpecialSections(
     conflicts: [],
     warnings: [],
     confidenceScore: 75,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    createdBy: 'upload-merger'
+    metadata: {
+      source: 'document',
+      generatedAt: new Date().toISOString(),
+      version: '1.0',
+    }
   };
   
   // Apply detection and enhancement to enrich existing sections

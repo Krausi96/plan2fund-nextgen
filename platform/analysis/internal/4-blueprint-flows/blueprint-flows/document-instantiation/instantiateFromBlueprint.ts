@@ -4,9 +4,10 @@
  * Contains functions for instantiating PlanDocuments from DocumentStructures.
  */
 
-import type { ProductType, PlanSection, PlanDocument } from '../../../../types/types';
-import type { DocumentStructure } from '../../../../types/program/program-types';
+import type { PlanSection, PlanDocument, ProductType } from '@/platform/core/types';
+import type { DocumentStructure } from '@/platform/core/types';
 import type { Blueprint } from '@/platform/generation/blueprintGenerator';
+
 
 /**
  * Infer ProductType from DocumentStructure or Blueprint characteristics
@@ -43,12 +44,12 @@ export function inferProductTypeFromBlueprint(structure: DocumentStructure | Blu
   const documentStructure = structure as DocumentStructure;
   
   // Check source first - programs are typically for submissions
-  if (documentStructure.source === 'program') {
+  if (documentStructure.metadata?.source === 'program') {
     return 'submission';
   }
   
   // Check structure ID for type hints
-  const structureId = documentStructure.structureId?.toLowerCase() || '';
+  const structureId = documentStructure.metadata?.generatedAt || ''; // Use generatedAt as fallback since structureId doesn't exist in new interface
   
   if (structureId.includes('strategy')) {
     return 'strategy';
@@ -193,9 +194,9 @@ export function instantiateFromBlueprint(
         customSections: [],
         customDocuments: [],
         // Store blueprint reference
-        blueprintId: documentStructure.structureId,
-        blueprintVersion: documentStructure.version,
-        blueprintSource: documentStructure.source,
+        blueprintId: documentStructure.metadata?.generatedAt || '',
+        blueprintVersion: documentStructure.metadata?.version || '',
+        blueprintSource: documentStructure.metadata?.source || 'program',
         // Store blueprint artifacts for AI and validation
         blueprintRequirements: documentStructure.requirements,
         blueprintValidationRules: documentStructure.validationRules,

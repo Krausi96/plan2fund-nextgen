@@ -1,5 +1,5 @@
 import { detectMultipleSectionsWithoutTitles } from './security/contentSecurityValidator';
-import type { DocumentStructure } from '../../../../types/types';
+import type { DocumentStructure } from '@/platform/core/types';
 import { detectDocumentStructure, applyDetectionResults } from './detection/documentStructureDetector';
 import { rawTextToSections } from './structure/rawTextToSections';
 import { splitDocumentIntoParts } from './structure/splitDocument';

@@ -1,27 +1,23 @@
 /**
- * Analysis Layer - Consolidated from features/reco/lib/
- * 
- * Unified analysis utilities for:
- * - Program discovery and analysis (from ProgramFinder flow)
- * - Document analysis (from document upload flow)
- * - Cross-flow convergence to DocumentStructure
+ * Analysis Layer - Public API
  */
 
-// Program Analysis
-export {
-  analyzeUserProfileForPrograms,
-  matchProgramsToProfile,
-  calculateProgramMatchScore,
-  sortProgramsByRelevance
-} from './programAnalyzer';
-
-// Program Persistence (consolidated from features/reco/lib/programPersistence.ts)
+// Program Persistence
 export {
   saveSelectedProgram,
   loadSelectedProgram,
   clearSelectedProgram,
   validateAndSanitize
-} from './programPersistence';
+} from './internal/programPersistence';
+
+// Document Analysis
+export { analyzeDocument } from './documentAnalyzer';
+
+// Program Analysis
+export { analyzeProgram } from './programAnalyzer';
+
+// Business Quality Analysis
+export { analyzeBusinessQuality } from './businessAnalyzer';
 
 // Analysis Configuration
 export {
@@ -32,13 +28,6 @@ export {
   MAX_BATCH_ANALYSIS
 } from './config';
 
-// Document Analysis
-export {
-  analyzeUploadedDocument,
-  analyzeDocumentQuality,
-  extractDocumentInsights
-} from './documentAnalyzer';
-
 // Unified Analysis Types
 export type {
   ProgramAnalysisResult,
@@ -46,4 +35,4 @@ export type {
   AnalysisContext,
   MatchScore,
   SectionInfo
-} from './types';;
+} from './types';

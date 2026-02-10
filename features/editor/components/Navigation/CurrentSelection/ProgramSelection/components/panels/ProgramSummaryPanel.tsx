@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { getSectionIcon } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { organizeDocumentStructureForUi } from '@/features/editor/lib/utils/1-document-flows/document-flows/organizeForUiRendering';
+import { organizeDocumentStructureForUi } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
 
 
 interface ProgramSummaryPanelProps {

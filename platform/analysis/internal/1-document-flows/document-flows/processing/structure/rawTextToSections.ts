@@ -1,4 +1,4 @@
-import type { DocumentStructure, PlanSection } from '../../../../../types/types';
+import type { DocumentStructure, PlanSection } from '@/platform/core/types';
 import { processDocumentStructure } from '../../common/documentProcessingUtils';
 
 /**
@@ -97,9 +97,7 @@ export function rawTextToSections(content: string, fileName: string, baseId: str
   
   // Create initial document structure from extracted sections
   const initialStructure: DocumentStructure = {
-    structureId: `doc-${baseId}-${Math.random().toString(36).substr(2, 9)}`, 
-    version: '1.0',
-    source: 'template',
+
     documents: [{
       id: `doc-${baseId}`, 
       name: fileName.replace(/\.[^/.]+$/, ""),
@@ -110,15 +108,11 @@ export function rawTextToSections(content: string, fileName: string, baseId: str
       id: section.id,
       documentId: `doc-${baseId}`, 
       title: section.title,
-      type: 'optional',
+      type: 'normal' as const,
       required: false,
       programCritical: false,
       content: section.content || '', // Add content property
-      rawSubsections: section.rawSubsections || [{
-        id: `${section.id}-default`,
-        title: section.title,
-        rawText: section.content || ''
-      }]
+      // rawSubsections is not part of the Section interface
     })), 
     requirements: [],
     validationRules: [],
@@ -127,9 +121,11 @@ export function rawTextToSections(content: string, fileName: string, baseId: str
     conflicts: [],
     warnings: [],
     confidenceScore: 90, // Default confidence
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    createdBy: 'user'
+    metadata: {
+      source: 'document',
+      generatedAt: new Date().toISOString(),
+      version: '1.0',
+    }
   };
   
   // Process the structure with the complete pipeline

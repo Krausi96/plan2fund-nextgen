@@ -5,11 +5,12 @@
 
 import { callLLM, type LLMRequest } from '../ai/llmClient';
 import { parseBlueprintResponse } from '../ai/parsers/responseParsers';
+import type { Blueprint } from '../core/types/blueprint';
 
 /**
  * Fallback blueprint when LLM generation fails
  */
-function createFallbackBlueprint(program: ProgramInfo): Blueprint {
+function createFallbackBlueprint(program: ProgramInfo): any {
   return {
     programId: program.id,
     programName: program.name,
@@ -57,59 +58,6 @@ export interface RequirementItem {
   description: string;
   severity: 'critical' | 'major' | 'minor';
   evidence?: string;
-}
-
-export interface Blueprint {
-  programId: string;
-  programName: string;
-
-  structure: {
-    documents: Array<{
-      id: string;
-      name: string;
-      required: boolean;
-    }>;
-    sections: Array<{
-      id: string;
-      documentId: string;
-      title: string;
-      required: boolean;
-      parentId?: string;
-      critical?: boolean;
-    }>;
-  };
-
-  requirements: {
-    global: RequirementItem[];
-    bySection: Record<string, RequirementItem[]>;
-  };
-
-  validation: {
-    financial?: {
-      yearsRequired?: number;
-      coFinancingRequired?: boolean;
-      currency?: string;
-    };
-    formatting?: {
-      maxPages?: number;
-      language?: string;
-      annexRequired?: boolean;
-    };
-    submission?: {
-      mandatoryDocuments?: string[];
-    };
-  };
-
-  guidance?: {
-    sectionTips?: Record<string, string[]>;
-    generationPrompts?: Record<string, string>;
-  };
-
-  diagnostics?: {
-    confidence?: number;
-    assumptions?: string[];
-    missingInfo?: string[];
-  };
 }
 
 interface ProgramInfo {

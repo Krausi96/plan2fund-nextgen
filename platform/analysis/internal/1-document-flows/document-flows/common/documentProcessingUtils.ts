@@ -5,7 +5,7 @@
  * between documentProcessor.ts and normalizeDocumentStructure.ts
  */
 
-import type { DocumentStructure } from '../../../../types/program/program-types';
+import type { DocumentStructure } from '@/platform/core/types';
 import { detectDocumentStructure } from '../processing/detection/documentStructureDetector';
 import { applyDetectionResults } from '../processing/detection/documentStructureDetector';
 import { enhanceWithSpecialSections } from '../sections/enhancement/sectionEnhancement';
@@ -58,11 +58,8 @@ export function processDocumentStructure(structure: DocumentStructure, content: 
 /**
  * Unified structure creation function
  */
-export function createUnifiedDocumentStructure(sections: any[], documents: any[], source: 'program' | 'template' | 'standard' | 'upgrade'): DocumentStructure {
+export function createUnifiedDocumentStructure(sections: any[], documents: any[], source: 'program' | 'template' | 'document' | 'upload'): DocumentStructure {
   return {
-    structureId: `doc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    version: '1.0',
-    source,
     documents,
     sections,
     requirements: [],
@@ -72,8 +69,10 @@ export function createUnifiedDocumentStructure(sections: any[], documents: any[]
     conflicts: [],
     warnings: [],
     confidenceScore: 75,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    createdBy: 'document-utils'
+    metadata: {
+      source: source === 'upload' ? 'document' : source,
+      generatedAt: new Date().toISOString(),
+      version: '1.0',
+    }
   };
 }

@@ -5,28 +5,30 @@
 export {
   normalizeFundingProgram,
   normalizeProgramSetup,
-} from './2-program-flows/program-flows/data-processing/programNormalizer';
+} from '@/platform/analysis/internal/data-processing/programNormalizer';
 export {
   generateDocumentStructureFromProfile,
-} from './2-program-flows/program-flows/structure-generation/structureGenerator';
+} from '@/platform/analysis/internal/structure-generation/structureGenerator';
 
 // Export conversion functions
-export { generateProgramBlueprint } from './2-program-flows/program-flows/conversion/programConverter';
+export { generateProgramBlueprint } from '@/platform/analysis/internal/conversion/programConverter';
 
 // Export legacy conversion functions
 
 // Additional utilities from other modules
-export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from './4-blueprint-flows/blueprint-flows/document-instantiation/instantiateFromBlueprint';
-export { normalizeDocumentStructure } from './1-document-flows/document-flows/normalization/normalizeDocumentStructure';
+export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/platform/analysis/internal/4-blueprint-flows/blueprint-flows/document-instantiation/instantiateFromBlueprint';
+export { normalizeDocumentStructure } from '@/platform/analysis/internal/1-document-flows/document-flows/normalization/normalizeDocumentStructure';
 export { processUploadedDocument } from '../document-flow/processUploadedDocument';
-export { splitDocumentIntoParts } from './1-document-flows/document-flows/processing/documentProcessor';
-export { validateDocumentContent, detectMultipleSectionsWithoutTitles } from './1-document-flows/document-flows/processing/security/contentSecurityValidator';
+export { splitDocumentIntoParts } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/documentProcessor';
+export { validateDocumentContent, detectMultipleSectionsWithoutTitles } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/security/contentSecurityValidator';
 
-export { detectDocumentStructure } from './1-document-flows/document-flows/processing/detection/documentStructureDetector';
-export { applyDetectionResults } from './1-document-flows/document-flows/processing/detection/documentStructureDetector';
-export { organizeDocumentStructureForUi, getFlatDocumentView } from './1-document-flows/document-flows/organizeForUiRendering';
-export type { HierarchicalDocumentView } from './1-document-flows/document-flows/organizeForUiRendering';
-export { unifiedDeduplicateSections, unifiedDetectAndApply, processDocumentStructure, createUnifiedDocumentStructure } from './1-document-flows/document-flows/common/documentProcessingUtils';
+export { detectDocumentStructure } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/detection/documentStructureDetector';
+export { applyDetectionResults } from '@/platform/analysis/internal/1-document-flows/document-flows/processing/detection/documentStructureDetector';
+export { organizeDocumentStructureForUi, getFlatDocumentView } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
+export type { HierarchicalDocumentView } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
+// New centralized location
+export { sortSectionsForSingleDocument, getSectionIcon, isSpecialSection } from './organizeForUiRendering';
+export { unifiedDeduplicateSections, unifiedDetectAndApply, processDocumentStructure, createUnifiedDocumentStructure } from '@/platform/analysis/internal/1-document-flows/document-flows/common/documentProcessingUtils';
 
 // Export types
 

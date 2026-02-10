@@ -5,7 +5,7 @@
  * It receives a structure, optionally calls AI services, and returns the enhanced structure.
  */
 
-import type { DocumentStructure } from '@/features/editor/lib/types/types';
+import type { DocumentStructure } from '@/platform/core/types';
 import { enrichSectionsWithMeaning } from './ruleBasedSemanticMapper';
 
 /**

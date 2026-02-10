@@ -3,7 +3,7 @@ import { useProject } from '@/platform/core/context/hooks/useProject';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { getSectionIcon } from '@/features/editor/lib';
-import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/1-document-flows/document-flows/organizeForUiRendering';
+import { sortSectionsForSingleDocument } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
 
 interface StandardStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;

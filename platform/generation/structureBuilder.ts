@@ -23,46 +23,12 @@ import type {
   RenderingRules,
   FundingProgram,
 } from '../core/types';
-
-/**
- * Parsed document data from documentParser
- */
-export interface ParsedDocumentData {
-  structure: DocumentStructure;
-  detection: DetectionMap;
-  specialSections: SpecialSection[];
-  confidence: number;
-  metadata: {
-    source: 'upload' | 'template';
-    fileName?: string;
-    fileType?: string;
-  };
-}
-
-/**
- * Detection results from documentParser
- */
-export interface DetectionMap {
-  titlePageConfidence: number;
-  tocConfidence: number;
-  referencesConfidence: number;
-  appendicesConfidence: number;
-  templateType?: 'business_plan' | 'strategy' | 'financial' | string;
-  detectedSections: SectionDetection[];
-}
-
-export interface SectionDetection {
-  title: string;
-  confidence: number;
-  type: 'normal' | 'special' | 'metadata';
-}
-
-export interface SpecialSection {
-  id: string;
-  type: 'title_page' | 'table_of_contents' | 'references' | 'appendices';
-  title: string;
-  content?: string;
-}
+import type {
+  ParsedDocumentData,
+  DetectionMap,
+  SectionDetection,
+  SpecialSection,
+} from '../core/types/project';
 
 /**
  * MAIN ENTRY POINT: Build complete DocumentStructure

@@ -4,8 +4,7 @@
  * Contains functions for normalizing raw program data into standardized FundingProgram format.
  */
 
-import type { ProgramSummary } from '../../../../types/types';
-import type { FundingProgram } from '../../../../types/program/program-types';
+import type { ProgramSummary, FundingProgram } from '@/platform/core/types';
 
 /**
  * Normalize raw program data into FundingProgram format
@@ -66,11 +65,14 @@ export function normalizeFundingProgram(rawProgramData: any): FundingProgram {
   return {
     id: rawProgramData.id || rawProgramData.programId || `program_${Date.now()}`,
     name: rawProgramData.name || rawProgramData.programName || 'Unnamed Program',
-    provider: rawProgramData.organization || rawProgramData.provider || 'Unknown Provider',
+    type: rawProgramData.type || 'grant',
+    organization: rawProgramData.organization || rawProgramData.provider || 'Unknown Provider',
     region: rawProgramData.region || rawProgramData.location || 'Global',
     
     fundingTypes: fundingTypes as ('grant' | 'loan' | 'equity' | 'subsidy')[],
-    amountRange,
+    amountRange: amountRange && amountRange.min !== undefined && amountRange.max !== undefined 
+      ? amountRange 
+      : { min: 0, max: 1000000 }, // Provide default
     deadline: rawProgramData.deadline || null,
     
     useOfFunds,
@@ -93,10 +95,10 @@ export function normalizeFundingProgram(rawProgramData: any): FundingProgram {
       documents: rawProgramData.application_requirements?.documents || [],
       sections: rawProgramData.application_requirements?.sections || [],
       financialRequirements: {
-        financial_statements_required: rawProgramData.application_requirements?.financial_requirements?.financial_statements_required || [],
-        years_required: rawProgramData.application_requirements?.financial_requirements?.years_required || [],
-        co_financing_proof_required: rawProgramData.application_requirements?.financial_requirements?.co_financing_proof_required || false,
-        own_funds_proof_required: rawProgramData.application_requirements?.financial_requirements?.own_funds_proof_required || false
+        financialStatementsRequired: rawProgramData.application_requirements?.financial_requirements?.financial_statements_required || [],
+        yearsRequired: rawProgramData.application_requirements?.financial_requirements?.years_required || [],
+        coFinancingProofRequired: rawProgramData.application_requirements?.financial_requirements?.co_financing_proof_required || false,
+        ownFundsProofRequired: rawProgramData.application_requirements?.financial_requirements?.own_funds_proof_required || false
       }
     },
     rawData: rawProgramData
@@ -107,14 +109,12 @@ export function normalizeFundingProgram(rawProgramData: any): FundingProgram {
  * Normalize ProgramSummary for document setup
  * Adds setup tracking fields to existing ProgramSummary
  */
-export function normalizeProgramSetup(programSummary: ProgramSummary): ProgramSummary {
+export function normalizeProgramSetup(programSummary: any): any {
   // Return the same object with blueprint fields initialized if needed
   return {
     ...programSummary,
-    documentStructure: programSummary.documentStructure !== undefined ? programSummary.documentStructure : undefined,
     setupStatus: programSummary.setupStatus || 'none',
     setupVersion: programSummary.setupVersion || '1.0',
     setupSource: programSummary.setupSource || 'program',
-    setupDiagnostics: programSummary.setupDiagnostics !== undefined ? programSummary.setupDiagnostics : undefined
   };
 }

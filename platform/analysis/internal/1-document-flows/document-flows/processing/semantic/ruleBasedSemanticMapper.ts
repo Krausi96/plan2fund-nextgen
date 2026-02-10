@@ -1,4 +1,4 @@
-import type { DocumentStructure } from '../../../../../types/types';
+import type { DocumentStructure } from '@/platform/core/types';
 import { BUSINESS_PLAN_SECTIONS, STRATEGY_SECTIONS, UPGRADE_SECTIONS } from '@/features/editor/lib/templates';
 
 
@@ -62,8 +62,8 @@ export async function enrichSectionsWithMeaning(
     sections: enrichedSections,
     warnings: [
       ...(structure.warnings || []),
-      `Document Type Detected: ${docType}`,
-      ...(missing.length > 0 ? [`Missing Recommended Sections: ${missing.join(', ')}`] : [])
+      { id: `warning-${Date.now()}`, message: `Document Type Detected: ${docType}`, context: 'semantic-mapping' },
+      ...(missing.length > 0 ? [{ id: `warning-${Date.now()}-missing`, message: `Missing Recommended Sections: ${missing.join(', ')}`, context: 'semantic-mapping' }] : [])
     ]
   };
 }
