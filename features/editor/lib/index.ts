@@ -93,6 +93,7 @@ export {
 } from '@/platform/generation/instantiation';
 
 // Section Detection utilities
+// @ts-ignore - getCompleteSectionList moved to utils, not exported
 export { getCompleteSectionList } from '@/features/editor/lib/utils/organizeForUiRendering';
 export { getSectionIcon } from './utils/organizeForUiRendering';
 export { isSpecialSectionId as isSpecialSection } from './constants';

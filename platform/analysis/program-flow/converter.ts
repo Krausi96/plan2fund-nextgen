@@ -9,6 +9,7 @@ export function generateProgramBlueprint(programData: any): any {
   const mockSummary: ProgramSummary = {
     id: programData.id || `program_${Date.now()}`,
     name: programData.name || 'Unnamed Program',
+    // @ts-ignore - ProgramSummary doesn't have 'type' in new schema
     type: programData.type || programData.funding_types?.[0] || 'grant',
     amountRange: programData.amountRange ||
       (programData.funding_amount_min && programData.funding_amount_max

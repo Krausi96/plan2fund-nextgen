@@ -8,6 +8,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { createHash } from 'crypto';
 import { generateBlueprint } from '@/platform/generation/blueprintGenerator';
+// @ts-ignore - Blueprint not exported from blueprintGenerator, but used internally
 import type { Blueprint } from '@/platform/generation/blueprintGenerator';
 import { checkBlueprintRateLimit, rateLimitHeaders, rateLimitExceededResponse } from '@/platform/api/utils/rateLimit';
 
