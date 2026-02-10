@@ -26,7 +26,7 @@ import type { DocumentStructure } from '@/platform/core/types';
 export function inferProductTypeFromBlueprint(structure: any): ProductType {
   // Handle new Blueprint interface
   if ('programId' in structure) {
-    const blueprint = structure as Blueprint;
+    const blueprint = structure as any; // Blueprint schema evolved
     if (blueprint.programName.toLowerCase().includes('strategy')) {
       return 'strategy';
     }
