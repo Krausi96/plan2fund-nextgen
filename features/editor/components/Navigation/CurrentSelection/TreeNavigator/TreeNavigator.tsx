@@ -4,7 +4,7 @@ import {
   getSectionTitle,
 } from '@/features/editor/lib';
 import { AddSectionForm, TreeNodeRenderer } from './components';
-import { sortSectionsForSingleDocument } from '@/platform/analysis/internal/1-document-flows/document-flows/organizeForUiRendering';
+import { sortSectionsForSingleDocument } from '@/platform/analysis/internal/document-flows/document-flows/organizeForUiRendering';
 import type { TreeNode } from '@/features/editor/lib/types/types';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 

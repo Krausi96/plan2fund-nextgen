@@ -69,7 +69,7 @@ export {
 
 export {
   shouldIgnoreClick,
-} from '@/platform/analysis/internal/document-flows/utils/editorUtils';
+} from '@/platform/analysis/internal/document-flows/document-flows/utils/editorUtils';
 
 
 
@@ -93,10 +93,10 @@ export {
 } from '@/platform/generation/instantiation';
 
 // Section Detection utilities
-export { getCompleteSectionList } from '@/platform/analysis/internal/document-flows/organizeForUiRendering';
+export { getCompleteSectionList } from '@/platform/analysis/internal/document-flows/document-flows/organizeForUiRendering';
 export { getSectionIcon } from './utils/organizeForUiRendering';
 export { isSpecialSectionId as isSpecialSection } from './constants';
-export { createSpecialSection } from '@/platform/analysis/internal/document-flows/sections/enhancement/sectionEnhancement';
+export { createSpecialSection } from '@/platform/analysis/internal/document-flows/document-flows/sections/enhancement/sectionEnhancement';
 // Document processing functions - now available through doc-import module
 // TODO: Eventually migrate these to use doc-import directly
 export { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/document-flows/sections/enhancement/sectionEnhancement';
