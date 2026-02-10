@@ -46,6 +46,18 @@ export const PersistedProgramSchema = z.object({
   type: z.string().max(100).optional(),
   organization: z.string().max(300).optional(),
   application_requirements: z.any().optional(),
+  applicationRequirements: z.any().optional(),
+
+  // Display fields - needed for ProgramSummaryPanel
+  focusAreas: z.array(z.string()).optional(),
+  focus_areas: z.array(z.string()).optional(),
+  useOfFunds: z.array(z.string()).optional(),
+  use_of_funds: z.array(z.string()).optional(),
+  deliverables: z.array(z.any()).optional(),
+  delivery_requirements: z.array(z.any()).optional(),
+  requirements: z.array(z.any()).optional(),
+  formattingRules: z.any().optional(),
+  evidenceRequired: z.array(z.string()).optional(),
 
   // New fields for decision-critical information
   repayable: z.boolean().nullable().optional(),
@@ -103,6 +115,18 @@ export function validateAndSanitizeProgram(data: unknown): PersistedProgram | nu
     type: sanitizeString(raw.type, 100),
     organization: sanitizeString(raw.organization, 300),
     application_requirements: raw.application_requirements,
+    applicationRequirements: raw.applicationRequirements,
+
+    // Display fields
+    focusAreas: raw.focusAreas,
+    focus_areas: raw.focus_areas,
+    useOfFunds: raw.useOfFunds,
+    use_of_funds: raw.use_of_funds,
+    deliverables: raw.deliverables,
+    delivery_requirements: raw.delivery_requirements,
+    requirements: raw.requirements,
+    formattingRules: raw.formattingRules,
+    evidenceRequired: raw.evidenceRequired,
 
     // New fields
     repayable: raw.repayable,

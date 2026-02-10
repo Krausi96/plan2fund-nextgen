@@ -49,7 +49,7 @@ export default function EditorProgramFinder({
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false);
   const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(-1); // Start at -1 to show welcome message
   
   // Use shared results filtering
   const { visibleResults } = useResultsFiltering(results);
@@ -232,7 +232,7 @@ export default function EditorProgramFinder({
                               }}
                               className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-purple-700 transition-colors"
                             >
-                              Try again
+                              {t('editor.programFinder.tryAgain')}
                             </button>
                             <button
                               type="button"
@@ -283,7 +283,7 @@ export default function EditorProgramFinder({
             )}
             
             {/* Welcome message when user first arrives at wizard */}
-            {results.length === 0 && !hasAttemptedGeneration && visibleQuestions.length > 0 && currentStep === 0 && (
+            {results.length === 0 && !hasAttemptedGeneration && visibleQuestions.length > 0 && currentStep === -1 && (
               <div className="h-full flex items-center justify-center p-4">
                 <div className="bg-slate-700/50 rounded-lg p-6 text-center w-full max-w-md">
                   <div className="text-white/60 text-2xl mb-2">🧠</div>
@@ -298,14 +298,14 @@ export default function EditorProgramFinder({
                     }}
                     className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
                   >
-                    Start questionnaire
+                    {t('editor.programFinder.startQuestionnaire')}
                   </button>
                 </div>
               </div>
             )}
             
-            {/* Only show the questionnaire when user has started */}
-            {!(results.length === 0 && !hasAttemptedGeneration && visibleQuestions.length > 0 && currentStep === 0) && (
+            {/* Only show the questionnaire when user has started (currentStep >= 0) */}
+            {currentStep >= 0 && (
               <div className="space-y-6 h-full flex flex-col">
                 {/* Progress indicator */}
                 <div className="text-center">
@@ -372,17 +372,17 @@ export default function EditorProgramFinder({
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            Generating...
+                            {t('editor.programFinder.generating')}
                           </>
                         ) : !hasEnoughAnswers ? (
                           <>
                             <Wand2 className="w-5 h-5" />
-                            Answers Missing
+                            {t('editor.programFinder.answersMissing')}
                           </>
                         ) : (
                           <>
                             <Wand2 className="w-5 h-5" />
-                            Generate Programs
+                            {t('editor.programFinder.generatePrograms')}
                           </>
                         )}
                       </button>

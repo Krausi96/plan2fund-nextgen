@@ -77,11 +77,14 @@ export function normalizeFundingProgram(rawProgramData: any): any {
     deadline: rawProgramData.deadline || null,
     
     useOfFunds,
+    use_of_funds: useOfFunds,
     coFinancingRequired: rawProgramData.co_financing_required ?? false,
     coFinancingPercentage: rawProgramData.co_financing_percentage || undefined,
     focusAreas,
+    focus_areas: focusAreas,
     
     deliverables,
+    delivery_requirements: deliverables,
     requirements,
     formattingRules: {
       length: rawProgramData.page_limit ? { 
@@ -95,7 +98,8 @@ export function normalizeFundingProgram(rawProgramData: any): any {
     applicationRequirements: {
       documents: rawProgramData.application_requirements?.documents || [],
       sections: rawProgramData.application_requirements?.sections || [],
-      financialRequirements: rawProgramData.application_requirements?.financial_requirements || {} as any
+      financialRequirements: rawProgramData.application_requirements?.financial_requirements || {} as any,
+      financial_requirements: rawProgramData.application_requirements?.financial_requirements || {} as any
     },
     rawData: rawProgramData
   };

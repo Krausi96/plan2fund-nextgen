@@ -269,7 +269,12 @@ export default function ProgramSelection({
                 <div className="mb-6">
                   <div className="flex flex-wrap gap-3">
                     <button
-                      onClick={() => setActiveTab('search')}
+                      onClick={() => {
+                        setActiveTab('search');
+                        // Clear program and document structure when switching tabs
+                        selectProgram(null);
+                        setDocumentStructure(null);
+                      }}
                       className={`inline-flex items-center gap-2 px-4 py-1.5 font-medium rounded-lg transition-colors text-sm ${activeTab === 'search' ? 'bg-blue-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
                     >
                       <span>🔍</span>
@@ -277,7 +282,12 @@ export default function ProgramSelection({
                     </button>
 
                     <button
-                      onClick={() => setActiveTab('wizard')}
+                      onClick={() => {
+                        setActiveTab('wizard');
+                        // Clear program and document structure when switching tabs
+                        selectProgram(null);
+                        setDocumentStructure(null);
+                      }}
                       className={`inline-flex items-center gap-2 px-4 py-1.5 font-medium rounded-lg transition-colors text-sm ${activeTab === 'wizard' ? 'bg-purple-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
                     >
                       <span>🧠</span>
