@@ -23,7 +23,7 @@ export function TableOfContentsRenderer({ planDocument, sectionsToRender, disabl
     <div className={`flex items-center ${isSubEntry ? 'ml-6 text-sm text-gray-700 font-medium' : 'text-base font-semibold text-gray-900'} py-1.5`}>
       <span className="min-w-0 truncate">{label}</span>
       <span className="flex-1 border-b border-dotted border-gray-300 mx-2" />
-      {planDocument.settings.includePageNumbers && pageNumber !== undefined && (
+      {planDocument?.settings?.includePageNumbers && pageNumber !== undefined && (
         <span className={`${isSubEntry ? 'text-xs text-gray-600' : 'text-sm text-gray-800'} font-medium whitespace-nowrap`}>{pageNumber}</span>
       )}
     </div>
@@ -41,7 +41,7 @@ export function TableOfContentsRenderer({ planDocument, sectionsToRender, disabl
               const sectionNumber = section.fields?.sectionNumber ?? null;
               const sectionLabel = sectionNumber !== null ? `${sectionNumber}. ${section.title}` : section.title;
               const subchapters = section.fields?.subchapters || [];
-              const sectionPageNumber = calculatePageNumber(sectionIndex, planDocument.settings.includeTitlePage ?? false, 0, section.key, planDocument.sections);
+              const sectionPageNumber = calculatePageNumber(sectionIndex, planDocument?.settings?.includeTitlePage ?? false, 0, section.key, planDocument.sections);
               return (
                 <div key={section.key} className="space-y-1">
                   {renderTocEntry(<span className="truncate">{sectionLabel}</span>, sectionPageNumber)}
@@ -64,22 +64,22 @@ export function TableOfContentsRenderer({ planDocument, sectionsToRender, disabl
             ))}
             {hasTables && (
               <div className="mt-2 pt-2 border-t border-gray-200">
-                {renderTocEntry(t.listOfTables, calculatePageNumber(sectionsToRender.length, planDocument.settings.includeTitlePage ?? false, 0, 'list_of_tables', planDocument.sections))}
+{renderTocEntry(t.listOfTables, calculatePageNumber(sectionsToRender.length, planDocument?.settings?.includeTitlePage ?? false, 0, 'list_of_tables', planDocument.sections))}
               </div>
             )}
             {hasFigures && (
-              <div>{renderTocEntry(t.listOfFigures, calculatePageNumber(sectionsToRender.length, planDocument.settings.includeTitlePage ?? false, 1, 'list_of_figures', planDocument.sections))}</div>
+              <div>{renderTocEntry(t.listOfFigures, calculatePageNumber(sectionsToRender.length, planDocument?.settings?.includeTitlePage ?? false, 1, 'list_of_figures', planDocument.sections))}</div>
             )}
             <div className="mt-2 pt-2 border-t border-gray-200">
-              {renderTocEntry(t.references, calculatePageNumber(sectionsToRender.length, planDocument.settings.includeTitlePage ?? false, 2, REFERENCES_SECTION_ID, planDocument.sections))}
+{renderTocEntry(t.references, calculatePageNumber(sectionsToRender.length, planDocument?.settings?.includeTitlePage ?? false, 2, REFERENCES_SECTION_ID, planDocument.sections))}
             </div>
-            <div>{renderTocEntry(t.appendices, calculatePageNumber(sectionsToRender.length, planDocument.settings.includeTitlePage ?? false, 3, APPENDICES_SECTION_ID, planDocument.sections))}</div>
+<div>{renderTocEntry(t.appendices, calculatePageNumber(sectionsToRender.length, planDocument?.settings?.includeTitlePage ?? false, 3, APPENDICES_SECTION_ID, planDocument.sections))}</div>
           </div>
-          {planDocument.settings.includePageNumbers && (  // Using -1 as sectionIndex for TOC
+          {planDocument?.settings?.includePageNumbers && (  // Using -1 as sectionIndex for TOC
             <div className="export-preview-page-footer">
-              <div>© {planDocument.settings.titlePage?.companyName || 'Author'}</div>
+              <div>© {planDocument?.settings?.titlePage?.companyName || 'Author'}</div>
               {!shouldDisplayPageNumber(-1, 'table_of_contents', planDocument.sections) && <div>Confidentiality: Restricted</div>}
-              {shouldDisplayPageNumber(-1, 'table_of_contents', planDocument.sections) && <div>{t.page} {planDocument.settings.includeTitlePage ? 2 : 1}</div>}
+              {shouldDisplayPageNumber(-1, 'table_of_contents', planDocument.sections) && <div>{t.page} {planDocument?.settings?.includeTitlePage ? 2 : 1}</div>}
             </div>
           )}
         </div>

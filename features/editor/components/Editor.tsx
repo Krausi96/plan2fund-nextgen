@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TreeNavigator from './Navigation/CurrentSelection/TreeNavigator/TreeNavigator';
 import PreviewWorkspace from './Preview/PreviewWorkspace';
 import SectionEditor from './Editor/SectionEditor';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import DevClearCacheButton from './DevTools/DevClearCacheButton';
+import { v4 as uuidv4 } from 'uuid';
 
 type EditorProps = {};
 
@@ -15,6 +16,58 @@ export default function Editor({}: EditorProps = {}) {
   const error = useProject((state) => state.error);
   const activeSectionId = useProject((state) => state.activeSectionId);
   const plan = useProject((state) => state.plan);
+  
+  // Initialize project if not exists
+  const projectProfile = useProject((state) => state.projectProfile);
+  const editorMeta = useProject((state) => state.editorMeta);
+  const setProjectProfile = useProject((state) => state.setProjectProfile);
+  const setEditorMeta = useProject((state) => state.setEditorMeta);
+  const setPlan = useProject((state) => state.setPlan);
+  
+  // Initialize project on mount if not exists
+  useEffect(() => {
+    if (!projectProfile) {
+      setProjectProfile({
+        id: uuidv4(),
+        name: 'Untitled Project',
+        projectName: 'Project Title',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+    if (!editorMeta) {
+      setEditorMeta({
+        author: 'Author Name',
+        confidentiality: 'confidential',
+        contactInfo: {
+          email: '',
+          phone: '',
+          website: '',
+          address: '',
+        },
+      });
+    }
+    if (!plan) {
+      setPlan({
+        id: uuidv4(),
+        title: 'Untitled Plan',
+        sections: [],
+        metadata: {},
+        settings: {
+          includeTitlePage: true,
+          includePageNumbers: true,
+          titlePage: {
+            title: 'Project Title',
+            subtitle: 'Subtitle',
+            companyName: 'Company Name',
+            date: new Date().toISOString().split('T')[0],
+          },
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  }, [projectProfile, editorMeta, plan, setProjectProfile, setEditorMeta, setPlan]);
   
   // Resizable column states
   const [leftColumnWidth, setLeftColumnWidth] = useState(320);

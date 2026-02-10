@@ -4,16 +4,16 @@
 export {
   normalizeDocumentStructure,
   mergeUploadedContentWithSpecialSections
-} from './normalization';
+} from './utils';
 
 export {
   buildDocumentStructure
-} from './structureBuilder';
+} from './structure';
 
 export {
   generateBlueprint,
   type RequirementItem
-} from './blueprintGenerator';
+} from './blueprint';
 
 export type {
   Blueprint
@@ -28,4 +28,4 @@ export type {
 
 export {
   writeSection
-} from './sectionWriter';
+} from './plan';

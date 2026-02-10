@@ -1,5 +1,5 @@
 // Business plan sections
-import type { SectionTemplate } from '../../../types/types';
+import type { SectionTemplate } from '@/platform/core/types';
 
 export const BUSINESS_PLAN_SECTIONS: SectionTemplate[] = [
   {

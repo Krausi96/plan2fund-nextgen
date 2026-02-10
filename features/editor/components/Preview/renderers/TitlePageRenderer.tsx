@@ -5,7 +5,7 @@ import { useI18n } from '@/shared/contexts/I18nContext'; // Import i18n context
 
 // Helper function to get field value from plan
 const getFieldValue = (plan: PlanDocument, fieldKey: string): string | undefined => {
-  const titlePage = plan.settings?.titlePage;
+  const titlePage = plan?.settings?.titlePage;
   if (!titlePage) return undefined;
   switch (fieldKey) {
     case 'title': return titlePage.title;
@@ -52,9 +52,9 @@ interface TitlePageRendererProps {
 export function TitlePageRenderer({ planDocument, disabledSections, t, compact = false }: TitlePageRendererProps) {
   const { locale } = useI18n(); // Get locale from i18n context
   
-  if (!planDocument.settings.includeTitlePage || disabledSections.has(METADATA_SECTION_ID) || !planDocument.productType) return null;
+  if (!planDocument?.settings?.includeTitlePage || disabledSections.has(METADATA_SECTION_ID) || !planDocument.productType) return null;
   
-  const tp = planDocument.settings.titlePage;
+  const tp = planDocument?.settings?.titlePage;
   const fv = (key: string) => getFieldValue(planDocument, key);
   
   // Detect language from i18n context

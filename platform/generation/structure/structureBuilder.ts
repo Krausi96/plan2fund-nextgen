@@ -22,13 +22,13 @@ import type {
   AIGuidance,
   RenderingRules,
   FundingProgram,
-} from '../core/types';
+} from '@/platform/core/types';
 import type {
   ParsedDocumentData,
   DetectionMap,
   SectionDetection,
   SpecialSection,
-} from '../core/types/project';
+} from '@/platform/core/types/project';
 
 /**
  * MAIN ENTRY POINT: Build complete DocumentStructure
@@ -207,24 +207,32 @@ function applySpecialSectionDetection(
   detection: DetectionMap
 ): void {
   const SPECIAL_SECTION_IDS = {
-    title_page: 'METADATA_TITLE_PAGE',
-    table_of_contents: 'METADATA_TOC',
-    references: 'ANCILLARY_REFERENCES',
-    appendices: 'ANCILLARY_APPENDICES',
+    title_page: 'metadata',
+    table_of_contents: 'ancillary',
+    references: 'references',
+    appendices: 'appendices',
   };
 
   // Check for detected special sections
-  if (detection.titlePageConfidence > 0.6) {
+  if (detection.titlePageConfidence > 0.6 || !structure.sections.some(s => s.id === SPECIAL_SECTION_IDS.title_page)) {
     addOrUpdateSpecialSection(structure, SPECIAL_SECTION_IDS.title_page, 'Title Page', 'title_page');
   }
-  if (detection.tocConfidence > 0.6) {
+  if (detection.tocConfidence > 0.6 || !structure.sections.some(s => s.id === SPECIAL_SECTION_IDS.table_of_contents)) {
     addOrUpdateSpecialSection(structure, SPECIAL_SECTION_IDS.table_of_contents, 'Table of Contents', 'table_of_contents');
   }
-  if (detection.referencesConfidence > 0.6) {
+  if (detection.referencesConfidence > 0.6 || !structure.sections.some(s => s.id === SPECIAL_SECTION_IDS.references)) {
     addOrUpdateSpecialSection(structure, SPECIAL_SECTION_IDS.references, 'References', 'references');
   }
-  if (detection.appendicesConfidence > 0.6) {
+  if (detection.appendicesConfidence > 0.6 || !structure.sections.some(s => s.id === SPECIAL_SECTION_IDS.appendices)) {
     addOrUpdateSpecialSection(structure, SPECIAL_SECTION_IDS.appendices, 'Appendices', 'appendices');
+  }
+  
+  // Also add other special sections that might be missing
+  if (!structure.sections.some(s => s.id === 'tables_data')) {
+    addOrUpdateSpecialSection(structure, 'tables_data', 'Tables and Data', 'tables_data');
+  }
+  if (!structure.sections.some(s => s.id === 'figures_images')) {
+    addOrUpdateSpecialSection(structure, 'figures_images', 'Figures and Images', 'figures_images');
   }
 }
 
@@ -236,12 +244,20 @@ function addOrUpdateSpecialSection(
 ): void {
   const exists = structure.sections.find(s => s.id === id);
   if (!exists) {
+    // Determine appropriate type based on section ID
+    let sectionType: 'metadata' | 'references' | 'appendices' | 'ancillary' | 'normal' = 'normal';
+    if (id === 'metadata') sectionType = 'metadata';
+    else if (id === 'ancillary') sectionType = 'ancillary';
+    else if (id === 'references') sectionType = 'references';
+    else if (id === 'appendices') sectionType = 'appendices';
+    else if (id === 'tables_data' || id === 'figures_images') sectionType = 'ancillary';
+    
     structure.sections.push({
       id,
       documentId: structure.documents[0]?.id || '',
       title,
-      type: 'special' as any,
-      required: false,
+      type: sectionType,
+      required: id === 'metadata' || id === 'ancillary', // Title page and TOC are usually required
       programCritical: false,
     });
   }

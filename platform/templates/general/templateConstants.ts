@@ -2,7 +2,7 @@
 // Contains shared sections, master sections, and document templates
 
 import type { SectionTemplate, DocumentTemplate } from '@/platform/core/types';
-import { SPECIAL_SECTIONS } from '../../constants';
+import { SPECIAL_SECTIONS } from '@/features/editor/lib/constants';
 
 // Import section catalogs from subdirectories
 import { BUSINESS_PLAN_SECTIONS } from '../catalog/products/business_plan';
@@ -12,7 +12,7 @@ import { UPGRADE_SECTIONS } from '../catalog/products/upgrade';
 
 
 // Convert SPECIAL_SECTIONS to SectionTemplate format
-const specialSectionEntries = Object.entries(SPECIAL_SECTIONS);
+const specialSectionEntries = Object.entries(SPECIAL_SECTIONS) as [string, any][];
 
 export const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = specialSectionEntries.map(([, section]) => ({ // [, section] ignores the key
   id: section.id,

@@ -1,4 +1,4 @@
-import type { PlanDocument } from '../../types/types';
+import type { PlanDocument } from '@/platform/core/types';
 
 export interface SubsectionTemplate {
   id: string;

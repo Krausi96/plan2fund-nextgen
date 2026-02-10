@@ -1,5 +1,5 @@
-import { callAI } from '../ai/orchestrator';
-import type { DocumentStructure, PlanSection } from '../core/types';
+import { callAI } from '@/platform/ai/orchestrator';
+import type { DocumentStructure, PlanSection } from '@/platform/core/types';
 
 /**
  * Writes individual sections using AI

@@ -1,5 +1,5 @@
 // Upgrade sections
-import type { SectionTemplate } from '../../../types/types';
+import type { SectionTemplate } from '@/platform/core/types';
 
 export const UPGRADE_SECTIONS: SectionTemplate[] = [
   {

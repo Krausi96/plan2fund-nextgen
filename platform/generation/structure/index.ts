@@ -1,0 +1,1 @@
+export { buildDocumentStructure } from './structureBuilder';

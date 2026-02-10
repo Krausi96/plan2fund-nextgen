@@ -43,7 +43,7 @@ export function ListOfTablesRenderer({ planDocument, sectionsToRender, disabledS
   const allTableEntries = [...allTables, ...manualTables.map((t: any) => ({ id: t.id, name: t.label, sectionTitle: '', sectionNumber: null }))];
   if (allTableEntries.length === 0) return null;
   
-  const pageNumber = calculatePageNumber(sectionsToRender.length, planDocument.settings.includeTitlePage ?? false, 0, 'list_of_tables', planDocument.sections);
+  const pageNumber = calculatePageNumber(sectionsToRender.length, planDocument?.settings?.includeTitlePage ?? false, 0, 'list_of_tables', planDocument.sections);
   
   return (
     <div className="export-preview-page export-preview-section" data-section-id={ANCILLARY_SECTION_ID} style={PAGE_STYLE}>
@@ -64,9 +64,9 @@ export function ListOfTablesRenderer({ planDocument, sectionsToRender, disabledS
             ))}
           </div>
         </div>
-        {planDocument.settings.includePageNumbers && (  // Using -1 as sectionIndex for ancillary sections
+        {planDocument?.settings?.includePageNumbers && (  // Using -1 as sectionIndex for ancillary sections
           <div className="export-preview-page-footer">
-            <div>© {planDocument.settings.titlePage?.companyName || 'Author'}</div>
+            <div>© {planDocument?.settings?.titlePage?.companyName || 'Author'}</div>
             {!shouldDisplayPageNumber(-1, 'list_of_figures', planDocument.sections) && <div>Confidentiality: Restricted</div>}
             {shouldDisplayPageNumber(-1, 'list_of_figures', planDocument.sections) && <div>{t.page} {pageNumber}</div>}
           </div>
@@ -91,7 +91,7 @@ export function ListOfFiguresRenderer({ planDocument, sectionsToRender, disabled
   const allFigureEntries = [...allFigures, ...manualFigures.map((f: any) => ({ id: f.id, name: f.label, sectionTitle: '', sectionNumber: null }))];
   if (allFigureEntries.length === 0) return null;
   
-  const pageNumber = calculatePageNumber(sectionsToRender.length, planDocument.settings.includeTitlePage ?? false, 1, 'list_of_figures', planDocument.sections);
+  const pageNumber = calculatePageNumber(sectionsToRender.length, planDocument?.settings?.includeTitlePage ?? false, 1, 'list_of_figures', planDocument.sections);
   
   return (
     <div className="export-preview-page export-preview-section" data-section-id={ANCILLARY_SECTION_ID} style={PAGE_STYLE}>
@@ -112,9 +112,9 @@ export function ListOfFiguresRenderer({ planDocument, sectionsToRender, disabled
             ))}
           </div>
         </div>
-        {planDocument.settings.includePageNumbers && (  // Using -1 as sectionIndex for ancillary sections
+        {planDocument?.settings?.includePageNumbers && (  // Using -1 as sectionIndex for ancillary sections
           <div className="export-preview-page-footer">
-            <div>© {planDocument.settings.titlePage?.companyName || 'Author'}</div>
+            <div>© {planDocument?.settings?.titlePage?.companyName || 'Author'}</div>
             {shouldDisplayPageNumber(-1, 'list_of_figures', planDocument.sections) && <div>{t.page} {pageNumber}</div>}
           </div>
         )}
@@ -125,7 +125,7 @@ export function ListOfFiguresRenderer({ planDocument, sectionsToRender, disabled
 export function ReferencesRenderer({ planDocument, sectionsToRender, disabledSections, t }: AncillaryRenderersProps) {
   if (disabledSections.has(REFERENCES_SECTION_ID)) return null;
   
-  const pageNumber = calculatePageNumber(sectionsToRender.length, planDocument.settings.includeTitlePage ?? false, 2, REFERENCES_SECTION_ID, planDocument.sections);
+  const pageNumber = calculatePageNumber(sectionsToRender.length, planDocument?.settings?.includeTitlePage ?? false, 2, REFERENCES_SECTION_ID, planDocument.sections);
   
   return (
     <div className="export-preview-page export-preview-section" data-section-id={REFERENCES_SECTION_ID} style={PAGE_STYLE}>
@@ -148,9 +148,9 @@ export function ReferencesRenderer({ planDocument, sectionsToRender, disabledSec
             <div className="text-sm text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">{t.noReferencesYet}</div>
           )}
         </div>
-        {planDocument.settings.includePageNumbers && (  // Using -1 as sectionIndex for ancillary sections
+        {planDocument?.settings?.includePageNumbers && (  // Using -1 as sectionIndex for ancillary sections
           <div className="export-preview-page-footer">
-            <div>© {planDocument.settings.titlePage?.companyName || 'Author'}</div>
+            <div>© {planDocument?.settings?.titlePage?.companyName || 'Author'}</div>
             {!shouldDisplayPageNumber(-1, REFERENCES_SECTION_ID, planDocument.sections) && <div>Confidentiality: Restricted</div>}
             {shouldDisplayPageNumber(-1, REFERENCES_SECTION_ID, planDocument.sections) && <div>{t.page} {pageNumber}</div>}
           </div>
@@ -162,7 +162,7 @@ export function ReferencesRenderer({ planDocument, sectionsToRender, disabledSec
 export function AppendicesRenderer({ planDocument, sectionsToRender, disabledSections, t }: AncillaryRenderersProps) {
   if (disabledSections.has(APPENDICES_SECTION_ID)) return null;
   
-  const pageNumber = calculatePageNumber(sectionsToRender.length, planDocument.settings.includeTitlePage ?? false, 3, APPENDICES_SECTION_ID, planDocument.sections);
+  const pageNumber = calculatePageNumber(sectionsToRender.length, planDocument?.settings?.includeTitlePage ?? false, 3, APPENDICES_SECTION_ID, planDocument.sections);
   
   return (
     <div className="export-preview-page export-preview-section" data-section-id={APPENDICES_SECTION_ID} style={PAGE_STYLE}>
@@ -184,9 +184,9 @@ export function AppendicesRenderer({ planDocument, sectionsToRender, disabledSec
             <div className="text-sm text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">{t.noAppendicesYet}</div>
           )}
         </div>
-        {planDocument.settings.includePageNumbers && (  // Using -1 as sectionIndex for ancillary sections
+        {planDocument?.settings?.includePageNumbers && (  // Using -1 as sectionIndex for ancillary sections
           <div className="export-preview-page-footer">
-            <div>© {planDocument.settings.titlePage?.companyName || 'Author'}</div>
+            <div>© {planDocument?.settings?.titlePage?.companyName || 'Author'}</div>
             {!shouldDisplayPageNumber(-1, APPENDICES_SECTION_ID, planDocument.sections) && <div>Confidentiality: Restricted</div>}
             {shouldDisplayPageNumber(-1, APPENDICES_SECTION_ID, planDocument.sections) && <div>{t.page} {pageNumber}</div>}
           </div>

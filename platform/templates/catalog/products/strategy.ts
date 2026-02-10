@@ -1,5 +1,5 @@
 // Strategy sections
-import type { SectionTemplate } from '../../../types/types';
+import type { SectionTemplate } from '@/platform/core/types';
 
 export const STRATEGY_SECTIONS: SectionTemplate[] = [
   {

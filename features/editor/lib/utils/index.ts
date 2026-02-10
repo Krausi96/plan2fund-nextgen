@@ -16,7 +16,7 @@ export { generateProgramBlueprint } from '@/platform/analysis/program-flow/conve
 // Export legacy conversion functions
 
 // Additional utilities from other modules
-export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/platform/generation/instantiation';
+export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/platform/generation/plan/instantiation';
 export { normalizeDocumentStructure } from '@/platform/analysis/internal/document-flows/document-flows/normalization/normalizeDocumentStructure';
 export { splitDocumentIntoParts } from '@/platform/analysis/internal/document-flows/document-flows/processing/documentProcessor';
 export { validateDocumentContent, detectMultipleSectionsWithoutTitles } from '@/platform/analysis/internal/document-flows/document-flows/processing/security/contentSecurityValidator';
@@ -26,7 +26,7 @@ export { applyDetectionResults } from '@/platform/analysis/internal/document-flo
 export { organizeForUiRendering } from '@/features/editor/lib/utils/organizeForUiRendering';
 export type { HierarchicalDocumentView } from '@/features/editor/lib/utils/organizeForUiRendering';
 // New centralized location
-export { sortSectionsForSingleDocument, getSectionIcon, isSpecialSection } from './organizeForUiRendering';
+export { sortSectionsForSingleDocument, getSectionIcon, isSpecialSection, getCompleteSectionList } from './organizeForUiRendering';
 export { unifiedDeduplicateSections, unifiedDetectAndApply, processDocumentStructure, createUnifiedDocumentStructure } from '@/platform/analysis/internal/document-flows/document-flows/common/documentProcessingUtils';
 
 // Export types

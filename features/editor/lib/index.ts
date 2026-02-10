@@ -90,7 +90,7 @@ export { generateProgramBlueprint } from '@/platform/analysis/program-flow/conve
 export {
   inferProductTypeFromBlueprint,
   instantiateFromBlueprint,
-} from '@/platform/generation/instantiation';
+} from '@/platform/generation/plan/instantiation';
 
 // Section Detection utilities
 // @ts-ignore - getCompleteSectionList moved to utils, not exported
@@ -143,5 +143,5 @@ export {
   addCustomDocument,
   addCustomSection,
   addCustomSubsection,
-} from './templates';
+} from '@/platform/templates';
 

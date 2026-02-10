@@ -3,9 +3,9 @@
  * Generates structured funding blueprint from program + context
  */
 
-import { callLLM, type LLMRequest } from '../ai/llmClient';
-import { parseBlueprintResponse } from '../ai/parsers/responseParsers';
-import type { Blueprint } from '../core/types/blueprint';
+import { callLLM, type LLMRequest } from '@/platform/ai/llmClient';
+import { parseBlueprintResponse } from '@/platform/ai/parsers/responseParsers';
+import type { Blueprint } from '@/platform/core/types/blueprint';
 
 /**
  * Fallback blueprint when LLM generation fails

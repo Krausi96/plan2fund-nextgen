@@ -1,4 +1,4 @@
-import type { PlanDocument } from '../../types/types';
+import type { PlanDocument } from '@/platform/core/types';
 
 export function addCustomDocument(plan: PlanDocument, title: string) {
   const newDocument = {

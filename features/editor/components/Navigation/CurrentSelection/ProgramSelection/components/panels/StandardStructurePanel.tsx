@@ -50,6 +50,21 @@ export function StandardStructurePanel({ selectedOption, onClearStructure, showH
     return sortSectionsForSingleDocument(sections);
   };
 
+  // Get special sections from document structure if available
+  const getSpecialSections = () => {
+    if (documentStructure?.sections) {
+      return documentStructure.sections.filter((section: any) => 
+        section.id === 'metadata' || 
+        section.id === 'ancillary' || 
+        section.id === 'references' || 
+        section.id === 'appendices' || 
+        section.id === 'tables_data' || 
+        section.id === 'figures_images'
+      );
+    }
+    return [];
+  };
+
   // Handle case when no documents exist but we have product type
   // Only use template structure if there's no document structure at all
   const hasTemplateStructure = inferredProductType && 
@@ -162,23 +177,38 @@ export function StandardStructurePanel({ selectedOption, onClearStructure, showH
                   <div className="ml-6 border-l-2 border-green-500/30 pl-3 max-h-[1000px]">
                     <div className="space-y-2 py-1">
                       {/* Actual Template Sections - dynamically rendered with proper icons */}
-                      {getRequiredSections().map((section: any, idx: number) => {
-                        const sectionId = section.id || idx;
-                        const sectionTitle = section.title || section.name || section;
-                        const icon = getSectionIcon(sectionId);
+                      {(() => {
+                        // Combine regular sections with special sections to ensure all are displayed
+                        const allSections = [
+                          ...getSpecialSections(), // Special sections first
+                          ...getRequiredSections().filter((section: any) => 
+                            section.id !== 'metadata' && 
+                            section.id !== 'ancillary' && 
+                            section.id !== 'references' && 
+                            section.id !== 'appendices' && 
+                            section.id !== 'tables_data' && 
+                            section.id !== 'figures_images'
+                          ) // Regular sections excluding special ones
+                        ];
                         
-                        return (
-                          <div key={idx} className="text-green-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
-                            <span>{icon}</span>
-                            <span className="truncate flex-1">
-                              {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
-                            </span>
-                            {section.required && (
-                              <span className="text-red-400 font-bold flex-shrink-0">*</span>
-                            )}
-                          </div>
-                        );
-                      })}
+                        return allSections.map((section: any, idx: number) => {
+                          const sectionId = section.id || idx;
+                          const sectionTitle = section.title || section.name || section;
+                          const icon = getSectionIcon(sectionId);
+                          
+                          return (
+                            <div key={idx} className="text-green-200 text-sm flex items-center gap-2 truncate" title={sectionTitle}>
+                              <span>{icon}</span>
+                              <span className="truncate flex-1">
+                                {t(`editor.section.${sectionId}` as any) !== `editor.section.${sectionId}` ? t(`editor.section.${sectionId}` as any) : sectionTitle}
+                              </span>
+                              {section.required && (
+                                <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
                       
 
                     </div>

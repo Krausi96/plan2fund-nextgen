@@ -112,6 +112,8 @@ export function ProgramSummaryPanel({ onClear, documentStructure: propDocumentSt
                     <div className="space-y-2 py-1">
                       {/* Get sections using the hierarchical view to include special sections */}
                       {(() => {
+                        const mainSections = hierarchicalView?.mainDocument.sections || [];
+                        
                         const allSections = [
                           ...(hierarchicalView?.mainDocument.sections || []),
                           ...(hierarchicalView?.sharedSections || [])

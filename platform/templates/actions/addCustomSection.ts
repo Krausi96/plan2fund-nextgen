@@ -1,4 +1,4 @@
-import type { PlanDocument, SectionTemplate } from '../../types/types';
+import type { PlanDocument, SectionTemplate } from '@/platform/core/types';
 
 export function addCustomSection(plan: PlanDocument, documentId: string, title: string) {
   if (!plan.metadata?.customDocuments) {

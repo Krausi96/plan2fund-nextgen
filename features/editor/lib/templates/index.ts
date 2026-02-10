@@ -1,22 +1,24 @@
-// Re-export template constants and collections from general folder
+// LEGACY REDIRECT: Templates have been moved to platform/templates
+// This file is maintained for backward compatibility
+
 export { 
   SHARED_SPECIAL_SECTIONS,
   MASTER_SECTIONS,
   MASTER_DOCUMENTS_BY_PRODUCT
-} from './general/templateConstants';
+} from '@/platform/templates/general/templateConstants';
 
 // Export individual section catalogs
-export { BUSINESS_PLAN_SECTIONS } from './catalog/products/business_plan';
-export { STRATEGY_SECTIONS } from './catalog/products/strategy';
-export { UPGRADE_SECTIONS } from './catalog/products/upgrade';
+export { BUSINESS_PLAN_SECTIONS } from '@/platform/templates/catalog/products/business_plan';
+export { STRATEGY_SECTIONS } from '@/platform/templates/catalog/products/strategy';
+export { UPGRADE_SECTIONS } from '@/platform/templates/catalog/products/upgrade';
 
 // Export program catalogs
-import { awsSeedfinancing } from './catalog/programs/individual/aws-seedfinancing';
-import { ffgBasisprogramm } from './catalog/programs/individual/ffg-basisprogramm';
-import { eicAccelerator } from './catalog/programs/individual/eic-accelerator';
+import { awsSeedfinancing } from '@/platform/templates/catalog/programs/individual/aws-seedfinancing';
+import { ffgBasisprogramm } from '@/platform/templates/catalog/programs/individual/ffg-basisprogramm';
+import { eicAccelerator } from '@/platform/templates/catalog/programs/individual/eic-accelerator';
 
 // Import program manager that includes all programs
-import { programManager, resetProgramDatabase, getProgramCountByRegion, getProgramCountByType } from './catalog/programs/programManager';
+import { programManager, resetProgramDatabase, getProgramCountByRegion, getProgramCountByType } from '@/platform/templates/catalog/programs/programManager';
 
 export { 
   awsSeedfinancing,
@@ -33,7 +35,7 @@ export {
 export const MOCK_FUNDING_PROGRAMS = programManager.getAllPrograms();
 
 // Export action functions
-export { addCustomDocument } from './actions/addCustomDocument';
-export { addCustomSection } from './actions/addCustomSection';
-export { addCustomSubsection } from './actions/addCustomSubsection';
+export { addCustomDocument } from '@/platform/templates/actions/addCustomDocument';
+export { addCustomSection } from '@/platform/templates/actions/addCustomSection';
+export { addCustomSubsection } from '@/platform/templates/actions/addCustomSubsection';
 

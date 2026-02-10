@@ -7,26 +7,26 @@ import type { DocumentStructure } from '@/platform/core/types';
 
 // Special section IDs
 const SPECIAL_SECTION_IDS = {
-  METADATA: 'section_title_page',
-  ANCILLARY: 'section_toc',
-  REFERENCES: 'section_references',
-  APPENDICES: 'section_appendices',
-  TABLES_DATA: 'section_tables',
-  FIGURES_IMAGES: 'section_figures',
+  METADATA: 'metadata',
+  ANCILLARY: 'ancillary',
+  REFERENCES: 'references',
+  APPENDICES: 'appendices',
+  TABLES_DATA: 'tables_data',
+  FIGURES_IMAGES: 'figures_images',
 } as const;
 
 // Canonical ordering for single document
 const SINGLE_DOC_CANONICAL_ORDER = [
   SPECIAL_SECTION_IDS.METADATA,
   SPECIAL_SECTION_IDS.ANCILLARY,
-  'section_executive_summary',
-  'section_problem_solution',
-  'section_market_analysis',
-  'section_team',
-  'section_financial',
-  'section_operations',
-  'section_marketing',
-  'section_risk',
+  'executive_summary',
+  'problem_solution',
+  'market_analysis',
+  'team',
+  'financial',
+  'operations',
+  'marketing',
+  'risk',
   SPECIAL_SECTION_IDS.REFERENCES,
   SPECIAL_SECTION_IDS.TABLES_DATA,
   SPECIAL_SECTION_IDS.FIGURES_IMAGES,
@@ -120,19 +120,90 @@ export function organizeForUiRendering(
     sectionsByDocument[doc.id] = [];
   });
 
-  sections.forEach((section: { documentId?: string }) => {
-    const targetDocumentId = section.documentId || mainDocumentId;
-    if (sectionsByDocument[targetDocumentId]) {
-      sectionsByDocument[targetDocumentId].push(section);
+  // Separate special sections that should stay in main document vs. those that go to shared vs. those that go to appendices
+  const specialSectionsInMain: Array<{ id: string; documentId?: string }> = [];
+  const appendixSections: Array<{ id: string; documentId?: string }> = [];
+  
+  sections.forEach((section: { id: string; documentId?: string }) => {
+    // Special sections that should remain in the main document (metadata, ancillary/TOC)
+    if (section.id === SPECIAL_SECTION_IDS.METADATA || section.id === SPECIAL_SECTION_IDS.ANCILLARY) {
+      specialSectionsInMain.push(section);
+    } else if (section.id === SPECIAL_SECTION_IDS.APPENDICES) {
+      // Appendices sections are stored separately
+      appendixSections.push(section);
     } else {
-      sectionsByDocument[mainDocumentId].push(section);
+      // Regular sections go to their designated document
+      const targetDocumentId = section.documentId || mainDocumentId;
+      if (sectionsByDocument[targetDocumentId]) {
+        sectionsByDocument[targetDocumentId].push(section);
+      } else {
+        sectionsByDocument[mainDocumentId].push(section);
+      }
     }
   });
+  
+  // Add appendix sections to main document if there are no additional documents (single document mode)
+  // If there are appendix sections to add, they should replace any existing appendices section to avoid duplication
+  if (documents.length <= 1 && appendixSections.length > 0) {
+    // Remove any existing appendices sections from the main document to avoid duplication
+    sectionsByDocument[mainDocumentId] = sectionsByDocument[mainDocumentId].filter((s: any) => s.id !== SPECIAL_SECTION_IDS.APPENDICES);
+    
+    // Add the appendix sections
+    sectionsByDocument[mainDocumentId].push(...appendixSections);
+  }
 
-  // Organize main document sections
-  const mainDocumentSections = sectionsByDocument[mainDocumentId] || [];
-  const organizedMainSections = sortSectionsForSingleDocument(mainDocumentSections as Array<{ id: string }>);
+  // Organize main document sections: combine special sections + document-specific sections
+  const mainDocumentSections = [
+    ...specialSectionsInMain,
+    ...(sectionsByDocument[mainDocumentId] || [])
+  ];
+  let organizedMainSections = sortSectionsForSingleDocument(mainDocumentSections as Array<{ id: string }>);
+  
 
+  
+  // Ensure title page and TOC are present in main document when missing
+  const hasTitlePage = organizedMainSections.some(s => (s as { id: string }).id === SPECIAL_SECTION_IDS.METADATA);
+  const hasToc = organizedMainSections.some(s => (s as { id: string }).id === SPECIAL_SECTION_IDS.ANCILLARY);
+  
+  // Add title page if missing
+  if (!hasTitlePage) {
+    const titlePageSection = {
+      id: SPECIAL_SECTION_IDS.METADATA,
+    };
+
+    organizedMainSections.unshift(titlePageSection as typeof organizedMainSections[0] as any);
+  }
+  
+  // Add TOC if missing
+  if (!hasToc) {
+    const tocSection = {
+      id: SPECIAL_SECTION_IDS.ANCILLARY,
+    };
+
+    // Insert after title page if it exists
+    const titlePageIndex = organizedMainSections.findIndex(s => (s as { id: string }).id === SPECIAL_SECTION_IDS.METADATA);
+    organizedMainSections.splice(titlePageIndex >= 0 ? titlePageIndex + 1 : 0, 0, tocSection as typeof organizedMainSections[0] as any);
+  }
+  
+  // Handle appendices section in single document mode
+  if (documents.length <= 1) {
+    const hasAppendices = organizedMainSections.some(s => (s as { id: string }).id === SPECIAL_SECTION_IDS.APPENDICES);
+
+    
+    // Only add a placeholder appendices section if there are no appendix sections to add
+    // and no appendices section already exists
+    if (!hasAppendices && appendixSections.length === 0) {
+      // Add a placeholder appendices section if none exists
+      const appendicesSection = {
+        id: SPECIAL_SECTION_IDS.APPENDICES,
+      };
+
+      organizedMainSections.push(appendicesSection as typeof organizedMainSections[0] as any);
+    }
+    // If there are appendix sections to add, they've already been added to main document
+    // via the appendixSections logic above, so no need to add a placeholder
+  }
+  
   // Organize appendices (additional documents)
   const appendices = documents.slice(1).map((doc: { id: string; name: string }, index: number) => {
     const appendixLetter = String.fromCharCode(65 + index);
@@ -144,19 +215,47 @@ export function organizeForUiRendering(
     };
   });
 
-  // Shared sections (References, Tables, Figures)
+  // Shared sections (References, Tables, Figures) - only these specific sections go to shared sections
   const SHARED_SECTION_IDS = [
     SPECIAL_SECTION_IDS.REFERENCES,
     SPECIAL_SECTION_IDS.TABLES_DATA,
     SPECIAL_SECTION_IDS.FIGURES_IMAGES,
   ];
 
-  const sharedSections = Object.values(sectionsByDocument)
-    .flat()
-    .filter(section => {
-      const sectionId = (section as { id: string }).id;
-      return SHARED_SECTION_IDS.includes(sectionId as typeof SHARED_SECTION_IDS[number]);
-    });
+  // Extract shared sections from main document sections
+  const sharedSectionsUnfiltered = organizedMainSections.filter(section => {
+    const sectionId = (section as { id: string }).id;
+    return SHARED_SECTION_IDS.includes(sectionId as typeof SHARED_SECTION_IDS[number]);
+  });
+  
+  // Remove shared sections from main document sections, but handle appendices specially
+  let finalMainSections = organizedMainSections.filter(section => {
+    const sectionId = (section as { id: string }).id;
+    // Don't remove appendices from main sections since they should stay in main document
+    if (sectionId === SPECIAL_SECTION_IDS.APPENDICES) {
+      return true; // Keep appendices in main sections
+    }
+    // Remove other shared sections (references, tables, figures) from main document
+    return !SHARED_SECTION_IDS.includes(sectionId as typeof SHARED_SECTION_IDS[number]);
+  });
+  
+  // For single document mode, ensure appendices are positioned at the end and remove duplicates
+  if (documents.length <= 1) {
+    // Extract appendices sections
+    const appendicesSections = finalMainSections.filter((s: any) => s.id === SPECIAL_SECTION_IDS.APPENDICES);
+    // Extract non-appendices sections
+    const nonAppendicesSections = finalMainSections.filter((s: any) => s.id !== SPECIAL_SECTION_IDS.APPENDICES);
+    
+    // Remove ALL duplicates by taking only the first occurrence of appendices
+    if (appendicesSections.length > 0) {
+      finalMainSections = [...nonAppendicesSections, appendicesSections[0]];
+    } else {
+      finalMainSections = nonAppendicesSections;
+    }
+  }
+  
+  // Update sharedSections to use the filtered version
+  let sharedSections = sharedSectionsUnfiltered;
 
   // Add default shared sections if not present
   const hasReferences = sharedSections.some(s => (s as { id: string }).id === SPECIAL_SECTION_IDS.REFERENCES);
@@ -166,43 +265,103 @@ export function organizeForUiRendering(
   if (!hasReferences) {
     sharedSections.push({
       id: SPECIAL_SECTION_IDS.REFERENCES,
-      documentId: mainDocumentId,
-      title: 'References',
-      type: 'references' as const,
-      required: false,
-      programCritical: false,
     });
   }
 
   if (!hasTables) {
     sharedSections.push({
       id: SPECIAL_SECTION_IDS.TABLES_DATA,
-      documentId: mainDocumentId,
-      title: 'Tables and Data',
-      type: 'ancillary' as const,
-      required: false,
-      programCritical: false,
     });
   }
 
   if (!hasFigures) {
     sharedSections.push({
       id: SPECIAL_SECTION_IDS.FIGURES_IMAGES,
-      documentId: mainDocumentId,
-      title: 'Figures and Images',
-      type: 'ancillary' as const,
-      required: false,
-      programCritical: false,
     });
   }
 
+  // For single document mode, we want appendices to be part of the main flow
+  let finalAppendices = appendices;
+  
+  // If we're in single document mode and have appendices sections, add them to the main document
+  if (documents.length <= 1 && appendixSections.length > 0) {
+    // Add appendices sections to main document sections
+    const typedAppendixSections = appendixSections as unknown as typeof finalMainSections;
+    finalMainSections.push(...typedAppendixSections);
+  } else if (documents.length > 1 && appendixSections.length > 0) {
+    // In multi-doc mode, if there are standalone appendix sections, add them to appendices
+    if (appendixSections.length > 0) {
+      const typedAppendixSections = appendixSections as unknown as typeof finalMainSections;
+      finalAppendices = [...finalAppendices, {
+        id: SPECIAL_SECTION_IDS.APPENDICES,
+        name: 'Additional Appendices',
+        displayName: 'Appendix: Additional Content',
+        sections: typedAppendixSections,
+      }];
+    }
+  }
+  
+  // Final processing: deduplicate and ensure proper ordering
+  // Separate appendices sections from other sections
+  const seenIds = new Set<string>();
+  const uniqueNonAppendices: typeof finalMainSections = [];
+  let uniqueAppendicesSection: typeof finalMainSections[0] | undefined;
+  
+  for (const section of finalMainSections) {
+    const sectionId = (section as { id: string }).id;
+    if (!seenIds.has(sectionId)) {
+      seenIds.add(sectionId);
+      if (sectionId === SPECIAL_SECTION_IDS.APPENDICES && !uniqueAppendicesSection) {
+        uniqueAppendicesSection = section;
+      } else if (sectionId !== SPECIAL_SECTION_IDS.APPENDICES) {
+        uniqueNonAppendices.push(section);
+      }
+    }
+  }
+  
+  // Combine sections and apply deduplication
+  const deduplicatedMainSections = uniqueAppendicesSection 
+    ? [...uniqueNonAppendices, uniqueAppendicesSection]
+    : uniqueNonAppendices;
+  
+  // For single document view, ensure canonical ordering is preserved and appendices go to the end
+  let finalOrderedMainSections = documents.length <= 1 
+    ? sortSectionsForSingleDocument(deduplicatedMainSections)
+    : deduplicatedMainSections;
+  
+  // Force appendices to the end in single document view
+  if (documents.length <= 1) {
+    const nonAppendices = finalOrderedMainSections.filter((section: any) => section.id !== SPECIAL_SECTION_IDS.APPENDICES);
+    const appendices = finalOrderedMainSections.filter((section: any) => section.id === SPECIAL_SECTION_IDS.APPENDICES);
+    
+    // Put non-appendices first, then appendices (ensuring only one copy if there were duplicates)
+    finalOrderedMainSections = [...nonAppendices, ...(appendices.length > 0 ? [appendices[0]] : [])];
+    
+    // For single document flat view, combine all sections and apply canonical ordering to ensure proper sequence
+    const allSectionsCombined = [...finalOrderedMainSections, ...sharedSections];
+    
+    // Apply canonical sorting to the full set of sections to ensure proper order including appendices at the end
+    const allSectionsFlat = sortSectionsForSingleDocument(allSectionsCombined);
+    
+    return {
+      mainDocument: {
+        id: mainDocument.id,
+        name: mainDocument.name,
+        sections: allSectionsFlat,
+      },
+      appendices: [], // No separate appendices in flat view
+      sharedSections: [], // All sections in main document for flat view
+    };
+  }
+  
+  // For multi-document view, keep separate structure
   return {
     mainDocument: {
       id: mainDocument.id,
       name: mainDocument.name,
-      sections: organizedMainSections,
+      sections: finalOrderedMainSections,
     },
-    appendices,
+    appendices: finalAppendices,
     sharedSections,
   };
 }
@@ -229,4 +388,12 @@ export function getSectionIcon(sectionId: string): string {
  */
 export function isSpecialSection(id: string): boolean {
   return Object.values(SPECIAL_SECTION_IDS).includes(id as typeof SPECIAL_SECTION_IDS[keyof typeof SPECIAL_SECTION_IDS]);
+}
+
+/**
+ * Get complete list of sections
+ */
+export function getCompleteSectionList(documentStructure: DocumentStructure | null) {
+  if (!documentStructure) return [];
+  return documentStructure.sections || [];
 }
