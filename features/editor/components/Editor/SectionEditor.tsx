@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  useSectionEditorState, 
-  useEscapeKeyHandler, 
-  useEditorStore,
   generateSectionContent,
   detectAIContext,
-  type ConversationMessage,
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
   REFERENCES_SECTION_ID,
@@ -13,6 +9,14 @@ import {
   getSectionTitle,
 } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
+import { useProject } from '@/platform/core/context/hooks/useProject';
+
+type ConversationMessage = {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp?: number;
+  [key: string]: any;
+};
 
 type SectionEditorProps = {
   sectionId: string | null;
@@ -26,22 +30,37 @@ type SectionEditorProps = {
 export default function SectionEditor({ sectionId, onClose }: SectionEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const editorState = useSectionEditorState(sectionId);
   const { t } = useI18n();
   
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Get plan and program info from store
-  const plan = useEditorStore(state => state.plan);
-  const program = useEditorStore(state => state.programSummary);
-  const updateSection = useEditorStore(state => state.updateSection);
+  // Get program info from store
+  const editorMeta = useProject(state => state.editorMeta);
+  const documentStructure = useProject(state => state.documentStructure);
+  const selectedProgram = useProject(state => state.selectedProgram);
+  const updateSection = useProject(state => state.updateSection);
   
-  // Removed: setEditingMode (not used)
-
+  // Get current section from documentStructure
+  const section = React.useMemo(() => {
+    if (!sectionId || !documentStructure?.sections) return null;
+    return documentStructure.sections.find((s: any) => s.id === sectionId) || null;
+  }, [sectionId, documentStructure]);
   
-  useEscapeKeyHandler(!!sectionId, onClose);
+  // Escape key handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !!sectionId) {
+        onClose();
+      }
+    };
+    
+    if (sectionId) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [sectionId, onClose]);
 
   // Auto-scroll to bottom when new messages arrive (scoped to messages container)
   useEffect(() => {
@@ -57,7 +76,7 @@ export default function SectionEditor({ sectionId, onClose }: SectionEditorProps
 
   // Welcome message when section opens
   useEffect(() => {
-    if (sectionId && editorState.section && messages.length === 0) {
+    if (sectionId && section && messages.length === 0) {
       // For special sections, provide appropriate context
       let sectionSpecificHelp = `
 
@@ -68,8 +87,8 @@ export default function SectionEditor({ sectionId, onClose }: SectionEditorProps
 
 What would you like to do?`;
       
-      if (editorState.section.isSpecial) {
-        switch (editorState.section.id) {
+      if (section && (section as any).isSpecial) {
+        switch (section.id) {
           case METADATA_SECTION_ID:
             sectionSpecificHelp = `
 
@@ -110,16 +129,14 @@ What would you like to do?`;
       
       setMessages([{
         role: 'assistant',
-        content: `Hi! I'm here to help you with the **${editorState.section.title}** section.${sectionSpecificHelp}`,
+        content: `Hi! I'm here to help you with the **${section.title}** section.${sectionSpecificHelp}`,
         timestamp: Date.now()
       }]);
     }
-  }, [sectionId, editorState.section, messages.length]);
+  }, [sectionId, section, messages.length]);
 
   // Always show the assistant, even without a plan
   // If no plan, show a helpful welcome message
-
-  const { section } = editorState;
   
 
 
@@ -146,13 +163,13 @@ What would you like to do?`;
         sectionTitle: section ? getSectionTitle(section.id, section.title, t) : '',
         context: input,
         program: {
-          id: program?.id,
-          name: program?.name,
-          type: program?.type,
+          id: selectedProgram?.id,
+          name: selectedProgram?.name,
+          type: selectedProgram?.type,
         },
         conversationHistory: messages,
         assistantContext: context,
-        language: plan?.language || 'en',
+        language: (editorMeta?.language as "en" | "de" | undefined) || 'en',
         documentType: 'business-plan',
       });
       
@@ -176,13 +193,13 @@ What would you like to do?`;
          lowerInput.includes('make it'))
       ) {
         // Handle special sections differently
-        if (section.isSpecial) {
+        if ((section as any).isSpecial) {
           // For special sections, we might need to update different parts of the plan
           switch (section.id) {
             case METADATA_SECTION_ID: // Title page
-              if (plan && plan.settings && plan.settings.titlePage) {
+              const metadata = documentStructure?.metadata;
+              if (metadata) {
                 // Update title page settings based on AI response
-                // For now, we'll just pass the content as an update (it will be handled by updateSection)
                 updateSection(section.id, { content: response.content });
               }
               break;
@@ -283,9 +300,9 @@ What would you like to do?`;
             <span>👨‍💼</span>
             <span>{t('editor.ai.assistant.title')}</span>
           </span>
-          {section.description && (
-            <span className="flex-1 truncate" title={section.description}>
-              {section.description}
+          {section && (section as any).description && (
+            <span className="flex-1 truncate" title={(section as any).description}>
+              {(section as any).description}
             </span>
           )}
         </div>

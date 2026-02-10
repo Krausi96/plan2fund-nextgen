@@ -7,9 +7,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { createHash } from 'crypto';
-import { generateBlueprint } from '../../../features/ai/services/blueprintGenerator';
-import type { Blueprint } from '../../../features/ai/services/blueprintGenerator';
-import { checkBlueprintRateLimit, rateLimitHeaders, rateLimitExceededResponse } from '@/shared/lib/rateLimit';
+import { generateBlueprint } from '@/platform/generation/blueprintGenerator';
+import type { Blueprint } from '@/platform/generation/blueprintGenerator';
+import { checkBlueprintRateLimit, rateLimitHeaders, rateLimitExceededResponse } from '@/platform/api/utils/rateLimit';
 
 // ============================================================================
 // ZOD VALIDATION SCHEMA

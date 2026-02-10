@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useUser } from '@/shared/user/context/UserContext';
+import { useUser } from '@/platform/core/context/hooks/useUser';
 import crypto from 'crypto';
 
 /**
@@ -34,19 +34,19 @@ export function getSessionTokenFromCookie(cookieHeader?: string): string | null 
  */
 export function withAuth<P extends object>(Component: React.ComponentType<P>) {
   return function AuthenticatedComponent(props: P) {
-    const { userProfile, isLoading } = useUser();
+    const { userProfile, isLoadingUser } = useUser();
     const router = useRouter();
 
     useEffect(() => {
-      if (!isLoading && !userProfile) {
+      if (!isLoadingUser && !userProfile) {
         // Save intended destination for redirect after login
         const currentPath = router.asPath;
         router.replace(`/login?redirect=${encodeURIComponent(currentPath)}`);
       }
-    }, [userProfile, isLoading, router]);
+    }, [userProfile, isLoadingUser, router]);
 
     // Show loading state while checking authentication
-    if (isLoading) {
+    if (isLoadingUser) {
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">

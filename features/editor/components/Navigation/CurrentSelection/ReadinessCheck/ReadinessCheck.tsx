@@ -1,6 +1,6 @@
 import React from 'react';
-import { useEditorState } from '../../../../lib/hooks/useEditorState';
-import { useI18n } from '../../../../../../shared/contexts/I18nContext';
+import { useProject } from '@/platform/core/context/hooks/useProject';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface ReadinessCheckProps {
   className?: string;
@@ -8,7 +8,7 @@ interface ReadinessCheckProps {
 
 const ReadinessCheck: React.FC<ReadinessCheckProps> = ({ className = '' }) => {
   const { t } = useI18n();
-  const { plan } = useEditorState();
+  const plan = useProject((state) => state.plan);
   
   const sections = plan?.sections || [];
   

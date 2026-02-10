@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useEditorStore } from '@/features/editor/lib';
+import { useProject } from '@/platform/core/context/hooks/useProject';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { TitlePageRenderer } from '@/features/editor/components/Preview/renderers/TitlePageRenderer';
+import type { PlanDocument } from '@/platform/core/types';
 
 
 interface LivePreviewBoxProps {
@@ -27,8 +28,29 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
   const startPos = useRef<Position>({ x: 0, y: 0 });
   
   // Store hooks
-  const planDocument = useEditorStore(state => state.plan);
   const { t: i18nT } = useI18n();
+  const editorMeta = useProject(state => state.editorMeta);
+  const documentStructure = useProject(state => state.documentStructure);
+  
+  // Build PlanDocument from store state for legacy compatibility
+  const planDocument: PlanDocument = {
+    language: (editorMeta?.language as 'en' | 'de' | undefined) || 'en',
+    settings: {
+      titlePage: {
+        title: editorMeta?.mainObjective || '',
+        subtitle: editorMeta?.subtitle || '',
+        companyName: editorMeta?.author || '',
+        confidentialityStatement: editorMeta?.confidentialityStatement || '',
+        logoUrl: editorMeta?.logoUrl || '',
+        date: editorMeta?.date || '',
+        contactInfo: editorMeta?.contactInfo || {},
+      },
+    },
+    sections: (documentStructure?.sections as any) || [],
+  };
+  
+  // Build titlePageSettings from editorMeta for hasTitlePageData check
+  const titlePageSettings = planDocument.settings.titlePage;
   
   // Drag event handlers with useCallback to prevent re-creation
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -108,10 +130,10 @@ const LivePreviewBox: React.FC<LivePreviewBoxProps> = ({ show }) => {
   };
 
   // Check if we have data to show
-  const hasTitlePageData = planDocument?.settings?.titlePage && (
-    planDocument.settings.titlePage.title?.trim() ||
-    planDocument.settings.titlePage.companyName?.trim() ||
-    planDocument.settings.titlePage.subtitle?.trim()
+  const hasTitlePageData = titlePageSettings && (
+    titlePageSettings.title?.trim() ||
+    titlePageSettings.companyName?.trim() ||
+    titlePageSettings.subtitle?.trim()
   );
 
   // Empty state

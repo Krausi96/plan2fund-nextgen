@@ -5,8 +5,7 @@ import BlueprintInstantiationStep from './ProductCreation/BlueprintInstantiation
 import ReadinessCheck from './ReadinessCheck/ReadinessCheck';
 import MyProject from './MyProject/MyProject';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-// import { useEditorState } from '@/features/editor/lib/hooks/useEditorState'; // Not used in current implementation
-import { useConfiguratorState, useEditorActions, useEditorStore } from '@/features/editor/lib';
+import { useProject } from '@/platform/core/context/hooks/useProject';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 type CurrentSelectionProps = {
@@ -19,37 +18,47 @@ type CurrentSelectionProps = {
  */
 function CurrentSelection({}: CurrentSelectionProps) {
   const { t } = useI18n();
-  const { selectedProductMeta, programSummary } = useConfiguratorState();
-  const documentStructure = useEditorStore((state) => state.setupWizard.documentStructure);
-  const isConfiguratorOpen = useEditorStore((state) => state.isConfiguratorOpen);
-  const setupWizard = useEditorStore((state) => state.setupWizard);
-  // const { plan } = useEditorState(); // Not used in current implementation
-  const actions = useEditorActions((a) => ({
-    setIsConfiguratorOpen: a.setIsConfiguratorOpen,
-    setSetupWizardStep: a.setSetupWizardStep,
-    setProjectProfile: a.setProjectProfile,
-    completeSetupWizard: a.completeSetupWizard,
-  }));
+  
+  // All state from unified useProject store
+  const documentStructure = useProject((state) => state.documentStructure);
+  const setupWizardStep = useProject((state) => state.setupWizardStep);
+  const projectProfile = useProject((state) => state.projectProfile);
+  const editorMeta = useProject((state) => state.editorMeta);
+  const selectedProgram = useProject((state) => state.selectedProgram);
+  const setupWizardIsComplete = useProject((state) => state.setupWizardIsComplete);
+  const isConfiguratorOpen = useProject((state) => state.isConfiguratorOpen);
+  const plan = useProject((state) => state.plan);
+  
+  // Actions
+  const setIsConfiguratorOpen = useProject((state) => state.setIsConfiguratorOpen);
+  const setSetupWizardStep = useProject((state) => state.setSetupWizardStep);
+  const completeSetupWizard = useProject((state) => state.completeSetupWizard);
+  
+  // For backward compatibility with code expecting programSummary
+  const programSummary = selectedProgram;
+  
+  // For backward compatibility with code expecting selectedProductMeta
+  const selectedProductMeta = plan ? { label: plan.title } : null;
 
   // Section navigation state for MyProject
   const [currentSection, setCurrentSection] = useState<1 | 2 | 3>(1);
   
   // Reset interaction tracking when navigating away or closing
   useEffect(() => {
-    if (setupWizard.currentStep !== 1 || currentSection !== 1) {
+    if (setupWizardStep !== 1 || currentSection !== 1) {
       // Reset tracking when leaving MyProject or changing sections
     }
-  }, [setupWizard.currentStep, currentSection]);
+  }, [setupWizardStep, currentSection]);
 
   // Simplified preview logic - show preview when My Project modal is open and on GeneralInfo section
-  const showPreview = setupWizard.currentStep === 1 && 
+  const showPreview = setupWizardStep === 1 && 
                      currentSection === 1 && 
                      isConfiguratorOpen;
 
   // Reset section when opening MyProject
   const navigateToStep = (step: 1 | 2 | 3) => {
-    actions.setIsConfiguratorOpen(true);
-    actions.setSetupWizardStep(step);
+    setIsConfiguratorOpen(true);
+    setSetupWizardStep(step);
   };
 
   const handleMyProjectClick = () => {
@@ -60,7 +69,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const handleProgramClick = () => {
     // Only allow navigation to Program if My Project is completed
     const projectValidation = validateCurrentStep();
-    if (setupWizard.currentStep >= 1 && projectValidation.isValid) {
+    if (setupWizardStep >= 1 && projectValidation.isValid) {
       navigateToStep(2);
     } else {
       // Show validation error
@@ -96,7 +105,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const handlePlanClick = () => {
     // Only allow navigation to Plan if both My Project and Program are completed
     const projectValidation = validateCurrentStep();
-    if (setupWizard.currentStep >= 2 && projectValidation.isValid && programSummary) {
+    if (setupWizardStep >= 2 && projectValidation.isValid && programSummary) {
       navigateToStep(3);
     } else {
       // Show appropriate error message
@@ -110,7 +119,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
         notification.style.top = `${rect.top}px`;
       }
       
-      const message = setupWizard.currentStep < 2 
+      const message = setupWizardStep < 2 
         ? 'Please complete Project setup first'
         : 'Please select a program first';
       
@@ -131,30 +140,27 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const validateCurrentStep = (): { isValid: boolean; missingFields: string[] } => {
     const missingFields: string[] = [];
       
-    if (setupWizard.currentStep === 1) {
+    if (setupWizardStep === 1) {
       // Validate unified My Project step
-      const plan = useEditorStore.getState().plan;
-      const titlePage = plan?.settings?.titlePage;
-      const projectProfile = setupWizard.projectProfile;
+      
+      // Author (from editorMeta)
+      if (!editorMeta?.author?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.author') || 'Author');
         
-      // Author (unified field)
-      if (!titlePage?.companyName?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.author') || 'Author');
-        
-      // Project title (unified field)
-      if (!titlePage?.title?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.projectName') || 'Project Title');
+      // Project title (from projectProfile)
+      if (!projectProfile?.projectName?.trim()) missingFields.push(t('editor.desktop.setupWizard.fields.projectName') || 'Project Title');
         
       // Project Location (🌍)
       if (!projectProfile || !projectProfile.country || projectProfile.country === '') {
         missingFields.push(t('editor.desktop.setupWizard.fields.country') || 'Project Location');
       }
       
-      // Project Stage (🏗️) ← This is what the validation checks
+      // Project Stage (🏗️)
       if (!projectProfile || projectProfile.stage === undefined || projectProfile.stage === null) {
         missingFields.push(t('editor.desktop.setupWizard.fields.stage') || 'Project Stage');
       }
       
       // Planning Timeline (📅)
-      if (projectProfile?.financialBaseline?.planningHorizon === undefined || projectProfile?.financialBaseline?.planningHorizon === null) {
+      if (projectProfile?.planningHorizon === undefined || projectProfile?.planningHorizon === null) {
         missingFields.push(t('editor.desktop.setupWizard.fields.planningHorizon') || 'Planning Timeline');
       }
     }
@@ -207,29 +213,32 @@ function CurrentSelection({}: CurrentSelectionProps) {
     }
     
     // Proceed to next step
-    if (setupWizard.currentStep < 3) {
-      actions.setSetupWizardStep((setupWizard.currentStep + 1) as 1 | 2 | 3);
+    if (setupWizardStep < 3) {
+      setSetupWizardStep((setupWizardStep + 1) as 1 | 2 | 3);
     }
   };
 
   const handlePrevStep = () => {
-    if (setupWizard.currentStep > 1) {
-      actions.setSetupWizardStep((setupWizard.currentStep - 1) as 1 | 2 | 3);
+    if (setupWizardStep > 1) {
+      setSetupWizardStep((setupWizardStep - 1) as 1 | 2 | 3);
     }
   };
 
   const handleComplete = () => {
-    actions.completeSetupWizard();
-    actions.setIsConfiguratorOpen(false);
+    completeSetupWizard();
+    setIsConfiguratorOpen(false);
   };
 
-  const handleToggle = () => actions.setIsConfiguratorOpen(!isConfiguratorOpen);
+  const handleToggle = () => setIsConfiguratorOpen(!isConfiguratorOpen);
 
   // Determine completion status for each step
   const projectValidation = validateCurrentStep();
-  const isProjectCompleted = setupWizard.currentStep > 1 || (setupWizard.currentStep === 1 && projectValidation.isValid);
+  const isProjectCompleted = setupWizardStep > 1 || (setupWizardStep === 1 && projectValidation.isValid);
   const isProgramCompleted = !!programSummary;
-  const isPlanCompleted = setupWizard.isComplete;
+  const isPlanCompleted = setupWizardIsComplete;
+  
+  // Get source from documentStructure for UI display
+  const docSource = documentStructure?.metadata?.source;
   
   // Section configuration for dynamic rendering
   const sections = [
@@ -237,7 +246,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
       key: 'project',
       step: 1,
       label: '💼 ' + (t('editor.desktop.myProject.title') || 'Mein Projekt'),
-      isActive: setupWizard.currentStep === 1,
+      isActive: setupWizardStep === 1,
       isCompleted: isProjectCompleted,
       isAccessible: true, // Always accessible
       onClick: handleMyProjectClick,
@@ -247,22 +256,22 @@ function CurrentSelection({}: CurrentSelectionProps) {
       key: 'program',
       step: 2,
       label: '📚 ' + (t('editor.desktop.selection.programLabel') || 'Programm / Vorlage'),
-      isActive: setupWizard.currentStep === 2,
+      isActive: setupWizardStep === 2,
       isCompleted: isProgramCompleted,
-      isAccessible: setupWizard.currentStep >= 2, // Accessible after step 1 completion
+      isAccessible: setupWizardStep >= 2, // Accessible after step 1 completion
       onClick: handleProgramClick,
       renderContent: () => !isConfiguratorOpen && (
         <div className="text-white font-bold truncate flex items-center justify-center gap-1 max-w-[140px]">
           <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={
-            documentStructure?.source === 'template' 
+            docSource === 'template' 
               ? (t('editor.desktop.selection.customUpload' as any) || 'Custom Upload')
-              : documentStructure?.source === 'standard'
+              : docSource === 'document'
               ? (t('editor.desktop.program.panels.standardStructure' as any) || 'Standard Structure')
               : programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'
           }>
-            {documentStructure?.source === 'template' 
+            {docSource === 'template' 
               ? (t('editor.desktop.selection.customUpload' as any) || 'Custom Upload')
-              : documentStructure?.source === 'standard'
+              : docSource === 'document'
               ? (t('editor.desktop.program.panels.standardStructure' as any) || 'Standard Structure')
               : programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
           </span>
@@ -273,9 +282,9 @@ function CurrentSelection({}: CurrentSelectionProps) {
       key: 'plan',
       step: 3,
       label: '📋 ' + (t('editor.desktop.selection.productLabel') || 'Plan'),
-      isActive: setupWizard.currentStep === 3,
+      isActive: setupWizardStep === 3,
       isCompleted: isPlanCompleted,
-      isAccessible: setupWizard.currentStep >= 3 && !!programSummary, // Accessible after step 2 completion and program selection
+      isAccessible: setupWizardStep >= 3 && !!programSummary, // Accessible after step 2 completion and program selection
       onClick: handlePlanClick,
       renderContent: () => !isConfiguratorOpen && (
         <div className="text-white font-bold truncate flex items-center justify-center gap-1 max-w-[140px]">
@@ -457,7 +466,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                 <div className="px-4 py-4 bg-slate-800/50">
                   <div className="w-full">
                     {/* Step 1: My Project with sub-steps */}
-                    {setupWizard.currentStep === 1 && (
+                    {setupWizardStep === 1 && (
                       <>
                         {/* Row 1: Static Create Project header */}
                         <h2 className="text-2xl font-bold text-white mb-1 text-left">
@@ -481,14 +490,14 @@ function CurrentSelection({}: CurrentSelectionProps) {
                     )}
                     
                     {/* Step 2: Program Selection */}
-                    {setupWizard.currentStep === 2 && (
+                    {setupWizardStep === 2 && (
                       <div className="space-y-6">
-                        <ProgramSelection onNavigateToBlueprint={() => actions.setSetupWizardStep(3)} />
+                        <ProgramSelection onNavigateToBlueprint={() => setSetupWizardStep(3)} />
                       </div>
                     )}
                     
                     {/* Step 3: Blueprint Instantiation */}
-                    {setupWizard.currentStep === 3 && (
+                    {setupWizardStep === 3 && (
                       <BlueprintInstantiationStep 
                         onComplete={handleComplete}
                         onBack={handlePrevStep}
@@ -499,7 +508,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                 
                 {/* Navigation Buttons - Single CTA bar handling all navigation */}
                 <div className="flex items-center justify-between px-6 py-4 border-t border-white/20 bg-slate-800 sticky bottom-0">
-                  {setupWizard.currentStep === 1 ? (
+                  {setupWizardStep === 1 ? (
                     <>
                       <div>
                         {currentSection > 1 && (
@@ -533,7 +542,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
                         )}
                       </div>
                     </>
-                  ) : setupWizard.currentStep === 2 ? (
+                  ) : setupWizardStep === 2 ? (
                     <>
                       <button
                         onClick={handlePrevStep}

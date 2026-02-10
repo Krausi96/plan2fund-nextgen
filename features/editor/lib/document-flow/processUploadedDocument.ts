@@ -1,4 +1,5 @@
 import { processDocumentSecurely } from '../utils/1-document-flows/document-flows/processing/documentProcessor';
+import type { DocumentStructure } from '@/platform/core/types';
 
 /**
  * Process uploaded document with specified mode
@@ -10,7 +11,13 @@ import { processDocumentSecurely } from '../utils/1-document-flows/document-flow
 export async function processUploadedDocument(
   files: File[],
   mode: 'template' | 'upgrade'
-) {
+): Promise<{
+  documentStructure: DocumentStructure;
+  inferredProductType: 'submission' | 'upgrade';
+  warnings: string[];
+  diagnostics: string[];
+  confidence: number;
+}> {
   if (files.length === 0) {
     throw new Error('No files provided for processing');
   }
@@ -36,8 +43,13 @@ export async function processUploadedDocument(
     return {
       documentStructure: {
         ...result.documentStructure,
-        source: 'template',
-      },
+        metadata: {
+          ...(result.documentStructure as any).metadata,
+          source: 'template',
+          generatedAt: new Date().toISOString(),
+          version: '1.0',
+        },
+      } as unknown as DocumentStructure,
       inferredProductType: 'submission' as const,
       warnings,
       diagnostics: warnings, // Same array reference
@@ -50,7 +62,8 @@ export async function processUploadedDocument(
     // Perform upgrade-specific analysis directly on base sections
     const weaknesses = findWeaknesses(base.sections);
     const missingSections = findMissingSections(base.sections);
-    const modernizationFlags = findModernizationFlags(base.sections);
+    // modernizationFlags not used yet - reserved for future analysis
+    findModernizationFlags(base.sections);
     
     const warnings = [
       ...result.securityIssues.softWarnings,
@@ -61,12 +74,17 @@ export async function processUploadedDocument(
     return {
       documentStructure: {
         ...base,
-        source: 'upgrade',
-        upgradeMode: true,
-        missingBestPracticeSections: missingSections,
-        qualityGaps: weaknesses,
-        modernizationFlags: modernizationFlags,
-      },
+        metadata: {
+          ...(base as any).metadata,
+          source: 'document',
+          generatedAt: new Date().toISOString(),
+          version: '1.0',
+        },
+        warnings: warnings.map(msg => ({
+          id: `warn_${Date.now()}_${Math.random()}`,
+          message: msg,
+        })),
+      } as unknown as DocumentStructure,
       inferredProductType: 'upgrade' as const,
       warnings,
       diagnostics: warnings, // Same array reference

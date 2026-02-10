@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useConfiguratorState, useEditorStore } from '@/features/editor/lib';
-import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
+import { useProject } from '@/platform/core/context/hooks/useProject';
 import { StandardStructurePanel } from './components/panels/StandardStructurePanel';
 import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
 import { ProgramFinder, EditorProgramFinder } from './components/finder';
@@ -9,6 +8,7 @@ import { DocumentUploadPanel } from './components/options/DocumentUploadOption';
 import { FreeOption } from './components/options/FreeOption';
 import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
 import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
+import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
 
 
 interface OptionSelectorProps {
@@ -101,21 +101,19 @@ export default function ProgramSelection({
   onConnectProgram,
   onNavigateToBlueprint
 }: ProgramSelectionProps) {
-  const configuratorState = useConfiguratorState();
-  const handleConnectProgram = onConnectProgram ?? configuratorState.actions.setProgramSummary;
-  const programSummary = configuratorState.programSummary;
-  
-  // Access editor store for document setup management
-  const setProgramProfile = useEditorStore((state) => state.setProgramProfile);
-  const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
-  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
-  const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
-  const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
+  // Access state from unified useProject store
+  const selectProgram = useProject((state) => state.selectProgram);
+  const setDocumentStructure = useProject((state) => state.setDocumentStructure);
+  const setSetupStatus = useProject((state) => state.setSetupStatus);
+  const setSetupDiagnostics = useProject((state) => state.setSetupDiagnostics);
+  const setInferredProductType = useProject((state) => state.setInferredProductType);
 
-  
   const { t } = useI18n();
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'wizard'>('search');
+  const [programSummary, setProgramSummary] = useState<any>(null);
+
+  const handleConnectProgram = onConnectProgram ?? setProgramSummary;
 
 
 
@@ -167,7 +165,7 @@ export default function ProgramSelection({
       const enhancedDocumentStructure = enhanceWithSpecialSections(documentStructure, t);
       
       // Update wizard state with document setup data
-      setProgramProfile(fundingProgram);
+      selectProgram(fundingProgram);
       setDocumentStructure(enhancedDocumentStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({
@@ -221,8 +219,7 @@ export default function ProgramSelection({
           // If switching to different option, clear all state first
           if (selectedOption && selectedOption !== option) {
             // Clear all related state
-            configuratorState.actions.setProgramSummary(null);
-            setProgramProfile(null);
+            selectProgram(null);
             setDocumentStructure(null);
             setSetupStatus('none');
             setSetupDiagnostics(null);
@@ -330,8 +327,7 @@ export default function ProgramSelection({
             <ProgramSummaryPanel 
               onClear={() => {
                 // Clear ALL program-related data
-                configuratorState.actions.setProgramSummary(null);
-                setProgramProfile(null);
+                selectProgram(null);
                 
                 // Also clear any document structure that might be related
                 setDocumentStructure(null);

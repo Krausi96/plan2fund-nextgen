@@ -1,5 +1,6 @@
 import React from 'react';
-import { useEditorStore, getSectionIcon } from '@/features/editor/lib';
+import { useProject } from '@/platform/core/context/hooks/useProject';
+import { getSectionIcon } from '@/features/editor/lib';
 import { organizeDocumentStructureForUi } from '@/features/editor/lib/utils/1-document-flows/document-flows/organizeForUiRendering';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
@@ -14,8 +15,8 @@ interface TemplateStructurePanelProps {
 
 export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHeader = true, headerTitle, documentStructure: propDocumentStructure }: TemplateStructurePanelProps) {
   const { t } = useI18n();
-  const setupWizard = useEditorStore((state) => state.setupWizard);
-  const documentStructure = propDocumentStructure || setupWizard.documentStructure;
+  const storeDocumentStructure = useProject((state) => state.documentStructure);
+  const documentStructure = propDocumentStructure || storeDocumentStructure;
 
   // Use hierarchical organization for proper document structure display
   const organizedStructure = organizeDocumentStructureForUi(documentStructure, t);
@@ -36,9 +37,9 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHe
   };
 
   // Access store actions
-  const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
-  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
-  const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
+  const setDocumentStructure = useProject((state) => state.setDocumentStructure);
+  const setSetupStatus = useProject((state) => state.setSetupStatus);
+  const setSetupDiagnostics = useProject((state) => state.setSetupDiagnostics);
 
   // Actual clear functionality - UPDATE TO EMPTY STATE WITHOUT CLOSING
   const handleClear = () => {

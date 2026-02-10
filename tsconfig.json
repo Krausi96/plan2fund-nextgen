@@ -23,7 +23,7 @@
     "paths": {
       "@/features/*": ["./features/*"],
       "@/shared/*": ["./shared/*"],
-
+      "@/platform/*": ["./platform/*"]
     },
     "allowJs": true,
     "incremental": true,
@@ -35,13 +35,15 @@
     "features/reco",
     "features/export",
     "features/editor",
-    "shared"
+    "shared",
+    "platform"
   ],
   "exclude": [
     "node_modules",
     "dist",
     ".next",
     "legacy/_quarantine",
+    "_temp_keep",
     "**/shared/lib/readiness.ts",
     "**/shared/lib/templateGenerator.ts",
     "**/pages/program/[id].tsx",

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/shared/components/ui/button';
-import { useUser } from '@/shared/user/context/UserContext';
-import { useEditorStore } from '@/features/editor/lib';
+import { useUser } from '@/platform/core/context/hooks/useUser';
+import { useProject } from '@/platform/core/context/hooks/useProject';
 import { clearSelectedProgram } from '@/shared/user/storage/planStore';
 
 /**
@@ -10,7 +10,8 @@ import { clearSelectedProgram } from '@/shared/user/storage/planStore';
  * Only visible in development mode
  */
 export default function DevClearCacheButton() {
-  const { clearUserProfile } = useUser();
+  const { setUserProfile } = useUser();
+  const resetAll = useProject((state) => state.resetAll);
   const [isClearing, setIsClearing] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -26,22 +27,11 @@ export default function DevClearCacheButton() {
     setIsClearing(true);
 
     try {
-      // Reset editor store state first
-      useEditorStore.setState({
-        plan: null,
-        isLoading: false,
-        error: null,
-        activeSectionId: null,
-        selectedProduct: null,
-        programSummary: null,
-        allSections: [],
-        allDocuments: [],
-        disabledSectionIds: [],
-        disabledDocumentIds: [],
-      });
+      // Reset project store state (replaces old editor store reset)
+      resetAll();
 
       // Clear user profile
-      clearUserProfile();
+      setUserProfile(null);
 
       // Clear program selection
       clearSelectedProgram();

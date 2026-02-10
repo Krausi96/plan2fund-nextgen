@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useUser } from '@/shared/user/context/UserContext';
+import { useUser } from '@/platform/core/context/hooks/useUser';
 import { Mail, Lock, User, Github, Chrome, Briefcase, Users, Building2 } from 'lucide-react';
 import emailService from '@/shared/lib/services/emailService';
 import type { Persona } from '@/shared/user/segmentation/personaMapping';

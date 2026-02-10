@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { createHash } from 'crypto';
-import { checkRecommendRateLimit, rateLimitHeaders, rateLimitExceededResponse } from '@/shared/lib/rateLimit';
+import { checkRecommendRateLimit, rateLimitHeaders, rateLimitExceededResponse } from '@/platform/api/utils/rateLimit';
+import { callAI } from '@/platform/ai/orchestrator';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -377,12 +378,6 @@ KEY PROGRAMS:
     return baseInstructions + diversitySection + retrySection + knowledgeBase;
   };
 
-  const { isCustomLLMEnabled, callCustomLLM } = await import('../../../features/ai/clients/customLLM');
-  const OpenAI = (await import('openai')).default;
-
-  const CUSTOM_MAX_TOKENS = 6000;
-  const OPENAI_MAX_TOKENS = 3000;
-
   const callLLMWithFallback = async (
     messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
     temperature: number
@@ -393,62 +388,36 @@ KEY PROGRAMS:
     usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number };
     latencyMs?: number;
   }> => {
-    let lastCustomError: Error | null = null;
-
-    if (isCustomLLMEnabled()) {
-      const started = Date.now();
-      try {
-        const response = await callCustomLLM({
+    // Use unified orchestrator instead of direct LLM calls
+    try {
+      const aiResult = await callAI({
+        type: 'recommendPrograms',
+        payload: {
           messages,
-          responseFormat: 'json',
           temperature,
-          maxTokens: CUSTOM_MAX_TOKENS, // Trimmed to reduce latency/timeouts while keeping headroom
-        });
-        const latencyMs = response.latencyMs ?? Date.now() - started;
-        return {
-          responseText: response.output,
-          rawResponse: response.output,
-          provider: 'custom',
-          usage: response.usage,
-          latencyMs,
-        };
-      } catch (error: any) {
-
-        lastCustomError = error instanceof Error ? error : new Error(error?.message || 'LLM failed');
-        console.warn(`[reco][recommend] LLM failed, using OpenAI fallback`);
-      }
-    }
-
-    if (process.env.OPENAI_API_KEY) {
-      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const started = Date.now();
-      const completion = await client.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-        messages,
-        response_format: { type: 'json_object' },
-        max_tokens: OPENAI_MAX_TOKENS, // Slightly reduced to avoid long generations that can stall
-        temperature,
-      });
-      const responseText = completion.choices[0]?.message?.content || null;
-      const latencyMs = Date.now() - started;
-      return {
-        responseText,
-        rawResponse: responseText,
-        provider: 'openai',
-        usage: {
-          promptTokens: completion.usage?.prompt_tokens,
-          completionTokens: completion.usage?.completion_tokens,
-          totalTokens: completion.usage?.total_tokens,
+          maxTokens: 6000,
         },
-        latencyMs,
-      };
-    }
+      });
 
-    if (lastCustomError) {
-      throw lastCustomError;
+      if (aiResult.success && aiResult.data) {
+        return {
+          responseText: aiResult.data.response || aiResult.data.content || null,
+          rawResponse: aiResult.data.response || aiResult.data.content || null,
+          provider: aiResult.llmStats?.provider || 'custom',
+          usage: aiResult.llmStats?.tokens ? {
+            promptTokens: aiResult.llmStats.tokens.prompt,
+            completionTokens: aiResult.llmStats.tokens.completion,
+            totalTokens: aiResult.llmStats.tokens.total,
+          } : undefined,
+          latencyMs: aiResult.llmStats?.latencyMs,
+        };
+      } else {
+        throw new Error(aiResult.error || 'Orchestrator failed');
+      }
+    } catch (error: any) {
+      console.error('[recommend] orchestrator failed:', error.message);
+      throw error;
     }
-
-    throw new Error('No LLM configured');
   };
 
   // Retry logic: up to 3 attempts
@@ -479,8 +448,8 @@ KEY PROGRAMS:
         latencyMs,
       };
 
-      if (provider === 'openai' && isCustomLLMEnabled()) {
-
+      if (provider === 'openai') {
+        // Log OpenAI usage if needed
       }
 
       if (!responseText) {
@@ -621,9 +590,7 @@ KEY PROGRAMS:
   // Should not reach here, but handle edge case
   return { programs: [], raw: lastRawResponse, stats: lastStats };
 }
-// Using shared parseProgramResponse directly
-// Import shared LLM utilities
-import { parseProgramResponse } from '../../../features/ai/lib/llmUtils';
+import { parseProgramResponse } from '@/platform/ai/parsers/responseParsers';
 
 
 

@@ -6,9 +6,9 @@ import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { generateProgramBlueprint, normalizeFundingProgram, generateDocumentStructureFromProfile } from '@/features/editor/lib';
 import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
-import { useEditorStore } from '@/features/editor/lib/store/editorStore';
-import { createFallbackBlueprint } from '@/features/ai/lib/blueprintUtils';
-import { saveSelectedProgram } from '@/features/reco/lib/programPersistence';
+import { useProject } from '@/platform/core/context/hooks/useProject';
+// import { generateBlueprint } from '@/platform/generation'; // Kept for future use
+import { saveSelectedProgram } from '@/platform/analysis';
 
 // Zod schema for manual program input validation
 const ManualProgramInputSchema = z.object({
@@ -40,11 +40,11 @@ export function ProgramOption({
   const [manualError, setManualError] = useState<string | null>(null);
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualInputPosition, setManualInputPosition] = useState<{ top: number; left: number; width: number } | null>(null);
-  // Access editor store for document setup management
-  const setProgramProfile = useEditorStore((state) => state.setProgramProfile);
-  const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
-  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
-  const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
+  // Access platform store for document setup management
+  const selectProgram = useProject((state) => state.selectProgram);
+  const setDocumentStructure = useProject((state) => state.setDocumentStructure);
+  const setSetupStatus = useProject((state) => state.setSetupStatus);
+  const setSetupDiagnostics = useProject((state) => state.setSetupDiagnostics);
   
   const manualInputRef = useRef<HTMLDivElement | null>(null);
   const manualTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -173,15 +173,22 @@ export function ProgramOption({
           throw new Error(`Blueprint API returned status ${blueprintResponse.status}`);
         }
       } catch (blueprintError) {
-        console.warn('[ProgramOption] Blueprint generation failed, using shared fallback:', blueprintError);
+        console.warn('[ProgramOption] Blueprint generation failed, using fallback:', blueprintError);
         
-        // Use shared fallback blueprint utility with enhanced error handling
-        const fallbackBlueprint = createFallbackBlueprint({
-          id: fundingProgram.id,
-          name: fundingProgram.name,
-          description: fundingProgram.rawData?.description,
-          funding_types: fundingProgram.fundingTypes
-        });
+        // Use fallback blueprint structure
+        const fallbackBlueprint = {
+          sections: [],
+          validation: {
+            financial: {},
+            formatting: {}
+          },
+          guidance: {},
+          diagnostics: {
+            warnings: ['Blueprint generation failed - using basic structure'],
+            missingFields: ['Detailed program requirements'],
+            confidence: 50
+          }
+        };
         
         // Store fallback blueprint with proper typing
         Object.assign(fundingProgram, {
@@ -217,7 +224,8 @@ export function ProgramOption({
       const enhancedDocumentStructure = enhanceWithSpecialSections(documentStructure, t);
       
       // Update store with complete data
-      setProgramProfile(fundingProgram);
+      // Store program as selectedProgram (not projectProfile - they are separate)
+      selectProgram(fundingProgram as any); // Phase 7-8 will unify types properly
       setDocumentStructure(enhancedDocumentStructure);
       setSetupStatus('draft');
       setSetupDiagnostics({

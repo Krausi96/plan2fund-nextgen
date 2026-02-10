@@ -54,37 +54,21 @@ export type { ProductType, ProductOption } from './types/core/product-types';
 export type { SubsectionTemplate, SectionTemplate, DocumentTemplate } from './types/core/template-types';
 
 // Document types
-export type { TitlePage, PlanSection, PlanDocument, BusinessPlan, SectionWithMetadata, DocumentWithMetadata } from './types/documents/document-types';
+export type { TitlePage, PlanSection, PlanDocument, BusinessPlan, SectionWithMetadata, DocumentWithMetadata } from '@/platform/core/types';
 
 // Program types
-export type { FundingProgram, DocumentStructure, ProgramSummary } from './types/program/program-types';
+export type { FundingProgram, DocumentStructure, ProgramSummary, SetupDiagnostics, SetupStatus, SetupSource } from './types/program/program-types';
 
 // Workflow types
-export type { ProjectProfile, DocumentTemplateId, SetupWizardState } from './types/workflow/setup-types';
+export type { ProjectProfile, DocumentTemplateId, SetupWizardState } from '@/platform/core/types';
 
-// UI types
-export type { DropdownPosition, DropdownPositionOptions, EditHandlers, ToggleHandlers, ConnectCopy } from './types/ui/ui-components';
+// Navigation types
 export type { TreeNode } from './types/ui/navigation-types';
-
-// AI types
-export type { ConversationMessage, QuestionStatus } from './types/ai/ai-types';
-
-// Diagnostic types
-export type { SetupDiagnostics, SetupStatus, SetupSource } from './types/ai/diagnostics-types';
 
 // ============================================================================
 // STORE - Zustand store + types
 // ============================================================================
-
-export {
-  useEditorStore,
-} from './store/editorStore';
-
-export type {
-  EditorStore,
-  EditorActions,
-  EditorState,
-} from './store/editorStore';
+// DEPRECATED: Editor store has been migrated to useProjectStore
 
 // SectionWithMetadata and DocumentWithMetadata are already exported above in the TYPES section
 
@@ -109,49 +93,16 @@ export {
 // SELECTORS - Store selectors (read state)
 // ============================================================================
 
-export {
-  // Boolean selectors
-  useIsNewUser,
-  useHasPlan,
-  useIsWaitingForPlan,
-  useIsEditingSection,
-  useIsEditingDocument,
-  // Set selectors
-  useDisabledSectionsSet,
-  useDisabledDocumentsSet,
-  // Data selectors
-  useSelectedProductMeta,
-  useEffectiveEditingSectionId,
-  useVisibleDocuments,
-  useSectionsForConfig,
-  useSectionsForSidebar,
-  useDocumentsForConfig,
-  useDocumentCounts,
-  useSectionsAndDocumentsCounts,
-} from './hooks/useEditorSelectors';
+// DEPRECATED: useEditorSelectors has been migrated to useProjectStore selectors
 
 // ============================================================================
 // HOOKS - React hooks for UI interactions
 // ============================================================================
 
-export {
-  useEditorActions,
-  useEscapeKeyHandler,
-} from './hooks/useEditorActions';
+// DEPRECATED: useEditorActions and useEditorState have been migrated to useProjectStore
 
-export {
-  useEditorState,
-  useSidebarState,
-  useDocumentsBarState,
-  usePreviewState,
-  useConfiguratorState,
-  useSectionEditorState,
-} from './hooks/useEditorState';
-
-export {
-  useToggleHandlers,
-  useEditHandlers,
-} from './hooks/useEditorHandlers';
+// Removed deprecated exports - these hooks are now available via useProject
+// (useToggleHandlers, useEditHandlers, useEditorHandlers migrated)
 
 // ============================================================================
 // RENDERERS - Rendering utilities

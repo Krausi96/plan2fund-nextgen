@@ -1,4 +1,11 @@
-import type { ConversationMessage, QuestionStatus } from '@/features/editor/lib';
+type ConversationMessage = {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp?: number;
+  [key: string]: any;
+};
+
+type QuestionStatus = 'pending' | 'answered' | 'skipped' | 'hidden';
 
 type SectionAiProgram = {
   id?: string | null;

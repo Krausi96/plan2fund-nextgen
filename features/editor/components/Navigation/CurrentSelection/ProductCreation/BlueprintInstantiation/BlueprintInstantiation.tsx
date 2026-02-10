@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useEditorStore, inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/features/editor/lib';
+import { useProject } from '@/platform/core/context/hooks/useProject';
+import { inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/features/editor/lib';
 import { ControlsPanel } from './components/ControlsPanel';
 import { ProgramSummaryPanel } from '../../ProgramSelection/components/panels/ProgramSummaryPanel';
 import { TemplateStructurePanel } from '../../ProgramSelection/components/panels/TemplateStructurePanel';
@@ -52,18 +53,22 @@ export default function BlueprintInstantiationStep({
     documentPlaceholder: typedT('editor.desktop.blueprint.placeholder.documentName'),
     sectionPlaceholder: typedT('editor.desktop.blueprint.placeholder.sectionName')
   };
-  const setupWizard = useEditorStore((state) => state.setupWizard);
-  const documentStructure = setupWizard.documentStructure;
-  const programSummary = useEditorStore((state) => state.programSummary);
+  // All state from unified useProject store
+  const documentStructure = useProject((state) => state.documentStructure);
+  const inferredProductType = useProject((state) => state.inferredProductType);
+  const projectProfile = useProject((state) => state.projectProfile);
+  const editorMeta = useProject((state) => state.editorMeta);
+  const selectedProgram = useProject((state) => state.selectedProgram);
   
-
+  // Use selectedProgram as programSummary fallback
+  const programSummary = selectedProgram;
   
   // Store actions for instantiation
-  const setSelectedProduct = useEditorStore((state) => state.setSelectedProduct);
-  const setPlan = useEditorStore((state) => state.setPlan);
-  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
-  const completeSetupWizard = useEditorStore((state) => state.completeSetupWizard);
-  const setIsConfiguratorOpen = useEditorStore((state) => state.setIsConfiguratorOpen);
+  const setSelectedProduct = useProject((state) => state.setSelectedProduct);
+  const setPlan = useProject((state) => state.setPlan);
+  const setSetupStatus = useProject((state) => state.setSetupStatus);
+  const completeSetupWizard = useProject((state) => state.completeSetupWizard);
+  const setIsConfiguratorOpen = useProject((state) => state.setIsConfiguratorOpen);
   
   // UI state for editing
   const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});
@@ -75,14 +80,15 @@ export default function BlueprintInstantiationStep({
   
   // Get blueprint source information
   const getBlueprintSource = useCallback(() => {
-    if (programSummary && documentStructure?.source === 'program') {
+    const source = documentStructure?.metadata?.source;
+    if (programSummary && source === 'program') {
       return {
         type: 'program',
         label: 'Program',
         name: programSummary.name,
         description: `Connected to ${programSummary.organization || programSummary.name}`
       };
-    } else if (documentStructure?.source === 'template') {
+    } else if (documentStructure?.metadata?.source === 'template') {
       return {
         type: 'template',
         label: 'Template Upload',
@@ -181,9 +187,9 @@ export default function BlueprintInstantiationStep({
           </div>
             
           <div className="space-y-3">
-            {documentStructure?.source === 'template' ? (
+            {documentStructure?.metadata?.source === 'template' ? (
               <TemplateStructurePanel documentStructure={documentStructure} showHeader={false} />
-            ) : documentStructure?.source === 'standard' || documentStructure?.source === 'upgrade' ? (
+            ) : documentStructure?.metadata?.source === 'document' ? (
               <StandardStructurePanel documentStructure={documentStructure} showHeader={false} />
             ) : (
               <ProgramSummaryPanel documentStructure={documentStructure} onClear={() => {}} showHeader={false} />
@@ -209,21 +215,23 @@ export default function BlueprintInstantiationStep({
               if (!documentStructure) return;
               
               // Step 1: Infer product type from blueprint
-              const productType = setupWizard.inferredProductType || inferProductTypeFromBlueprint(documentStructure);
+              const docSource = documentStructure?.metadata?.source as string;
+              const productType = inferredProductType || inferProductTypeFromBlueprint(documentStructure as any);
               
               // Step 2: Prepare title page data from Step 1 (if exists)
-              const existingTitlePage = setupWizard.projectProfile ? {
-                title: documentStructure?.source === 'upgrade' ? 'Upgrade Document' : setupWizard.projectProfile.projectName || '',
-                companyName: setupWizard.projectProfile.author || '',
+              const isUpgrade = docSource === 'upgrade';
+              const existingTitlePage = projectProfile ? {
+                title: isUpgrade ? 'Upgrade Document' : projectProfile.projectName || '',
+                companyName: editorMeta?.author || '',
                 date: new Date().toISOString().split('T')[0],
-                confidentialityStatement: setupWizard.projectProfile.confidentialityStatement || '',
+                confidentialityStatement: editorMeta?.confidentialityStatement || '',
               } : undefined;
               
               // Step 3: Instantiate plan from blueprint
-              const plan = instantiateFromBlueprint(documentStructure, productType, existingTitlePage);
+              const plan = instantiateFromBlueprint(documentStructure as any, productType as any, existingTitlePage);
               
               // If document structure source is 'upgrade', update the plan title to reflect this
-              if (documentStructure?.source === 'upgrade') {
+              if (isUpgrade) {
                 if (plan.documents && plan.documents.length > 0) {
                   plan.documents[0].name = t('editor.desktop.selection.upgradeDocument' as any) || 'Upgrade Document'
                 }
@@ -241,7 +249,7 @@ export default function BlueprintInstantiationStep({
               console.log('✅ Documents created successfully:', {
                 productType,
                 sectionsCount: plan.sections.length,
-                source: documentStructure.source
+                source: documentStructure?.metadata?.source
               });
             }}
             className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg"

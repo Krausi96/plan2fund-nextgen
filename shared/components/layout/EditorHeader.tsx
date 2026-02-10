@@ -3,13 +3,13 @@ import { useState, useEffect } from "react"
 import { User, LogOut } from "lucide-react"
 import { useRouter } from "next/router"
 import LanguageSwitcher from "@/shared/components/layout/LanguageSwitcher"
-import { useUser } from "@/shared/user/context/UserContext"
+import { useUser } from "@/platform/core/context/hooks/useUser"
 import LoginModal from '@/shared/components/auth/LoginModal'
 import CurrentSelection from '@/features/editor/components/Navigation/CurrentSelection'
 
 export default function EditorHeader() {
   const router = useRouter()
-  const { userProfile, clearUserProfile } = useUser()
+  const { userProfile, setUserProfile } = useUser()
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
@@ -18,7 +18,7 @@ export default function EditorHeader() {
   }, [])
 
   const handleLogout = () => {
-    clearUserProfile()
+    setUserProfile(null)
     router.push('/')
   }
 

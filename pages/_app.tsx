@@ -2,7 +2,7 @@ import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import AppShell from "@/shared/components/layout/AppShell";
 import { I18nProvider } from "@/shared/contexts/I18nContext";
-import { UserProvider } from "@/shared/user/context/UserContext";
+import { ProjectContextProvider } from "@/platform/core/context/ProjectContext";
 import { useEffect } from "react";
 import Script from "next/script";
 
@@ -46,11 +46,11 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       />
 
       <I18nProvider>
-        <UserProvider>
+        <ProjectContextProvider>
           <AppShell>
             <Component {...pageProps} />
           </AppShell>
-        </UserProvider>
+        </ProjectContextProvider>
       </I18nProvider>
     </>
   );

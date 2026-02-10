@@ -7,19 +7,19 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Wand2 } from 'lucide-react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { EnhancedProgramResult } from '@/features/reco/types';
-import QuestionRenderer from '@/features/reco/components/QuestionRenderer';
-import { useEditorStore } from '@/features/editor/lib/store/editorStore';
-import { saveSelectedProgram } from '@/features/reco/lib/programPersistence';
-import { MIN_ANSWERED_QUESTIONS } from '@/features/reco/lib/config';
+import { EnhancedProgramResult } from '@/platform/reco/types';
+import QuestionRenderer from '@/platform/reco/components/QuestionRenderer';
+import { saveSelectedProgram } from '@/platform/analysis';
+import { MIN_ANSWERED_QUESTIONS } from '@/platform/reco/lib/config';
 import styles from './EditorProgramFinder.module.css';
-import { 
+import { useProject } from '@/platform/core/context/hooks/useProject';
+import {
   useQuestionFiltering, 
   useQuestionTranslation, 
   useAnswerHandling, 
   useProgramGeneration, 
   useResultsFiltering 
-} from '@/features/reco/hooks/useQuestionLogic';
+} from '@/platform/reco/hooks/useQuestionLogic';
 
 interface EditorProgramFinderProps {
   onProgramSelect?: (programId: string, route: string) => void;
@@ -33,8 +33,9 @@ export default function EditorProgramFinder({
   const router = useRouter();
   const { t } = useI18n();
   
-  // Get project profile from editor store for prefilling
-  const projectProfile = useEditorStore(state => state.setupWizard.projectProfile);
+  const { projectProfile } = useProject(state => ({
+    projectProfile: state.projectProfile,
+  }));
   
   // Use shared hooks for business logic (hide first question in editor)
   const { getFilteredQuestions } = useQuestionFiltering(true);
@@ -106,12 +107,12 @@ export default function EditorProgramFinder({
         prefilledAnswers.location = countryMap[projectProfile.country] || 'international';
       }
       
-      if (projectProfile.industryTags && projectProfile.industryTags.length > 0) {
-        prefilledAnswers.industry_focus = projectProfile.industryTags;
+      if (projectProfile.industry && projectProfile.industry.length > 0) {
+        prefilledAnswers.industry_focus = projectProfile.industry;
       }
       
-      if (projectProfile.financialBaseline?.fundingNeeded) {
-        prefilledAnswers.funding_amount = projectProfile.financialBaseline.fundingNeeded;
+      if (projectProfile.objective) {
+        prefilledAnswers.funding_amount = 50000; // Default fallback
       }
       
       const savedRegion = localStorage.getItem('myProject_region');

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useEditorStore } from '@/features/editor/lib/store/editorStore';
+import { useProject } from '@/platform/core/context/hooks/useProject';
 import { processUploadedDocument } from '@/features/editor/lib/document-flow/processUploadedDocument';
 
 interface DocumentUploadPanelProps {
@@ -11,11 +11,11 @@ export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPan
   const [uploadMode, setUploadMode] = useState<'template' | 'upgrade'>('template');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Access editor store for document setup management
-  const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
-  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
-  const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
-  const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
+  // Access platform store for document setup management
+  const setDocumentStructure = useProject((state) => state.setDocumentStructure);
+  const setSetupStatus = useProject((state) => state.setSetupStatus);
+  const setSetupDiagnostics = useProject((state) => state.setSetupDiagnostics);
+  const setInferredProductType = useProject((state) => state.setInferredProductType);
 
 
 

@@ -6,7 +6,7 @@
 
 import type { ProductType, PlanSection, PlanDocument } from '../../../../types/types';
 import type { DocumentStructure } from '../../../../types/program/program-types';
-import type { Blueprint } from '../../../../../../ai/services/blueprintGenerator';
+import type { Blueprint } from '@/platform/generation/blueprintGenerator';
 
 /**
  * Infer ProductType from DocumentStructure or Blueprint characteristics

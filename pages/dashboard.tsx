@@ -1,7 +1,7 @@
 import { Card } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
-import { useUser } from "@/shared/user/context/UserContext";
+import { useUser } from "@/platform/core/context/hooks/useUser";
 import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, Receipt, CreditCard, Download } from "lucide-react";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { withAuth } from "@/shared/user/auth/withAuth";
@@ -39,7 +39,7 @@ interface ClientWorkspace {
 }
 
 function DashboardPage() {
-  const { userProfile, isLoading } = useUser();
+  const { userProfile, isLoadingUser } = useUser();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [clients, setClients] = useState<ClientWorkspace[]>([]);
@@ -168,7 +168,7 @@ function DashboardPage() {
   };
 
 
-  if (isLoading || !isMounted) {
+  if (isLoadingUser || !isMounted) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

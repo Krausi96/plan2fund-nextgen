@@ -1,18 +1,10 @@
 // ========= PLAN2FUND — AI ASSISTANT ENDPOINT =========
 // AI Assistant API for Editor
 // Provides LLM responses for creative writing help (generate, improve, compliance, suggest)
-// Supports custom LLM endpoints with OpenAI fallback
+// Uses unified platform/ai/ layer with orchestrator
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import OpenAI from 'openai';
-import { isCustomLLMEnabled, callCustomLLM } from '@/features/ai/clients/customLLM';
-
-// Initialize OpenAI client (only if API key is set)
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    })
-  : null;
+import { callAI } from '@/platform/ai/orchestrator';
 
 interface ConversationMessage {
   role: 'user' | 'assistant';
@@ -79,22 +71,21 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Check if we're in test mode (no API key or custom LLM configured)
-    const hasLLM = isCustomLLMEnabled() || openai;
-    const isTestMode = !hasLLM || process.env.NODE_ENV === 'development';
+    // Check if we're in test mode
+    const isTestMode = process.env.NODE_ENV === 'development' && !process.env.OPENAI_API_KEY;
     
-    if (isTestMode && !hasLLM) {
-      console.log('🧪 Running in test mode - returning mock AI response');
+    if (isTestMode) {
+      console.log('[Assistant] Test mode - returning mock AI response');
       const mockResponse = generateMockAIResponse(message, context, action);
       return res.status(200).json(mockResponse);
     }
 
-    // Generate AI response based on action (tries custom LLM first, then OpenAI)
+    // Generate AI response using orchestrator (handles both custom LLM and OpenAI)
     const response = await generateAIResponse(message, context, action, conversationHistory);
     
     res.status(200).json(response);
   } catch (error) {
-    console.error('AI Assistant API error:', error);
+    console.error('[Assistant API] Error:', error);
     res.status(500).json({ 
       error: 'Failed to generate AI response'
     });
@@ -247,52 +238,31 @@ async function generateAIResponse(
   // Add current user message
   messages.push({ role: "user", content: userPrompt });
 
-  let aiContent = '';
-
-  // Try custom LLM first if enabled
-  if (isCustomLLMEnabled()) {
-    try {
-      console.log('[Editor AI] Attempting custom LLM...');
-      const customResponse = await callCustomLLM({
-        messages: messages,
+  // Call unified orchestrator (handles custom LLM and OpenAI internally)
+  try {
+    console.log('[Assistant] Calling orchestrator for action:', action);
+    const aiResult = await callAI({
+      type: 'writeSection',
+      payload: {
+        messages,
+        context,
+        action,
         temperature: 0.7,
         maxTokens: 1000,
-      });
-      aiContent = customResponse.output;
-      console.log(`[Editor AI] Custom LLM succeeded (${customResponse.latencyMs}ms)`);
-      
-      // Parse and return response
+      },
+    });
+
+    if (aiResult.success && aiResult.data) {
+      const aiContent = aiResult.data.content || aiResult.data.response || '';
+      console.log('[Assistant] Orchestrator succeeded');
       return parseAIResponse(aiContent);
-    } catch (customError: any) {
-      console.warn('[Editor AI] Custom LLM failed, falling back to OpenAI:', customError.message);
-      // Continue to OpenAI fallback below
+    } else {
+      throw new Error(aiResult.error || 'Orchestrator failed without error message');
     }
+  } catch (error: any) {
+    console.error('[Assistant] Orchestrator call failed:', error.message);
+    throw error;
   }
-
-  // Fallback to OpenAI if custom LLM not enabled or failed
-  if (openai) {
-    try {
-      console.log('[Editor AI] Using OpenAI...');
-      const completion = await openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || "gpt-4o-mini", // Using GPT-4o-mini for cost efficiency
-        messages: messages,
-        max_tokens: 1000,
-        temperature: 0.7,
-      });
-
-      aiContent = completion.choices[0]?.message?.content || '';
-      console.log('[Editor AI] OpenAI succeeded');
-      
-      // Parse the AI response and extract structured data
-      return parseAIResponse(aiContent);
-    } catch (error) {
-      console.error('[Editor AI] OpenAI API call failed:', error);
-      throw error;
-    }
-  }
-
-  // If both failed and no LLM configured, return mock
-  throw new Error('No LLM configured. Set OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT');
 }
 
 function createSystemPrompt(action: string, context: AIRequest['context']): string {

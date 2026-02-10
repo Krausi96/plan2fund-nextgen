@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useEditorStore, getSectionIcon } from '@/features/editor/lib';
+import { useProject } from '@/platform/core/context/hooks/useProject';
+import { getSectionIcon } from '@/features/editor/lib';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { organizeDocumentStructureForUi } from '@/features/editor/lib/utils/1-document-flows/document-flows/organizeForUiRendering';
 
@@ -13,15 +14,16 @@ interface ProgramSummaryPanelProps {
 
 export function ProgramSummaryPanel({ onClear, documentStructure: propDocumentStructure, showHeader = true, headerTitle }: ProgramSummaryPanelProps) {
   const { t } = useI18n();
-  const programProfile = useEditorStore((state) => state.setupWizard?.programProfile);
-  const programSummary = useEditorStore((state) => state.programSummary);
-
-
-  const hasProgramData = !!(programProfile || programSummary);
-  
-  // Get document structure from props if provided, otherwise from store
-  const storeDocumentStructure = useEditorStore((state) => state.setupWizard.documentStructure);
+  // TODO Phase 10: programProfile and programSummary don't exist in new store
+  // These were old editor-specific state that needs to be consolidated
+  const selectedProgram = useProject((state) => state.selectedProgram);
+  const storeDocumentStructure = useProject((state) => state.documentStructure);
   const documentStructure = propDocumentStructure || storeDocumentStructure;
+  
+  // For now, use selectedProgram as fallback for hasProgramData check
+  const programProfile = selectedProgram || null;
+  const programSummary = selectedProgram || null;
+  const hasProgramData = !!(programProfile || programSummary);
   
   // Get organized document structure for UI rendering
   const hierarchicalView = documentStructure ? organizeDocumentStructureForUi(documentStructure, t) : null;

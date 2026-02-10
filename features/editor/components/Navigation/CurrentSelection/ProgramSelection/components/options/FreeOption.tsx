@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useEditorStore } from '@/features/editor/lib/store/editorStore';
+import { useProject } from '@/platform/core/context/hooks/useProject';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { enhanceWithSpecialSections } from '@/features/editor/lib/utils/1-document-flows/document-flows/sections/enhancement/sectionEnhancement';
@@ -17,10 +17,10 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
 
   const { t } = useI18n();
   
-  // Access editor store for document setup management
-  const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
-  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
-  const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
+  // Access platform store for document setup management
+  const setDocumentStructure = useProject((state) => state.setDocumentStructure);
+  const setSetupStatus = useProject((state) => state.setSetupStatus);
+  const setInferredProductType = useProject((state) => state.setInferredProductType);
   
   
   const handleStructureSelect = (structure: string) => {

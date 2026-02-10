@@ -2,11 +2,7 @@ import React, { useState } from 'react';
 import TreeNavigator from './Navigation/CurrentSelection/TreeNavigator/TreeNavigator';
 import PreviewWorkspace from './Preview/PreviewWorkspace';
 import SectionEditor from './Editor/SectionEditor';
-import { 
-  useIsWaitingForPlan,
-  useEditorState,
-  useEditorStore,
-} from '@/features/editor/lib';
+import { useProject } from '@/platform/core/context/hooks/useProject';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import DevClearCacheButton from './DevTools/DevClearCacheButton';
 
@@ -15,12 +11,10 @@ type EditorProps = {};
 export default function Editor({}: EditorProps = {}) {
   const { t } = useI18n();
   
-  // Consolidated state access
-  const { error } = useEditorState();
-  
-  // Computed selectors
-  const isWaitingForPlan = useIsWaitingForPlan();
-  const activeSectionId = useEditorStore(state => state.activeSectionId);
+  // Access state from unified useProject store
+  const error = useProject((state) => state.error);
+  const activeSectionId = useProject((state) => state.activeSectionId);
+  const plan = useProject((state) => state.plan);
   
   // Resizable column states
   const [leftColumnWidth, setLeftColumnWidth] = useState(320);
@@ -56,7 +50,8 @@ export default function Editor({}: EditorProps = {}) {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-// Default product selection removed - user should select product manually
+  // Default product selection removed - user should select product manually
+  const isWaitingForPlan = !plan;
   
   if (isWaitingForPlan) {
     return (

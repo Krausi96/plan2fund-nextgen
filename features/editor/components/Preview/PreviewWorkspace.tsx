@@ -2,11 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { 
   type PlanDocument,
-  usePreviewState,
-  useDisabledSectionsSet,
-  useEditorActions,
-  useEditorStore,
 } from '@/features/editor/lib';
+import { useProject } from '@/platform/core/context/hooks/useProject';
 import { TitlePageRenderer } from './renderers/TitlePageRenderer';
 import { TableOfContentsRenderer } from './renderers/TableOfContentsRenderer';
 import { SectionRenderer } from './renderers/SectionRenderer';
@@ -31,17 +28,7 @@ const RESTRICTED_SECTIONS = [
 
 function PreviewPanel() {
   const { t: i18nT } = useI18n();
-  const previewState = usePreviewState();
-  const { plan, isNewUser, hasPlan } = previewState;
-  const disabledSections = useDisabledSectionsSet();
-  const actions = useEditorActions((a) => ({
-    setIsConfiguratorOpen: a.setIsConfiguratorOpen,
-    updateSection: a.updateSection, // Add updateSection action
-  }));
-  const setActiveSectionIdAction = useEditorStore(state => state.setActiveSectionId);
-  // Readiness Check data
-  const programSummary = useEditorStore(state => state.programSummary);
-  const selectedProduct = useEditorStore(state => state.selectedProduct);
+  const { plan, selectedProgram, setActiveSectionId, updateSection, setIsConfiguratorOpen, disabledSectionIds } = useProject();
   
   const [showWatermark] = useState(true);
   const [zoomLevel, setZoomLevel] = useState(1); // Scale factor
@@ -87,7 +74,7 @@ function PreviewPanel() {
   }
   
 
-  const planDocument = useMemo<PlanDocument | null>(() => plan ? plan as PlanDocument : null, [plan]);
+  const planDocument = useMemo<PlanDocument | null>(() => plan ? (plan as unknown as PlanDocument) : null, [plan]);
 
 const previewMode: 'formatted' | 'print' = 'formatted';
   const isGerman = planDocument?.language === 'de';
@@ -134,7 +121,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
     
     // In live preview mode (no product selected yet), only show regular sections
     // Hide special sections: Title Page (metadata), TOC (ancillary), References, Appendices, Tables/Data, Figures/Images
-    if (!selectedProduct) {
+    if (!selectedProgram) {
       return allSections.filter(section => 
         section.id !== 'metadata' &&
         section.id !== 'ancillary' && 
@@ -154,7 +141,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
       section.id !== 'appendices'
       // Keep tables_data and figures_images for now - they render as regular content sections
     );
-  }, [planDocument?.sections, selectedProduct]);
+  }, [planDocument?.sections, selectedProgram]);
 
   // Focus edit input when editing starts
   useEffect(() => {
@@ -172,7 +159,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
   const handleSaveEdit = (save: boolean = true) => {
     if (editingSection && save) {
       // Save changes to store
-      actions.updateSection(editingSection, { content: editContent });
+      updateSection(editingSection, { content: editContent });
       
       // Show success feedback
       console.log(`Saved changes to section: ${editingSection}`);
@@ -210,7 +197,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
           </div>
           
           <button
-            onClick={() => actions.setIsConfiguratorOpen(true)}
+            onClick={() => setIsConfiguratorOpen(true)}
             className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
           >
             {(() => {
@@ -295,7 +282,7 @@ const previewMode: 'formatted' | 'print' = 'formatted';
             }
             
             if (sectionId) {
-              setActiveSectionIdAction(sectionId, 'scroll');
+              setActiveSectionId(sectionId);
             }
           }
         },
@@ -331,11 +318,11 @@ const previewMode: 'formatted' | 'print' = 'formatted';
         clearTimeout(scrollTimeout);
       }
     };
-  }, [planDocument, sectionsToRender, setActiveSectionIdAction]);
+  }, [planDocument, sectionsToRender, setActiveSectionId]);
 
   return (
     <>
-      {(isNewUser || !hasPlan || !selectedProduct) ? (
+      {(!selectedProgram) ? (
         emptyStateContent
       ) : !planDocument ? (
         noPlanContent
@@ -375,12 +362,12 @@ const previewMode: 'formatted' | 'print' = 'formatted';
                     <div className="text-6xl font-bold text-gray-200 opacity-30 transform -rotate-45 select-none">DRAFT</div>
                   </div>
                 )}
-                <TitlePageRenderer planDocument={planDocument} disabledSections={disabledSections} t={t} />
+                <TitlePageRenderer planDocument={planDocument} disabledSections={new Set(disabledSectionIds || [])} t={t} />
                 
-                {/* Only show special sections when product is selected (not in live preview mode) */}
-                {selectedProduct && (
+                {/* Only show special sections when program is selected (not in live preview mode) */}
+                {selectedProgram && (
                   <>
-                    <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                    <TableOfContentsRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={new Set(disabledSectionIds || [])} t={t} />
                     {sectionsToRender.map((section, index) => (
                       <SectionRenderer
                         key={section.key}
@@ -398,10 +385,10 @@ const previewMode: 'formatted' | 'print' = 'formatted';
                         editInputRef={editInputRef}
                       />
                     ))}
-                    <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                    <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                    <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
-                    <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={disabledSections} t={t} />
+                    <ListOfTablesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={new Set(disabledSectionIds || [])} t={t} />
+                    <ListOfFiguresRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={new Set(disabledSectionIds || [])} t={t} />
+                    <ReferencesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={new Set(disabledSectionIds || [])} t={t} />
+                    <AppendicesRenderer planDocument={planDocument} sectionsToRender={sectionsToRender} disabledSections={new Set(disabledSectionIds || [])} t={t} />
                   </>
                 )}
               </div>
@@ -456,14 +443,14 @@ const previewMode: 'formatted' | 'print' = 'formatted';
                   <div className="flex items-center gap-4">
                     <span className="text-white/60 text-xs font-medium">Status:</span>
                     <div className="flex items-center gap-2">
-                      {selectedProduct && (
+                      {selectedProgram && (
                         <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded font-medium">
-                          {selectedProduct.charAt(0).toUpperCase() + selectedProduct.slice(1)}
+                          Selected Program
                         </span>
                       )}
-                      {programSummary ? (
+                      {selectedProgram ? (
                         <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded font-medium">
-                          {programSummary.name}
+                          {selectedProgram.name || 'Program'}
                         </span>
                       ) : (
                         <span className="px-2 py-1 bg-gray-500/20 text-gray-400 text-xs rounded font-medium">

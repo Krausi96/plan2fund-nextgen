@@ -4,7 +4,7 @@ import { Menu, X, User, LogOut } from "lucide-react"
 import { useRouter } from "next/router"
 import LanguageSwitcher from '@/shared/components/layout/LanguageSwitcher'
 import { useI18n } from "@/shared/contexts/I18nContext"
-import { useUser } from "@/shared/user/context/UserContext"
+import { useUser } from "@/platform/core/context/hooks/useUser"
 import LoginModal from '@/shared/components/auth/LoginModal'
 
 import EditorHeader from '@/shared/components/layout/EditorHeader';
@@ -12,7 +12,7 @@ import EditorHeader from '@/shared/components/layout/EditorHeader';
 export default function Header() {
   const { t } = useI18n()
   const router = useRouter()
-  const { userProfile, clearUserProfile } = useUser()
+  const { userProfile, setUserProfile } = useUser()
   const [open, setOpen] = useState(false)
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
@@ -27,7 +27,7 @@ export default function Header() {
   }, [])
 
   const handleLogout = () => {
-    clearUserProfile()
+    setUserProfile(null)
     setOpen(false)
     router.push('/')
   }

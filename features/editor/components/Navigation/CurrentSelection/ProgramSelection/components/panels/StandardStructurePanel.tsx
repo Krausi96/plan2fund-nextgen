@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEditorStore } from '@/features/editor/lib';
+import { useProject } from '@/platform/core/context/hooks/useProject';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { getSectionIcon } from '@/features/editor/lib';
@@ -15,16 +15,16 @@ interface StandardStructurePanelProps {
 }
 
 export function StandardStructurePanel({ selectedOption, onClearStructure, showHeader = true, headerTitle, documentStructure: propDocumentStructure }: StandardStructurePanelProps) {
-  const setupWizard = useEditorStore((state) => state.setupWizard);
-  const documentStructure = propDocumentStructure || setupWizard.documentStructure;
-  
+  const storeDocumentStructure = useProject((state) => state.documentStructure);
+  const documentStructure = propDocumentStructure || storeDocumentStructure;
+  const inferredProductType = useProject((state) => state.inferredProductType);
   const { t } = useI18n();
   
   // Store actions for document structure management
-  const setDocumentStructure = useEditorStore((state) => state.setDocumentStructure);
-  const setSetupStatus = useEditorStore((state) => state.setSetupStatus);
-  const setSetupDiagnostics = useEditorStore((state) => state.setSetupDiagnostics);
-  const setInferredProductType = useEditorStore((state) => state.setInferredProductType);
+  const setDocumentStructure = useProject((state) => state.setDocumentStructure);
+  const setSetupStatus = useProject((state) => state.setSetupStatus);
+  const setSetupDiagnostics = useProject((state) => state.setSetupDiagnostics);
+  const setInferredProductType = useProject((state) => state.setInferredProductType);
   // Note: setSelectedOption is managed locally in ProgramSelection component
 
   const getRequiredDocuments = () => {
@@ -39,7 +39,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure, showH
     }
     
     // Otherwise, fall back to template sections based on inferred product type
-    const productType = setupWizard.inferredProductType;
+    const productType = inferredProductType;
     let sections: any[] = [];
     
     if (productType && MASTER_SECTIONS[productType]) {
@@ -52,7 +52,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure, showH
 
   // Handle case when no documents exist but we have product type
   // Only use template structure if there's no document structure at all
-  const hasTemplateStructure = setupWizard.inferredProductType && 
+  const hasTemplateStructure = inferredProductType && 
                                 getRequiredDocuments().length === 0 &&
                                 (!documentStructure || !documentStructure.sections || documentStructure.sections.length === 0) &&
                                 selectedOption !== 'free';
@@ -85,7 +85,7 @@ export function StandardStructurePanel({ selectedOption, onClearStructure, showH
       console.log('🗑️ Clearing standard structure - updating to empty state');
       setDocumentStructure(null);
       setSetupStatus('none');
-      setSetupDiagnostics(null);
+      setSetupDiagnostics(undefined);
       setInferredProductType(null);
       // DO NOT clear selectedOption - keep panel open and selection intact
     }
@@ -152,8 +152,8 @@ export function StandardStructurePanel({ selectedOption, onClearStructure, showH
                   {/* Document Header */}
                   <div className="flex items-center gap-2 text-white font-medium mb-2">
                     <span className="truncate flex-1">
-                      {setupWizard.inferredProductType === 'submission' ? t('editor.desktop.program.document.businessPlan') : 
-                       setupWizard.inferredProductType === 'strategy' ? t('editor.desktop.program.document.strategyDocument') : 
+                      {inferredProductType === 'submission' ? t('editor.desktop.program.document.businessPlan') : 
+                       inferredProductType === 'strategy' ? t('editor.desktop.program.document.strategyDocument') : 
                        'Standard Document'}
                     </span>
                   </div>

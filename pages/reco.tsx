@@ -1,4 +1,4 @@
-﻿import ProgramFinder from "@/features/reco/components/ProgramFinder";
+﻿import ProgramFinder from "@/platform/reco/components/ProgramFinder";
 import { useEffect } from "react";
 import analytics from "@/shared/user/analytics";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';

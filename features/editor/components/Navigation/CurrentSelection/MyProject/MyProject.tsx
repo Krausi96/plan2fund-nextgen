@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useEditorState } from '@/features/editor/lib/hooks/useEditorState';
-import { useEditorActions, useEditorStore } from '@/features/editor/lib';
-import { METADATA_SECTION_ID } from '@/features/editor/lib/constants';
+import { useProject } from '@/platform/core/context/hooks/useProject';
+import type { ProjectProfile } from '@/platform/core/types';
 import GeneralInfoStep from './subSteps/GeneralInfoStep';
 import ProjectProfileStep from './subSteps/ProjectProfileStep';
 import PlanningContextStep from './subSteps/PlanningContextStep';
@@ -25,57 +24,50 @@ const MyProject: React.FC<MyProjectProps> = ({
   onInteraction
 }) => {
   const { t } = useI18n();
-  const { plan } = useEditorState();
-  const actions = useEditorActions((a) => ({
-    updateSection: a.updateSection,
-    setProjectProfile: a.setProjectProfile,
-  }));
-  
-  // Get project profile from store
-  const projectProfile = useEditorStore(state => state.setupWizard.projectProfile);
-  
-  // Initialize form data with proper precedence: plan settings > projectProfile > defaults
+  const plan = useProject((state) => state.plan);
+  const projectProfile = useProject((state) => state.projectProfile);
+  const editorMeta = useProject((state) => state.editorMeta);
+  const setProjectProfile = useProject((state) => state.setProjectProfile);
+  const setEditorMeta = useProject((state) => state.setEditorMeta);
+
+  // Initialize form data with proper precedence: editorMeta > projectProfile > defaults
   const initialFormData = {
-    // Title Page fields
-    title: plan?.settings?.titlePage?.title || projectProfile?.projectName || '',
-    subtitle: plan?.settings?.titlePage?.subtitle || '',
-    companyName: plan?.settings?.titlePage?.companyName || projectProfile?.author || '',
-    author: plan?.settings?.titlePage?.companyName || projectProfile?.author || '',
-    date: plan?.settings?.titlePage?.date || new Date().toISOString().split('T')[0],
-    logoUrl: plan?.settings?.titlePage?.logoUrl || '',
-    confidentiality: projectProfile?.confidentiality || 'confidential' as 'public' | 'confidential' | 'private',
+    // Title Page fields (from editorMeta)
+    title: plan?.title || editorMeta?.subtitle || projectProfile?.projectName || '',
+    subtitle: editorMeta?.subtitle || '',
+    companyName: editorMeta?.author || projectProfile?.projectName || '',
+    author: editorMeta?.author || '',
+    date: editorMeta?.date || new Date().toISOString().split('T')[0],
+    logoUrl: editorMeta?.logoUrl || '',
+    confidentiality: editorMeta?.confidentiality || 'confidential' as 'public' | 'confidential' | 'private',
     
     // Contact Information
     contactInfo: {
-      email: plan?.settings?.titlePage?.contactInfo?.email || '',
-      phone: plan?.settings?.titlePage?.contactInfo?.phone || '',
-      website: plan?.settings?.titlePage?.contactInfo?.website || '',
-      address: plan?.settings?.titlePage?.contactInfo?.address || '',
+      email: editorMeta?.contactInfo?.email || '',
+      phone: editorMeta?.contactInfo?.phone || '',
+      website: editorMeta?.contactInfo?.website || '',
+      address: editorMeta?.contactInfo?.address || '',
     },
     
-    // Project Profile fields
-    stage: projectProfile?.stage || '' as 'idea' | 'MVP' | 'revenue' | 'growth',
+    // Project Profile fields (clean business data)
+    stage: projectProfile?.stage || '',
     country: projectProfile?.country || '',
-    region: '',
-    oneLiner: projectProfile?.oneLiner || '',
-    mainObjective: projectProfile?.mainObjective || '',
-    teamSize: projectProfile?.teamSize || 0,
+    region: editorMeta?.region || '',
+    projectName: projectProfile?.projectName || '',
+    mainObjective: editorMeta?.mainObjective || '',
+    teamSize: projectProfile?.teamSize || '',
     
     // Industry Focus
-    industryFocus: projectProfile?.industryTags || [] as string[],
-    digitalFocus: [] as string[],
-    sustainabilityFocus: [] as string[],
-    healthFocus: [] as string[],
-    manufacturingFocus: [] as string[],
-    exportFocus: [] as string[],
-    customIndustry: projectProfile?.customIndustry || '',
-    customObjective: projectProfile?.customObjective || '',
+    industryFocus: projectProfile?.industry || [],
+    industrySubcategory: projectProfile?.industrySubcategory || '',
+    customIndustry: editorMeta?.customIndustry || '',
+    customObjective: editorMeta?.customObjective || '',
     
     // Financial Baseline
     financialBaseline: {
-      currency: projectProfile?.financialBaseline?.currency || 'EUR',
-      startDate: projectProfile?.financialBaseline?.startDate || new Date().toISOString().split('T')[0],
-      planningHorizon: projectProfile?.financialBaseline?.planningHorizon || 0 as 0 | 6 | 12 | 18 | 24 | 30 | 36 | 42 | 48
+      currency: editorMeta?.financialBaseline?.currency || 'EUR',
+      startDate: editorMeta?.financialBaseline?.startDate || new Date().toISOString().split('T')[0],
+      planningHorizon: projectProfile?.planningHorizon || 0 as 0 | 6 | 12 | 18 | 24 | 30 | 36 | 42 | 48
     }
   };
 
@@ -88,56 +80,52 @@ const MyProject: React.FC<MyProjectProps> = ({
 
   // Initialize form data from store on component mount only
   useEffect(() => {
-    if (projectProfile) {
+    if (projectProfile || editorMeta) {
       setFormData(prev => {
         const mergedContactInfo = {
           ...prev.contactInfo,
-          email: plan?.settings?.titlePage?.contactInfo?.email || prev.contactInfo.email,
-          phone: plan?.settings?.titlePage?.contactInfo?.phone || prev.contactInfo.phone,
-          website: plan?.settings?.titlePage?.contactInfo?.website || prev.contactInfo.website,
-          address: plan?.settings?.titlePage?.contactInfo?.address || prev.contactInfo.address,
+          email: editorMeta?.contactInfo?.email || prev.contactInfo.email,
+          phone: editorMeta?.contactInfo?.phone || prev.contactInfo.phone,
+          website: editorMeta?.contactInfo?.website || prev.contactInfo.website,
+          address: editorMeta?.contactInfo?.address || prev.contactInfo.address,
         };
         
         const mergedFinancialBaseline = {
           ...prev.financialBaseline,
-          currency: projectProfile.financialBaseline?.currency || prev.financialBaseline.currency,
-          startDate: projectProfile.financialBaseline?.startDate || prev.financialBaseline.startDate,
-          planningHorizon: projectProfile.financialBaseline?.planningHorizon || prev.financialBaseline.planningHorizon
+          currency: editorMeta?.financialBaseline?.currency || prev.financialBaseline.currency,
+          startDate: editorMeta?.financialBaseline?.startDate || prev.financialBaseline.startDate,
+          planningHorizon: projectProfile?.planningHorizon || prev.financialBaseline.planningHorizon
         };
         
         return {
           ...prev,
-          // Title page fields with precedence
-          title: plan?.settings?.titlePage?.title || projectProfile.projectName || prev.title,
-          companyName: plan?.settings?.titlePage?.companyName || projectProfile.author || prev.companyName,
-          author: plan?.settings?.titlePage?.companyName || projectProfile.author || prev.author,
+          // Title page fields with precedence - from editorMeta
+          title: editorMeta?.subtitle || projectProfile?.projectName || prev.title,
+          companyName: editorMeta?.author || projectProfile?.projectName || prev.companyName,
+          author: editorMeta?.author || prev.author,
+          date: editorMeta?.date || prev.date,
+          confidentiality: editorMeta?.confidentiality || prev.confidentiality,
+          logoUrl: editorMeta?.logoUrl || prev.logoUrl,
           
-          // Profile fields
-          confidentiality: projectProfile.confidentiality || prev.confidentiality,
-          stage: projectProfile.stage || prev.stage,
-          country: projectProfile.country || prev.country,
-          oneLiner: projectProfile.oneLiner || prev.oneLiner,
-          mainObjective: projectProfile.mainObjective || prev.mainObjective,
-          teamSize: projectProfile.teamSize || prev.teamSize,
+          // Profile fields (clean business data from projectProfile)
+          stage: projectProfile?.stage || prev.stage,
+          country: projectProfile?.country || prev.country,
+          projectName: projectProfile?.projectName || prev.projectName,
+          mainObjective: editorMeta?.mainObjective || prev.mainObjective,
+          teamSize: projectProfile?.teamSize || prev.teamSize,
           
           // Industry focus
-          industryFocus: projectProfile.industryTags || prev.industryFocus,
-          customIndustry: projectProfile.customIndustry || prev.customIndustry,
-          customObjective: projectProfile.customObjective || prev.customObjective,
+          industryFocus: projectProfile?.industry || prev.industryFocus,
+          industrySubcategory: projectProfile?.industrySubcategory || prev.industrySubcategory,
+          customIndustry: editorMeta?.customIndustry || prev.customIndustry,
+          customObjective: editorMeta?.customObjective || prev.customObjective,
           
-          // Region with localStorage fallback
-          region: prev.region || localStorage.getItem('myProject_region') || '',
-          
-          // Contact and financial info
-          contactInfo: mergedContactInfo,
-          financialBaseline: mergedFinancialBaseline
+          ...mergedContactInfo,
+          ...mergedFinancialBaseline
         };
       });
     }
-    
-    // Initialize completion status
-    updateCompletionStatus(initialFormData);
-  }, []); // Empty dependency array - run only once on mount
+  }, [projectProfile, editorMeta]);
 
   // Function to check if section 1 (General Info) is completed
   const isSection1Complete = (data: typeof initialFormData) => {
@@ -177,14 +165,8 @@ const MyProject: React.FC<MyProjectProps> = ({
         
         // Immediate update for all title page fields to trigger preview
         queueMicrotask(() => {
-          actions.updateSection(METADATA_SECTION_ID, { 
-            title: newData.title,
-            subtitle: newData.subtitle,
-            companyName: newData.companyName,
-            date: newData.date,
-            logoUrl: newData.logoUrl,
-            contactInfo: newData.contactInfo
-          });
+          // Note: Section type no longer contains title page fields
+          // Title page data is now stored in editorMeta
         });
         
         // Update completion status
@@ -201,35 +183,34 @@ const MyProject: React.FC<MyProjectProps> = ({
           localStorage.setItem('myProject_region', value);
         }
         
-        // Update project profile for Project Profile fields
-        if (['country', 'stage', 'industryFocus', 'oneLiner', 'teamSize', 'mainObjective', 'customIndustry', 'financialBaseline', 'confidentiality', 'region', 'digitalFocus', 'sustainabilityFocus', 'healthFocus', 'manufacturingFocus', 'exportFocus'].includes(field)) {
-          const projectProfile = {
+        // Update project profile for Project Profile fields (clean business data)
+        if (['country', 'stage', 'industryFocus', 'projectName', 'teamSize', 'mainObjective', 'customIndustry', 'financialBaseline', 'confidentiality', 'region', 'aiFocus', 'fintechFocus', 'otherFocus'].includes(field)) {
+          const updatedProjectProfile: Partial<ProjectProfile> = {
             projectName: newData.title,
-            author: newData.companyName,
-            confidentiality: newData.confidentiality,
-            oneLiner: newData.oneLiner,
             stage: newData.stage,
             country: newData.country,
-            industryTags: (newData as any).industryFocus,
-            mainObjective: newData.mainObjective,
+            industry: (newData as any).industryFocus,
+            objective: newData.mainObjective,
             teamSize: newData.teamSize,
+            planningHorizon: newData.financialBaseline?.planningHorizon
+          };
+          setProjectProfile(updatedProjectProfile as ProjectProfile);
+          
+          // Update editor meta for UI fields
+          setEditorMeta({
+            author: newData.companyName,
+            confidentiality: newData.confidentiality,
+            mainObjective: newData.mainObjective,
             customIndustry: newData.customIndustry,
             customObjective: newData.customObjective,
             financialBaseline: newData.financialBaseline
-          };
-          actions.setProjectProfile(projectProfile);
+          });
         }
         
         // Immediate update for all title page fields to trigger preview
         queueMicrotask(() => {
-          actions.updateSection(METADATA_SECTION_ID, { 
-            title: newData.title,
-            subtitle: newData.subtitle,
-            companyName: newData.companyName,
-            date: newData.date,
-            logoUrl: newData.logoUrl,
-            contactInfo: newData.contactInfo
-          });
+          // Note: Section type no longer contains title page fields
+          // Title page data is now stored in editorMeta
         });
         
         // Update completion status

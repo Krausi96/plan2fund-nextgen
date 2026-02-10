@@ -1,26 +1,26 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { useUser } from '@/shared/user/context/UserContext'
+import { useUser } from '@/platform/core/context/hooks/useUser'
 import SEOHead from '@/shared/components/common/SEOHead'
 import LoginForm from '@/shared/components/auth/LoginForm'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { userProfile, isLoading } = useUser()
+  const { userProfile, isLoadingUser } = useUser()
 
   // Get redirect parameter from query string
   const { redirect } = router.query
 
   // If user is already logged in, redirect them
   useEffect(() => {
-    if (!isLoading && userProfile) {
+    if (!isLoadingUser && userProfile) {
       const destination = redirect ? decodeURIComponent(redirect as string) : '/dashboard'
       router.replace(destination)
     }
-  }, [userProfile, isLoading, redirect, router])
+  }, [userProfile, isLoadingUser, redirect, router])
 
   // Wait for user context to load
-  if (isLoading) {
+  if (isLoadingUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
