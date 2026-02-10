@@ -96,7 +96,7 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
   const formatFundingAmount = (amountRange?: string): string | undefined => {
     if (!amountRange) return undefined;
 
-    // Check if the amountRange already contains "Mio" format
+    // Remove any "Mio €" format and convert to desired format
     const mioRegex = /Mio\s*€([\d.,]+)\s*[-–]\s*Mio\s*€([\d.,]+)/;
     if (mioRegex.test(amountRange)) {
       const matches = amountRange.match(mioRegex);
@@ -107,28 +107,47 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
       }
     }
     
+    // Handle the specific problematic format: "€0,5–€17,5" -> "€0.5M–€17.5M"
+    const commaDecimalPattern = /€([\d,]+)[–-]€([\d,]+)/;
+    if (commaDecimalPattern.test(amountRange)) {
+      const matches = amountRange.match(commaDecimalPattern);
+      if (matches && matches.length >= 3) {
+        const min = matches[1].replace(/,/g, '.');
+        const max = matches[2].replace(/,/g, '.');
+        
+        // Simply ensure M is added for these values
+        return `€${min}M–€${max}M`;
+      }
+    }
+    
     // Handle different currency formats and convert to desired format
     // Example: Convert "EUR25.000 - EUR250.000" to "€25k–€250k"
     const euroPattern = /(?:EUR|€)([\d.,]+)\s*[-–]\s*(?:EUR|€)([\d.,]+)/;
     const thousandPattern = /(?:EUR|€)([\d.,]+)\s*[-–]\s*(?:EUR|€)([\d.,]+)\s*\.000/;
     const millionPattern = /([\d.,]+)\s*M\s*EUR/;
     
+    // First, try to handle million patterns
     if (millionPattern.test(amountRange)) {
       const matches = amountRange.match(millionPattern);
       if (matches && matches.length >= 2) {
-        // For million formats, we need to handle differently
-        // This is a simplified approach - adjust as needed based on actual data
-        return amountRange.replace(/M\s*EUR/g, 'M').replace(/EUR/g, '€');
+        // For million formats, convert to proper decimal format
+        let minVal = parseFloat(matches[1].replace(/,/g, '.'));
+        return `€${minVal.toFixed(1)}M`;
       }
-    } else if (thousandPattern.test(amountRange)) {
-      // Handle "EUR25.000 - EUR250.000" format -> "€25k–€250k"
+    }
+    
+    // Then try thousand pattern
+    if (thousandPattern.test(amountRange)) {
       const matches = amountRange.match(thousandPattern);
       if (matches && matches.length >= 3) {
         const min = parseFloat(matches[1].replace(/,/g, ''));
         const max = parseFloat(matches[2].replace(/,/g, ''));
         return `€${min}k–€${max}k`;
       }
-    } else if (euroPattern.test(amountRange)) {
+    }
+    
+    // Then try euro pattern
+    if (euroPattern.test(amountRange)) {
       const matches = amountRange.match(euroPattern);
       if (matches && matches.length >= 3) {
         const min = parseFloat(matches[1].replace(/,/g, ''));
@@ -140,12 +159,17 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
     // Handle other formats that might already be in the right format
     let result = amountRange.replace(/EUR/g, '€').replace(/\.000/g, 'k');
     
-    // Final check for any remaining Mio format
-    const finalMioMatch = result.match(/Mio\s*€([\d.,]+)\s*[-–]\s*Mio\s*€([\d.,]+)/);
-    if (finalMioMatch) {
-      const min = parseFloat(finalMioMatch[1].replace(/,/g, '.'));
-      const max = parseFloat(finalMioMatch[2].replace(/,/g, '.'));
-      return `€${min}M–€${max}M`;
+    // Remove any remaining Mio format permanently and fix decimal formatting
+    result = result.replace(/Mio\s*€/g, '€');
+    result = result.replace(/(\d+),(\d+)/g, '$1.$2');
+    
+    // If it looks like a million value without M, add it
+    if (result.includes('€') && !result.includes('M') && !result.includes('k') && result.includes('.')) {
+      // Check if it's a decimal value like 0.5 or 17.5
+      const decimalPattern = /€(\d+\.\d+)/;
+      if (decimalPattern.test(result)) {
+        result = result.replace(/(€\d+\.\d+)/g, '$1M');
+      }
     }
     
     return result;
@@ -153,11 +177,55 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
 
   const formatCurrency = (value: number): string => {
     if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(1)}M`;
+      // Format millions with one decimal place
+      const millionValue = value / 1000000;
+      return `${millionValue.toFixed(1)}M`;
     } else if (value >= 1000) {
+      // Format thousands as whole numbers
       return `${Math.round(value / 1000)}k`;
+    } else {
+      // Small values - just add M if it seems like a million value
+      return `${value}M`;
     }
     return value.toString();
+  };
+  
+  const formatDate = (dateString: string | undefined): string => {
+    if (!dateString) return 'Ongoing';
+    
+    // Check if it's an ongoing/rolling deadline
+    if (dateString.toLowerCase().includes('ongoing') || dateString.toLowerCase().includes('rolling')) {
+      return 'Ongoing';
+    }
+    
+    // Try to parse the date
+    try {
+      // Handle various date formats
+      let date: Date;
+      
+      // If it's already in a recognizable format like '14 Mar 2026'
+      if (isNaN(Date.parse(dateString))) {
+        // If we can't parse it directly, return as is
+        return dateString;
+      }
+      
+      date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return dateString; // Return original if invalid
+      }
+      
+      // Format as DD/MM/YYYY
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
+    } catch (e) {
+      // If parsing fails, return original string
+      return dateString;
+    }
   };
 
   // Load programs from mock repository
@@ -287,9 +355,9 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
   const regions = Array.from(new Set(programs.map(p => p.region).filter(Boolean)));
 
   return (
-    <div className="bg-slate-800/40 rounded-xl border border-slate-600/50 overflow-hidden shadow-lg">
-      {/* Filters - Centered layout with max-width */}
-      <div className="mx-auto max-w-[1180px] p-2 border-b border-white/10 bg-slate-800/20">
+    <div className="bg-[#1E293B] rounded-lg">
+      {/* Filters - Clean layout */}
+      <div className="mx-auto max-w-[1180px] p-3">
         {/* Row 1 - Search only */}
         <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
           {/* Search */}
@@ -298,20 +366,20 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search..."
-              className="w-full rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10"
+              placeholder={t('editor.desktop.program.finder.searchPlaceholder' as any) || 'Find Funding Programs'}
+              className="w-full rounded border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10"
             />
           </div>
         </div>
-        
+          
         {/* Row 2 - All filters */}
         <div className="flex flex-wrap items-center justify-center gap-2">
           {/* Stage Filter */}
-          <div>
+          <div className="flex-1 min-w-[110px] max-w-[140px]">
             <select
               value={selectedStage}
               onChange={(e) => setSelectedStage(e.target.value)}
-              className="rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10 min-w-[100px]"
+              className="w-full rounded border border-white/8 bg-[#243041] px-3 py-2 text-sm text-[#E6EDF3] focus:border-white/18 focus:outline-none focus:ring-1 focus:ring-white/10 h-10"
             >
               <option value="all">Stage</option>
               {stages.map(stage => (
@@ -319,13 +387,13 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
               ))}
             </select>
           </div>
-          
+            
           {/* Region Filter */}
-          <div>
+          <div className="flex-1 min-w-[100px] max-w-[140px]">
             <select
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
-              className="rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10 min-w-[100px]"
+              className="w-full rounded border border-white/8 bg-[#243041] px-3 py-2 text-sm text-[#E6EDF3] focus:border-white/18 focus:outline-none focus:ring-1 focus:ring-white/10 h-10"
             >
               <option value="all">Region</option>
               {regions.map(region => (
@@ -333,13 +401,13 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
               ))}
             </select>
           </div>
-          
+            
           {/* Funding Size Dropdown */}
-          <div>
+          <div className="flex-1 min-w-[100px] max-w-[140px]">
             <select
               value={selectedFundingSize}
               onChange={(e) => setSelectedFundingSize(e.target.value)}
-              className="rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10 min-w-[100px]"
+              className="w-full rounded border border-white/8 bg-[#243041] px-3 py-2 text-sm text-[#E6EDF3] focus:border-white/18 focus:outline-none focus:ring-1 focus:ring-white/10 h-10"
             >
               <option value="any">Funding</option>
               <option value="under50k">&lt;€50k</option>
@@ -348,13 +416,13 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
               <option value="over1m">1M+</option>
             </select>
           </div>
-          
+            
           {/* Type Filter */}
-          <div>
+          <div className="flex-1 min-w-[100px] max-w-[140px]">
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10 min-w-[100px]"
+              className="w-full rounded border border-white/8 bg-[#243041] px-3 py-2 text-sm text-[#E6EDF3] focus:border-white/18 focus:outline-none focus:ring-1 focus:ring-white/10 h-10"
             >
               <option value="all">Type</option>
               {types.map(type => (
@@ -362,13 +430,13 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
               ))}
             </select>
           </div>
-          
+            
           {/* Focus Area Filter */}
-          <div>
+          <div className="flex-1 min-w-[100px] max-w-[140px]">
             <select
               value={selectedFocus}
               onChange={(e) => setSelectedFocus(e.target.value)}
-              className="rounded border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/60 h-10 min-w-[100px]"
+              className="w-full rounded border border-white/8 bg-[#243041] px-3 py-2 text-sm text-[#E6EDF3] focus:border-white/18 focus:outline-none focus:ring-1 focus:ring-white/10 h-10"
             >
               <option value="all">Focus</option>
               {focusAreas.map(area => (
@@ -394,7 +462,7 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
             </div>
           </div>
         ) : (
-          <div className="mx-auto max-w-[1180px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="mx-auto max-w-[1180px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredPrograms.map((program) => {
               // Format funding amount
               const formattedAmount = formatFundingAmount(program.amountRange);
@@ -412,63 +480,49 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
               return (
               <div 
                 key={program.id}
-                className="bg-slate-700/50 rounded-lg border border-slate-600 p-4 hover:border-blue-400/70 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                className="bg-[#1E293B] rounded-lg border border-white/40 p-5 hover:border-white/18 hover:bg-[#243041] transition-all cursor-pointer"
                 onClick={() => handleProgramClick(program)}
               >
-                <div className="font-bold text-white mb-2 text-[15px]">
-                  {formattedAmount || 'Amount varies'}
-                </div>
-                
                 <h4 className="text-white font-semibold text-sm mb-1 truncate">
                   {program.name}
                 </h4>
                 
                 {(program.organization && program.organization !== 'Unknown') && (
-                  <div className="text-xs text-white/70 mb-1 truncate">
+                  <div className="text-xs text-white/70 mb-2.5 truncate">
                     {program.organization}
                   </div>
                 )}
                 
-                <div className="mb-3">
-                  <span className="font-medium text-xs text-white/70 mr-1">Deadline:</span>
-                  <span className={`text-[11px] px-2 py-1 rounded-md ${program.deadline?.toLowerCase().includes('ongoing') || program.deadline?.toLowerCase().includes('rolling') ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400'}`}>
-                    {program.deadline || 'N/A'}
-                  </span>
+                <div className="font-bold text-[#4ADE80] mt-2 mb-3.5 text-[14px]">
+                  {formattedAmount || 'Amount varies'}
+                </div>
+              
+                <div className="text-xs text-[rgba(230,237,243,0.72)] leading-5">
+                  {program.region || 'No region'}
                 </div>
                 
-                <div className="text-xs text-white/70 mb-1">
-                  <span className="font-medium">Region:</span> {program.region || 'No region'}
+                <div className="text-xs text-[rgba(230,237,243,0.72)] leading-5">
+                  {program.companyStage || 'No stage'}
                 </div>
                 
-                <div className="text-xs text-white/70 mb-1">
-                  <span className="font-medium">Stage:</span> {program.companyStage || 'No stage'}
+                <div className="text-xs text-[rgba(230,237,243,0.72)] leading-5">
+                  {focusText}
                 </div>
                 
-                <div className="text-xs text-white/70 mb-3">
-                  <span className="font-medium">Focus:</span> {focusText}
+                <div className="mt-3 mb-3.5">
+                  <div className="text-[#9AA4B2] text-xs mb-0.5">Deadline</div>
+                  <div className="text-[#F2C94C] text-xs font-semibold">
+                    {formatDate(program.deadline)}
+                  </div>
                 </div>
                 
-                <div className="text-xs text-white/70 mb-3">
-                  <span className="font-medium">Type:</span> {program.type.charAt(0).toUpperCase() + program.type.slice(1)}
-                </div>
-                
-                <button className="w-full mt-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-md transition-colors font-medium">
+                <button className="w-full mt-4.5 bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-md transition-colors font-medium">
                   {t('editor.desktop.program.finder.selectProgram' as any) || 'Select Program'}
                 </button>
               </div>
             );})}
           </div>
         )}
-      </div>
-      
-      {/* Footer */}
-      <div className="p-3 border-t border-white/10 bg-slate-800/30 text-right">
-        <button 
-          onClick={onClose}
-          className="px-3 py-1 text-white/80 hover:text-white text-sm transition-colors"
-        >
-          {t('editor.desktop.program.finder.cancel' as any) || 'Close'}
-        </button>
       </div>
     </div>
   );

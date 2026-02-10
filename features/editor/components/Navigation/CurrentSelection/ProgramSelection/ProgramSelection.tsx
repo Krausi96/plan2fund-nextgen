@@ -113,43 +113,8 @@ export default function ProgramSelection({
   const [activeTab, setActiveTab] = useState<'search' | 'wizard'>('search');
   const [programSummary, setProgramSummary] = useState<any>(null);
 
-  const handleConnectProgram = onConnectProgram ?? setProgramSummary;
-
-
-
-  // Handle program initialization from Reco/myProject flow
-  useEffect(() => {
-    // Check for program selected in Reco/myProject flow
-    const savedProgram = localStorage.getItem('selectedProgram');
-    if (savedProgram && !programSummary) {
-      try {
-        const programData = JSON.parse(savedProgram);
-        console.log('🔄 Initializing from saved program:', programData);
-        
-        // Create temporary program summary for initialization
-        const tempSummary = {
-          id: programData.id,
-          name: programData.name,
-          type: programData.type || 'grant',
-          organization: programData.organization || 'Unknown',
-          setupStatus: 'draft' as const,
-          // Include application requirements if available
-          application_requirements: programData.application_requirements
-        };
-        
-        handleConnectProgram(tempSummary);
-        localStorage.removeItem('selectedProgram'); // Clean up
-      } catch (error) {
-        console.error('❌ Failed to initialize from saved program:', error);
-      }
-    }
-  }, [programSummary, handleConnectProgram]);
-
-  const handleCloseProgramFinder = () => {
-    setActiveTab('search');
-  };
-
-  const handleProgramSelect = (program: any) => {
+  // Unified function to handle program data regardless of source
+  const processProgramData = (program: any) => {
     // Automatically select the program option when a program is chosen
     setSelectedOption('program');
     
@@ -167,6 +132,8 @@ export default function ProgramSelection({
       // Update wizard state with document setup data
       selectProgram(fundingProgram);
       setDocumentStructure(enhancedDocumentStructure);
+
+      // Update setup diagnostics
       setSetupStatus('draft');
       setSetupDiagnostics({
         warnings: program.confidenceScore < 80 ? ['Limited program information available'] : [],
@@ -176,7 +143,13 @@ export default function ProgramSelection({
       
       // Step 4: Create legacy-compatible ProgramSummary for backward compatibility
       const programSummary = generateProgramBlueprint(program);
-      handleConnectProgram(programSummary);
+      
+      // Only call the external callback if provided, otherwise update local state
+      if (onConnectProgram) {
+        onConnectProgram(programSummary);
+      } else {
+        setProgramSummary(programSummary);
+      }
       
     } catch (error) {
       console.error('❌ Failed to process program:', error);
@@ -189,8 +162,48 @@ export default function ProgramSelection({
         organization: program.organization,
         setupStatus: 'none' as const
       };
-      handleConnectProgram(fallbackSummary);
+      
+      if (onConnectProgram) {
+        onConnectProgram(fallbackSummary);
+      } else {
+        setProgramSummary(fallbackSummary);
+      }
     }
+  };
+
+  const handleConnectProgram = (program: any) => {
+    // Process the program data using the unified function
+    processProgramData(program);
+  };
+
+
+  // Handle program initialization from Reco/myProject flow
+  useEffect(() => {
+    // Check for program selected in Reco/myProject flow
+    const savedProgram = localStorage.getItem('selectedProgram');
+    if (savedProgram && !programSummary) {
+      try {
+        const programData = JSON.parse(savedProgram);
+        console.log('🔄 Initializing from saved program:', programData);
+        
+        // Process the loaded program data using the same function
+        processProgramData(programData);
+        
+        localStorage.removeItem('selectedProgram'); // Clean up
+      } catch (error) {
+        console.error('❌ Failed to initialize from saved program:', error);
+      }
+    }
+  }, [programSummary, processProgramData]);
+
+  const handleCloseProgramFinder = () => {
+    setActiveTab('search');
+  };
+
+  // Updated handleProgramSelect to use the unified processing function
+  const handleProgramSelect = (program: any) => {
+    // Process the program using the unified function
+    processProgramData(program);
     
     handleCloseProgramFinder();
   };
@@ -275,10 +288,7 @@ export default function ProgramSelection({
                   {/* Dynamic Content Below Tabs - SAME CONTAINER */}
                   <div className="mt-4 border-t border-white/10 pt-2">
                     {activeTab === 'search' && (
-                      <div>
-                        <h4 className="text-white text-lg font-bold mb-4">
-                          {t('editor.desktop.program.finder.title' as any) || 'Find Funding Programs'}
-                        </h4>
+                      <div>                        
                         <ProgramFinder 
                           onProgramSelect={handleProgramSelect}
                           onClose={handleCloseProgramFinder}
@@ -290,9 +300,6 @@ export default function ProgramSelection({
                     
                     {activeTab === 'wizard' && (
                       <div>
-                        <h4 className="text-white font-medium mb-4">
-                          {t('editor.desktop.program.recoWizard' as any) || 'Recommendation Wizard'}
-                        </h4>
                         <div className="w-full">
                           <EditorProgramFinder 
                             onProgramSelect={() => {

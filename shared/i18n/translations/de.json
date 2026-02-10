@@ -19,6 +19,7 @@
   "reco.errors.noProgramsFound": "Keine Programme gefunden. Bitte überprüfen Sie die Server-Logs für Details.",
   "reco.errors.generationError": "Fehler beim Generieren von Programmen: {error}",
   "reco.confirmDialog.selectedProgram": "Ausgewähltes Programm",
+    "editor.programFinder.startMessage": "Starte, um personalisierte Finanzierungsprogramme zu erhalten",
   "reco.options.revenue_status.established_revenue": "Etablierter Umsatz (€500k+/Jahr)",
   "reco.options.revenue_status.not_applicable": "Nicht zutreffend (öffentlicher Sektor, Forschungseinrichtung, gemeinnützig)",
   "reco.options.co_financing.co_flexible": "Flexibel, hängt vom Programm ab",

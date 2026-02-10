@@ -18,6 +18,7 @@
   "reco.errors.noProgramsFound": "No programs found. Please check server logs for details.",
   "reco.errors.generationError": "Error generating programs: {error}",
   "reco.confirmDialog.selectedProgram": "Selected Program",
+    "editor.programFinder.startMessage": "Answer a few questions to get personalized funding programs",
   "reco.options.revenue_status.established_revenue": "Established revenue (€500k+/year)",
   "reco.options.revenue_status.not_applicable": "Not applicable (public sector, research institution, non-profit)",
   "reco.options.co_financing.co_flexible": "Flexible, depends on program",

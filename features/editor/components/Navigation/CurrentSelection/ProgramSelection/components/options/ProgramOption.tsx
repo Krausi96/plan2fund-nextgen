@@ -234,9 +234,18 @@ export function ProgramOption({
         confidence: fundingProgram.blueprintDiagnostics?.confidence || 60
       });
       
-      // Step 5: Create legacy-compatible ProgramSummary for backward compatibility
-      const programSummary = generateProgramBlueprint(programData);
-      onConnectProgram(programSummary);
+      // Step 5: Save the program selection and notify parent
+      // The parent component (ProgramSelection) will handle the processing
+      saveSelectedProgram({
+        id: fundingProgram.id,
+        name: fundingProgram.name,
+        type: fundingProgram.type,
+        organization: fundingProgram.organization,
+        application_requirements: fundingProgram.applicationRequirements || programData.application_requirements
+      });
+      
+      // Return the enhanced program data to the parent
+      onConnectProgram(fundingProgram);
       
       setShowManualInput(false);
       setManualValue('');

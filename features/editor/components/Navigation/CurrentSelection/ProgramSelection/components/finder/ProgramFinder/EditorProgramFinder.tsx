@@ -282,90 +282,115 @@ export default function EditorProgramFinder({
               </div>
             )}
             
-            <div className="space-y-6 h-full flex flex-col">
-              {/* Progress indicator */}
-              <div className="text-center">
-                <div className="flex items-center justify-center">
-                  <div className="flex-1 max-w-4xl h-2 bg-slate-700/50 rounded-full overflow-hidden border border-slate-600">
-                    <div 
-                      className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-300 rounded-full"
-                      style={{ width: `${((currentStep + 1) / visibleQuestions.length) * 100}%` }}
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-slate-300 mt-2">
-                  Step {currentStep + 1} of {visibleQuestions.length} — {answeredCount} answered
-                  {!answers[visibleQuestions[currentStep].id] && visibleQuestions[currentStep].required && (
-                    <span className="ml-2 text-amber-400 font-medium">• Answer required to continue</span>
-                  )}
-                </p>
-              </div>
-              
-              {/* Single Question Display */}
-              <div className="flex-col justify-start overflow-auto flex-1 pb-3 w-full px-1">
-                {visibleQuestions[currentStep] && (
-                  <div className={styles.questionContainer}>
-                    <QuestionRenderer
-                      key={visibleQuestions[currentStep].id}
-                      question={visibleQuestions[currentStep]}
-                      questionIndex={currentStep}
-                      value={answers[visibleQuestions[currentStep].id]}
-                      answers={answers}
-                      onAnswer={handleAnswerWrapper}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Navigation Buttons */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-700 mt-auto flex-shrink-0">
-                <button
-                  onClick={prevStep}
-                  disabled={currentStep === 0}
-                  className="px-4 py-2 text-sm font-medium text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-700 rounded-lg transition-colors"
-                >
-                  ← Previous
-                </button>
-
-                <div className="flex gap-2">
-                  {currentStep < visibleQuestions.length - 1 ? (
-                    <button
-                      onClick={nextStep}
-                      disabled={!answers[visibleQuestions[currentStep].id]}
-                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-600 transition-colors font-semibold shadow-sm"
-                    >
-                      Next →
-                    </button>
-                  ) : (
-                    <button
-                      onClick={generateProgramsWrapper}
-                      disabled={isLoading || !hasEnoughAnswers}
-                      className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:hover:bg-slate-600"
-                    >
-                      {isLoading ? (
-                        <>
-                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Generating...
-                        </>
-                      ) : !hasEnoughAnswers ? (
-                        <>
-                          <Wand2 className="w-5 h-5" />
-                          Answers Missing
-                        </>
-                      ) : (
-                        <>
-                          <Wand2 className="w-5 h-5" />
-                          Generate Programs
-                        </>
-                      )}
-                    </button>
-                  )}
+            {/* Welcome message when user first arrives at wizard */}
+            {results.length === 0 && !hasAttemptedGeneration && visibleQuestions.length > 0 && currentStep === 0 && (
+              <div className="h-full flex items-center justify-center p-4">
+                <div className="bg-slate-700/50 rounded-lg p-6 text-center w-full max-w-md">
+                  <div className="text-white/60 text-2xl mb-2">🧠</div>
+                  <p className="text-white/80 text-sm">
+                    {t('editor.programFinder.startMessage')}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Start the questionnaire by moving to the first question
+                      setCurrentStep(0);
+                    }}
+                    className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+                  >
+                    Start questionnaire
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
+            
+            {/* Only show the questionnaire when user has started */}
+            {!(results.length === 0 && !hasAttemptedGeneration && visibleQuestions.length > 0 && currentStep === 0) && (
+              <div className="space-y-6 h-full flex flex-col">
+                {/* Progress indicator */}
+                <div className="text-center">
+                  <div className="flex items-center justify-center">
+                    <div className="flex-1 max-w-4xl h-2 bg-slate-700/50 rounded-full overflow-hidden border border-slate-600">
+                      <div 
+                        className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-300 rounded-full"
+                        style={{ width: `${((currentStep + 1) / visibleQuestions.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-2">
+                    Step {currentStep + 1} of {visibleQuestions.length} — {answeredCount} answered
+                    {!answers[visibleQuestions[currentStep].id] && visibleQuestions[currentStep].required && (
+                      <span className="ml-2 text-amber-400 font-medium">• Answer required to continue</span>
+                    )}
+                  </p>
+                </div>
+                
+                {/* Single Question Display */}
+                <div className="flex-col justify-start overflow-auto flex-1 pb-3 w-full px-1">
+                  {visibleQuestions[currentStep] && (
+                    <div className={styles.questionContainer}>
+                      <QuestionRenderer
+                        key={visibleQuestions[currentStep].id}
+                        question={visibleQuestions[currentStep]}
+                        questionIndex={currentStep}
+                        value={answers[visibleQuestions[currentStep].id]}
+                        answers={answers}
+                        onAnswer={handleAnswerWrapper}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Navigation Buttons */}
+                <div className="flex items-center justify-between pt-4 border-t border-slate-700 mt-auto flex-shrink-0">
+                  <button
+                    onClick={prevStep}
+                    disabled={currentStep === 0}
+                    className="px-4 py-2 text-sm font-medium text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-700 rounded-lg transition-colors"
+                  >
+                    ← Previous
+                  </button>
+
+                  <div className="flex gap-2">
+                    {currentStep < visibleQuestions.length - 1 ? (
+                      <button
+                        onClick={nextStep}
+                        disabled={!answers[visibleQuestions[currentStep].id]}
+                        className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-600 transition-colors font-semibold shadow-sm"
+                      >
+                        Next →
+                      </button>
+                    ) : (
+                      <button
+                        onClick={generateProgramsWrapper}
+                        disabled={isLoading || !hasEnoughAnswers}
+                        className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:hover:bg-slate-600"
+                      >
+                        {isLoading ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Generating...
+                          </>
+                        ) : !hasEnoughAnswers ? (
+                          <>
+                            <Wand2 className="w-5 h-5" />
+                            Answers Missing
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="w-5 h-5" />
+                            Generate Programs
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
