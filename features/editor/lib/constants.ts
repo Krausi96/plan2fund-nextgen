@@ -12,7 +12,7 @@
  * ============================================================================
  */
 
-import type { ProductOption, ProductType } from './types/types';
+import type { ProductOption, ProductType } from '@/platform/core/types';
 
 // ============================================================================
 // PRODUCT OPTIONS

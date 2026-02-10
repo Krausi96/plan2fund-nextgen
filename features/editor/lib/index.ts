@@ -12,8 +12,7 @@
 // ============================================================================
 
 // Core types
-export type { ProductType, ProductOption } from './types/core/product-types';
-export type { SubsectionTemplate, SectionTemplate, DocumentTemplate } from './types/core/template-types';
+export type { ProductType, ProductOption, SectionTemplate, SubsectionTemplate, DocumentTemplate } from '@/platform/core/types';
 
 // Document types
 export type { TitlePage, PlanSection, PlanDocument, BusinessPlan, SectionWithMetadata, DocumentWithMetadata } from '@/platform/core/types';

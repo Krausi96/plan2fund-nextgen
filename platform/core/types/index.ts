@@ -25,6 +25,10 @@ export type {
   SetupWizardState,
   DocumentTemplateId,
   ProductType,
+  DocumentTemplate,
+  SectionTemplate,
+  SubsectionTemplate,
+  ProductOption,
 } from './project';
 export type {
   Program,

@@ -395,23 +395,18 @@ export interface SpecialSection {
 export interface DocumentTemplate {
   id: string;
   name: string;
-  description?: string;
-  sections: TemplateSection[];
-  documents?: TemplateDocument[];
-  metadata?: Record<string, any>;
-}
-
-export interface TemplateSection {
-  id: string;
-  title: string;
-  type?: string;
-  order?: number;
-}
-
-export interface TemplateDocument {
-  id: string;
-  name: string;
-  order?: number;
+  description: string;
+  required: boolean;
+  format: 'pdf' | 'docx' | 'xlsx';
+  maxSize: string;
+  template?: string;
+  instructions?: string[];
+  examples?: string[];
+  commonMistakes?: string[];
+  category: 'general' | 'project' | 'impact' | 'financial' | 'market' | 'team' | 'risk' | 'submission' | 'strategy' | 'review' | 'business';
+  fundingTypes?: string[];
+  origin?: 'template' | 'custom';
+  [key: string]: any;
 }
 
 /**
@@ -419,6 +414,55 @@ export interface TemplateDocument {
  * Represents the type of document being created (business plan, pitch deck, etc.)
  */
 export type DocumentTemplateId = 'business-plan' | 'pitch-deck' | 'executive-summary' | 'strategy' | 'upgrade' | 'custom';
+
+/**
+ * Section template definition
+ * Used to define document sections with validation and metadata
+ */
+export interface SubsectionTemplate {
+  id: string;
+  title: string;
+  rawText: string;
+}
+
+export interface SectionTemplate {
+  id: string;
+  title: string;
+  description: string;
+  required: boolean;
+  wordCountMin?: number;
+  wordCountMax?: number;
+  order?: number;
+  category: 'general' | 'project' | 'impact' | 'financial' | 'market' | 'team' | 'risk' | 'submission' | 'strategy' | 'review' | 'business';
+  prompts?: string[];
+  validationRules?: {
+    requiredFields?: string[];
+    formatRequirements?: string[];
+  };
+  source?: {
+    verified: boolean;
+    verifiedDate?: string;
+    officialProgram?: string;
+    sourceUrl?: string;
+    version?: string;
+  };
+  origin?: 'template' | 'custom';
+  sectionIntro?: string;
+  rawSubsections?: SubsectionTemplate[];
+  icon?: string;
+  [key: string]: any;
+}
+
+/**
+ * Product option for UI selection
+ * Defines a selectable product type with label and description
+ */
+export interface ProductOption {
+  value: ProductType;
+  label: string;
+  description: string;
+  icon?: string;
+}
 
 export type ProductType = 'submission' | 'strategy' | 'upgrade';
 

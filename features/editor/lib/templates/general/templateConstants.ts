@@ -1,7 +1,7 @@
 // Template constants and collections
 // Contains shared sections, master sections, and document templates
 
-import type { SectionTemplate, DocumentTemplate } from '../../types/types';
+import type { SectionTemplate, DocumentTemplate } from '@/platform/core/types';
 import { SPECIAL_SECTIONS } from '../../constants';
 
 // Import section catalogs from subdirectories
