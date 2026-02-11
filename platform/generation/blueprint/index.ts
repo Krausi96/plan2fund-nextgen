@@ -1,1 +1,1 @@
-export { generateBlueprint, type RequirementItem } from './blueprintGenerator';
+export { callAI, type AITaskType, type AIRequest, type AIResponse } from '@/platform/ai/orchestrator';

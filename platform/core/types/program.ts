@@ -199,7 +199,16 @@ export type RangeQuestion = BaseQuestion & {
   revenueRanges?: Array<{ min: number; max: number; label: string; value: string }>;
 };
 
-export type QuestionDefinition = SingleSelectQuestion | MultiSelectQuestion | RangeQuestion;
+export type TextQuestion = BaseQuestion & {
+  type: 'text';
+  placeholder?: string;
+  maxLength?: number;
+  minLength?: number;
+  multiline?: boolean;
+  helpText?: string;
+};
+
+export type QuestionDefinition = SingleSelectQuestion | MultiSelectQuestion | RangeQuestion | TextQuestion;
 
 export interface ProgramFinderProps {
   onProgramSelect?: (programId: string, route: string) => void;

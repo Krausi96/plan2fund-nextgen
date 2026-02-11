@@ -216,6 +216,12 @@ export default function QuestionRenderer({
                                         ? ((t('reco.ui.otherPlaceholderOrg' as any) as string) || 'e.g., Association, Cooperative, Foundation')
                                         : question.id === 'organisation_type'
                                         ? ((t('reco.placeholders.organisation_type_other' as any) as string) || 'Please specify your organisation type')
+                                        : question.id === 'use_of_funds'
+                                        ? ((t('reco.placeholders.use_of_funds_other' as any) as string) || 'Please specify other use of funds')
+                                        : question.id === 'impact_focus'
+                                        ? ((t('reco.placeholders.impact_focus_other' as any) as string) || 'Please specify other impact focus')
+                                        : question.id === 'industry_focus'
+                                        ? ((t('reco.placeholders.industry_focus_other' as any) as string) || 'Please specify other industry focus')
                                         : ((t('reco.ui.otherPlaceholder' as any) as string) || 'Please specify...')
                                     }
                                     value={otherTextValue}
@@ -424,33 +430,34 @@ export default function QuestionRenderer({
                           <div className="ml-4 mt-2 space-y-2 border-l-2 border-gray-300 pl-3">
                             {[{
                               value: 'association',
-                              label: 'Association'
+                              label: 'reco.options.organisation_type_other.association'
                             }, {
                               value: 'foundation',
-                              label: 'Foundation'
+                              label: 'reco.options.organisation_type_other.foundation'
                             }, {
                               value: 'private_foundation',
-                              label: 'Private foundation'
+                              label: 'reco.options.organisation_type_other.private_foundation'
                             }, {
                               value: 'public_corporation',
-                              label: 'Corporation under public law'
+                              label: 'reco.options.organisation_type_other.public_corporation'
                             }, {
                               value: 'cooperative',
-                              label: 'Cooperative'
+                              label: 'reco.options.organisation_type_other.cooperative'
                             }, {
                               value: 'registered_cooperative',
-                              label: 'Registered cooperative'
+                              label: 'reco.options.organisation_type_other.registered_cooperative'
                             }, {
                               value: 'sce',
-                              label: 'European Cooperative Society (SCE)'
+                              label: 'reco.options.organisation_type_other.sce'
                             }, {
                               value: 'agricultural_community',
-                              label: 'Agricultural community'
+                              label: 'reco.options.organisation_type_other.agricultural_community'
                             }, {
                               value: 'foreign_legal_form',
-                              label: 'Foreign legal form'
+                              label: 'reco.options.organisation_type_other.foreign_legal_form'
                             }].map((subOption) => {
                               const isSubSelected = answers[`${question.id}_other`] === subOption.value;
+                              const translatedLabel = t(subOption.label as any) as string;
                               return (
                                 <button
                                   key={subOption.value}
@@ -464,7 +471,7 @@ export default function QuestionRenderer({
                                 >
                                   <div className="flex items-center gap-2">
                                     {isSubSelected && <span className="text-base font-bold">✓</span>}
-                                    <span>{subOption.label}</span>
+                                    <span>{translatedLabel}</span>
                                   </div>
                                 </button>
                               );
@@ -503,20 +510,10 @@ export default function QuestionRenderer({
               </div>
             );
           })
-        )
-      }
-         {/* Skip Button */}
-          {!question.required && (
-            <button
-              onClick={() => onAnswer(question.id, undefined)}
-              className="w-full mt-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
-            >
-              {t('reco.skipQuestion') || 'Skip this question'}
-            </button>
-          )}
-        </div>
-      )}
-
+        )}
+      </div>
+    )}
+    
       {question.type === 'multi-select' && (
         <div className="space-y-2 flex-1">
           {question.options.map((option: any) => {
@@ -624,7 +621,15 @@ export default function QuestionRenderer({
                     </label>
                     <input
                       type="text"
-                      placeholder={(t('reco.ui.otherPlaceholder' as any) as string) || 'Please specify...'}
+                      placeholder={
+                        question.id === 'use_of_funds'
+                          ? ((t('reco.placeholders.use_of_funds_other' as any) as string) || 'Please specify other use of funds')
+                          : question.id === 'impact_focus'
+                          ? ((t('reco.placeholders.impact_focus_other' as any) as string) || 'Please specify other impact focus')
+                          : question.id === 'industry_focus'
+                          ? ((t('reco.placeholders.industry_focus_other' as any) as string) || 'Please specify other industry focus')
+                          : ((t('reco.ui.otherPlaceholder' as any) as string) || 'Please specify...')
+                      }
                       value={otherTextValue}
                       onChange={(e) => onAnswer(`${question.id}_other`, e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -635,16 +640,6 @@ export default function QuestionRenderer({
               </div>
             );
           })}
-          
-          {/* Skip Button */}
-          {!question.required && (
-            <button
-              onClick={() => onAnswer(question.id, undefined)}
-              className="w-full mt-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
-            >
-              {t('reco.skipQuestion') || 'Skip this question'}
-            </button>
-          )}
         </div>
       )}
 

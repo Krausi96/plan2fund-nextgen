@@ -66,5 +66,13 @@ export async function callLLM(request: LLMRequest): Promise<LLMResponse> {
   }
 
   // No LLM configured
-  throw new Error('No LLM configured. Set OPENAI_API_KEY');
+  const error = new Error(
+    'LLM feature requires configuration. To enable AI-powered program recommendations:\n' +
+    '1. Create a .env.local file in the project root\n' +
+    '2. Add your OpenAI API key: OPENAI_API_KEY=sk-your-key-here\n' +
+    '3. Get your API key from: https://platform.openai.com/api-key\n' +
+    '4. Restart the development server'
+  );
+  console.error('[LLM] Configuration error:', error.message);
+  throw error;
 }

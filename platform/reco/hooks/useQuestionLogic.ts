@@ -7,6 +7,7 @@ import { useCallback, useMemo } from 'react';
 import { QuestionDefinition } from '../types';
 import { ALL_QUESTIONS } from '../data/questions';
 import { useI18n } from '@/shared/contexts/I18nContext';
+import { useProjectStore } from '@/platform/core/store/useProjectStore';
 
 // Hook for question filtering logic
 export function useQuestionFiltering(hideFirstQuestion: boolean = false) {
@@ -171,6 +172,8 @@ export function useAnswerHandling() {
 
 // Hook for program generation logic
 export function useProgramGeneration() {
+  const { projectProfile } = useProjectStore();
+  
   const generatePrograms = async (
     answers: Record<string, any>,
     setResults: (programs: any[]) => void,
@@ -192,6 +195,8 @@ export function useProgramGeneration() {
         body: JSON.stringify({
           answers: answers,
           max_results: maxResults,
+          // Use oneliner from answers if available, otherwise from projectProfile
+          oneliner: answers.oneliner || projectProfile?.oneliner || '',
         }),
       });
 

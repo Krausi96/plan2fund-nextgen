@@ -127,8 +127,10 @@ export default function ProgramFinder({
   // Advanced questions tracking removed - all questions shown together
   
 // Minimum questions for results (core questions before showing programs)
-const MIN_QUESTIONS_FOR_RESULTS = 5;
-const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_status', 'location', 'industry_focus', 'funding_amount', 'co_financing'] as const;
+// Note: Only includes TRULY required questions (required: true in questions.ts)
+// Optional questions (co_financing, use_of_funds) are excluded from required check
+const MIN_QUESTIONS_FOR_RESULTS = 4;
+const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_status', 'location', 'industry_focus', 'funding_amount'] as const;
   const missingRequiredAnswers = REQUIRED_QUESTION_IDS.filter((questionId) => {
     const value = answers[questionId];
     return !value || (typeof value === 'string' && value.trim() === '') || (Array.isArray(value) && value.length === 0);
@@ -188,10 +190,13 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-700">
-                  Question {currentStep + 1} of {filteredQuestions.length}
+                  {(t('reco.ui.questionOf') as string)
+                    .replace('{current}', String(currentStep + 1))
+                    .replace('{total}', String(filteredQuestions.length))}
                 </span>
                 <span className="text-sm text-gray-500">
-                  {Math.round(((currentStep + 1) / filteredQuestions.length) * 100)}% complete
+                  {(t('reco.ui.complete') as string)
+                    .replace('{percent}', String(Math.round(((currentStep + 1) / filteredQuestions.length) * 100)))}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -221,21 +226,23 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
                 disabled={currentStep === 0}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                ← Previous
+                {(t('reco.ui.previous') as string) || 'Previous'}
               </button>
               
               <div className="text-sm text-gray-600">
-                {currentStep + 1} / {filteredQuestions.length}
+                {(t('reco.ui.questionOf') as string)
+                  .replace('{current}', String(currentStep + 1))
+                  .replace('{total}', String(filteredQuestions.length))}
               </div>
               
               {currentStep < filteredQuestions.length - 1 ? (
                 <button
                   type="button"
                   onClick={nextStep}
-                  disabled={!answers[filteredQuestions[currentStep].id]}
+                  disabled={filteredQuestions[currentStep].required && !answers[filteredQuestions[currentStep].id]}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Next →
+                  {(t('reco.ui.next') as string) || 'Next'} →
                 </button>
               ) : (
                 <button
@@ -245,7 +252,7 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
                   <Wand2 className="w-4 h-4" />
-                  Generate Programs
+                  {(t('editor.programFinder.generatePrograms') as string) || 'Generate Programs'}
                 </button>
               )}
             </div>

@@ -10,11 +10,6 @@ export {
   buildDocumentStructure
 } from './structure';
 
-export {
-  generateBlueprint,
-  type RequirementItem
-} from './blueprint';
-
 export type {
   Blueprint
 } from '@/platform/core/types';
@@ -29,3 +24,5 @@ export type {
 export {
   writeSection
 } from './plan';
+
+// Note: Blueprint generation moved to orchestrator (callAI with type 'generateBlueprint')

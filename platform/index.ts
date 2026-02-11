@@ -24,7 +24,7 @@ export * from './ai/orchestrator';
 export * from './analysis';
 
 // Generation layer: document structure and content
-export { buildDocumentStructure, generateBlueprint } from './generation';
+export { buildDocumentStructure } from './generation';
 
 // API layer: utilities and middleware
 export * from './api';

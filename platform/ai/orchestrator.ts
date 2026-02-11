@@ -1,11 +1,51 @@
 /**
- * AI ORCHESTRATOR
- * Single entry point for all AI/LLM operations
- * Routes different request types to appropriate handlers
- * All LLM calls must go through this
+ * AI ORCHESTRATOR - Simplified
+ * Routes to existing prompts and parsers
+ * Adds: centralized caching only
+ * Validation schemas imported from core/validation
  */
 
+import { createHash } from 'crypto';
 import { callLLM } from './llmClient';
+import { RECOMMENDATION_SYSTEM_PROMPT, buildRecommendationUserPrompt } from './prompts/recommendation';
+import { BLUEPRINT_SYSTEM_PROMPT, buildBlueprintUserPrompt } from './prompts/blueprint';
+import { buildSectionWritingPrompt, buildSectionImprovementPrompt } from './prompts/section';
+import { parseProgramResponse, parseBlueprintResponse } from './parsers/responseParsers';
+import { UserAnswersSchema, BlueprintRequestSchema } from '@/platform/core/validation';
+
+// ============================================================================
+// CACHE (Centralized)
+// ============================================================================
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const programCache = new Map<string, CacheEntry<any>>();
+const blueprintCache = new Map<string, CacheEntry<any>>();
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+function getCacheKey(data: Record<string, any>): string {
+  const sortedKeys = Object.keys(data).sort();
+  const normalized: Record<string, any> = {};
+  sortedKeys.forEach(key => { normalized[key] = data[key]; });
+  return createHash('sha256').update(JSON.stringify(normalized)).digest('hex');
+}
+
+function getCached<T>(cache: Map<string, CacheEntry<T>>, key: string): T | null {
+  const entry = cache.get(key);
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL) return entry.data;
+  return null;
+}
+
+function setCache<T>(cache: Map<string, CacheEntry<T>>, key: string, data: T): void {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
+// ============================================================================
+// MAIN ORCHESTRATOR
+// ============================================================================
 
 export type AITaskType =
   | 'recommendPrograms'
@@ -26,291 +66,249 @@ export interface AIResponse {
   llmStats?: {
     provider: 'custom' | 'openai';
     latencyMs: number;
-    tokens?: {
-      prompt: number;
-      completion: number;
-      total: number;
-    };
+    tokens?: { prompt: number; completion: number; total: number };
+  };
+  cached?: boolean;
+  cacheAge?: number;
+}
+
+export async function callAI(request: AIRequest): Promise<AIResponse> {
+  switch (request.type) {
+    case 'recommendPrograms':
+      return handleRecommendPrograms(request.payload);
+    case 'generateBlueprint':
+      return handleGenerateBlueprint(request.payload);
+    case 'analyzeBusiness':
+      return handleAnalyzeBusiness(request.payload);
+    case 'writeSection':
+      return handleWriteSection(request.payload);
+    case 'improveSection':
+      return handleImproveSection(request.payload);
+    default:
+      return { success: false, error: `Unknown AI task type: ${request.type}` };
+  }
+}
+
+// ============================================================================
+// DATE VALIDATION UTILITY
+// ============================================================================
+
+function ensureFutureDate(dateValue: string | undefined, fieldName: string): string | undefined {
+  if (!dateValue) return undefined;
+  
+  const date = new Date(dateValue);
+  const now = new Date();
+  
+  if (isNaN(date.getTime())) {
+    console.warn(`[orchestrator] Invalid ${fieldName} date format: ${dateValue}`);
+    return undefined;
+  }
+  
+  if (date <= now) {
+    console.warn(`[orchestrator] ${fieldName} is in the past (${dateValue}), adjusting to future date`);
+    // Return a reasonable future date (1 year from now)
+    const futureDate = new Date(now);
+    futureDate.setFullYear(futureDate.getFullYear() + 1);
+    return futureDate.toISOString();
+  }
+  
+  return dateValue;
+}
+
+// ============================================================================
+// HANDLERS (Use existing prompts/parsers)
+// ============================================================================
+
+async function handleRecommendPrograms(payload: any): Promise<AIResponse> {
+  const validated = UserAnswersSchema.safeParse(payload.answers);
+  if (!validated.success) {
+    return { success: false, error: 'Invalid answers', data: validated.error?.format() };
+  }
+  const answers = validated.data;
+  const maxResults = payload.max_results || 10;
+  const projectOneliner = payload.oneliner || '';
+
+  // Validate deadline is in the future
+  const validatedDeadline = ensureFutureDate(answers.deadline_urgency, 'deadline_urgency');
+
+  // Build profile for prompt - include ALL required fields
+  const profile = [
+    projectOneliner ? `Project pitch: ${projectOneliner}` : null,
+    `Location: ${answers.location}`,
+    `Organisation type: ${answers.organisation_type}`,
+    answers.organisation_type_sub === 'has_company' && answers.legal_form ? `Legal form: ${answers.legal_form}` : null,
+    `Company stage: ${answers.company_stage}`,
+    `Funding need: €${answers.funding_amount}`,
+    answers.revenue_status !== undefined ? `Revenue status: ${answers.revenue_status === 0 ? 'Pre-revenue' : '€' + answers.revenue_status}` : null,
+    answers.industry_focus?.length ? `Industry: ${answers.industry_focus.join(', ')}` : null,
+    answers.use_of_funds?.length ? `Use of funds: ${answers.use_of_funds.join(', ')}` : null,
+    answers.co_financing ? `Co-financing: ${answers.co_financing}` : null,
+    answers.impact_focus?.length ? `Impact focus: ${answers.impact_focus.join(', ')}` : null,
+    validatedDeadline ? `Deadline urgency: ${validatedDeadline}` : null,
+  ].filter(Boolean).join('\n');
+
+  // Check cache
+  const cacheKey = getCacheKey(answers);
+  const cached = getCached(programCache, cacheKey);
+  if (cached) {
+    return { success: true, data: cached.programs?.slice(0, maxResults) || [], cached: true };
+  }
+
+  // Use existing prompt builder
+  const userPrompt = buildRecommendationUserPrompt(profile, maxResults);
+
+  // Call LLM
+  const llmResponse = await callLLM({
+    messages: [
+      { role: 'system', content: RECOMMENDATION_SYSTEM_PROMPT },
+      { role: 'user', content: userPrompt },
+    ],
+    responseFormat: 'json',
+    temperature: 0.2,
+    maxTokens: 6000,
+  });
+
+  if (!llmResponse.output) {
+    return { success: false, error: 'Empty LLM response' };
+  }
+
+  // Use existing parser
+  const parsed = parseProgramResponse(llmResponse.output);
+  setCache(programCache, cacheKey, parsed);
+
+  return {
+    success: true,
+    data: parsed.programs?.slice(0, maxResults) || [],
+    llmStats: {
+      provider: llmResponse.provider,
+      latencyMs: llmResponse.latencyMs,
+      tokens: llmResponse.usage ? {
+        prompt: llmResponse.usage.promptTokens || 0,
+        completion: llmResponse.usage.completionTokens || 0,
+        total: llmResponse.usage.totalTokens || 0,
+      } : undefined,
+    },
   };
 }
 
-/**
- * Main orchestrator function
- * Routes AI requests to appropriate handlers
- */
-export async function callAI(request: AIRequest): Promise<AIResponse> {
-  try {
-    switch (request.type) {
-      case 'recommendPrograms':
-        return await handleRecommendPrograms(request.payload);
-      case 'generateBlueprint':
-        return await handleGenerateBlueprint(request.payload);
-      case 'analyzeBusiness':
-        return await handleAnalyzeBusiness(request.payload);
-      case 'writeSection':
-        return await handleWriteSection(request.payload);
-      case 'improveSection':
-        return await handleImproveSection(request.payload);
-      default:
-        return {
-          success: false,
-          error: `Unknown AI task type: ${request.type}`,
-        };
-    }
-  } catch (error) {
-    console.error('[orchestrator] AI call failed:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-}
-
-/**
- * Handle program recommendation requests
- */
-async function handleRecommendPrograms(payload: any): Promise<AIResponse> {
-  const { answers, maxResults = 10 } = payload;
-
-  if (!answers) {
-    return {
-      success: false,
-      error: 'Missing user answers in payload',
-    };
-  }
-
-  // Build user profile from answers
-  const profile = [
-    answers.location && `Location: ${answers.location}`,
-    answers.organisation_type && `Organisation type: ${answers.organisation_type}`,
-    answers.company_stage && `Company stage: ${answers.company_stage}`,
-    answers.funding_amount && `Funding need: €${answers.funding_amount}`,
-  ]
-    .filter(Boolean)
-    .join('\n');
-
-  const systemPrompt = 'You are an expert on European funding programs. Return funding programs as JSON only.';
-  const userPrompt = `Return up to ${maxResults} programs matching this profile:
-
-${profile}
-
-JSON STRUCTURE:
-{
-  "programs": [{"id": "string", "name": "string", "funding_types": ["grant","loan"]}]
-}`;
-
-  try {
-    const llmResponse = await callLLM({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      responseFormat: 'json',
-      temperature: 0.2,
-      maxTokens: 6000,
-    });
-
-    const parsed = JSON.parse(llmResponse.output);
-    return {
-      success: true,
-      data: parsed.programs || [],
-      llmStats: {
-        provider: llmResponse.provider,
-        latencyMs: llmResponse.latencyMs,
-        tokens: llmResponse.usage
-          ? {
-              prompt: llmResponse.usage.promptTokens || 0,
-              completion: llmResponse.usage.completionTokens || 0,
-              total: llmResponse.usage.totalTokens || 0,
-            }
-          : undefined,
-      },
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: `Failed to recommend programs: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    };
-  }
-}
-
-/**
- * Handle blueprint generation requests
- */
 async function handleGenerateBlueprint(payload: any): Promise<AIResponse> {
-  const { documentStructure, userContext } = payload;
+  const validated = BlueprintRequestSchema.safeParse(payload);
+  if (!validated.success) {
+    return { success: false, error: 'Invalid blueprint request', data: validated.error?.format() };
+  }
+  const { documentStructure, userContext } = validated.data;
 
-  if (!documentStructure) {
-    return {
-      success: false,
-      error: 'Missing documentStructure in payload',
-    };
+  // Check cache
+  const cacheKey = documentStructure.id;
+  const cached = getCached(blueprintCache, cacheKey);
+  if (cached) {
+    return { success: true, data: cached.blueprint, cached: true };
   }
 
-  const systemPrompt = 'You are an expert business plan generator. Generate comprehensive requirements for each section.';
-  const userPrompt = `Generate blueprint for document structure:\n${JSON.stringify(documentStructure, null, 2)}\n\nUser context: ${JSON.stringify(userContext)}`;
+  // Use existing prompt builder
+  const userPrompt = buildBlueprintUserPrompt(documentStructure, userContext);
 
-  try {
-    const llmResponse = await callLLM({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      responseFormat: 'json',
-      temperature: 0.3,
-      maxTokens: 8000,
-    });
+  // Call LLM
+  const llmResponse = await callLLM({
+    messages: [
+      { role: 'system', content: BLUEPRINT_SYSTEM_PROMPT },
+      { role: 'user', content: userPrompt },
+    ],
+    responseFormat: 'json',
+    temperature: 0.3,
+    maxTokens: 8000,
+  });
 
-    const blueprint = JSON.parse(llmResponse.output);
-    return {
-      success: true,
-      data: blueprint,
-      llmStats: {
-        provider: llmResponse.provider,
-        latencyMs: llmResponse.latencyMs,
-        tokens: llmResponse.usage
-          ? {
-              prompt: llmResponse.usage.promptTokens || 0,
-              completion: llmResponse.usage.completionTokens || 0,
-              total: llmResponse.usage.totalTokens || 0,
-            }
-          : undefined,
-      },
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: `Failed to generate blueprint: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    };
+  if (!llmResponse.output) {
+    return { success: false, error: 'Empty LLM response' };
   }
+
+  // Use existing parser
+  const blueprint = parseBlueprintResponse(llmResponse.output);
+  setCache(blueprintCache, cacheKey, { blueprint });
+
+  return {
+    success: true,
+    data: blueprint,
+    llmStats: {
+      provider: llmResponse.provider,
+      latencyMs: llmResponse.latencyMs,
+      tokens: llmResponse.usage ? {
+        prompt: llmResponse.usage.promptTokens || 0,
+        completion: llmResponse.usage.completionTokens || 0,
+        total: llmResponse.usage.totalTokens || 0,
+      } : undefined,
+    },
+  };
 }
 
-/**
- * Handle business analysis requests
- */
 async function handleAnalyzeBusiness(payload: any): Promise<AIResponse> {
   const { businessData } = payload;
+  if (!businessData) return { success: false, error: 'Missing businessData' };
 
-  if (!businessData) {
-    return {
-      success: false,
-      error: 'Missing businessData in payload',
-    };
-  }
+  const llmResponse = await callLLM({
+    messages: [
+      { role: 'system', content: 'You are a business analyst. Return JSON only.' },
+      { role: 'user', content: `Analyze: ${JSON.stringify(businessData)}` },
+    ],
+    responseFormat: 'json',
+    temperature: 0.5,
+    maxTokens: 4000,
+  });
 
-  const systemPrompt = 'You are a business analyst. Analyze the provided business information and identify key strengths and gaps.';
-  const userPrompt = `Analyze this business:\n${JSON.stringify(businessData)}`;
+  if (!llmResponse.output) return { success: false, error: 'Empty LLM response' };
 
-  try {
-    const llmResponse = await callLLM({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      responseFormat: 'json',
-      temperature: 0.5,
-      maxTokens: 4000,
-    });
-
-    const analysis = JSON.parse(llmResponse.output);
-    return {
-      success: true,
-      data: analysis,
-      llmStats: {
-        provider: llmResponse.provider,
-        latencyMs: llmResponse.latencyMs,
-      },
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: `Failed to analyze business: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    };
-  }
+  return {
+    success: true,
+    data: parseBlueprintResponse(llmResponse.output),
+    llmStats: { provider: llmResponse.provider, latencyMs: llmResponse.latencyMs },
+  };
 }
 
-/**
- * Handle section writing requests
- */
 async function handleWriteSection(payload: any): Promise<AIResponse> {
   const { sectionTitle, context, guidance } = payload;
+  if (!sectionTitle || !context) return { success: false, error: 'Missing sectionTitle or context' };
 
-  if (!sectionTitle || !context) {
-    return {
-      success: false,
-      error: 'Missing sectionTitle or context in payload',
-    };
-  }
+  const userPrompt = buildSectionWritingPrompt(sectionTitle, guidance);
 
-  const systemPrompt = guidance
-    ? guidance
-    : `You are an expert business plan writer. Write a professional, compelling section for a business plan.`;
-  const userPrompt = `Write the "${sectionTitle}" section for this context:\n${JSON.stringify(context)}`;
+  const llmResponse = await callLLM({
+    messages: [
+      { role: 'system', content: 'You are an expert business plan writer.' },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: 0.7,
+    maxTokens: 2000,
+  });
 
-  try {
-    const llmResponse = await callLLM({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.7,
-      maxTokens: 2000,
-    });
+  if (!llmResponse.output) return { success: false, error: 'Empty LLM response' };
 
-    return {
-      success: true,
-      data: { content: llmResponse.output },
-      llmStats: {
-        provider: llmResponse.provider,
-        latencyMs: llmResponse.latencyMs,
-      },
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: `Failed to write section: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    };
-  }
+  return {
+    success: true,
+    data: { content: llmResponse.output },
+    llmStats: { provider: llmResponse.provider, latencyMs: llmResponse.latencyMs },
+  };
 }
 
-/**
- * Handle section improvement requests
- */
 async function handleImproveSection(payload: any): Promise<AIResponse> {
   const { sectionTitle, currentContent } = payload;
+  if (!sectionTitle || !currentContent) return { success: false, error: 'Missing sectionTitle or currentContent' };
 
-  if (!sectionTitle || !currentContent) {
-    return {
-      success: false,
-      error: 'Missing sectionTitle or currentContent in payload',
-    };
-  }
+  const userPrompt = buildSectionImprovementPrompt(sectionTitle, currentContent);
 
-  const systemPrompt = 'You are an expert editor. Improve the given section for clarity, impact, and professionalism.';
-  const userPrompt = `Improve this "${sectionTitle}" section:\n\n${currentContent}`;
+  const llmResponse = await callLLM({
+    messages: [
+      { role: 'system', content: 'You are an expert editor.' },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: 0.6,
+    maxTokens: 2000,
+  });
 
-  try {
-    const llmResponse = await callLLM({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.6,
-      maxTokens: 2000,
-    });
+  if (!llmResponse.output) return { success: false, error: 'Empty LLM response' };
 
-    return {
-      success: true,
-      data: { improvedContent: llmResponse.output },
-      llmStats: {
-        provider: llmResponse.provider,
-        latencyMs: llmResponse.latencyMs,
-      },
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: `Failed to improve section: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    };
-  }
+  return {
+    success: true,
+    data: { improvedContent: llmResponse.output },
+    llmStats: { provider: llmResponse.provider, latencyMs: llmResponse.latencyMs },
+  };
 }
