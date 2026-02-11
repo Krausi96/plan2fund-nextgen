@@ -352,10 +352,11 @@ export default function QuestionRenderer({
                   <div className="ml-4 space-y-2 border-l-2 border-blue-200 pl-3 pt-2 mt-2">
                     <div className="space-y-2">
                       {[
-                        { value: 'no_company', label: 'No registered company yet' },
-                        { value: 'has_company', label: 'Already have a registered company' }
+                        { value: 'no_company', labelKey: 'reco.options.organisation_type_sub.no_company' },
+                        { value: 'has_company', labelKey: 'reco.options.organisation_type_sub.has_company' }
                       ].map((subOption) => {
                         const isSubSelected = subOptionValue === subOption.value;
+                        const translatedLabel = t(subOption.labelKey as any) as string;
                         return (
                           <button
                             key={subOption.value}
@@ -377,7 +378,7 @@ export default function QuestionRenderer({
                           >
                             <div className="flex items-center gap-2">
                               {isSubSelected && <span className="text-base font-bold">✓</span>}
-                              <span>{subOption.label}</span>
+                              <span>{translatedLabel}</span>
                             </div>
                           </button>
                         );
@@ -742,7 +743,32 @@ export default function QuestionRenderer({
         </div>
       )}
 
-      {question.type !== 'range' && question.type !== 'single-select' && question.type !== 'multi-select' && (
+      {question.type === 'text' && (
+        <div className="space-y-3 flex-1">
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={value || ''}
+              onChange={(e) => onAnswer(question.id, e.target.value)}
+              placeholder={(t(question.placeholder as any) as string) || question.placeholder}
+              maxLength={question.maxLength || 200}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            />
+          </div>
+          {question.helpText && (
+            <p className="text-xs text-gray-500">
+              {(t(question.helpText as any) as string) || question.helpText}
+            </p>
+          )}
+          {question.maxLength && (
+            <p className="text-xs text-gray-500">
+              {value?.length || 0} / {question.maxLength} characters
+            </p>
+          )}
+        </div>
+      )}
+
+      {question.type !== 'range' && question.type !== 'single-select' && question.type !== 'multi-select' && question.type !== 'text' && (
         <div className="text-sm text-gray-500">Unsupported question type</div>
       )}
     </div>

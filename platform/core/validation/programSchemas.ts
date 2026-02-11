@@ -15,11 +15,26 @@ export const UserAnswersSchema = z.object({
   // Required fields (validated at runtime)
   location: z.string().min(1, 'Location is required'),
   organisation_type: z.string().min(1, 'Organisation type is required'),
-  funding_amount: z.number().positive('Funding amount must be positive'),
+  funding_amount: z.union([z.number().positive('Funding amount must be positive'), z.string().transform(val => {
+    const num = parseFloat(val);
+    if (isNaN(num) || num <= 0) throw new Error('Funding amount must be positive');
+    return num;
+  })]),
   company_stage: z.enum(['idea', 'MVP', 'revenue', 'growth']),
 
   // Optional fields (with type validation)
-  revenue_status: z.union([z.number().min(0), z.literal(0)]).optional(),
+  oneliner: z.string().optional(),
+  revenue_status: z.union([
+    z.number().min(0),
+    z.string().transform(val => {
+      // Handle empty strings or non-numeric values
+      if (!val || val.trim() === '') return 0;
+      const num = parseFloat(val);
+      if (isNaN(num)) return 0; // Default to 0 if not a number
+      return Math.max(0, num); // Ensure non-negative
+    }),
+    z.literal(0)
+  ]).optional(),
   revenue_status_category: z.string().optional(),
   industry_focus: z.array(z.string()).min(1).optional(),
   co_financing: z.enum(['co_yes', 'co_no', 'co_flexible']).optional(),
@@ -32,7 +47,15 @@ export const UserAnswersSchema = z.object({
   organisation_type_sub: z.enum(['no_company', 'has_company']).optional(),
   location_region: z.string().optional(),
   funding_intent: z.string().optional(),
-}).strict(); // Reject unknown fields
+  // Dynamic sub-category selections (e.g., industry_focus_digital, industry_focus_sustainability)
+  industry_focus_digital: z.array(z.string()).optional(),
+  industry_focus_sustainability: z.array(z.string()).optional(),
+  industry_focus_health: z.array(z.string()).optional(),
+  industry_focus_manufacturing: z.array(z.string()).optional(),
+  industry_focus_export: z.array(z.string()).optional(),
+  use_of_funds_other: z.string().optional(),
+  impact_focus_other: z.string().optional(),
+}).passthrough(); // Accept unknown fields from sub-category selections
 
 export type ValidatedUserAnswers = z.infer<typeof UserAnswersSchema>;
 

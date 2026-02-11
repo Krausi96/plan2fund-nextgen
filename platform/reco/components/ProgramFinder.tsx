@@ -3,10 +3,10 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/router';
 import { Wand2 } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { EnhancedProgramResult, ProgramFinderProps } from '../types';
 import QuestionRenderer from './QuestionRenderer';
@@ -37,6 +37,7 @@ export default function ProgramFinder({
   const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentStep, setCurrentStep] = useState(0);
+  const [showResults, setShowResults] = useState(false);
   
   // Use shared results filtering
   const { visibleResults } = useResultsFiltering(results);
@@ -66,11 +67,8 @@ export default function ProgramFinder({
     const sanitizedAnswers = { ...answers };
     delete sanitizedAnswers.funding_intent;
     
-    // Use the mapped categorical value for revenue_status if available
-    if (sanitizedAnswers.revenue_status_category) {
-      sanitizedAnswers.revenue_status = sanitizedAnswers.revenue_status_category;
-      delete sanitizedAnswers.revenue_status_category;
-    }
+    // Keep revenue_status as number, do not replace with category
+    // revenue_status_category is optional and used for UI context only
     
     return sanitizedAnswers;
   }, [answers]);
@@ -129,11 +127,15 @@ export default function ProgramFinder({
 // Minimum questions for results (core questions before showing programs)
 // Note: Only includes TRULY required questions (required: true in questions.ts)
 // Optional questions (co_financing, use_of_funds) are excluded from required check
+// Note: legal_form is excluded from this list as it is auto-populated when not visible
 const MIN_QUESTIONS_FOR_RESULTS = 4;
 const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_status', 'location', 'industry_focus', 'funding_amount'] as const;
   const missingRequiredAnswers = REQUIRED_QUESTION_IDS.filter((questionId) => {
     const value = answers[questionId];
-    return !value || (typeof value === 'string' && value.trim() === '') || (Array.isArray(value) && value.length === 0);
+    if (value === undefined || value === null) return true;
+    if (typeof value === 'string' && value.trim() === '') return true;
+    if (Array.isArray(value) && value.length === 0) return true;
+    return false;
   });
   const missingRequiredLabels = missingRequiredAnswers.map((questionId) => {
     const question = translatedQuestions.find((q) => q.id === questionId);
@@ -155,8 +157,8 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
       return;
     }
     
-    // Use shared hook for program generation
-    await generatePrograms(answersForApi, setResults, setEmptyResults, setIsLoading, setHasAttemptedGeneration, t as any);
+    // Use shared hook for program generation - limit to 3 results max
+    await generatePrograms(answersForApi, setResults, setEmptyResults, setIsLoading, setHasAttemptedGeneration, t as any, 3);
   };
 
   return (
@@ -260,25 +262,39 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
         </div>
       </div>
 
-      {/* Results Modal/Popup */}
-      <Dialog open={(hasVisibleResults && !isLoading) || (!isLoading && hasAttemptedGeneration && !hasVisibleResults)} onOpenChange={(open) => {
-        if (!open) {
-          setEmptyResults();
-          setHasAttemptedGeneration(false);
-        }
-      }}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-6 md:p-8">
-          <DialogHeader className="mb-6">
-            <DialogTitle className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-              {(t('reco.results.title' as any) as string) || 'Found Funding Programs'}
-              <span className="ml-2 text-lg md:text-xl font-semibold text-gray-600">({visibleResults.length})</span>
-            </DialogTitle>
-            <DialogDescription className="text-base text-gray-600">
-              {(t('reco.results.description' as any) as string) || 'Here are the most suitable funding programs for you.'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-5 md:space-y-6 mt-2">
-            {visibleResults.length === 0 ? (
+      {/* Results Modal - Rendered via Portal to document.body */}
+      {((hasVisibleResults && !isLoading) || (!isLoading && hasAttemptedGeneration && !hasVisibleResults)) && 
+        createPortal(
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-lg flex flex-col w-full max-w-2xl overflow-hidden" style={{height: '90vh', maxHeight: '90vh', minHeight: '0', alignSelf: 'center', position: 'relative'}}>
+            
+            {/* Header - shrink-0 to keep it fixed */}
+            <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-br from-blue-50 to-white shrink-0">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {(t('reco.results.title' as any) as string) || 'Found Funding Programs'}
+                    <span className="ml-2 text-lg font-semibold text-blue-600">({visibleResults.length})</span>
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-2">
+                    {(t('reco.results.description' as any) as string) || 'Most suitable funding programs for you.'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEmptyResults();
+                    setHasAttemptedGeneration(false);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            {/* Content - ONLY this scrolls */}
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 pb-32">
+              {visibleResults.length === 0 ? (
               <div className="text-center py-10 px-4">
                 <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,76 +333,55 @@ const REQUIRED_QUESTION_IDS = ['organisation_type', 'company_stage', 'revenue_st
                 const fundingTypes = (program as any).funding_types || (program.type ? [program.type] : ['grant']);
                 
                 return (
-                  <Card key={program.id || index} className="p-5 md:p-6 border-2 border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all bg-white">
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
-                          {program.name || `Program ${index + 1}`}
-                        </h3>
-                        {program.description && (
-                          <p className="text-sm text-gray-700 leading-relaxed">
-                            {program.description}
+                  <div key={program.id || index} className="bg-white border-2 border-gray-200 rounded-lg p-3 hover:border-blue-400 hover:shadow-lg transition-all flex flex-col w-full">
+                    <div className="flex-1 min-h-0">
+                      <h3 className="text-lg font-bold text-gray-900 mb-1 truncate">
+                        {program.name || `Program ${index + 1}`}
+                      </h3>
+                      {program.description && (
+                        <p className="text-sm text-gray-700 mb-2 line-clamp-2">
+                          {program.description}
+                        </p>
+                      )}
+                      {(program as any).reasoning && (
+                        <div className="bg-blue-50 border border-blue-200 rounded p-2.5 mb-3">
+                          <p className="text-xs text-blue-900 font-semibold mb-1">💡 {(t('results.whyMatches' as any) as string) || 'Why this matches'}:</p>
+                          <p className="text-xs text-blue-800 leading-relaxed">
+                            {(program as any).reasoning}
                           </p>
-                        )}
-                      </div>
-                      <div className="flex-shrink-0">
-                        <button
-                          onClick={() => {
-                            if (onProgramSelect) {
-                              onProgramSelect(program.id, program.type || fundingTypes[0] || 'grant');
-                            } else {
-                              persistSelectedProgram(program);
-                            }
-                          }}
-                          className="w-full md:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm shadow-sm hover:shadow-md whitespace-nowrap"
-                        >
-                          {(t('reco.ui.select' as any) as string) || 'Select'}
-                        </button>
-                      </div>
+                        </div>
+                      )}
+                      {(program as any).cautions && (
+                        <div className="bg-amber-50 border border-amber-200 rounded p-2.5 mb-3">
+                          <p className="text-xs text-amber-900 font-semibold mb-1">⚠️ {(t('results.note' as any) as string) || 'Note'}:</p>
+                          <p className="text-xs text-amber-800 leading-relaxed">
+                            {(program as any).cautions}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  </Card>
+                    <button
+                      onClick={() => {
+                        if (onProgramSelect) {
+                          onProgramSelect(program.id, program.type || fundingTypes[0] || 'grant');
+                        } else {
+                          persistSelectedProgram(program);
+                        }
+                      }}
+                      className="w-full mt-3 px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      {(t('reco.ui.select' as any) as string) || 'Select'}
+                    </button>
+                  </div>
                 );
               })
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Sticky Bottom Bar - Generate Button */}
-      <div className="sticky bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-lg z-50 p-4">
-        <div className="max-w-5xl mx-auto flex justify-center">
-          <button
-            onClick={handleGeneratePrograms}
-            disabled={isLoading || !hasEnoughAnswers}
-            className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400 min-w-[280px]"
-            title={!hasEnoughAnswers ? (hasRequiredAnswers
-                  ? ((t('reco.ui.minQuestionsTooltip' as any) as string)?.replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS)) || `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`)
-                  : ((t('reco.ui.requiredQuestionsTooltip' as any) as string) || 'Please complete all required questions')) : undefined}
-          >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                {(t('reco.ui.generatingPrograms' as any) as string) || 'Generating Programs...'}
-              </>
-            ) : !hasEnoughAnswers ? (
-              <>
-                <Wand2 className="w-5 h-5" />
-                {hasRequiredAnswers
-                  ? ((t('reco.ui.remainingQuestions' as any) as string)?.replace('{count}', String(remainingQuestions)) || `${remainingQuestions} more questions`)
-                  : ((t('reco.ui.requiredAnswersMissing' as any) as string) || 'Required answers missing')}
-              </>
-            ) : (
-              <>
-                <Wand2 className="w-5 h-5" />
-                {(t('reco.ui.generateFundingPrograms' as any) as string) || 'Generate Funding Programs'}
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+            </div>
+            </div>
+          </div>,
+          document.body
+        )
+      }
     </div>
   );
 }

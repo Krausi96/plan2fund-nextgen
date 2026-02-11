@@ -3,12 +3,20 @@
  * Prompts for document structure and requirement generation
  */
 
-export const BLUEPRINT_SYSTEM_PROMPT = `You are an expert business plan generator specializing in funding applications.
-Your role is to create comprehensive blueprints with detailed requirements, guidance, and validation rules.
-Return structured JSON only, no other text.`;
+export const BLUEPRINT_SYSTEM_PROMPT = `You extract real funding application requirements and structure.
+
+Goal:
+Create a structured blueprint for writing a funding-compliant document.
+
+Rules:
+- Only include realistic requirements
+- Do not invent requirements if unknown
+- If uncertain → mark as assumption
+- Focus on structure and required content
+Return JSON only.`;
 
 export function buildBlueprintUserPrompt(documentStructure: any, userContext?: any): string {
-  return `Generate a comprehensive blueprint for the following document structure:
+  return `Create a funding application blueprint.
 
 ${JSON.stringify(documentStructure, null, 2)}
 

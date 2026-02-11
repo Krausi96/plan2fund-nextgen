@@ -18,10 +18,13 @@ Rules:
 Return valid JSON only.
 No explanations outside JSON.`;
 
-export function buildRecommendationUserPrompt(profile: string, maxPrograms: number): string {
+export function buildRecommendationUserPrompt(profile: string, maxPrograms: number, language: string = 'en'): string {
+  const langInstruction = language === 'de' ? 'Respond in German.' : 'Respond in English.';
   return `Identify up to ${maxPrograms} REAL funding programs that could plausibly fit this project:
 
 ${profile}
+
+${langInstruction}
 
 CRITICAL MATCHING RULES:
 - Match broadly and realistically, not strictly.
@@ -43,17 +46,11 @@ JSON STRUCTURE:
   "programs": [{
       "id":"string",
       "name":"Program name",
-      "website":"https://...",
-      "description":"Short reason why relevant",
-      "location":"Austria|Germany|EU|Global",
-      "organisation_type":"individual|startup|sme|company",
-      "company_stage":"idea|MVP|revenue|growth",
-      "funding_types":["grant|loan|equity|mixed"],
-      "funding_amount_min":0,
-      "funding_amount_max":0,
-      "currency":"EUR"      
+      "description":"1 sentence program description summary",
+      "reasoning":"1-2 sentences max on why this matches the user profile",
+      "cautions":"1 sentence recommendation if something doesn't match (e.g., 'Requires 20% co-financing', 'For SMEs only'). Leave empty if perfect fit.",      
   }]
 }
 
-Return programs matching user profile with basic information.`;
+Return programs matching user profile with basic information. ALWAYS include reasoning field.`;
 }

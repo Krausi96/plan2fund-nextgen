@@ -114,8 +114,15 @@ export function useAnswerHandling() {
         newAnswers[questionId] = value;
       }
 
+      // Handle organisation-related changes
       if (questionId === 'organisation_type' || questionId === 'organisation_type_other' || 
           questionId === 'organisation_type_sub' || questionId === 'company_stage') {
+        // When changing main organisation_type, clear dependent fields first
+        if (questionId === 'organisation_type') {
+          delete newAnswers.legal_form;
+          delete newAnswers.revenue_status;
+          delete newAnswers.revenue_status_category;
+        }
         const orgType = newAnswers.organisation_type as string | undefined;
         const orgOther = newAnswers.organisation_type_other as string | undefined;
         const orgSub = newAnswers.organisation_type_sub as string | undefined;
@@ -129,19 +136,16 @@ export function useAnswerHandling() {
         if (isNotRegisteredYet) {
           newAnswers.legal_form = 'not_registered_yet';
           newAnswers.revenue_status = 0;
-        }
-        
-        // Auto-set revenue_status for idea stage
-        if (compStage === 'idea') {
+        } else if (compStage === 'idea') {
+          // Auto-set revenue_status for idea stage
           newAnswers.revenue_status = 0;
-        }
-        
-        // Auto-set values for organization types that skip revenue
-        if (shouldSkipRevenue) {
+        } else if (shouldSkipRevenue) {
+          // Auto-set values for organization types that skip revenue
           newAnswers.revenue_status = 0;
           newAnswers.legal_form = 'research_institution';
         }
         
+        // Always compute revenue_status_category based on current revenue_status
         const revenueValue = newAnswers.revenue_status as number | undefined;
         if (revenueValue !== undefined) {
           let revenueCategory = 'pre_revenue';
@@ -156,11 +160,6 @@ export function useAnswerHandling() {
         if (orgType === 'individual' && orgSub === 'has_company') {
           delete newAnswers.legal_form;
         }
-        
-        if (questionId !== 'organisation_type_sub' && questionId !== 'organisation_type_other') {
-          delete newAnswers.legal_form;
-          delete newAnswers.revenue_status;
-        }
       }
       
       return newAnswers;
@@ -173,6 +172,7 @@ export function useAnswerHandling() {
 // Hook for program generation logic
 export function useProgramGeneration() {
   const { projectProfile } = useProjectStore();
+  const { locale } = useI18n();
   
   const generatePrograms = async (
     answers: Record<string, any>,
@@ -195,8 +195,8 @@ export function useProgramGeneration() {
         body: JSON.stringify({
           answers: answers,
           max_results: maxResults,
-          // Use oneliner from answers if available, otherwise from projectProfile
           oneliner: answers.oneliner || projectProfile?.oneliner || '',
+          language: locale || 'en',
         }),
       });
 

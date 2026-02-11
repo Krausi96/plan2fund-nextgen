@@ -22,12 +22,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(429).json(rateLimitExceededResponse(rateLimitResult));
   }
 
-  const { answers, max_results: maxResults = 10 } = req.body || {};
+  const { answers, max_results: maxResults = 10, language = 'en' } = req.body || {};
 
   // Call orchestrator (handles validation, caching, LLM, parsing)
   const result = await callAI({
     type: 'recommendPrograms',
-    payload: { answers, max_results: maxResults },
+    payload: { answers, max_results: maxResults, language },
   });
 
   if (!result.success) {

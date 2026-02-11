@@ -6,13 +6,22 @@
 
 /**
  * Parse program recommendation response from LLM
- * Extracts program data from JSON response
+ * Extracts program data from JSON response (handles markdown wrappers and truncation)
  */
 export function parseProgramResponse(responseText: string): {
   programs: Array<Record<string, any>>;
 } {
   try {
-    const parsed = JSON.parse(responseText);
+    // Remove markdown code blocks if present (Gemini wraps in ```json)
+    let cleanedText = responseText.trim();
+    if (cleanedText.startsWith('```')) {
+      cleanedText = cleanedText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+    }
+    
+    cleanedText = cleanedText.trim();
+    console.log('[parseProgramResponse] Attempting to parse, length:', cleanedText.length, 'first 100 chars:', cleanedText.substring(0, 100));
+    
+    const parsed = JSON.parse(cleanedText);
     if (Array.isArray(parsed)) {
       return { programs: parsed };
     }
@@ -22,6 +31,48 @@ export function parseProgramResponse(responseText: string): {
     return { programs: [] };
   } catch (error) {
     console.warn('[parseProgramResponse] Failed to parse LLM response:', error);
+    
+    // Fallback 1: Try to repair truncated JSON by finding last brace and balancing
+    try {
+      let truncated = responseText.trim();
+      const lastBrace = truncated.lastIndexOf('}');
+      if (lastBrace > 0) {
+        let repaired = truncated.substring(0, lastBrace + 1);
+        const openBraces = (repaired.match(/\{/g) || []).length;
+        const closeBraces = (repaired.match(/\}/g) || []).length;
+        const openBrackets = (repaired.match(/\[/g) || []).length;
+        const closeBrackets = (repaired.match(/\]/g) || []).length;
+        
+        for (let i = closeBrackets; i < openBrackets; i++) repaired += ']';
+        for (let i = closeBraces; i < openBraces; i++) repaired += '}';
+        
+        console.log('[parseProgramResponse] 🔧 Attempting repair: balanced braces/brackets');
+        const repairedParsed = JSON.parse(repaired);
+        if (repairedParsed.programs && Array.isArray(repairedParsed.programs) && repairedParsed.programs.length > 0) {
+          console.log('[parseProgramResponse] ✅ Repaired truncated JSON: extracted', repairedParsed.programs.length, 'programs');
+          return { programs: repairedParsed.programs };
+        }
+      }
+    } catch (e) {
+      console.warn('[parseProgramResponse] Repair attempt failed:', e);
+    }
+    
+    // Fallback 2: Extract largest valid JSON fragment
+    try {
+      const matches = Array.from(responseText.matchAll(/\{[\s\S]*\}/g));
+      for (const match of matches.reverse()) {
+        try {
+          const candidate = JSON.parse(match[0]);
+          if (candidate.programs && Array.isArray(candidate.programs) && candidate.programs.length > 0) {
+            console.log('[parseProgramResponse] ✅ Extracted from fragment:', candidate.programs.length, 'programs');
+            return { programs: candidate.programs };
+          }
+        } catch {}
+      }
+    } catch (fallbackError) {
+      console.warn('[parseProgramResponse] Fragment extraction failed');
+    }
+    
     return { programs: [] };
   }
 }

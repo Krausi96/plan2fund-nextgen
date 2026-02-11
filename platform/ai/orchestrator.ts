@@ -120,18 +120,20 @@ function ensureFutureDate(dateValue: string | undefined, fieldName: string): str
 // ============================================================================
 
 async function handleRecommendPrograms(payload: any): Promise<AIResponse> {
+  console.log('🔍 [orch] recommendPrograms START');
   const validated = UserAnswersSchema.safeParse(payload.answers);
   if (!validated.success) {
+    console.error('❌ [orch] Validation failed:', JSON.stringify(validated.error.format(), null, 2));
+    console.error('📊 [orch] Received fields:', Object.keys(payload.answers));
     return { success: false, error: 'Invalid answers', data: validated.error?.format() };
   }
   const answers = validated.data;
   const maxResults = payload.max_results || 10;
   const projectOneliner = payload.oneliner || '';
+  const language = payload.language || 'en';
 
-  // Validate deadline is in the future
   const validatedDeadline = ensureFutureDate(answers.deadline_urgency, 'deadline_urgency');
 
-  // Build profile for prompt - include ALL required fields
   const profile = [
     projectOneliner ? `Project pitch: ${projectOneliner}` : null,
     `Location: ${answers.location}`,
@@ -147,17 +149,17 @@ async function handleRecommendPrograms(payload: any): Promise<AIResponse> {
     validatedDeadline ? `Deadline urgency: ${validatedDeadline}` : null,
   ].filter(Boolean).join('\n');
 
-  // Check cache
   const cacheKey = getCacheKey(answers);
   const cached = getCached(programCache, cacheKey);
   if (cached) {
+    console.log('💾 [orch] Cache HIT -', cached.programs?.length || 0, 'programs');
     return { success: true, data: cached.programs?.slice(0, maxResults) || [], cached: true };
   }
+  console.log('📡 [orch] Cache MISS - calling LLM');
 
-  // Use existing prompt builder
-  const userPrompt = buildRecommendationUserPrompt(profile, maxResults);
+  const userPrompt = buildRecommendationUserPrompt(profile, maxResults, language);
 
-  // Call LLM
+  console.log('🤖 [orch] LLM call starting...');
   const llmResponse = await callLLM({
     messages: [
       { role: 'system', content: RECOMMENDATION_SYSTEM_PROMPT },
@@ -165,15 +167,17 @@ async function handleRecommendPrograms(payload: any): Promise<AIResponse> {
     ],
     responseFormat: 'json',
     temperature: 0.2,
-    maxTokens: 6000,
+    maxTokens: 8000,
   });
 
   if (!llmResponse.output) {
+    console.error('❌ [orch] Empty LLM response');
     return { success: false, error: 'Empty LLM response' };
   }
+  console.log('📥 [orch] LLM response OK -', llmResponse.output.length, 'chars');
 
-  // Use existing parser
   const parsed = parseProgramResponse(llmResponse.output);
+  console.log('✨ [orch] Parsed -', parsed.programs?.length || 0, 'programs');
   setCache(programCache, cacheKey, parsed);
 
   return {
@@ -199,7 +203,7 @@ async function handleGenerateBlueprint(payload: any): Promise<AIResponse> {
   const { documentStructure, userContext } = validated.data;
 
   // Check cache
-  const cacheKey = documentStructure.id;
+  const cacheKey = JSON.stringify({ documentStructure: documentStructure, context: userContext });
   const cached = getCached(blueprintCache, cacheKey);
   if (cached) {
     return { success: true, data: cached.blueprint, cached: true };
