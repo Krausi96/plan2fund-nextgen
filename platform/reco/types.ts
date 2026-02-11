@@ -111,8 +111,3 @@ export interface ProgramFinderProps {
   wizardMode?: boolean; // Enable step-by-step wizard mode
   editorMode?: boolean; // Simplified layout for editor embedding
 }
-
-
-
-
-

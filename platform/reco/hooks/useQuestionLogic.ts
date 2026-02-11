@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { QuestionDefinition } from '../types';
+import { QuestionDefinition } from '@/platform/core/types/program';
 import { ALL_QUESTIONS } from '../data/questions';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useProjectStore } from '@/platform/core/store/useProjectStore';

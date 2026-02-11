@@ -7,7 +7,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Wand2 } from 'lucide-react';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { EnhancedProgramResult } from '@/platform/reco/types';
+import { EnhancedProgramResult } from '@/platform/core/types/program';
 import QuestionRenderer from '@/platform/reco/components/QuestionRenderer';
 import { saveSelectedProgram } from '@/platform/analysis';
 import { MIN_ANSWERED_QUESTIONS } from '@/platform/reco/lib/config';

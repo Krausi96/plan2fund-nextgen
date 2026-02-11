@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { QuestionDefinition } from '../types';
+import { QuestionDefinition } from '@/platform/core/types/program';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface QuestionRendererProps {

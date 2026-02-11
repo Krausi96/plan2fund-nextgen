@@ -9,7 +9,7 @@ interface DocumentUploadPanelProps {
 
 export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [uploadMode, setUploadMode] = useState<'template' | 'upgrade'>('template');
+  const [uploadMode, setUploadMode] = useState<'template'>('template');
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Access platform store for document setup management
@@ -114,19 +114,7 @@ export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPan
           >
             Template
           </button>
-          <button
-            onClick={() => setUploadMode('upgrade')}
-            disabled={isProcessing}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              isProcessing
-                ? 'bg-slate-700 text-white/50 cursor-not-allowed'
-                : uploadMode === 'upgrade'
-                  ? 'bg-green-600 text-white border border-green-400'
-                  : 'bg-slate-700 text-white/80 hover:bg-slate-600 border border-transparent'
-            }`}
-          >
-            Upgrade existing plan
-          </button>
+
         </div>
       </div>
 
@@ -134,7 +122,7 @@ export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPan
       <div
         className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 cursor-pointer relative ${
           isDragging
-            ? (uploadMode === 'template' ? 'border-purple-400 bg-purple-900/20' : 'border-green-400 bg-green-900/20')
+            ? 'border-purple-400 bg-purple-900/20'
             : 'border-white/30 hover:border-white/50 hover:bg-white/5'
         }`}
         onDragOver={handleDragOver}
@@ -153,7 +141,7 @@ export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPan
         <button className={`px-4 py-2 text-white text-sm rounded-lg transition-colors mb-3 ${
           uploadMode === 'template' 
             ? 'bg-purple-600 hover:bg-purple-700' 
-            : 'bg-green-600 hover:bg-green-700'
+            : 'bg-purple-600 hover:bg-purple-700'
         }`}>
           <span className="mr-2">📤</span>
           Browse Files
@@ -168,7 +156,7 @@ export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPan
 
         {isProcessing && (
           <div className={`mt-3 text-sm animate-pulse ${
-            uploadMode === 'template' ? 'text-purple-300' : 'text-green-300'
+    'text-purple-300'
           }`}>
             Processing document...
           </div>
@@ -179,14 +167,10 @@ export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPan
 
       {/* Info Box */}
       <div className={`rounded-lg p-3 ${
-        uploadMode === 'template' 
-          ? 'bg-purple-900/20 border border-purple-400/30' 
-          : 'bg-green-900/20 border border-green-400/30'
+        'bg-purple-900/20 border border-purple-400/30'
       }`}>
         <p className="text-xs text-white/80 leading-relaxed">
-          {uploadMode === 'template'
-            ? 'Your template will be analyzed and converted into editable sections.'
-            : 'Your existing plan will be analyzed for weaknesses, missing sections, and modernization opportunities.'}
+          {'Your template will be analyzed and converted into editable sections.'}
         </p>
       </div>
     </div>

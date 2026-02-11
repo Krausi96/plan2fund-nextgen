@@ -7,7 +7,7 @@ import { SPECIAL_SECTIONS } from '@/features/editor/lib/constants';
 // Import section catalogs from subdirectories
 import { BUSINESS_PLAN_SECTIONS } from '../catalog/products/business_plan';
 import { STRATEGY_SECTIONS } from '../catalog/products/strategy';
-import { UPGRADE_SECTIONS } from '../catalog/products/upgrade';
+
 
 
 
@@ -28,12 +28,12 @@ export const SHARED_SPECIAL_SECTIONS: SectionTemplate[] = specialSectionEntries.
 export const MASTER_SECTIONS: Record<string, SectionTemplate[]> = {
   strategy: [...STRATEGY_SECTIONS, ...SHARED_SPECIAL_SECTIONS], // Strategy now uses strategy-specific sections + shared special sections
   submission: [...BUSINESS_PLAN_SECTIONS, ...SHARED_SPECIAL_SECTIONS],
-  upgrade: [...BUSINESS_PLAN_SECTIONS, ...UPGRADE_SECTIONS, ...SHARED_SPECIAL_SECTIONS]
+
 };
 
 // Define document templates
 export const MASTER_DOCUMENTS_BY_PRODUCT: Record<string, DocumentTemplate[]> = {
   strategy: [], // Strategy now uses sections, no documents
   submission: [],
-  upgrade: [] // Upgrade uses sections, no documents
+
 };

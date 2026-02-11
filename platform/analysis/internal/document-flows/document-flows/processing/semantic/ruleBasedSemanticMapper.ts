@@ -1,5 +1,5 @@
 import type { DocumentStructure } from '@/platform/core/types';
-import { BUSINESS_PLAN_SECTIONS, STRATEGY_SECTIONS, UPGRADE_SECTIONS } from '@/features/editor/lib/templates';
+import { BUSINESS_PLAN_SECTIONS, STRATEGY_SECTIONS } from '@/features/editor/lib/templates';
 
 
 
@@ -35,7 +35,7 @@ export async function enrichSectionsWithMeaning(
   const templateSections = options.templateSections || [
     ...BUSINESS_PLAN_SECTIONS,
     ...STRATEGY_SECTIONS,
-    ...UPGRADE_SECTIONS
+
   ].map(section => section.title);
 
   const enrichedSections = structure.sections.map((section: any) => {

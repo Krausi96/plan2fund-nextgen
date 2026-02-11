@@ -31,9 +31,7 @@ export function inferProductTypeFromBlueprint(structure: any): ProductType {
       return 'strategy';
     }
     
-    if (blueprint.programName?.toLowerCase().includes('upgrade')) {
-      return 'upgrade';
-    }
+
     
     // Default to submission for business plans and templates
     return 'submission';
@@ -54,9 +52,7 @@ export function inferProductTypeFromBlueprint(structure: any): ProductType {
     return 'strategy';
   }
   
-  if (structureId.includes('upgrade')) {
-    return 'upgrade';
-  }
+
   
   // Default to submission for business plans and templates
   return 'submission';

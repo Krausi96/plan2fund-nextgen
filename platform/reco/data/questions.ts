@@ -2,7 +2,7 @@
  * Question definitions for ProgramFinder
  */
 
-import { QuestionDefinition } from '../types';
+import { QuestionDefinition } from '@/platform/core/types/program';
 
 export const CORE_QUESTIONS: QuestionDefinition[] = [
   {

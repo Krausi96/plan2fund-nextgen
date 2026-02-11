@@ -3,7 +3,7 @@ import { useProject } from '@/platform/core/context/hooks/useProject';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/document-flows/sections/enhancement/sectionEnhancement';
-import { DocumentUploadPanel } from './DocumentUploadOption';
+
 
 interface FreeOptionProps {
   onStructureSelected?: (structure: string) => void;
@@ -26,11 +26,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
   const handleStructureSelect = (structure: string) => {
     setSelectedStructure(structure);
     
-    // Don't call onStructureSelected for 'upgrade' as it renders the DocumentUploadPanel component
-    // The DocumentUploadPanel component will handle its own document structure and call onStructureSelected when ready
-    if (structure !== 'upgrade') {
-      onStructureSelected?.(structure);
-    }
+    onStructureSelected?.(structure);
     
     // Create standard blueprint when structure is selected
     const createStandardBlueprint = () => {
@@ -41,9 +37,6 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
         },
         'strategy': {
           productType: 'strategy' as const
-        },
-        'upgrade': {
-          productType: 'upgrade' as const
         }
       };
 
@@ -60,9 +53,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
             id: 'main_document',
             name: structureConfig.productType === 'submission' 
               ? t('editor.desktop.program.document.businessPlan')
-              : structureConfig.productType === 'upgrade'
-                ? t('editor.desktop.program.document.upgradePlan')
-                : t('editor.desktop.program.document.strategyDocument'),
+              : t('editor.desktop.program.document.strategyDocument'),
             purpose: 'Main document for the business plan',
             required: true,
             templateId: 'default_template'
@@ -106,12 +97,9 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       
     };
 
-    // Only create standard blueprint for non-upgrade structures
-    if (structure !== 'upgrade') {
-      createStandardBlueprint();
-    }
+    createStandardBlueprint();
     
-    // Don't navigate immediately for upgrade - let DocumentUploadPanel handle navigation when ready
+
   };
 
 
@@ -125,36 +113,12 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       id: 'strategy',
       title: t('editor.desktop.program.document.strategyDocument'), 
       icon: '💡',
-    },
-    {
-      id: 'upgrade',
-      title: t('editor.desktop.program.document.upgradePlan'), 
-      icon: '♻️',
     }
   ];
 
   return (
     <div className="space-y-6">
-      {selectedStructure === 'upgrade' ? (
-        // Show DocumentUploadPanel when 'upgrade' is selected
-        <div>
-          <div className="mb-4">
-            <button 
-              onClick={() => {
-                setSelectedStructure(null);
-                // Reset document structure when going back
-                setDocumentStructure(null);
-                setInferredProductType(null);
-              }}
-              className="flex items-center gap-2 text-green-400 hover:text-green-300 text-sm"
-            >
-              <span>←</span>
-              <span>{t('editor.desktop.program.backToPlanOptions')}</span>
-            </button>
-          </div>
-          <DocumentUploadPanel onNavigateToBlueprint={onNavigateToBlueprint} />
-        </div>
-      ) : (
+      {(
         <>
           {/* Base Structure Selection - MOVING FROM PRODUCT SELECTION */}
           <div className="bg-slate-800/50 rounded-xl border border-white/10 p-5">

@@ -138,7 +138,7 @@ export {
   // Section catalogs
   BUSINESS_PLAN_SECTIONS,
   STRATEGY_SECTIONS,
-  UPGRADE_SECTIONS,
+
   // Action functions
   addCustomDocument,
   addCustomSection,

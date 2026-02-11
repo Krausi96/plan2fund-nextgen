@@ -413,7 +413,7 @@ export interface DocumentTemplate {
  * Document template type identifier
  * Represents the type of document being created (business plan, pitch deck, etc.)
  */
-export type DocumentTemplateId = 'business-plan' | 'pitch-deck' | 'executive-summary' | 'strategy' | 'upgrade' | 'custom';
+export type DocumentTemplateId = 'business-plan' | 'pitch-deck' | 'executive-summary' | 'strategy' | 'custom';
 
 /**
  * Section template definition
@@ -464,7 +464,7 @@ export interface ProductOption {
   icon?: string;
 }
 
-export type ProductType = 'submission' | 'strategy' | 'upgrade';
+export type ProductType = 'submission' | 'strategy';
 
 /**
  * Setup wizard state tracking

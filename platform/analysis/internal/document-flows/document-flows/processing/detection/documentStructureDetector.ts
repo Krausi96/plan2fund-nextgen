@@ -19,7 +19,7 @@ import {
   TABLES_DATA_SECTION_ID,
   FIGURES_IMAGES_SECTION_ID
 } from '@/features/editor/lib/constants';
-import { BUSINESS_PLAN_SECTIONS, STRATEGY_SECTIONS, UPGRADE_SECTIONS } from '@/features/editor/lib/templates';
+import { BUSINESS_PLAN_SECTIONS, STRATEGY_SECTIONS } from '@/features/editor/lib/templates';
 
 const SPECIAL_SECTION_IDS = [
   METADATA_SECTION_ID,
@@ -276,7 +276,7 @@ function detectTemplateDocumentHint(text: string): DetectionResult {
   const templates = [
     { type:'business_plan', sections: BUSINESS_PLAN_SECTIONS },
     { type:'strategy', sections: STRATEGY_SECTIONS },
-    { type:'upgrade', sections: UPGRADE_SECTIONS }
+
   ];
 
   let bestType = 'general';

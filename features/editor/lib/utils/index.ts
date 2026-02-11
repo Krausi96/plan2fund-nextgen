@@ -38,4 +38,4 @@ export type {
   PlanDocument,
   FundingProgram,
   DocumentStructure,
-} from '../types/types';
+} from '@/platform/core/types';

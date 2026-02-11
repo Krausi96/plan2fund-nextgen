@@ -8,7 +8,7 @@ export {
 // Export individual section catalogs
 export { BUSINESS_PLAN_SECTIONS } from './catalog/products/business_plan';
 export { STRATEGY_SECTIONS } from './catalog/products/strategy';
-export { UPGRADE_SECTIONS } from './catalog/products/upgrade';
+
 
 // Export program catalogs
 import { awsSeedfinancing } from './catalog/programs/individual/aws-seedfinancing';

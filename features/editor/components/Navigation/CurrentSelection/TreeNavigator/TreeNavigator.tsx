@@ -5,7 +5,7 @@ import {
 } from '@/features/editor/lib';
 import { AddSectionForm, TreeNodeRenderer } from './components';
 import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/organizeForUiRendering';
-import type { TreeNode } from '@/features/editor/lib/types/types';
+import type { TreeNode } from '@/features/editor/lib/types/ui/navigation-types';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 
 export default function TreeNavigator() {

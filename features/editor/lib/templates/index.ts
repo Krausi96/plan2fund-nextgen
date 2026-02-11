@@ -10,7 +10,7 @@ export {
 // Export individual section catalogs
 export { BUSINESS_PLAN_SECTIONS } from '@/platform/templates/catalog/products/business_plan';
 export { STRATEGY_SECTIONS } from '@/platform/templates/catalog/products/strategy';
-export { UPGRADE_SECTIONS } from '@/platform/templates/catalog/products/upgrade';
+
 
 // Export program catalogs
 import { awsSeedfinancing } from '@/platform/templates/catalog/programs/individual/aws-seedfinancing';
