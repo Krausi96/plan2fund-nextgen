@@ -78,97 +78,15 @@ export default function Editor({}: EditorProps = {}) {
         try {
           const program = JSON.parse(savedProgram);
           selectProgram(program);
-          
-          // FIX 1: Check if blueprint already exists before generating
-          if (blueprint && blueprint.programId === (program.id || 'default')) {
-            console.log('[Editor] ✓ Blueprint already exists for program:', program.id, '- skipping regeneration');
-          } else {
-            // Trigger blueprint generation after setting the program
-            setTimeout(async () => {
-              try {
-                // Log the program structure for debugging
-                console.log('[Editor] 🔍 Generating blueprint for program:', program.id || 'default');
-                
-                // Prepare the request body according to BlueprintRequestSchema
-                const requestBody = {
-                  programId: program.id || 'default',
-                  existingBlueprintId: blueprint?.blueprintId || null,
-                  documentStructure: {
-                    documents: [{
-                      id: program.id || 'default',
-                      name: program.name || 'Default Program',
-                      purpose: program.description || 'Funding program document',
-                      required: true,
-                      type: 'core'
-                    }],
-                    sections: program.sections || [],
-                    requirements: program.requirements || [],
-                    validationRules: [],
-                    aiGuidance: [],
-                    renderingRules: {
-                      titlePage: { enabled: true },
-                      tableOfContents: { enabled: true },
-                      references: { enabled: true },
-                      appendices: { enabled: true }
-                    },
-                    conflicts: [],
-                    warnings: [],
-                    confidenceScore: 50,
-                    metadata: {
-                      source: 'program',
-                      generatedAt: new Date().toISOString(),
-                      version: '1.0'
-                    }
-                  },
-                  userContext: {
-                    organisation_type: (program as any).organisation_type || 'startup',
-                    company_stage: (program as any).company_stage || 'idea',
-                    location: (program as any).location || 'austria',
-                    funding_amount: (program as any).funding_amount || 50000,
-                    industry_focus: (program as any).industry_focus || ['technology'],
-                    co_financing: (program as any).co_financing || 'co_yes'
-                  }
-                };
-                
-                const blueprintResponse = await fetch('/api/programs/blueprint', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(requestBody)
-                });
-                
-                if (blueprintResponse.ok) {
-                  const { blueprint: newBlueprint, blueprintId, debug, cached } = await blueprintResponse.json();
-                  
-                  // FIX 2: Store blueprint in useProjectStore
-                  if (blueprintId) {
-                    setBlueprint({
-                      blueprintId: blueprintId,
-                      programId: program.id || 'default',
-                      timestamp: new Date().toISOString(),
-                      blueprintObject: newBlueprint
-                    });
-                    console.log('[Editor] ✍ Blueprint stored in store with ID:', blueprintId, '- cached:', cached);
-                  }
-                  
-                  console.log('[Editor] ✅ Blueprint ready:', { blueprintId, cached, debug });
-                } else {
-                  console.error('[Editor] Blueprint generation failed:', await blueprintResponse.text());
-                }
-              } catch (error) {
-                console.error('[Editor] Error generating blueprint:', error);
-              }
-            }, 500); // Small delay to ensure the program is set in the store
-          }
-          
           localStorage.removeItem('selectedProgram'); // Clean up after loading
         } catch (error) {
           console.error('Failed to parse selected program from localStorage:', error);
         }
       }
     }
-  }, [projectProfile, editorMeta, plan, blueprint, setProjectProfile, setEditorMeta, setPlan, selectProgram, setBlueprint]);
+  }, [projectProfile, editorMeta, plan, setProjectProfile, setEditorMeta, setPlan, selectProgram]);
   
-  
+
   // Resizable column states
   const [leftColumnWidth, setLeftColumnWidth] = useState(320);
   const [rightColumnWidth, setRightColumnWidth] = useState(360);

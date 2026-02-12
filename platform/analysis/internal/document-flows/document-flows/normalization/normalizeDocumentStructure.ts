@@ -154,7 +154,6 @@ export function mergeUploadedContentWithSpecialSections(
         // Preserve subsections if they exist in the section
         ...((section as any).rawSubsections && { rawSubsections: (section as any).rawSubsections })
       })),
-    requirements: [],
     validationRules: [],
     aiGuidance: [],
     renderingRules: {},

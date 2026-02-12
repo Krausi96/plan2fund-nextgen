@@ -2,12 +2,14 @@ import React, { useState, useCallback } from 'react';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { analyzeDocument } from '@/platform/analysis';
 import type { DocumentStructure } from '@/platform/core/types';
+import { enrichAllSectionRequirementsAtOnce, createFallbackRequirements } from '@/platform/analysis/program-flow/generator';
 
 interface DocumentUploadPanelProps {
   onNavigateToBlueprint?: () => void;
+  onUploadComplete?: () => void;
 }
 
-export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPanelProps) {
+export function DocumentUploadPanel({ onNavigateToBlueprint, onUploadComplete }: DocumentUploadPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadMode, setUploadMode] = useState<'template'>('template');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -17,6 +19,7 @@ export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPan
   const setSetupStatus = useProject((state) => state.setSetupStatus);
   const setSetupDiagnostics = useProject((state) => state.setSetupDiagnostics);
   const setInferredProductType = useProject((state) => state.setInferredProductType);
+  // Note: selectedOption is managed locally in ProgramSelection, accessed via onUploadComplete callback
 
 
 
@@ -67,6 +70,27 @@ export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPan
       // Process the document using the centralized analyzer
       const result = await analyzeDocument(files, uploadMode);
 
+      // Enrich uploaded sections with GENERIC requirements (neutral, not funding-specific)
+      // Funding requirements can be overlaid later when user connects a funding program
+      const context = {
+        id: `upload_${files[0]?.name || Date.now()}`,
+        name: 'Uploaded Document',
+        type: 'generic'
+      };
+
+      const enriched = await enrichAllSectionRequirementsAtOnce(
+        result.documentStructure.sections,
+        context
+      );
+
+      result.documentStructure.sections = result.documentStructure.sections.map(section => ({
+        ...section,
+        requirements: enriched[section.id] || createFallbackRequirements()
+      }));
+
+      console.log('[processAndHandleUpload] Sections with requirements:', result.documentStructure.sections.length);
+      console.log('[processAndHandleUpload] Source:', result.documentStructure.metadata?.source);
+
       // Update store with the processed structure
       setDocumentStructure(result.documentStructure);
       setSetupStatus('draft');
@@ -77,10 +101,18 @@ export function DocumentUploadPanel({ onNavigateToBlueprint }: DocumentUploadPan
       });
       setInferredProductType(result.inferredProductType);
 
-      // Navigate to blueprint if callback is provided
-      if (onNavigateToBlueprint) {
-        onNavigateToBlueprint();
+      // Notify parent that upload is complete
+      if (onUploadComplete) {
+        onUploadComplete();
       }
+
+      console.log('[processAndHandleUpload] Store updated, sections ready');
+
+      // DO NOT auto-navigate - let user see the template structure first
+      // User can click Continue to go to Blueprint Instantiation
+      // if (onNavigateToBlueprint) {
+      //   onNavigateToBlueprint();
+      // }
     } catch (error) {
       console.error('Document processing failed:', error);
       alert('Failed to process document. Please try again.');

@@ -3,6 +3,10 @@ import { useProject } from '@/platform/core/context/hooks/useProject';
 import { getSectionIcon } from '@/features/editor/lib';
 import { organizeForUiRendering } from '@/features/editor/lib/utils/organizeForUiRendering';
 import { useI18n } from '@/shared/contexts/I18nContext';
+import { hasFundingOverlay, getFundingOverlayInfo } from '@/platform/analysis';
+import { Button } from '@/shared/components/ui/button';
+import { normalizeFundingProgram } from '@/features/editor/lib';
+import { overlayFundingRequirements } from '@/platform/analysis';
 
 interface TemplateStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;
@@ -20,10 +24,10 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHe
 
   // Use hierarchical organization for proper document structure display
   const organizedStructure = organizeForUiRendering(documentStructure);
-  
-  // Get sections by document from organized structure
-  // Only show template data when template option is selected AND we have template data
-  const hasTemplateData = selectedOption === 'template' && !!documentStructure?.source && documentStructure.source === 'template';
+
+  // Only show template data when we have a document structure with source === 'template'
+  // Note: selectedOption prop may not be passed when used from BlueprintInstantiation
+  const hasTemplateData = !!documentStructure?.metadata?.source && documentStructure.metadata.source === 'template';
 
   // Collapsible state management
   const [expandedDocuments, setExpandedDocuments] = React.useState<Record<string, boolean>>({});
@@ -40,6 +44,11 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHe
   const setDocumentStructure = useProject((state) => state.setDocumentStructure);
   const setSetupStatus = useProject((state) => state.setSetupStatus);
   const setSetupDiagnostics = useProject((state) => state.setSetupDiagnostics);
+  const setSelectedProgram = useProject((state) => state.selectProgram);
+  
+  // Check if already has funding overlay
+  const hasOverlay = documentStructure ? hasFundingOverlay(documentStructure) : false;
+  const overlayInfo = documentStructure ? getFundingOverlayInfo(documentStructure) : null;
 
   // Actual clear functionality - UPDATE TO EMPTY STATE WITHOUT CLOSING
   const handleClear = () => {
@@ -68,8 +77,27 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHe
               <h3 className="text-white font-bold text-lg">{headerTitle || t('editor.desktop.program.panels.templateAnalysis' as any)}</h3>
             </div>
             
-            {/* Action Buttons - Top Right (REFRESH REMOVED) */}
+            {/* Action Buttons - Top Right */}
             <div className="flex gap-1.5">
+              {/* Connect Funding Program Button */}
+              {!hasOverlay ? (
+                <Button
+                  onClick={() => {
+                    // Signal to parent to open program finder
+                    window.dispatchEvent(new CustomEvent('openProgramFinder', { detail: { mode: 'overlay' } }));
+                  }}
+                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-2 py-1 rounded-lg flex items-center gap-1"
+                  title="Connect funding program"
+                >
+                  <span>💰</span>
+                  <span className="hidden sm:inline">Connect Funding</span>
+                </Button>
+              ) : (
+                <div className="flex items-center gap-1 bg-green-600/30 text-green-300 px-2 py-1 rounded-lg text-xs">
+                  <span>✅</span>
+                  <span className="hidden sm:inline">{overlayInfo?.programName || 'Funding Connected'}</span>
+                </div>
+              )}
               <button
                 onClick={handleClear}
                 disabled={!hasTemplateData}
@@ -81,7 +109,20 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHe
             </div>
           </div>
         )}
-        
+
+        {/* Funding Overlay Info Banner */}
+        {hasOverlay && (
+          <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3 mb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-green-400">💰</span>
+              <span className="text-green-200 font-medium text-sm">Funding Requirements Active</span>
+            </div>
+            <p className="text-green-300/70 text-xs">
+              {overlayInfo?.programName} requirements overlaid on your document
+            </p>
+          </div>
+        )}
+
         {!hasTemplateData && (
           <div className="bg-slate-700/50 rounded-lg p-6 text-center">
             <div className="text-white/60 text-2xl mb-2">🧩</div>

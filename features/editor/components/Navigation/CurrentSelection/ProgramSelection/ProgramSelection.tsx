@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { StandardStructurePanel } from './components/panels/StandardStructurePanel';
@@ -9,6 +9,7 @@ import { FreeOption } from './components/options/FreeOption';
 import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
 import { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/document-flows/sections/enhancement/sectionEnhancement';
 import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
+import { overlayFundingRequirements, hasFundingOverlay, getFundingOverlayInfo } from '@/platform/analysis';
 
 
 interface OptionSelectorProps {
@@ -112,6 +113,10 @@ export default function ProgramSelection({
   const [selectedOption, setSelectedOption] = useState<'program' | 'template' | 'free' | null>(null);
   const [activeTab, setActiveTab] = useState<'search' | 'wizard'>('search');
   const [programSummary, setProgramSummary] = useState<any>(null);
+  const [overlayMode, setOverlayMode] = useState(false);
+  
+  // Access existing document structure from store (for overlay mode)
+  const existingDocumentStructure = useProject((state) => state.documentStructure);
 
   // Unified function to handle program data regardless of source
   const processProgramData = async (program: any) => {
@@ -236,6 +241,25 @@ export default function ProgramSelection({
   };
 
 
+  // Listen for "Connect funding program" event from TemplateStructurePanel
+  useEffect(() => {
+    const handleOpenProgramFinder = (event: CustomEvent) => {
+      const mode = event.detail?.mode;
+      console.log('[openProgramFinder] Event received, mode:', mode);
+
+      if (mode === 'overlay') {
+        // Open program finder in overlay mode
+        // Keep selectedOption as 'template' - we're overlaying funding on existing template
+        setOverlayMode(true);
+        setActiveTab('search');
+        console.log('[openProgramFinder] Overlay mode activated, keeping template context');
+      }
+    };
+    
+    window.addEventListener('openProgramFinder', handleOpenProgramFinder as EventListener);
+    return () => window.removeEventListener('openProgramFinder', handleOpenProgramFinder as EventListener);
+  }, []);
+
   // Handle program initialization from Reco/myProject flow
   useEffect(() => {
     // Check for program selected in Reco/myProject flow
@@ -257,15 +281,69 @@ export default function ProgramSelection({
 
   const handleCloseProgramFinder = () => {
     setActiveTab('search');
+    // Clear overlay mode when closing finder
+    setOverlayMode(false);
   };
 
   // Updated handleProgramSelect to use the unified processing function
-  const handleProgramSelect = (program: any) => {
-    // Process the program using the unified function
+  const handleProgramSelect = useCallback((program: any) => {
+    console.log('[handleProgramSelect] Program selected:', program.name, 'overlayMode:', overlayMode);
+    console.log('[handleProgramSelect] existingDocumentStructure exists:', !!existingDocumentStructure);
+    console.log('[handleProgramSelect] sections count:', existingDocumentStructure?.sections?.length);
+    
+    if (overlayMode && existingDocumentStructure) {
+      // OVERLAY MODE: Merge funding requirements into existing document
+      console.log('[handleProgramSelect] Overlay mode - merging requirements');
+      
+      try {
+        // Normalize the program
+        const fundingProgram = normalizeFundingProgram(program);
+        console.log('[handleProgramSelect] fundingProgram requirements:', fundingProgram.applicationRequirements?.sections?.length);
+        
+        // Call overlay function (DO NOT rebuild structure)
+        const { structure: updatedStructure, addedSections, gapAnalysis } = overlayFundingRequirements(
+          existingDocumentStructure,
+          fundingProgram
+        );
+        
+        console.log('[handleProgramSelect] Overlay complete:', {
+          addedSections: addedSections.length,
+          totalSections: updatedStructure.sections.length
+        });
+        
+        // Update store with overlaid structure
+        setDocumentStructure(updatedStructure);
+        setSetupStatus('draft');
+        
+        // Update program selection
+        selectProgram(fundingProgram);
+        
+        // Update diagnostics
+        setSetupDiagnostics({
+          warnings: [],
+          missingFields: addedSections,
+          confidence: 95
+        });
+        
+        // Clear overlay mode
+        setOverlayMode(false);
+        
+        // Close finder
+        handleCloseProgramFinder();
+        
+        return;
+      } catch (error) {
+        console.error('[handleProgramSelect] Overlay failed:', error);
+        // Fall through to normal processing
+      }
+    }
+    
+    // NORMAL MODE: Build new structure from program
+    console.log('[handleProgramSelect] Normal mode - building new structure');
     processProgramData(program);
     
     handleCloseProgramFinder();
-  };
+  }, [overlayMode, existingDocumentStructure, selectProgram, setDocumentStructure, setSetupStatus, setSetupDiagnostics, handleCloseProgramFinder, processProgramData]);
 
   return (
     <div className="relative mb-6 pb-6">
@@ -288,6 +366,9 @@ export default function ProgramSelection({
       <OptionSelector 
         selectedOption={selectedOption} 
         onSelect={(option) => {
+          // Clear overlay mode when switching options
+          setOverlayMode(false);
+          
           // If switching to different option, clear all state first
           if (selectedOption && selectedOption !== option) {
             // Clear all related state
@@ -308,7 +389,7 @@ export default function ProgramSelection({
         {/* Main Content Column (70%) */}
         <div className="lg:w-7/12">
           {/* Selected Option Content */}
-          {selectedOption === 'free' ? (
+          {selectedOption === 'free' && !overlayMode ? (
             // Free option without the outer container
             <FreeOption 
               onStructureSelected={(structure) => {
@@ -323,7 +404,7 @@ export default function ProgramSelection({
             // Apply the container for 'program' and 'template' options
             <div className="bg-slate-800/30 rounded-xl border border-white/10 p-6">
               
-              {/* Horizontal Program Tabs (for Program option) */}
+              {/* Program Tabs - only show when Program option is selected */}
               {selectedOption === 'program' && (
                 <div className="mb-6">
                   <div className="flex flex-wrap gap-3">
@@ -361,6 +442,7 @@ export default function ProgramSelection({
                         <ProgramFinder 
                           onProgramSelect={handleProgramSelect}
                           onClose={handleCloseProgramFinder}
+                          overlayMode={overlayMode}
                         />
                       </div>
                     )}
@@ -370,15 +452,34 @@ export default function ProgramSelection({
                     {activeTab === 'wizard' && (
                       <div>
                         <div className="w-full">
-                          <EditorProgramFinder 
+                          <EditorProgramFinder
                             onProgramSelect={(program: any) => {
-                              // Use full program object with applicationRequirements
+                              if (overlayMode && existingDocumentStructure) {
+                                // Overlay mode
+                                try {
+                                  const fundingProgram = normalizeFundingProgram(program);
+                                  const { structure: updatedStructure, addedSections } = overlayFundingRequirements(
+                                    existingDocumentStructure,
+                                    fundingProgram
+                                  );
+                                  setDocumentStructure(updatedStructure);
+                                  selectProgram(fundingProgram);
+                                  setSetupStatus('draft');
+                                  setOverlayMode(false);
+                                  setActiveTab('search');
+                                  return;
+                                } catch (error) {
+                                  console.error('Overlay failed:', error);
+                                }
+                              }
+                              // Normal mode
                               processProgramData(program);
-                              // Stay in wizard - don't switch tabs yet
                             }}
                             onClose={() => {
+                              setOverlayMode(false);
                               setActiveTab('search');
                             }}
+                            overlayMode={overlayMode}
                           />
                         </div>
                       </div>
@@ -387,11 +488,34 @@ export default function ProgramSelection({
                 </div>
               )}
               
-              {/* Template Content */}
+              {/* Template Content - DocumentUploadOption with overlay mode */}
               {selectedOption === 'template' && (
-                <DocumentUploadPanel 
-                  onNavigateToBlueprint={onNavigateToBlueprint}
-                />
+                <div className="relative w-full">
+                  {!overlayMode ? (
+                    <DocumentUploadPanel 
+                      onNavigateToBlueprint={onNavigateToBlueprint}
+                    />
+                  ) : (
+                    <div className="bg-slate-800/50 rounded-xl border border-white/10 p-6">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-white font-bold">Select Funding Program</h3>
+                        <button 
+                          onClick={handleCloseProgramFinder}
+                          className="text-white/60 hover:text-white px-2 text-lg"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="max-h-[600px] overflow-auto">
+                        <ProgramFinder 
+                          onProgramSelect={handleProgramSelect}
+                          onClose={handleCloseProgramFinder}
+                          overlayMode={overlayMode}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}      
@@ -399,42 +523,34 @@ export default function ProgramSelection({
         
         {/* Dynamic Panel Column (30%) */}
         <div className="lg:w-5/12">
-          {selectedOption === 'program' && (
-            <ProgramSummaryPanel 
-              onClear={() => {
-                // Clear ALL program-related data
-                selectProgram(null);
-                
-                // Also clear any document structure that might be related
-                setDocumentStructure(null);
-                setSetupStatus('none');
-                setSetupDiagnostics(null);
-                
-                // CRITICAL: Clear localStorage persistence to prevent auto-reinitialization
-                if (typeof window !== 'undefined') {
-                  localStorage.removeItem('selectedProgram');
-                }
-              }}
-              showHeader={true}
-            />
-          )}
-          {selectedOption === 'template' && (
+          {selectedOption === 'template' ? (
             <TemplateStructurePanel 
               selectedOption={selectedOption}
               onClearTemplate={() => {
-                // Clear the document structure
                 setDocumentStructure(null);
                 setSetupStatus('none');
                 setSetupDiagnostics(null);
               }}
               showHeader={true}
             />
-          )}
-          {selectedOption === 'free' && (
+          ) : selectedOption === 'program' ? (
+            <ProgramSummaryPanel 
+              onClear={() => {
+                selectProgram(null);
+                setDocumentStructure(null);
+                setSetupStatus('none');
+                setSetupDiagnostics(null);
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('selectedProgram');
+                }
+                setOverlayMode(false);
+              }}
+              showHeader={true}
+            />
+          ) : selectedOption === 'free' ? (
             <StandardStructurePanel 
               selectedOption={selectedOption}
               onClearStructure={() => {
-                // Clear the document structure
                 setDocumentStructure(null);
                 setSetupStatus('none');
                 setSetupDiagnostics(null);
@@ -442,7 +558,7 @@ export default function ProgramSelection({
               }}
               showHeader={true}
             />
-          )}
+          ) : null}
         </div>
       </div>
     </div>

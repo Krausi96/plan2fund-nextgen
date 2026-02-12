@@ -40,6 +40,7 @@ interface Program {
 interface ProgramFinderProps {
   onProgramSelect: (program: Program) => void;
   onClose: () => void;
+  overlayMode?: boolean;
 }
 
 // Use the individual program templates directly
@@ -78,7 +79,7 @@ const loadProgramCatalog = async (): Promise<Program[]> => {
   }));
 };
 
-export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) {
+export function ProgramFinder({ onProgramSelect, onClose, overlayMode }: ProgramFinderProps) {
   const { t } = useI18n();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [filteredPrograms, setFilteredPrograms] = useState<Program[]>([]);
@@ -356,6 +357,24 @@ export function ProgramFinder({ onProgramSelect, onClose }: ProgramFinderProps) 
 
   return (
     <div className="bg-[#1E293B] rounded-lg">
+      {/* Overlay Mode Banner */}
+      {overlayMode && (
+        <div className="bg-blue-600/20 border-b border-blue-500/30 p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-500/30 flex items-center justify-center text-xl">
+              💰
+            </div>
+            <div>
+              <h3 className="text-white font-semibold">
+                Connect Funding Program
+              </h3>
+              <p className="text-white/60 text-sm">
+                Select a program to overlay funding requirements onto your uploaded document
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Filters - Clean layout */}
       <div className="mx-auto max-w-[1180px] p-3">
         {/* Row 1 - Search only */}

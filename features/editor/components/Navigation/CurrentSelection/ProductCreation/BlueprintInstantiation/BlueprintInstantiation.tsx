@@ -188,9 +188,9 @@ export default function BlueprintInstantiationStep({
             
           <div className="space-y-3">
             {documentStructure?.metadata?.source === 'template' ? (
-              <TemplateStructurePanel documentStructure={documentStructure} showHeader={false} />
+              <TemplateStructurePanel selectedOption="template" documentStructure={documentStructure} showHeader={false} />
             ) : documentStructure?.metadata?.source === 'document' ? (
-              <StandardStructurePanel documentStructure={documentStructure} showHeader={false} />
+              <StandardStructurePanel selectedOption="template" documentStructure={documentStructure} showHeader={false} />
             ) : (
               <ProgramSummaryPanel documentStructure={documentStructure} onClear={() => {}} showHeader={false} />
             )}

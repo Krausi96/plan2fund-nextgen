@@ -15,10 +15,13 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
  * Processes a document securely with validation and detection capabilities
  */
 export async function processDocumentSecurely(file: File, template?: any) {
+  console.log('[processDocumentSecurely] Starting...');
+  console.log('[processDocumentSecurely] File:', file.name, file.type, file.size);
+
   try {
     // 1. Security check
     if (file.size > MAX_FILE_SIZE) {
-      return {
+      const result = {
         success: false,
         documentStructure: null,
         securityIssues: {
@@ -28,16 +31,20 @@ export async function processDocumentSecurely(file: File, template?: any) {
         needsManualSplit: false,
         message: `File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB`
       };
+      console.log('[processDocumentSecurely] File too large');
+      return result;
     }
-    
+
     // Create stable base ID
     const baseId = uuidv4();
-    
+
     // 2. Extraction
+    console.log('[processDocumentSecurely] Extracting content...');
     let fileContent = await extractFileContent(file);
-    
+    console.log('[processDocumentSecurely] Extracted content length:', fileContent?.length);
+
     if (!fileContent) {
-      return {
+      const result = {
         success: false,
         documentStructure: null,
         securityIssues: {
@@ -47,33 +54,45 @@ export async function processDocumentSecurely(file: File, template?: any) {
         needsManualSplit: false,
         message: `Unsupported file type: ${file.type}`
       };
+      console.log('[processDocumentSecurely] No content extracted');
+      return result;
     }
-    
+
     // 3. Detection
+    console.log('[processDocumentSecurely] Detecting structure...');
     const detectionResults = detectDocumentStructure(fileContent);
-    
+    console.log('[processDocumentSecurely] Detection complete');
+
     // 4. Structure build
+    console.log('[processDocumentSecurely] Building structure...');
     const unvalidatedStructure = rawTextToSections(fileContent, file.name, baseId);
-    
+    console.log('[processDocumentSecurely] Structure built, sections:', unvalidatedStructure?.sections?.length);
+
     // 5. Security validation
+    console.log('[processDocumentSecurely] Validating...');
     const { validatedStructure, sectionSecurityIssues } = await validateStructure(unvalidatedStructure);
-    
+    console.log('[processDocumentSecurely] Validation complete, validated sections:', validatedStructure?.sections?.length);
+
     // 6. Apply detection results
+    console.log('[processDocumentSecurely] Applying detections...');
     const structureWithDetections = applyDetectionResults(validatedStructure, detectionResults);
-    
+
     // 7. Semantic enrichment
+    console.log('[processDocumentSecurely] Enriching...');
     const enrichedStructure = await enrichSectionsWithMeaning(structureWithDetections, {
       templateSections: template?.sections?.map((s: any) => s.title) || [],
       language: undefined,
       t: undefined
     });
-    
+    console.log('[processDocumentSecurely] Enrichment complete, has metadata:', !!enrichedStructure?.metadata);
+
     // 8. Check for manual split requirement
     const needsManualSplit = detectMultipleSectionsWithoutTitles(fileContent);
-    
+
     const documentStructure: DocumentStructure = {
       ...enrichedStructure
     };
+    console.log('[processDocumentSecurely] Final structure, has metadata:', !!documentStructure?.metadata);
 
     return {
       success: true,
@@ -86,6 +105,7 @@ export async function processDocumentSecurely(file: File, template?: any) {
       message: 'Document processed successfully'
     };
   } catch (error) {
+    console.error('[processDocumentSecurely] Error:', error);
     return {
       success: false,
       documentStructure: null,

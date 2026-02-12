@@ -27,7 +27,7 @@ const requirementCache = new Map<string, Record<string, any[]>>();
  * Uses section IDs as keys (not titles) to avoid translation/edit issues
  * Returns map of section ID → requirement arrays
  */
-async function enrichAllSectionRequirementsAtOnce(
+export async function enrichAllSectionRequirementsAtOnce(
   sections: any[],
   program: any
 ): Promise<Record<string, any[]>> {
@@ -49,9 +49,34 @@ async function enrichAllSectionRequirementsAtOnce(
     return {};
   }
 
-  console.log(`[enrichRequirements] Calling LLM for program: ${program.name}`);
+  console.log(`[enrichRequirements] Calling LLM for program: ${program.name}, type: ${program.type}`);
 
-  const prompt = `Generate funding application requirements for these sections of a ${program.type || 'grant'} application.
+  // Generate different prompts based on type
+  const isGeneric = program.type === 'generic';
+
+  const prompt = isGeneric
+    ? `Generate quality requirements for improving these sections of a document.
+
+Document: ${program.name}
+
+Sections (use section IDs as keys in response):
+${sectionsList}
+
+For EACH section, provide 3-4 key quality criteria for excellent document writing.
+
+JSON FORMAT (return exactly this structure, use section IDs as keys):
+{
+  "section_id_1": [
+    {"title": "Clarity requirement", "description": "Clear communication", "priority": "high"},
+    {"title": "Evidence requirement", "description": "Support claims", "priority": "high"}
+  ],
+  "section_id_2": [
+    {"title": "...", "description": "...", "priority": "..."}
+  ]
+}
+
+Return ONLY valid JSON. No other text.`
+    : `Generate funding application requirements for these sections of a ${program.type || 'grant'} application.
 
 Program: ${program.name}
 
@@ -104,7 +129,7 @@ Return ONLY valid JSON. No other text.`;
  * Create deterministic fallback requirements (never return empty)
  * Ensures AI assistant always has guidance even if enrichment fails
  */
-function createFallbackRequirements(): any[] {
+export function createFallbackRequirements(): any[] {
   return [
     {
       id: `req_fallback_clarity`,
@@ -436,12 +461,193 @@ export async function generateDocumentStructureFromProfile(profile: any): Promis
       appendices: { autoNumber: true }
     },
     conflicts: [],
-    warnings: profile.applicationRequirements.documents.some(doc => !doc.reuseable) ? 
+    warnings: profile.applicationRequirements.documents.some(doc => !doc.reuseable) ?
       ['Some documents cannot be reused for other applications'] : [],
-    confidenceScore: profile.applicationRequirements.documents.length > 0 && 
+    confidenceScore: profile.applicationRequirements.documents.length > 0 &&
                     profile.applicationRequirements.sections.length > 0 ? 90 : 60,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     createdBy: 'program_utils'
+  };
+}
+
+// ============================================================================
+// FUNDING OVERLAY (merge funding requirements into existing structure)
+// ============================================================================
+
+/**
+ * Overlay funding program requirements onto an existing DocumentStructure.
+ * Used when user connects a funding program AFTER uploading/starting a document.
+ *
+ * DO NOT regenerate structure - only merge requirements.
+ *
+ * @param existingStructure - DocumentStructure with generic requirements
+ * @param fundingProgram - FundingProgram with funding-specific requirements
+ * @returns Updated DocumentStructure with funding requirements overlaid
+ */
+export function overlayFundingRequirements(
+  existingStructure: any,
+  fundingProgram: any
+): {
+  structure: any;
+  addedSections: string[];
+  gapAnalysis: { section: string; missing: string[] }[];
+} {
+  console.log(`[overlayFunding] Overlaying requirements for program: ${fundingProgram.name}`);
+
+  const addedSections: string[] = [];
+  const gapAnalysis: { section: string; missing: string[] }[] = [];
+
+  // Get funding-specific requirements from program
+  const fundingSections = fundingProgram.applicationRequirements?.sections || [];
+
+  // Create a map of existing section titles for matching
+  const existingSectionMap = new Map<
+    string,
+    { section: any; requirements: any[] }
+  >();
+
+  existingStructure.sections.forEach((section: any) => {
+    const key = section.title.toLowerCase().trim();
+    existingSectionMap.set(key, {
+      section,
+      requirements: section.requirements || []
+    });
+  });
+
+  // Process each funding section
+  const updatedSections = existingStructure.sections.map((section: any) => {
+    const key = section.title.toLowerCase().trim();
+    const existing = existingSectionMap.get(key);
+
+    if (existing) {
+      // Find matching funding section
+      const fundingSection = fundingSections.find(
+        (fs: any) => fs.title.toLowerCase().trim() === key
+      );
+
+      if (fundingSection?.requirements && fundingSection.requirements.length > 0) {
+        // Merge funding requirements with existing generic ones
+        const fundingReqs = fundingSection.requirements.map((req: any, idx: number) => ({
+          id: `funding_${section.id}_${idx}`,
+          category: req.category || 'funding',
+          title: req.title || req.description || '',
+          description: req.description || `Funding requirement: ${req.title}`,
+          priority: req.priority || 'high',
+          examples: req.examples || [],
+          source: 'funding-overlay'
+        }));
+
+        // Mark existing requirements as non-funding
+        const genericReqs = existing.requirements.map((req: any) => ({
+          ...req,
+          source: req.source || 'generic'
+        }));
+
+        console.log(`[overlayFunding] ${section.title}: merged ${fundingReqs.length} funding + ${genericReqs.length} generic requirements`);
+
+        return {
+          ...section,
+          requirements: [...genericReqs, ...fundingReqs]
+        };
+      }
+
+      return section; // No funding requirements for this section
+    }
+
+    return section;
+  });
+
+  // Find and add MISSING sections required by funding program
+  fundingSections.forEach((fundingSection: any) => {
+    const key = fundingSection.title.toLowerCase().trim();
+    const exists = existingSectionMap.has(key);
+
+    if (!exists) {
+      // Add missing section
+      const newSection = {
+        id: `sec_missing_${fundingSection.title.replace(/\s+/g, '_').toLowerCase()}`,
+        documentId: existingStructure.documents[0]?.id || 'main_document',
+        title: fundingSection.title,
+        type: fundingSection.required ? 'required' as const : 'optional' as const,
+        required: fundingSection.required || false,
+        programCritical: true,
+        content: '',
+        requirements: (fundingSection.requirements || []).map((req: any, idx: number) => ({
+          id: `funding_missing_${idx}`,
+          category: req.category || 'funding',
+          title: req.title || req.description || '',
+          description: req.description || `Required for ${fundingProgram.name}`,
+          priority: req.priority || 'high',
+          examples: req.examples || [],
+          source: 'funding-added'
+        }))
+      };
+
+      updatedSections.push(newSection);
+      addedSections.push(fundingSection.title);
+
+      // Track gap
+      gapAnalysis.push({
+        section: fundingSection.title,
+        missing: ['Section was missing from uploaded document - added']
+      });
+
+      console.log(`[overlayFunding] Added missing section: ${fundingSection.title}`);
+    }
+  });
+
+  // Update the structure
+  const updatedStructure = {
+    ...existingStructure,
+    sections: updatedSections,
+    metadata: {
+      ...existingStructure.metadata,
+      source: 'overlay',
+      fundingProgramId: fundingProgram.id,
+      fundingProgramName: fundingProgram.name,
+      overlaidAt: new Date().toISOString(),
+      genericRequirementsCount: updatedSections.reduce(
+        (sum, s) => sum + (s.requirements?.filter((r: any) => r.source === 'generic' || !r.source).length || 0),
+        0
+      ),
+      fundingRequirementsCount: updatedSections.reduce(
+        (sum, s) => sum + (s.requirements?.filter((r: any) => r.source?.includes('funding')).length || 0),
+        0
+      )
+    }
+  };
+
+  console.log(`[overlayFunding] Complete: ${addedSections.length} sections added, overlay finished`);
+
+  return {
+    structure: updatedStructure,
+    addedSections,
+    gapAnalysis
+  };
+}
+
+/**
+ * Check if a DocumentStructure already has funding requirements overlaid
+ */
+export function hasFundingOverlay(structure: any): boolean {
+  return structure.metadata?.source === 'overlay' ||
+    !!structure.metadata?.fundingProgramId;
+}
+
+/**
+ * Get funding program info from structure if overlaid
+ */
+export function getFundingOverlayInfo(structure: any): {
+  programId: string;
+  programName: string;
+  overlaidAt: string;
+} | null {
+  if (!hasFundingOverlay(structure)) return null;
+
+  return {
+    programId: structure.metadata.fundingProgramId,
+    programName: structure.metadata.fundingProgramName,
+    overlaidAt: structure.metadata.overlaidAt
   };
 }

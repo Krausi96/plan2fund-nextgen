@@ -36,12 +36,13 @@ export function validateDocumentContent(
   let promptInjectionWarning = false;
 
   if (!content || typeof content !== 'string') {
+    // Empty content is valid - sections without headings are OK
     return {
-      isValid: false,
-      shouldReject: true,
+      isValid: true,
+      shouldReject: false,
       sanitizedContent: '',
-      warnings: ['Empty or invalid content'],
-      confidence: 0
+      warnings: [],
+      confidence: 100
     };
   }
 

@@ -24,11 +24,13 @@ import {
 interface EditorProgramFinderProps {
   onProgramSelect?: (program: any) => void;
   onClose?: () => void;
+  overlayMode?: boolean;
 }
 
-export default function EditorProgramFinder({ 
+export default function EditorProgramFinder({
   onProgramSelect,
-  onClose
+  onClose,
+  overlayMode
 }: EditorProgramFinderProps) {
   const router = useRouter();
   const { t } = useI18n();
@@ -181,6 +183,24 @@ export default function EditorProgramFinder({
     <div className="w-full relative">
       <div className="w-full px-2 py-2">
         <div className="flex flex-col gap-2 w-full">
+          {/* Overlay Mode Banner */}
+          {overlayMode && (
+            <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 mb-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/30 flex items-center justify-center text-xl">
+                  💰
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold">
+                    Connect Funding Program
+                  </h3>
+                  <p className="text-white/60 text-sm">
+                    Select a program to overlay funding requirements onto your uploaded document
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="p-3 w-full bg-slate-800/70 border border-slate-700 shadow-xl min-h-[650px] flex flex-col relative rounded-xl backdrop-blur-sm">
             
             {/* Loading overlay */}

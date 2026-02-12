@@ -1,6 +1,4 @@
 /**
- * Program Persistence Utilities
- * Consolidated from features/reco/lib/programPersistence.ts
  * Shared localStorage helpers for ProgramFinder with validation and sanitization
  */
 

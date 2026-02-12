@@ -38,27 +38,37 @@ export async function analyzeDocument(
   }
 
   try {
+    console.log('[analyzeDocument] Starting analysis for:', file.name);
+
     // Call the real orchestrator
     const result = await processDocumentSecurely(file);
-    
+    console.log('[analyzeDocument] processDocumentSecurely result:', result.success, result.message);
+
     if (!result.success || !result.documentStructure) {
+      console.error('[analyzeDocument] Processing failed:', result.message);
       throw new Error(result.message || 'Document processing failed');
     }
 
-    return {
+    console.log('[analyzeDocument] Processing successful, sections:', result.documentStructure.sections?.length);
+
+    const response = {
       documentStructure: {
         ...result.documentStructure,
         metadata: {
-          ...result.documentStructure.metadata,
-          source: 'template',
+          ...(result.documentStructure.metadata || { source: 'document' as const, generatedAt: new Date().toISOString(), version: '1.0' }),
+          source: 'template' as const,
         },
       },
-      inferredProductType: 'submission',
+      inferredProductType: 'submission' as const,
       warnings: result.securityIssues.softWarnings,
       diagnostics: result.securityIssues.softWarnings,
       confidence: result.documentStructure.confidenceScore || 0,
     };
+
+    console.log('[analyzeDocument] Final structure has metadata:', !!response.documentStructure.metadata);
+    return response;
   } catch (error) {
+    console.error('[analyzeDocument] Error:', error);
     throw new Error(`Document analysis failed: ${(error as Error).message}`);
   }
 }
