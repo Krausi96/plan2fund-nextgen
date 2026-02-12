@@ -22,7 +22,7 @@ import {
 } from '@/platform/reco/hooks/useQuestionLogic';
 
 interface EditorProgramFinderProps {
-  onProgramSelect?: (programId: string, route: string) => void;
+  onProgramSelect?: (program: any) => void;
   onClose?: () => void;
 }
 
@@ -144,7 +144,7 @@ export default function EditorProgramFinder({
   // Wrap generatePrograms to match button's expected signature
   const generateProgramsWrapper = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    generatePrograms(answers, setResults, setEmptyResults, setIsLoading, setHasAttemptedGeneration, t as any);
+    generatePrograms(answers, setResults, setEmptyResults, setIsLoading, setHasAttemptedGeneration, t as any, 3);
   }, [generatePrograms, answers, setResults, setEmptyResults, setIsLoading, setHasAttemptedGeneration, t]);
   
   // Mock example handler - demonstrates CustomLLM output structure
@@ -261,7 +261,15 @@ export default function EditorProgramFinder({
                                 <button
                                   onClick={() => {
                                     if (onProgramSelect) {
-                                      onProgramSelect(program.id, program.type || 'grant');
+                                      // Ensure program has applicationRequirements structure
+                                      const enrichedProgram = {
+                                        ...program,
+                                        applicationRequirements: program.applicationRequirements || {
+                                          documents: [],
+                                          sections: []
+                                        }
+                                      };
+                                      onProgramSelect(enrichedProgram);
                                     } else {
                                       persistSelectedProgram(program);
                                     }

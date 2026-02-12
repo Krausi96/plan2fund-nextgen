@@ -146,28 +146,31 @@ export function instantiateFromBlueprint(
     const documentStructure = structure as DocumentStructure;
     
     // Convert blueprint sections to plan sections
-    const planSections: PlanSection[] = documentStructure.sections.map((section: any) => ({
-      key: section.id,
-      id: section.id,
-      title: section.title,
-      content: '',
-      fields: {
-        displayTitle: section.title,
-        sectionNumber: null,
-        // Store blueprint metadata for AI and validation
-        blueprintRequired: section.required,
-        blueprintProgramCritical: section.programCritical,
-        blueprintAiPrompt: section.aiPrompt,
-        blueprintChecklist: section.checklist,
-        // Preserve subsections if they exist in the template
-        subchapters: section.rawSubsections?.map((subsection: any, index: number) => ({
-          id: subsection.id,
-          title: subsection.title,
-          numberLabel: `${index + 1}`,
-        })) || [],
-      },
-      status: 'draft',
-    }));
+    // OPTION A: Each section now owns its requirements directly
+    const planSections: PlanSection[] = documentStructure.sections.map((section: any) => {
+      console.log('[instantiation] SECTION:', section.title, 'reqs:', section.requirements?.length || 0);
+      return {
+        key: section.id,
+        id: section.id,
+        title: section.title,
+        content: '',
+        fields: {
+          displayTitle: section.title,
+          sectionNumber: null,
+          blueprintRequired: section.required,
+          blueprintProgramCritical: section.programCritical,
+          blueprintAiPrompt: section.aiPrompt,
+          blueprintChecklist: section.checklist,
+          blueprintRequirements: section.requirements || [],
+          subchapters: section.rawSubsections?.map((subsection: any, index: number) => ({
+            id: subsection.id,
+            title: subsection.title,
+            numberLabel: `${index + 1}`,
+          })) || [],
+        },
+        status: 'draft',
+      };
+    });;
 
     // Create plan with blueprint sections
     const plan: PlanDocument = {
@@ -193,7 +196,7 @@ export function instantiateFromBlueprint(
         blueprintVersion: documentStructure.metadata?.version || '',
         blueprintSource: documentStructure.metadata?.source || 'program',
         // Store blueprint artifacts for AI and validation
-        blueprintRequirements: documentStructure.requirements,
+        // Note: blueprint requirements are now at section level, not here
         blueprintValidationRules: documentStructure.validationRules,
         blueprintAiGuidance: documentStructure.aiGuidance,
         blueprintRenderingRules: documentStructure.renderingRules,

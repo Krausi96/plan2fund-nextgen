@@ -295,7 +295,7 @@ What would you like to do?`;
             </h2>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-[10px] text-white/50">
+        <div className="flex items-center gap-3 text-[10px] text-white/50 mb-2">
           <span className="flex items-center gap-1">
             <span>👨‍💼</span>
             <span>{t('editor.ai.assistant.title')}</span>
@@ -306,6 +306,26 @@ What would you like to do?`;
             </span>
           )}
         </div>
+        
+        {/* Requirements Display */}
+        {section && (section as any).requirements && (section as any).requirements.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-green-500/30 space-y-1">
+            <div className="text-[10px] font-semibold text-green-400 uppercase tracking-wider">✅ Requirements</div>
+            <div className="space-y-1">
+              {(section as any).requirements.map((req: any, idx: number) => {
+                const priorityColor = req.priority === 'critical' ? 'bg-red-400' : 
+                                     req.priority === 'high' ? 'bg-orange-400' : 
+                                     req.priority === 'medium' ? 'bg-yellow-400' : 'bg-blue-400';
+                return (
+                  <div key={req.id || idx} className="text-[9px] text-green-300 flex items-center gap-2 leading-tight">
+                    <span className={`inline-block w-1 h-1 rounded-full flex-shrink-0 ${priorityColor}`} />
+                    <span className="truncate" title={req.title}>{req.title}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Messages */}
@@ -369,4 +389,3 @@ What would you like to do?`;
     </div>
   );
 }
-

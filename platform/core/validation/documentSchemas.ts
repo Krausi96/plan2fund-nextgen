@@ -10,6 +10,7 @@ import type { BlueprintRequest } from '../types';
 /**
  * Document Structure schema
  * Validates the unified output from both program and document flows
+ * OPTION A: Requirements are owned by sections, not at DocumentStructure level
  */
 export const DocumentStructureSchema = z.object({
   documents: z.array(z.object({
@@ -31,14 +32,31 @@ export const DocumentStructureSchema = z.object({
     aiGuidance: z.array(z.string()).optional(),
     hints: z.array(z.string()).optional(),
     order: z.number().optional(),
+    // OPTION A: Requirements owned directly by section
+    requirements: z.array(z.object({
+      id: z.string(),
+      category: z.enum(['financial', 'market', 'team', 'risk', 'formatting', 'evidence']),
+      title: z.string(),
+      description: z.string(),
+      priority: z.enum(['critical', 'high', 'medium', 'low']),
+      examples: z.array(z.string()).optional(),
+    })).optional(),
+    // Subsections
+    subsections: z.array(z.object({
+      id: z.string(),
+      title: z.string(),
+      content: z.string().optional(),
+      rawText: z.string().optional(),
+      order: z.number().optional(),
+    })).optional(),
+    // Legacy: rawSubsections for template compatibility
+    rawSubsections: z.array(z.object({
+      id: z.string(),
+      title: z.string(),
+      rawText: z.string().optional(),
+    })).optional(),
   })),
-  requirements: z.array(z.object({
-    id: z.string(),
-    type: z.enum(['financial', 'market', 'team', 'risk', 'formatting', 'evidence']),
-    title: z.string(),
-    description: z.string(),
-    applicableSectionIds: z.array(z.string()).optional(),
-  })),
+  // NO requirements array here - moved to section level
   validationRules: z.array(z.object({
     id: z.string(),
     type: z.enum(['presence', 'completeness', 'numeric', 'attachment']),

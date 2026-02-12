@@ -6,7 +6,9 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { checkRecommendRateLimit, rateLimitHeaders, rateLimitExceededResponse } from '@/platform/api/utils/rateLimit';
-import { callAI } from '@/platform/ai/orchestrator';
+import { runAI } from '@/platform/ai/core/runAI';
+import { findSession } from '@/shared/user/database/repository';
+import { getSessionTokenFromCookie } from '@/shared/user/auth/withAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -25,8 +27,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { answers, max_results: maxResults = 10, language = 'en' } = req.body || {};
 
   // Call orchestrator (handles validation, caching, LLM, parsing)
-  const result = await callAI({
-    type: 'recommendPrograms',
+  // Extract user ID from session if available
+  const sessionToken = getSessionTokenFromCookie(req.headers.cookie);
+  let userId = 'anonymous';
+  
+  if (sessionToken) {
+    const session = await findSession(sessionToken);
+    if (session) {
+      userId = `user_${session.user_id}`;
+    }
+  }
+
+  const result = await runAI({
+    userId,
+    task: 'recommendPrograms',
     payload: { answers, max_results: maxResults, language },
   });
 
@@ -43,6 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     programs: result.data,
     count: result.data?.length || 0,
     cached: result.cached || false,
+    debug: result.llmStats,
     ...(result.cacheAge !== undefined && { cacheAge: result.cacheAge }),
   });
 }

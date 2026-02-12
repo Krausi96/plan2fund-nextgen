@@ -6,7 +6,9 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { checkBlueprintRateLimit, rateLimitHeaders, rateLimitExceededResponse } from '@/platform/api/utils/rateLimit';
-import { callAI } from '@/platform/ai/orchestrator';
+import { runAI } from '@/platform/ai/core/runAI';
+import { findSession } from '@/shared/user/database/repository';
+import { getSessionTokenFromCookie } from '@/shared/user/auth/withAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -22,12 +24,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(429).json(rateLimitExceededResponse(rateLimitResult));
   }
 
-  const { fundingProgram, userContext } = req.body || {};
+  const requestBody = req.body || {};
+  
+  // Extract data from request body
+  const { documentStructure, fundingProgram, userContext, programId, existingBlueprintId } = requestBody;
+  
+  // FIX 1: Guard against duplicate blueprint generation
+  if (existingBlueprintId) {
+    // Return early with signal to use existing blueprint
+    return res.status(200).json({
+      success: true,
+      blueprint: { id: existingBlueprintId, cached: true, alreadyExists: true },
+      cached: true,
+      debug: { message: 'Blueprint already exists, returning from client-side store' }
+    });
+  }
 
   // Call orchestrator (handles validation, caching, LLM, parsing)
-  const result = await callAI({
-    type: 'generateBlueprint',
-    payload: { fundingProgram, userContext },
+  // Extract user ID from session if available
+  const sessionToken = getSessionTokenFromCookie(req.headers.cookie);
+  let userId = 'anonymous';
+  
+  if (sessionToken) {
+    const session = await findSession(sessionToken);
+    if (session) {
+      userId = `user_${session.user_id}`;
+    }
+  }
+
+  // Pass the documentStructure directly to the orchestrator
+  // If documentStructure is not provided, construct it from fundingProgram
+  
+  // Create CLEAN program input - only essential fields
+  const cleanProgramInput = fundingProgram ? {
+    programName: fundingProgram.name,
+    description: fundingProgram.rawData?.description || fundingProgram.description || '',
+    deliverables: fundingProgram.deliverables || [],
+    fundingType: fundingProgram.type || 'grant',
+    organization: fundingProgram.organization || 'Unknown',
+    region: fundingProgram.region || 'Global'
+  } : { programName: 'Unknown Program', description: '', deliverables: [], fundingType: 'grant' };
+  
+  console.log('[Blueprint API] Clean program input:', JSON.stringify(cleanProgramInput).length, 'chars');
+  
+  const payload = {
+    programInfo: cleanProgramInput,
+    userContext
+  };
+
+  const result = await runAI({
+    userId,
+    task: 'generateBlueprint',
+    payload,
   });
 
   if (!result.success) {
@@ -38,11 +86,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
+  // FIX 3: Create unique blueprint ID
+  const blueprintId = programId ? `bp_${programId}_${Date.now()}` : `bp_${Date.now()}`;
+  
   return res.status(200).json({
     success: true,
     programId: fundingProgram?.id,
     programName: fundingProgram?.name,
     blueprint: result.data,
+    blueprintId: blueprintId,
     cached: result.cached || false,
+    debug: result.llmStats,
   });
 }

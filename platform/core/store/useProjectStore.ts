@@ -45,6 +45,14 @@ export interface ProjectStoreState {
   selectedProduct: any | null;
   documentTemplateId: string | null;
 
+  // ========== BLUEPRINT (Temporary Source of Truth) ==========
+  blueprint: {
+    blueprintId: string;
+    programId: string;
+    timestamp: string;
+    blueprintObject: any;
+  } | null;
+
   // ========== TEMPLATE MANAGEMENT ==========
   allSections: Section[];
   allDocuments: Document[];
@@ -99,6 +107,7 @@ export interface ProjectStoreActions {
   setDocumentStructure: (structure: DocumentStructure | null) => void;
   setSelectedProduct: (product: any | null) => void;
   setDocumentTemplateId: (id: string | null) => void;
+  setBlueprint: (blueprint: { blueprintId: string; programId: string; timestamp: string; blueprintObject: any } | null) => void;
   setAllSections: (sections: Section[]) => void;
   setAllDocuments: (documents: Document[]) => void;
   setCustomSections: (sections: Section[]) => void;
@@ -144,6 +153,7 @@ const INITIAL_STATE: ProjectStoreState = {
   documentStructure: null,
   selectedProduct: null,
   documentTemplateId: null,
+  blueprint: null,
   allSections: [],
   allDocuments: [],
   customSections: [],
@@ -205,6 +215,9 @@ export const useProjectStore = create<ProjectStore>()(
           const validated = validateAndSanitizeProgram(program);
           if (validated) {
             set({ selectedProgram: validated });
+            
+            // Note: Blueprint generation happens in the Editor component
+            // when a program is loaded from localStorage
           }
         } else {
           set({ selectedProgram: null });
@@ -215,6 +228,12 @@ export const useProjectStore = create<ProjectStore>()(
       setDocumentStructure: (structure) => set({ documentStructure: structure }),
       setSelectedProduct: (product) => set({ selectedProduct: product }),
       setDocumentTemplateId: (id) => set({ documentTemplateId: id }),
+      setBlueprint: (blueprint) => {
+        if (blueprint) {
+          console.log('[useProjectStore] Storing blueprint:', { blueprintId: blueprint.blueprintId, programId: blueprint.programId });
+        }
+        set({ blueprint });
+      },
 
       setAllSections: (sections) => set({ allSections: sections }),
       setAllDocuments: (documents) => set({ allDocuments: documents }),

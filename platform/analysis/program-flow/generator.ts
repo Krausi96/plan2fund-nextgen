@@ -35,11 +35,21 @@ export function generateDocumentStructureFromProfile(profile: any): any {
   
   // Generate sections from parsed requirements
   let sections = profile.applicationRequirements.sections.map((section, sectionIndex) => {
-    // Create subsections for this section
-    const rawSubsections = section.subsections.map((subsection, subIndex) => ({
+    // Create subsections for this section (optional, may be undefined)
+    const rawSubsections = (section.subsections || []).map((subsection, subIndex) => ({
       id: `subsec_${sectionIndex}_${subIndex}_${subsection.title.replace(/\s+/g, '_').toLowerCase()}`,
       title: subsection.title,
       rawText: '' // Initially empty, will be filled by the AI or user
+    }));
+    
+    // Generate requirements owned by this section (OPTION A - requirements attached to section)
+    const sectionRequirements = (section.requirements || []).map((req, reqIndex) => ({
+      id: `req_section_${sectionIndex}_${reqIndex}`,
+      category: req.category || 'market',
+      title: req.title || req.description || '',
+      description: req.description || '',
+      priority: req.priority || 'high',
+      examples: req.examples || []
     }));
     
     // Determine appropriate document for this section based on content
@@ -128,6 +138,7 @@ export function generateDocumentStructureFromProfile(profile: any): any {
       }
     }
     
+    // OPTION A: Requirements owned directly by section
     return {
       id: `sec_${sectionIndex}_${section.title.replace(/\s+/g, '_').toLowerCase()}`,
       documentId: sectionDocumentId, // Associate section with appropriate document
@@ -135,9 +146,11 @@ export function generateDocumentStructureFromProfile(profile: any): any {
       type: section.required ? 'required' : 'optional' as 'required' | 'optional' | 'conditional',
       required: section.required,
       programCritical: true,
-      isRequirement: true, // Mark this section as a requirement
-      aiPrompt: `Write detailed content for ${section.title} in the context of ${profile.name}`,
-      checklist: [`Address ${section.title} requirements`, `Include relevant details`, `Follow program guidelines`],
+      content: '',
+      aiGuidance: [],
+      // OPTION A: Requirements owned directly by section (not at DocumentStructure level)
+      requirements: sectionRequirements,
+      // Preserve subsections
       rawSubsections: rawSubsections
     };
   });
@@ -175,9 +188,10 @@ export function generateDocumentStructureFromProfile(profile: any): any {
             type: 'optional' as const,
             required: false,
             programCritical: false,
-            isRequirement: false, // This is not a requirement
-            aiPrompt: `Provide introductory content for the ${emptyDoc.name} document`,
-            checklist: [`Introduce the purpose of ${emptyDoc.name}`, `Outline key considerations for this document`],
+            content: '',
+            aiGuidance: [],
+            // No requirements for placeholder sections
+            requirements: [],
             rawSubsections: []
           };
           
@@ -188,72 +202,43 @@ export function generateDocumentStructureFromProfile(profile: any): any {
     }
   }
   
-  const requirements = [
-    // Financial requirements
-    ...profile.applicationRequirements.financialRequirements.financial_statements_required.map((stmt, index) => ({
-      id: `req_financial_${index}`,
-      scope: 'section' as const,
-      category: 'financial' as const,
-      severity: 'major' as const,
-      rule: `Must include ${stmt} statement`,
-      target: stmt,
-      evidenceType: 'financial_document'
-    })),
-    // Document requirements
-    ...profile.applicationRequirements.documents.filter(doc => doc.required).map((doc, index) => ({
-      id: `req_doc_${index}`,
-      scope: 'document' as const,
-      category: 'formatting' as const,
-      severity: 'blocker' as const,
-      rule: `Document must be in ${doc.format} format from ${doc.authority}`,
-      target: doc.document_name,
-      evidenceType: 'document_submission'
-    })),
-    // Program-level requirements
-    ...(profile.requirements || []).map((req, index) => ({
-      id: `req_program_${index}`,
-      scope: 'section' as const,
-      category: 'market' as const, // Using 'market' as a general category for program requirements
-      severity: 'major' as const,
-      rule: `Must address ${req} requirement`,
-      target: req,
-      evidenceType: 'content'
-    }))
-  ];
-  
-  // Generate validation rules
+  // Generate validation rules (not tied to specific sections)
   const validationRules = [
     // Presence validation for required documents
     ...profile.applicationRequirements.documents.filter(doc => doc.required).map((doc, index) => ({
       id: `val_doc_presence_${index}`,
       type: 'presence' as const,
-      scope: doc.document_name,
-      errorMessage: `${doc.document_name} is required and must be submitted`
+      sectionId: '', // Document-level rule
+      rule: `${doc.document_name} is required and must be submitted`,
+      severity: 'error' as const
     })),
     // Financial statement validation
-    ...profile.applicationRequirements.financialRequirements.financial_statements_required.map((stmt, index) => ({
+    ...(profile.applicationRequirements.financialRequirements?.financial_statements_required || []).map((stmt, index) => ({
       id: `val_financial_${index}`,
       type: 'presence' as const,
-      scope: stmt,
-      errorMessage: `${stmt} statement is required for financial evaluation`
+      sectionId: '', // Document-level rule
+      rule: `${stmt} statement is required for financial evaluation`,
+      severity: 'error' as const
     }))
   ];
   
-  // Generate AI guidance
+  // Generate AI guidance (per-section)
   const aiGuidance = sections.map(section => ({
     sectionId: section.id,
-    prompt: section.aiPrompt || `Write professional content for ${section.title}`,
-    checklist: section.checklist || [`Cover all ${section.title} aspects`, `Maintain professional tone`],
+    prompt: `Write professional content for ${section.title}`,
+    checklist: [`Cover all ${section.title} aspects`, `Maintain professional tone`],
     examples: [`Example content for ${section.title}...`]
   }));
   
+  // OPTION A: No global requirements array anymore
+  // Requirements are owned by sections directly
   return {
     structureId: `structure_${profile.id}_${Date.now()}`,
     version: '1.0',
     source: 'program' as const,
     documents,
-    sections,
-    requirements,
+    sections, // Each section now contains its own requirements array
+    // NO requirements array here - moved to section level
     validationRules,
     aiGuidance,
     renderingRules: {

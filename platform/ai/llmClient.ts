@@ -6,6 +6,17 @@
 
 import OpenAI from 'openai';
 
+// Model configuration - centralized here
+const DEFAULT_CUSTOM_MODEL = 'gemini-2.5-flash';
+const DEFAULT_OPENAI_MODEL = 'gpt-4o-mini';
+
+// Helper function to estimate tokens from text
+function estimateTokens(text: string): number {
+  if (!text) return 0;
+  // Rough estimation: ~4 characters per token
+  return Math.ceil(text.length / 4);
+}
+
 export interface LLMRequest {
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
   model?: string;
@@ -19,10 +30,11 @@ export interface LLMResponse {
   model: string;
   provider: 'custom' | 'openai';
   latencyMs: number;
-  usage?: {
-    promptTokens?: number;
-    completionTokens?: number;
-    totalTokens?: number;
+  finishReason?: string;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
   };
 }
 
@@ -61,7 +73,7 @@ async function callCustomLLMEndpoint(
       messages: request.messages,
       temperature: request.temperature,
       max_tokens: request.maxTokens,
-      model: request.model || process.env.CUSTOM_LLM_MODEL || 'gpt-4',
+      model: request.model || process.env.CUSTOM_LLM_MODEL || DEFAULT_OPENAI_MODEL,
       ...(request.responseFormat === 'json' ? { response_format: { type: 'json_object' } } : {}),
     }),
   });
@@ -78,7 +90,11 @@ async function callCustomLLMEndpoint(
     output: data.choices?.[0]?.message?.content || '',
     model: data.model || request.model || 'custom',
     latencyMs,
-    usage: data.usage,
+    usage: {
+      promptTokens: data.usage?.prompt_tokens || data.usage?.promptTokens || estimateTokens(JSON.stringify(request.messages)),
+      completionTokens: data.usage?.completion_tokens || data.usage?.completionTokens || estimateTokens(data.choices?.[0]?.message?.content || ''),
+      totalTokens: data.usage?.total_tokens || data.usage?.totalTokens || (data.usage?.prompt_tokens || data.usage?.promptTokens || 0) + (data.usage?.completion_tokens || data.usage?.completionTokens || 0) || estimateTokens(data.choices?.[0]?.message?.content || ''),
+    },
   };
 }
 
@@ -90,7 +106,7 @@ async function callGeminiAPI(
   request: LLMRequest,
   endpoint: string,
   apiKey: string
-): Promise<{ output: string; model: string; latencyMs: number; usage?: any }> {
+): Promise<{ output: string; model: string; latencyMs: number; finishReason?: string; usage?: any }> {
   const started = Date.now();
 
   // Convert messages to Gemini format
@@ -111,10 +127,17 @@ async function callGeminiAPI(
       contents,
       generationConfig: {
         temperature: request.temperature || 0.7,
-        maxOutputTokens: request.maxTokens || 2048,
+        maxOutputTokens: request.maxTokens || 8192,
+        responseMimeType: 'application/json',
         topP: 0.95,
         topK: 64,
       },
+      safetySettings: [
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+      ],
     }),
   });
 
@@ -126,14 +149,22 @@ async function callGeminiAPI(
   const data = await response.json();
   const latencyMs = Date.now() - started;
 
-  // Extract text from Gemini response
-  const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  // Extract text from Gemini response - join ALL parts (not just first)
+  const candidate = data.candidates?.[0];
+  const parts = candidate?.content?.parts || [];
+  const textContent = parts.map((p: any) => p.text).join('');
+  const finishReason = candidate?.finishReason;
 
   return {
     output: textContent,
-    model: process.env.CUSTOM_LLM_MODEL || 'gemini-2.5-flash',
+    model: process.env.CUSTOM_LLM_MODEL || DEFAULT_CUSTOM_MODEL,
     latencyMs,
-    usage: data.usageMetadata,
+    finishReason,
+    usage: {
+      promptTokens: data.usageMetadata?.promptTokenCount || estimateTokens(contents.map(c => c.parts.map(p => p.text).join('')).join(' ')),
+      completionTokens: data.usageMetadata?.candidatesTokenCount || estimateTokens(textContent),
+      totalTokens: data.usageMetadata?.totalTokenCount || (data.usageMetadata?.promptTokenCount || 0) + (data.usageMetadata?.candidatesTokenCount || 0) || estimateTokens(textContent),
+    },
   };
 }
 
@@ -160,7 +191,11 @@ export async function callLLM(request: LLMRequest): Promise<LLMResponse> {
         model: customResponse.model,
         provider: 'custom',
         latencyMs: customResponse.latencyMs,
-        usage: customResponse.usage,
+        usage: {
+          promptTokens: customResponse.usage?.promptTokens || customResponse.usage?.prompt_token_count || customResponse.usage?.promptTokens || estimateTokens(JSON.stringify(request.messages)),
+          completionTokens: customResponse.usage?.completionTokens || customResponse.usage?.completion_token_count || customResponse.usage?.completionTokens || estimateTokens(customResponse.output),
+          totalTokens: customResponse.usage?.totalTokens || customResponse.usage?.total_token_count || customResponse.usage?.totalTokens || estimateTokens(customResponse.output),
+        },
       };
     } catch (error) {
       lastCustomError = error instanceof Error ? error : new Error(String(error));
@@ -172,7 +207,7 @@ export async function callLLM(request: LLMRequest): Promise<LLMResponse> {
   if (openaiClient) {
     console.log('🔌 [llmClient] Trying OpenAI fallback');
     const completion = await openaiClient.chat.completions.create({
-      model: request.model || process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      model: request.model || process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
       messages: request.messages,
       max_tokens: request.maxTokens,
       temperature: request.temperature,
@@ -187,9 +222,9 @@ export async function callLLM(request: LLMRequest): Promise<LLMResponse> {
       provider: 'openai',
       latencyMs,
       usage: {
-        promptTokens: completion.usage?.prompt_tokens,
-        completionTokens: completion.usage?.completion_tokens,
-        totalTokens: completion.usage?.total_tokens,
+        promptTokens: completion.usage?.prompt_tokens || 0,
+        completionTokens: completion.usage?.completion_tokens || 0,
+        totalTokens: completion.usage?.total_tokens || 0,
       },
     };
   }

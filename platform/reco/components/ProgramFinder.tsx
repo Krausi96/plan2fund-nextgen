@@ -9,7 +9,7 @@ import { Wand2 } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { EnhancedProgramResult } from '@/platform/core/types/program';
-import { ProgramFinderProps } from '../types';
+import { ProgramFinderProps } from '@/platform/core/types';
 import QuestionRenderer from './QuestionRenderer';
 import { 
   useQuestionFiltering, 

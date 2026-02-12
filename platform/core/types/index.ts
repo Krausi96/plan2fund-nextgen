@@ -38,6 +38,7 @@ export type {
   DocumentRequirement,
   SectionRequirement,
   FinancialRequirement,
+  ProgramFinderProps,
 } from './program';
 export type {
   Blueprint,

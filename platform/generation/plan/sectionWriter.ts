@@ -1,10 +1,11 @@
-import { callAI } from '@/platform/ai/orchestrator';
+import { runAI } from '@/platform/ai/core/runAI';
 import type { DocumentStructure, PlanSection } from '@/platform/core/types';
 
 /**
  * Writes individual sections using AI
  */
 export async function writeSection(
+  userId: string,
   section: PlanSection,
   documentStructure: DocumentStructure,
   context?: any
@@ -13,8 +14,9 @@ export async function writeSection(
   const prompt = prepareSectionPrompt(section, documentStructure, context);
   
   // Use orchestrator to generate content
-  const result = await callAI({
-    type: 'writeSection',
+  const result = await runAI({
+    userId,
+    task: 'writeSection',
     payload: {
       sectionTitle: section.title,
       context: {

@@ -249,10 +249,10 @@ export interface DocumentStructure {
   documents: Document[]; // with id, name, purpose, required
 
   // Content sections mapped to documents
-  sections: Section[]; // with documentId, title, type, required, programCritical, aiGuidance
+  // Each section now OWNS its requirements directly
+  sections: Section[]; // with documentId, title, type, required, programCritical, aiGuidance, requirements[]
 
-  // Validation & compliance rules
-  requirements: Requirement[]; // financial, market, team, risk, formatting, evidence
+  // Validation & compliance rules (section-agnostic rules only)
   validationRules: ValidationRule[]; // presence, completeness, numeric, attachment
 
   // AI-assisted content generation
@@ -281,6 +281,14 @@ export interface Document {
   type?: 'core' | 'template' | 'custom';
 }
 
+export interface Subsection {
+  id: string;
+  title: string;
+  content?: string;
+  rawText?: string;
+  order?: number;
+}
+
 export interface Section {
   id: string;
   documentId: string; // Maps to Document.id
@@ -292,14 +300,22 @@ export interface Section {
   aiGuidance?: string[];
   hints?: string[];
   order?: number;
+  // Requirements owned directly by this section
+  requirements?: Requirement[];
+  // Optional subsections
+  subsections?: Subsection[];
+  // Legacy: rawSubsections for template compatibility
+  rawSubsections?: Array<{ id: string; title: string; rawText?: string }>;
 }
 
 export interface Requirement {
   id: string;
-  type: 'financial' | 'market' | 'team' | 'risk' | 'formatting' | 'evidence';
+  category: 'financial' | 'market' | 'team' | 'risk' | 'formatting' | 'evidence';
   title: string;
   description: string;
-  applicableSectionIds?: string[];
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  examples?: string[];
+  // Removed: applicableSectionIds (no longer needed - requirement owned by section)
 }
 
 export interface ValidationRule {

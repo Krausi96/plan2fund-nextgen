@@ -114,20 +114,72 @@ export default function ProgramSelection({
   const [programSummary, setProgramSummary] = useState<any>(null);
 
   // Unified function to handle program data regardless of source
-  const processProgramData = (program: any) => {
+  const processProgramData = async (program: any) => {
     // Automatically select the program option when a program is chosen
     setSelectedOption('program');
     
+    console.log('[processProgramData] Input program:', {
+      id: program.id,
+      name: program.name,
+      hasAppReqs: !!program.applicationRequirements,
+      sectionsCount: program.applicationRequirements?.sections?.length || 0,
+      documentsCount: program.applicationRequirements?.documents?.length || 0,
+    });
+    
     try {
       // Generate document structure using new pipeline
-      // Step 1: Normalize program data to FundingProgram
+      console.log('[processProgramData] Step 1: normalizing...');
       const fundingProgram = normalizeFundingProgram(program);
+      console.log('[processProgramData] Step 1 done');
       
-      // Step 2: Generate DocumentStructure from parsed application requirements
+      console.log('[processProgramData] Step 2a: Calling blueprint API for LLM-generated sections...');
+      // CRITICAL: Call blueprint API to get LLM-generated sections with requirements
+      try {
+        // Send ONLY clean program info, not full fundingProgram
+        const cleanProgramInfo = {
+          programName: fundingProgram.name,
+          description: fundingProgram.rawData?.description || fundingProgram.description || '',
+          deliverables: fundingProgram.deliverables || [],
+          fundingType: fundingProgram.type || 'grant',
+          organization: fundingProgram.organization || 'Unknown',
+          region: fundingProgram.region || 'Global'
+        };
+        
+        const blueprintRes = await fetch('/api/programs/blueprint', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            programInfo: cleanProgramInfo,
+            programId: program.id,
+          })
+        });
+        
+        console.log('[processProgramData] Blueprint API response status:', blueprintRes.status);
+        
+        if (!blueprintRes.ok) {
+          console.error('[processProgramData] Blueprint API HTTP error:', blueprintRes.status, blueprintRes.statusText);
+        } else {
+          const blueprintData = await blueprintRes.json();
+          console.log('[processProgramData] Step 2a: Blueprint parsed, success:', blueprintData.success);
+          console.log('[processProgramData] Blueprint sections count:', blueprintData.blueprint?.applicationRequirements?.sections?.length || 0);
+          
+          // Merge LLM-generated sections into program
+          if (blueprintData.blueprint?.applicationRequirements?.sections) {
+            fundingProgram.applicationRequirements.sections = blueprintData.blueprint.applicationRequirements.sections;
+            console.log('[processProgramData] Updated fundingProgram with', blueprintData.blueprint.applicationRequirements.sections.length, 'LLM sections');
+          }
+        }
+      } catch (apiError) {
+        console.error('[processProgramData] Blueprint API fetch error:', apiError instanceof Error ? apiError.message : String(apiError));
+      }
+      
+      console.log('[processProgramData] Step 2b: generating DocumentStructure...');
       const documentStructure = generateDocumentStructureFromProfile(fundingProgram);
+      console.log('[processProgramData] Step 2b done, sections:', documentStructure.sections?.length);
       
-      // Step 3: Enhance document structure with special sections (Title Page, TOC, References, etc.)
+      console.log('[processProgramData] Step 3: enhancing with special sections...');
       const enhancedDocumentStructure = enhanceWithSpecialSections(documentStructure, t);
+      console.log('[processProgramData] Step 3 done');
       
       // Update wizard state with document setup data
       selectProgram(fundingProgram);
@@ -152,7 +204,8 @@ export default function ProgramSelection({
       }
       
     } catch (error) {
-      console.error('❌ Failed to process program:', error);
+      console.error('[processProgramData] ERROR:', error instanceof Error ? error.message : String(error));
+      console.error('[processProgramData] Full:', error);
       alert('Failed to process the selected program. Please try again or contact support.');
       // Still provide basic connection as fallback
       const fallbackSummary = {
@@ -312,10 +365,10 @@ export default function ProgramSelection({
                       <div>
                         <div className="w-full">
                           <EditorProgramFinder 
-                            onProgramSelect={() => {
-                              // The mock example handles its own store updates
-                              // Just close the wizard view
-                              setActiveTab('search');
+                            onProgramSelect={(program: any) => {
+                              // Use full program object with applicationRequirements
+                              processProgramData(program);
+                              // Stay in wizard - don't switch tabs yet
                             }}
                             onClose={() => {
                               setActiveTab('search');

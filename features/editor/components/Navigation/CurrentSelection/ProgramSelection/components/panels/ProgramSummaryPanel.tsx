@@ -59,20 +59,8 @@ export function ProgramSummaryPanel({ onClear, documentStructure: propDocumentSt
 
   // Debug: Log program data structure
   React.useEffect(() => {
-    if (selectedProgram) {
-      console.log('📦 selectedProgram structure:', {
-        focus_areas: (selectedProgram as any)?.focus_areas,
-        focusAreas: (selectedProgram as any)?.focusAreas,
-        use_of_funds: (selectedProgram as any)?.use_of_funds,
-        useOfFunds: (selectedProgram as any)?.useOfFunds,
-        applicationRequirements: (selectedProgram as any)?.applicationRequirements,
-        application_requirements: (selectedProgram as any)?.application_requirements,
-        deliverables: (selectedProgram as any)?.deliverables,
-        requirements: (selectedProgram as any)?.requirements
-      });
-    }
-  }, [selectedProgram]);
-
+    // useEffect dependency tracking
+  }, [documentStructure, hierarchicalView]);;
   return (
     <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4 h-full flex flex-col">
       {/* Header */}
@@ -174,13 +162,30 @@ export function ProgramSummaryPanel({ onClear, documentStructure: propDocumentSt
                               
                               if (allSections.length > 0) {
                                 return allSections.map((section: any, idx: number) => (
-                                  <div key={idx} className="text-blue-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
-                                    <span>{getSectionIcon(section.id)}</span>
-                                    <span className="truncate flex-1">
-                                      {t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : (section.title || section.name)}
-                                    </span>
-                                    {section.required && (
-                                      <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                                  <div key={idx}>
+                                    <div className="text-blue-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
+                                      <span>{getSectionIcon(section.id)}</span>
+                                      <span className="truncate flex-1">
+                                        {t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : (section.title || section.name)}
+                                      </span>
+                                      {section.required && (
+                                        <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                                      )}
+                                    </div>
+                                    
+                                    {section.requirements && section.requirements.length > 0 && (
+                                      <div className="mt-1 ml-6 space-y-1 border-l-2 border-green-500/30 pl-2">
+                                        {section.requirements.map((req: any) => (
+                                          <div key={req.id || req.title} className="text-xs text-green-300 flex items-center gap-2">
+                                            <span className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                                              req.priority === 'critical' ? 'bg-red-400' : 
+                                              req.priority === 'high' ? 'bg-orange-400' : 
+                                              req.priority === 'medium' ? 'bg-yellow-400' : 'bg-blue-400'
+                                            }`} />
+                                            <span className="truncate">{req.title}</span>
+                                          </div>
+                                        ))}
+                                      </div>
                                     )}
                                   </div>
                                 ));
@@ -225,13 +230,30 @@ export function ProgramSummaryPanel({ onClear, documentStructure: propDocumentSt
                               >
                                 <div className="space-y-2 py-1">
                                   {(hierarchicalView?.mainDocument.sections || []).map((section: any, idx: number) => (
-                                    <div key={`${section.id}-${idx}`} className="text-blue-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
-                                      <span>{getSectionIcon(section.id)}</span>
-                                      <span className="truncate flex-1">
-                                        {t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : (section.title || section.name)}
-                                      </span>
-                                      {section.required && (
-                                        <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                                    <div key={`${section.id}-${idx}`}>
+                                      <div className="text-blue-200 text-sm flex items-center gap-2 truncate" title={section.title || section.name}>
+                                        <span>{getSectionIcon(section.id)}</span>
+                                        <span className="truncate flex-1">
+                                          {t(`editor.section.${section.id}` as any) !== `editor.section.${section.id}` ? t(`editor.section.${section.id}` as any) : (section.title || section.name)}
+                                        </span>
+                                        {section.required && (
+                                          <span className="text-red-400 font-bold flex-shrink-0">*</span>
+                                        )}
+                                      </div>
+                                      
+                                      {section.requirements && section.requirements.length > 0 && (
+                                        <div className="mt-1 ml-6 space-y-1 border-l-2 border-green-500/30 pl-2">
+                                          {section.requirements.map((req: any) => (
+                                            <div key={req.id || req.title} className="text-xs text-green-300 flex items-center gap-2">
+                                              <span className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                                                req.priority === 'critical' ? 'bg-red-400' : 
+                                                req.priority === 'high' ? 'bg-orange-400' : 
+                                                req.priority === 'medium' ? 'bg-yellow-400' : 'bg-blue-400'
+                                              }`} />
+                                              <span className="truncate">{req.title}</span>
+                                            </div>
+                                          ))}
+                                        </div>
                                       )}
                                     </div>
                                   ))}

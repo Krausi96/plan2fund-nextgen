@@ -1,59 +1,42 @@
 /**
  * BLUEPRINT GENERATION PROMPTS
- * Prompts for document structure and requirement generation
+ * Compact output enforced for reliable JSON completion
  */
 
-export const BLUEPRINT_SYSTEM_PROMPT = `You extract real funding application requirements and structure.
+export const BLUEPRINT_SYSTEM_PROMPT = `RETURN ONLY VALID JSON.
+NO EXPLANATION.
+NO MARKDOWN.
+NO TEXT OUTSIDE JSON.
 
-Goal:
-Create a structured blueprint for writing a funding-compliant document.
+IMPORTANT:
+- Be EXTREMELY COMPACT.
+- Use 3-4 sections maximum.
+- Use 2 requirements per section.
+- Use SHORT titles and descriptions (under 10 words).
+- Total output MUST be under 3000 characters.
+- Do NOT stop early.
+- Finish the JSON completely.
+- Ensure all brackets are closed.`;
+
+export function buildBlueprintUserPrompt(input: any, userContext?: any): string {
+  const programInfo = input.programInfo || input;
+  const programName = programInfo.programName || 'Program';
+  
+  return `Generate funding blueprint for: ${programName}
 
 Rules:
-- Only include realistic requirements
-- Do not invent requirements if unknown
-- If uncertain → mark as assumption
-- Focus on structure and required content
-Return JSON only.`;
+- 3-4 sections only
+- 2 requirements per section
+- SHORT titles and descriptions (under 10 words each)
+- ULTRA-COMPACT output (under 3000 chars total)
 
-export function buildBlueprintUserPrompt(documentStructure: any, userContext?: any): string {
-  return `Create a funding application blueprint.
-
-${JSON.stringify(documentStructure, null, 2)}
-
-${userContext ? `User Context:\n${JSON.stringify(userContext, null, 2)}` : ''}
-
-For each section, provide:
-1. Specific requirements (financial, market, team, risk, formatting, evidence)
-2. AI guidance prompts for content generation
-3. Validation rules (presence, completeness, numeric, attachment)
-4. Estimated word count
-5. Difficulty level (easy, medium, hard)
-6. Common mistakes to avoid
-
-JSON STRUCTURE:
+JSON format:
 {
-  "sections": [{
-    "sectionId": "string",
-    "title": "string",
-    "requirements": [{
-      "id": "string",
-      "title": "string",
-      "description": "string",
-      "category": "financial|market|team|risk|formatting|evidence",
-      "priority": "critical|high|medium|low"
-    }],
-    "aiPrompt": "Detailed prompt for AI content generation",
-    "checklist": [{
-      "id": "string",
-      "label": "string",
-      "required": true
-    }],
-    "estimatedWordCount": 500,
-    "difficulty": "easy|medium|hard"
-  }],
-  "validation": {
-    "financial": { "rules": [...] },
-    "market": { "rules": [...] }
-  }
-}`;
+  "documents": [{"id": "main_document", "name": "${programName}", "purpose": "Application", "required": true}],
+  "sections": [
+    {"id": "s1", "documentId": "main_document", "title": "Title", "type": "normal", "required": true, "programCritical": true, "requirements": [{"id": "r1", "title": "Req", "desc": "Desc", "cat": "financial", "prio": "high"}], "aiPrompt": "Write."}]
+  ]
+}
+
+Ultra-compact JSON only. Under 3000 chars.`;
 }

@@ -3,17 +3,31 @@
  * Prompts for AI-assisted content generation
  */
 
-export function buildSectionWritingPrompt(sectionTitle: string, guidance?: string, hints?: string[]): string {
+export function buildSectionWritingPrompt(sectionTitle: string, guidance?: string, hints?: string[], aiPrompt?: string | null, requirements?: any[]): string {
   let prompt = 'Write a compelling, professional section titled "' + sectionTitle + '" for a business plan.\n\n';
 
-  if (guidance) {
+  // Add blueprint aiPrompt if available (highest priority)
+  if (aiPrompt) {
+    prompt += 'KEY GUIDANCE:\n' + aiPrompt + '\n\n';
+  } else if (guidance) {
+    // Fall back to general guidance parameter
     prompt += 'Guidance:\n' + guidance + '\n\n';
   }
 
-  prompt += 'Requirements:\n- Professional tone, business language\n- Specific examples and data where relevant\n- Clear structure with logical flow\n- Address all key points for funding applications\n- 400-800 words';
+  // Add requirements if available
+  if (requirements && requirements.length > 0) {
+    prompt += 'MANDATORY REQUIREMENTS:\n';
+    requirements.forEach((req: any) => {
+      const title = req.title || req.description || req;
+      prompt += '- ' + title + '\n';
+    });
+    prompt += '\n';
+  }
+
+  prompt += 'WRITING STANDARDS:\n- Professional tone, business language\n- Specific examples and data where relevant\n- Clear structure with logical flow\n- Address all key points for funding applications\n- 400-800 words';
 
   if (hints && hints.length > 0) {
-    prompt += '\n\nHints:\n' + hints.map((h) => '- ' + h).join('\n');
+    prompt += '\n\nHINTS:\n' + hints.map((h) => '- ' + h).join('\n');
   }
 
   return prompt;

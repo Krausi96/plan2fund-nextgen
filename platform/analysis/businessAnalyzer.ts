@@ -41,8 +41,11 @@ function calculateCompleteness(documentStructure: DocumentStructure): number {
     score += Math.min(documentStructure.sections.length * 5, 30); // Up to 30% for sections
   }
   
-  // Add points for having requirements
-  if (documentStructure.requirements && documentStructure.requirements.length > 0) {
+  // Add points for having requirements (OPTION A: requirements now attached to sections)
+  const totalRequirements = (documentStructure.sections || []).reduce((sum, section) => {
+    return sum + (section.requirements?.length || 0);
+  }, 0);
+  if (totalRequirements > 0) {
     score += 10;
   }
   
@@ -60,8 +63,11 @@ function calculateReadiness(documentStructure: DocumentStructure, programData?: 
   
   // If program data is provided, calculate alignment
   if (programData) {
-    // Add points for alignment with program requirements
-    if (documentStructure.requirements && documentStructure.requirements.length > 0) {
+    // Add points for alignment with program requirements (OPTION A: requirements now attached to sections)
+    const totalRequirements = (documentStructure.sections || []).reduce((sum, section) => {
+      return sum + (section.requirements?.length || 0);
+    }, 0);
+    if (totalRequirements > 0) {
       score += 20;
     }
     

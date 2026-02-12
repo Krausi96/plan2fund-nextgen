@@ -35,6 +35,8 @@ export type SectionAiRequest = {
   sectionType?: 'normal' | 'metadata' | 'references' | 'appendices' | 'ancillary';
   sectionOrigin?: 'template' | 'custom';
   sectionEnabled?: boolean;
+  aiPrompt?: string | null;
+  requirements?: any[];
 };
 
 export type SectionAiResponse = {
@@ -125,8 +127,18 @@ export async function generateSectionContent({
   assistantContext = 'content',
   sectionType,
   sectionOrigin,
-  sectionEnabled
+  sectionEnabled,
+  aiPrompt,
+  requirements
 }: SectionAiRequest): Promise<SectionAiResponse> {
+  
+  // TEMP CHECK 2: Verify writer receives requirements from OPTION A structure
+  console.log('[WRITER INPUT]', {
+    section: sectionTitle,
+    requirementsCount: requirements?.length || 0,
+    aiPromptExists: !!aiPrompt,
+    status: (requirements?.length || 0) > 0 && aiPrompt ? 'OK' : 'MISSING'
+  });
   
   const payload = {
     message: context,
@@ -137,6 +149,8 @@ export async function generateSectionContent({
       programType: program.type ?? 'grant',
       programName: program.name ?? undefined,
       documentType: documentType ?? 'business-plan',
+      aiPrompt: aiPrompt || undefined,
+      requirements: requirements || [],
       questionPrompt: questionMeta?.questionPrompt,
       questionStatus: questionMeta?.questionStatus,
       questionMode: questionMeta?.questionMode,

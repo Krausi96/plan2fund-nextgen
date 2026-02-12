@@ -19,7 +19,6 @@ export function parseProgramResponse(responseText: string): {
     }
     
     cleanedText = cleanedText.trim();
-    console.log('[parseProgramResponse] Attempting to parse, length:', cleanedText.length, 'first 100 chars:', cleanedText.substring(0, 100));
     
     const parsed = JSON.parse(cleanedText);
     if (Array.isArray(parsed)) {
@@ -49,7 +48,6 @@ export function parseProgramResponse(responseText: string): {
         console.log('[parseProgramResponse] 🔧 Attempting repair: balanced braces/brackets');
         const repairedParsed = JSON.parse(repaired);
         if (repairedParsed.programs && Array.isArray(repairedParsed.programs) && repairedParsed.programs.length > 0) {
-          console.log('[parseProgramResponse] ✅ Repaired truncated JSON: extracted', repairedParsed.programs.length, 'programs');
           return { programs: repairedParsed.programs };
         }
       }
@@ -64,7 +62,6 @@ export function parseProgramResponse(responseText: string): {
         try {
           const candidate = JSON.parse(match[0]);
           if (candidate.programs && Array.isArray(candidate.programs) && candidate.programs.length > 0) {
-            console.log('[parseProgramResponse] ✅ Extracted from fragment:', candidate.programs.length, 'programs');
             return { programs: candidate.programs };
           }
         } catch {}
@@ -78,14 +75,68 @@ export function parseProgramResponse(responseText: string): {
 }
 
 /**
+ * Custom error type for truncated JSON responses
+ */
+export class LLMTruncatedJsonError extends Error {
+  constructor(message: string, public partialText: string) {
+    super(message);
+    this.name = 'LLMTruncatedJsonError';
+  }
+}
+
+/**
  * Parse blueprint response from LLM
  * Extracts blueprint structure, requirements, and guidance
  */
 export function parseBlueprintResponse(responseText: string): Record<string, any> {
+  const trimmed = responseText.trim();
+
+  // Guardrail: Detect truncated JSON (starts with { or [ but ends without closing braces)
+  const startsWithJson = /^[{\[]/.test(trimmed);
+  const endsWithCloseBrace = /[}\]]$/.test(trimmed);
+  
+  if (startsWithJson && !endsWithCloseBrace) {
+    console.warn('[parseBlueprintResponse] Detected truncated JSON - starts with {/[ but ends without closing brace');
+    throw new LLMTruncatedJsonError('LLM returned truncated JSON', trimmed);
+  }
+
   try {
-    return JSON.parse(responseText);
+    const parsed = JSON.parse(trimmed);
+    
+    return parsed;
   } catch (error) {
     console.warn('[parseBlueprintResponse] Failed to parse blueprint response:', error);
+    
+    // If it's already our truncated error, rethrow
+    if (error instanceof LLMTruncatedJsonError) {
+      throw error;
+    }
+    
+    // Attempt to repair truncated JSON
+    try {
+      let repaired = trimmed;
+      
+      // Find the last complete closing bracket
+      const lastCloseBrace = repaired.lastIndexOf('}');
+      if (lastCloseBrace > 0) {
+        repaired = repaired.substring(0, lastCloseBrace + 1);
+      }
+      
+      // Balance brackets
+      const openBraces = (repaired.match(/\{/g) || []).length;
+      const closeBraces = (repaired.match(/\}/g) || []).length;
+      const openBrackets = (repaired.match(/\[/g) || []).length;
+      const closeBrackets = (repaired.match(/\]/g) || []).length;
+      
+      for (let i = closeBrackets; i < openBrackets; i++) repaired += ']';
+      for (let i = closeBraces; i < openBraces; i++) repaired += '}';
+      
+      const repaired_parsed = JSON.parse(repaired);
+      return repaired_parsed;
+    } catch (repairError) {
+      console.warn('[parseBlueprintResponse] Repair failed, returning empty structure');
+    }
+    
     return {
       sections: [],
       validation: {},

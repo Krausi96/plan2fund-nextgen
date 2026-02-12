@@ -5,4 +5,4 @@
 
 export { default as ProgramFinder } from './components/ProgramFinder';
 export { default as QuestionRenderer } from './components/QuestionRenderer';
-export type { ProgramSummary } from '../core/types';
+export type { ProgramSummary, ProgramFinderProps } from '../core/types';
