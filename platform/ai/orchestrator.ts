@@ -8,7 +8,8 @@
 import { createHash } from 'crypto';
 import { callLLM } from './llmClient';
 import { RECOMMENDATION_SYSTEM_PROMPT, buildRecommendationUserPrompt } from './prompts/recommendation';
-import { buildSectionWritingPrompt, buildSectionImprovementPrompt } from './prompts/section';
+import { buildSectionWritingPrompt, buildSectionImprovementPrompt, buildFundingRequirementsPrompt } from './prompts/section';
+import { DOCUMENT_STRUCTURE_SYSTEM_PROMPT, buildDocumentStructureUserPrompt } from './prompts/documentStructure';
 import { parseProgramResponse } from './parsers/responseParsers';
 import { UserAnswersSchema } from '@/platform/core/validation';
 
@@ -50,7 +51,9 @@ export type AITaskType =
   | 'generateBlueprint'
   | 'analyzeBusiness'
   | 'writeSection'
-  | 'improveSection';
+  | 'improveSection'
+  | 'generateFundingRequirements'
+  | 'rebuildDocumentStructure';
 
 export interface AIRequest {
   type: AITaskType;
@@ -83,6 +86,10 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
       return handleWriteSection(request.payload);
     case 'improveSection':
       return handleImproveSection(request.payload);
+    case 'generateFundingRequirements':
+      return handleGenerateFundingRequirements(request.payload);
+    case 'rebuildDocumentStructure':
+      return handleRebuildDocumentStructure(request.payload);
     default:
       return { success: false, error: `Unknown AI task type: ${request.type}` };
   }
@@ -410,4 +417,276 @@ async function handleImproveSection(payload: any): Promise<AIResponse> {
       } : undefined,
     },
   };
+}
+
+async function handleGenerateFundingRequirements(payload: any): Promise<AIResponse> {
+  const { program, sections } = payload;
+  if (!program || !sections) return { success: false, error: 'Missing program or sections' };
+
+  const prompt = buildFundingRequirementsPrompt(program, sections);
+  
+  // DEBUG: Check if funding prompt is actually sent
+  console.log("FUNDING PROMPT:", prompt);
+  
+  // Test: Check if prompt starts with text instead of JSON
+  const trimmedPrompt = prompt?.trim();
+  if (trimmedPrompt && !trimmedPrompt.startsWith('{') && !trimmedPrompt.startsWith('Generate')) {
+    console.log('WARNING: Prompt may contain inappropriate content');
+  }
+  
+  if (!prompt || prompt === '{}') {
+    console.log("FUNDING PROMPT is empty or {}, returning empty data");
+    return { success: true, data: {} };
+  }
+
+  try {
+    const llmResponse = await callLLM({
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a funding expert. Generate precise, concise funding requirements for grant applications. Return only JSON.'
+        },
+        { role: 'user', content: prompt }
+      ],
+      responseFormat: 'json',
+      temperature: 0.2,
+      maxTokens: 2000
+    });
+
+    // DEBUG: Log raw LLM response before parsing
+    console.log("LLM RAW RESPONSE:", llmResponse.output);
+    
+    if (!llmResponse.output) {
+      console.log("Empty LLM response received");
+      return { success: false, error: 'Empty LLM response' };
+    }
+
+    let enrichedReqs;
+    try {
+      enrichedReqs = JSON.parse(llmResponse.output);
+      console.log("PARSED ENRICHED REQS:", enrichedReqs);
+    } catch (parseError) {
+      console.error("JSON PARSE ERROR:", parseError);
+      console.log("RAW OUTPUT THAT FAILED TO PARSE:", llmResponse.output);
+      
+      // Attempt to fix truncated JSON by finding the last complete object
+      try {
+        console.log('[orchestrator] Attempting to fix truncated JSON response...');
+        
+        // Find the last complete JSON object by trying to parse progressively shorter substrings
+        let fixedJson = llmResponse.output;
+        let lastValidJson = null;
+        
+        // Remove trailing incomplete data
+        if (fixedJson.includes('"description": "') && !fixedJson.endsWith('}')) {
+          // Try to find the last complete section object
+          const sectionsMatch = fixedJson.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
+          if (sectionsMatch) {
+            // Try parsing each potential section from the end
+            for (let i = sectionsMatch.length - 1; i >= 0; i--) {
+              try {
+                const potentialCompleteJson = fixedJson.substring(0, fixedJson.indexOf(sectionsMatch[i]) + sectionsMatch[i].length + 1);
+                // Try to close the JSON structure
+                let tempJson = potentialCompleteJson;
+                
+                // Count opening and closing braces to balance them
+                let braceCount = 0;
+                for (let char of tempJson) {
+                  if (char === '{') braceCount++;
+                  if (char === '}') braceCount--;
+                }
+                
+                // Add closing braces to balance
+                while (braceCount > 0) {
+                  tempJson += '}';
+                  braceCount--;
+                }
+                
+                braceCount = 0;
+                for (let char of tempJson) {
+                  if (char === '[') braceCount++;
+                  if (char === ']') braceCount--;
+                }
+                
+                // Add closing brackets to balance
+                while (braceCount > 0) {
+                  tempJson += ']';
+                  braceCount--;
+                }
+                
+                const parsed = JSON.parse(tempJson);
+                lastValidJson = parsed;
+                break;
+              } catch {
+                continue;
+              }
+            }
+          }
+          
+          // If we still don't have valid JSON, try a simpler approach
+          if (!lastValidJson) {
+            // Look for the last complete section entry
+            let pos = fixedJson.lastIndexOf('},');
+            if (pos !== -1) {
+              let tempStr = fixedJson.substring(0, pos + 1) + ']}}';
+              
+              // Count braces and close them appropriately
+              let openBraces = (tempStr.match(/\{/g) || []).length;
+              let closeBraces = (tempStr.match(/\}/g) || []).length;
+              let openArrays = (tempStr.match(/\[/g) || []).length;
+              let closeArrays = (tempStr.match(/\]/g) || []).length;
+              
+              while (closeBraces < openBraces) {
+                tempStr += '}';
+                closeBraces++;
+              }
+              while (closeArrays < openArrays) {
+                tempStr += ']';
+                closeArrays++;
+              }
+              
+              try {
+                lastValidJson = JSON.parse(tempStr);
+              } catch {
+                // Last resort: try to extract just the complete parts
+                const startIdx = tempStr.indexOf('{');
+                if (startIdx !== -1) {
+                  const jsonPart = tempStr.substring(startIdx);
+                  try {
+                    lastValidJson = JSON.parse(jsonPart);
+                  } catch {
+                    console.warn('[orchestrator] Could not fix JSON, using empty object');
+                    lastValidJson = {} as any;
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        if (lastValidJson) {
+          enrichedReqs = lastValidJson;
+          console.log('[orchestrator] Successfully recovered partial JSON:', enrichedReqs);
+        } else {
+          console.warn('[orchestrator] Could not recover valid JSON, using fallback');
+          enrichedReqs = {};
+        }
+      } catch (fixError) {
+        console.error('[orchestrator] Error fixing JSON:', fixError);
+        enrichedReqs = {};
+      }
+    }
+    
+    return {
+      success: true,
+      data: enrichedReqs,
+      llmStats: {
+        provider: llmResponse.provider,
+        model: llmResponse.model,
+        latencyMs: llmResponse.latencyMs,
+        tokens: llmResponse.usage ? {
+          prompt: llmResponse.usage.promptTokens || 0,
+          completion: llmResponse.usage.completionTokens || 0,
+          total: llmResponse.usage.totalTokens || 0,
+        } : undefined,
+      },
+    };
+  } catch (error) {
+    console.error('[orchestrator] generateFundingRequirements failed:', error instanceof Error ? error.message : String(error));
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+async function handleRebuildDocumentStructure(payload: any): Promise<AIResponse> {
+  const { rawText, fileName } = payload;
+  
+  if (!rawText) {
+    return { success: false, error: 'Missing rawText in payload' };
+  }
+  
+  const userPrompt = buildDocumentStructureUserPrompt(rawText, fileName || 'document');
+  
+  try {
+    const llmResponse = await callLLM({
+      messages: [
+        { role: 'system', content: DOCUMENT_STRUCTURE_SYSTEM_PROMPT },
+        { role: 'user', content: userPrompt },
+      ],
+      responseFormat: 'json',
+      temperature: 0,
+      maxTokens: 4000,
+    });
+    
+    if (!llmResponse.output) {
+      return { success: false, error: 'Empty LLM response' };
+    }
+    
+    // Parse the response to extract sections
+    let parsedStructure;
+    
+    let raw = llmResponse.output || "";
+    
+    raw = raw
+     .replace(/```json/g, "")
+     .replace(/```/g, "")
+     .trim();
+     
+    try {
+      parsedStructure = JSON.parse(raw);
+    } catch (e) {
+      console.error("RAW LLM OUTPUT:", raw);
+      throw e;
+    }
+    
+    // Extract content locally after getting titles from AI
+    const { rawText = '' } = payload;
+    if (parsedStructure.sections && rawText) {
+      for (let i = 0; i < parsedStructure.sections.length; i++) {
+        const currentTitle = parsedStructure.sections[i].title;
+        
+        // Find the position of the current title in the raw text
+        const currentIndex = rawText.toLowerCase().indexOf(currentTitle.toLowerCase());
+        
+        if (currentIndex !== -1) {
+          let nextIndex = rawText.length; // Default to end of text
+          
+          // Find the next title if it exists
+          if (i + 1 < parsedStructure.sections.length) {
+            const nextTitle = parsedStructure.sections[i + 1].title;
+            nextIndex = rawText.toLowerCase().indexOf(nextTitle.toLowerCase(), currentIndex + currentTitle.length);
+            
+            // If next title not found, go to end of text
+            if (nextIndex === -1) {
+              nextIndex = rawText.length;
+            }
+          }
+          
+          // Extract content between current and next title
+          const content = rawText.substring(currentIndex + currentTitle.length, nextIndex).trim();
+          parsedStructure.sections[i].content = content;
+        } else {
+          // If title not found, set empty content
+          parsedStructure.sections[i].content = '';
+        }
+      }
+    }
+    
+    return {
+      success: true,
+      data: parsedStructure,
+      llmStats: {
+        provider: llmResponse.provider,
+        model: llmResponse.model,
+        latencyMs: llmResponse.latencyMs,
+        tokens: llmResponse.usage ? {
+          prompt: llmResponse.usage.promptTokens || 0,
+          completion: llmResponse.usage.completionTokens || 0,
+          total: llmResponse.usage.totalTokens || 0,
+        } : undefined,
+      },
+    };
+  } catch (error) {
+    console.error('[orchestrator] rebuildDocumentStructure failed:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
 }

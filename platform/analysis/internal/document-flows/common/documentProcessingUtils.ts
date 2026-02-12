@@ -6,8 +6,8 @@
  */
 
 import type { DocumentStructure } from '@/platform/core/types';
-import { detectDocumentStructure } from '../processing/detection/documentStructureDetector';
-import { applyDetectionResults } from '../processing/detection/documentStructureDetector';
+// import { detectDocumentStructure } from '../processing/detection/documentStructureDetector';
+// import { applyDetectionResults } from '../processing/detection/documentStructureDetector';
 import { enhanceWithSpecialSections } from '../sections/enhancement/sectionEnhancement';
 import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/organizeForUiRendering';
 
@@ -28,20 +28,26 @@ export function unifiedDeduplicateSections<T extends { id: string }>(sections: T
 /**
  * Unified detection and application function
  */
+// Disabled unifiedDetectAndApply function to remove semantic detection
+// export function unifiedDetectAndApply(structure: DocumentStructure, content: any): DocumentStructure {
+//   const detectionResults = detectDocumentStructure(content);
+//   return applyDetectionResults(structure, detectionResults);
+// }
+
+// Placeholder function that just returns the structure as-is
 export function unifiedDetectAndApply(structure: DocumentStructure, content: any): DocumentStructure {
-  const detectionResults = detectDocumentStructure(content);
-  return applyDetectionResults(structure, detectionResults);
+  return structure;
 }
 
 /**
  * Complete document processing pipeline - combines detection, application, enhancement, and ordering
  */
 export function processDocumentStructure(structure: DocumentStructure, content: any, t: (key: string) => string = (key: string) => key): DocumentStructure {
-  // Apply detection and application
-  const structureWithDetection = unifiedDetectAndApply(structure, content);
+  // Apply detection and application - SKIPPED to disable semantic detection
+  // const structureWithDetection = unifiedDetectAndApply(structure, content);
   
   // Enhance with special sections
-  const enhancedStructure = enhanceWithSpecialSections(structureWithDetection, t) || structureWithDetection;
+  const enhancedStructure = enhanceWithSpecialSections(structure, t) || structure;
   
   // Apply canonical ordering
   const orderedSections = sortSectionsForSingleDocument(enhancedStructure.sections);

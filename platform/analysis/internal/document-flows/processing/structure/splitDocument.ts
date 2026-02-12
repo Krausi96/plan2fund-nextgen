@@ -38,7 +38,7 @@ export function splitDocumentIntoParts(
           documentId: `doc-${Date.now()}-${i}`
         })),
         // Copy over the lists without filtering to avoid type issues
-        requirements: originalStructure.requirements || [],
+
         validationRules: originalStructure.validationRules || [],
         aiGuidance: originalStructure.aiGuidance || [],
         renderingRules: originalStructure.renderingRules || {},

@@ -100,7 +100,6 @@ export function mergeUploadedContentWithSpecialSections(
         programCritical: false,
         content: section.content,
       })),
-    requirements: [],
     validationRules: [],
     aiGuidance: [],
     renderingRules: {},

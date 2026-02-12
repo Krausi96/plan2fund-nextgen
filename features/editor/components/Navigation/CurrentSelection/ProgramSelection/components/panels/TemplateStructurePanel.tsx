@@ -25,9 +25,9 @@ export function TemplateStructurePanel({ selectedOption, onClearTemplate, showHe
   // Use hierarchical organization for proper document structure display
   const organizedStructure = organizeForUiRendering(documentStructure);
 
-  // Only show template data when we have a document structure with source === 'template'
+  // Show template data when we have a document structure with source === 'template', 'overlay', or 'document'
   // Note: selectedOption prop may not be passed when used from BlueprintInstantiation
-  const hasTemplateData = !!documentStructure?.metadata?.source && documentStructure.metadata.source === 'template';
+  const hasTemplateData = !!documentStructure?.metadata?.source && (documentStructure.metadata.source === 'template' || documentStructure.metadata.source === 'overlay' || documentStructure.metadata.source === 'document');
 
   // Collapsible state management
   const [expandedDocuments, setExpandedDocuments] = React.useState<Record<string, boolean>>({});

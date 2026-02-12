@@ -135,21 +135,26 @@ function detectStylingHeadings(text: string): DetectionResult {
 
     const words = t.split(/\s+/).length;
 
+    // Better heading detection: exclude lines that look like content
     if (
-      words <= 6 &&
+      words <= 8 && // Allow slightly longer titles
+      !t.endsWith('.') && !t.endsWith('!') && !t.endsWith('?') && !t.endsWith(';') && // Not a sentence
+      !t.toLowerCase().includes('the') && !t.toLowerCase().includes('and') && // Avoid content words
+      !t.toLowerCase().includes('this') && !t.toLowerCase().includes('that') &&
       (
-        t === t.toUpperCase() ||
-        /^[A-ZÄÖÜ][^.!?]{3,60}$/.test(t)
+        t === t.toUpperCase() || // ALL CAPS
+        /^[A-ZÄÖÜ][a-zäöü]+(?:\s+[A-ZÄÖÜ][a-zäöü]+)*$/.test(t) || // Title Case
+        /^[A-ZÄÖÜ][^.!?;,]{3,80}$/.test(t) // Starts with capital, no sentence punctuation
       )
     ) {
       matches.push(t);
     }
   }
 
-  if (matches.length > 3) {
+  if (matches.length > 2) { // Reduced threshold to 2
     return {
       found: true,
-      confidence: 0.65,
+      confidence: 0.7,
       content: {
         type: 'styling_headings',
         matches: matches.slice(0, 10)
@@ -185,9 +190,38 @@ function detectTitlePage(text: string): DetectionResult {
   return { found:false, confidence:0.1 };
 }
 
-function detectTOC(text: string): DetectionResult {
+export function detectTOC(text: string): DetectionResult {
   const lower = text.toLowerCase();
 
+  // Look for TOC patterns
+  const tocPattern = /(?:table[\s\u00a0]*of[\s\u00a0]*contents?|inhaltsverzeichnis|toc)[\s\S]*?(?=\n\d+\.|\n[A-Z]|\n\w+\s*\.\.)/i;
+  const tocMatch = text.match(tocPattern);
+  
+  if (tocMatch) {
+    // Extract TOC entries
+    const tocText = text.substring(tocMatch.index!, tocMatch.index! + tocMatch[0].length + 1000);
+    const tocEntries = tocText.match(/\d+\.?[\s\u00a0]+([^\n\r]+)(?:[\s\u00a0]*\.+[\s\u00a0]*\d+)?/g);
+    
+    if (tocEntries && tocEntries.length >= 4) { // Require at least 4 entries for valid TOC
+      const titles = tocEntries.map(entry => {
+        return entry.replace(/^\d+[\s\u00a0]*\.?[\s\u00a0]*/, '').replace(/[\s\u00a0]*\.+[\s\u00a0]*\d+$/, '').trim();
+      }).filter(title => title.length > 0 && title.length < 100); // Filter out very short or very long entries
+      
+      if (titles.length >= 4) {
+        console.log('[TOC MODE ACTIVE]');
+        return { 
+          found: true, 
+          confidence: 0.95, 
+          content: { 
+            type: 'toc',
+            entries: titles
+          } 
+        };
+      }
+    }
+  }
+
+  // Fallback to keyword detection
   if (
     hasAlias(lower, ['table of contents','inhaltsverzeichnis','toc']) ||
     /\w+\s*\.{2,}\s*\d+/.test(lower)
@@ -370,10 +404,7 @@ export function applyDetectionResults(
       const id = section.id;
       const detection = detectionResults?.[id];
 
-      // Only attach if:
-      // - section is known structural section
-      // - detection exists
-      // - detection confident
+      // For special sections, attach detection if confident
       if (
         SPECIAL_SECTION_IDS.includes(id) &&
         detection?.found &&
@@ -389,7 +420,20 @@ export function applyDetectionResults(
         };
       }
 
-      return section;
+      // For regular sections, preserve original content and return as is
+      // This ensures that the content extracted from the document is maintained
+      return {
+        ...section,
+        // Make sure content is preserved and not overwritten
+        content: section.content || '',
+        rawSubsections: section.rawSubsections || [
+          {
+            id: `${section.id}-raw`,
+            title: section.title,
+            rawText: section.content || ''
+          }
+        ]
+      };
     })
   };
 

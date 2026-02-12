@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { StandardStructurePanel } from './components/panels/StandardStructurePanel';
@@ -7,7 +7,7 @@ import { ProgramFinder, EditorProgramFinder } from './components/finder';
 import { DocumentUploadPanel } from './components/options/DocumentUploadOption';
 import { FreeOption } from './components/options/FreeOption';
 import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
-import { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/document-flows/sections/enhancement/sectionEnhancement';
+import { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/sections/enhancement/sectionEnhancement';
 import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
 import { overlayFundingRequirements, hasFundingOverlay, getFundingOverlayInfo } from '@/platform/analysis';
 
@@ -117,6 +117,19 @@ export default function ProgramSelection({
   
   // Access existing document structure from store (for overlay mode)
   const existingDocumentStructure = useProject((state) => state.documentStructure);
+  
+  // Refs to always have current values in callbacks
+  const overlayModeRef = useRef(overlayMode);
+  const existingDocumentStructureRef = useRef(existingDocumentStructure);
+  
+  // Update refs whenever values change
+  useEffect(() => {
+    overlayModeRef.current = overlayMode;
+  }, [overlayMode]);
+  
+  useEffect(() => {
+    existingDocumentStructureRef.current = existingDocumentStructure;
+  }, [existingDocumentStructure]);
 
   // Unified function to handle program data regardless of source
   const processProgramData = async (program: any) => {
@@ -258,7 +271,7 @@ export default function ProgramSelection({
     
     window.addEventListener('openProgramFinder', handleOpenProgramFinder as EventListener);
     return () => window.removeEventListener('openProgramFinder', handleOpenProgramFinder as EventListener);
-  }, []);
+  }, [setOverlayMode, setActiveTab]);
 
   // Handle program initialization from Reco/myProject flow
   useEffect(() => {
@@ -287,55 +300,157 @@ export default function ProgramSelection({
 
   // Updated handleProgramSelect to use the unified processing function
   const handleProgramSelect = useCallback((program: any) => {
-    console.log('[handleProgramSelect] Program selected:', program.name, 'overlayMode:', overlayMode);
-    console.log('[handleProgramSelect] existingDocumentStructure exists:', !!existingDocumentStructure);
-    console.log('[handleProgramSelect] sections count:', existingDocumentStructure?.sections?.length);
+    // Use refs to get current values
+    const currentOverlayMode = overlayModeRef.current;
+    const currentExistingDocumentStructure = existingDocumentStructureRef.current;
     
-    if (overlayMode && existingDocumentStructure) {
+    console.log('[handleProgramSelect] Program selected:', program.name, 'overlayMode:', currentOverlayMode);
+    console.log('[handleProgramSelect] existingDocumentStructure exists:', !!currentExistingDocumentStructure);
+    console.log('[handleProgramSelect] sections count:', currentExistingDocumentStructure?.sections?.length);
+    
+    // If there's an existing document structure from document upload AND we're not in overlay mode,
+    // automatically switch to overlay mode to merge program requirements with document
+    // But only do this if the existing structure is from document upload (not from another program)
+    if (currentExistingDocumentStructure && 
+        !currentOverlayMode && 
+        currentExistingDocumentStructure.metadata?.source === 'document') {
+      console.log('[handleProgramSelect] Auto-overlay mode - merging requirements with existing document');
+      
+      // Handle async overlay in a separate function
+      const handleOverlay = async () => {
+        try {
+          // Normalize the program
+          const fundingProgram = normalizeFundingProgram(program);
+          console.log('[handleProgramSelect] fundingProgram requirements:', fundingProgram.applicationRequirements?.sections?.length);
+          
+          // Call overlay function
+          const overlayResult = await overlayFundingRequirements(
+            currentExistingDocumentStructure,
+            fundingProgram
+          );
+          const { structure: updatedStructure, addedSections, gapAnalysis } = overlayResult;
+          
+          console.log('[handleProgramSelect] Overlay complete:', {
+            addedSections: addedSections.length,
+            totalSections: updatedStructure.sections.length
+          });
+          
+          // Update store with overlaid structure
+          setDocumentStructure(updatedStructure);
+          setSetupStatus('draft');
+          
+          // Log one section to verify funding requirements are present
+          if (updatedStructure.sections && updatedStructure.sections.length > 0) {
+            const firstSection = updatedStructure.sections[0];
+            console.log('[overlay] First section after overlay:', {
+              id: firstSection.id,
+              title: firstSection.title,
+              requirementsCount: firstSection.requirements?.length || 0,
+              requirements: firstSection.requirements?.slice(0, 3) || [], // Log first 3 requirements
+              hasFundingRequirements: firstSection.requirements?.some((req: any) => req.source?.includes('funding')) || false
+            });
+            
+            // Additional debug: log the section directly
+            console.log(firstSection.title, firstSection.requirements);
+          }
+          
+          // Update program selection
+          selectProgram(fundingProgram);
+          
+          // Update diagnostics
+          setSetupDiagnostics({
+            warnings: [],
+            missingFields: addedSections,
+            confidence: 95
+          });
+          
+          // Close finder
+          handleCloseProgramFinder();
+        } catch (error) {
+          console.error('[handleProgramSelect] Overlay failed:', error);
+          
+          // Fall through to normal processing
+          console.log('[handleProgramSelect] Normal mode - building new structure');
+          processProgramData(program);
+          
+          handleCloseProgramFinder();
+        }
+      };
+      
+      handleOverlay();
+      return;
+    }
+    
+    if (currentOverlayMode && currentExistingDocumentStructure) {
       // OVERLAY MODE: Merge funding requirements into existing document
       console.log('[handleProgramSelect] Overlay mode - merging requirements');
       
-      try {
-        // Normalize the program
-        const fundingProgram = normalizeFundingProgram(program);
-        console.log('[handleProgramSelect] fundingProgram requirements:', fundingProgram.applicationRequirements?.sections?.length);
-        
-        // Call overlay function (DO NOT rebuild structure)
-        const { structure: updatedStructure, addedSections, gapAnalysis } = overlayFundingRequirements(
-          existingDocumentStructure,
-          fundingProgram
-        );
-        
-        console.log('[handleProgramSelect] Overlay complete:', {
-          addedSections: addedSections.length,
-          totalSections: updatedStructure.sections.length
-        });
-        
-        // Update store with overlaid structure
-        setDocumentStructure(updatedStructure);
-        setSetupStatus('draft');
-        
-        // Update program selection
-        selectProgram(fundingProgram);
-        
-        // Update diagnostics
-        setSetupDiagnostics({
-          warnings: [],
-          missingFields: addedSections,
-          confidence: 95
-        });
-        
-        // Clear overlay mode
-        setOverlayMode(false);
-        
-        // Close finder
-        handleCloseProgramFinder();
-        
-        return;
-      } catch (error) {
-        console.error('[handleProgramSelect] Overlay failed:', error);
-        // Fall through to normal processing
-      }
+      // Handle async overlay in a separate function
+      const handleOverlay = async () => {
+        try {
+          // Normalize the program
+          const fundingProgram = normalizeFundingProgram(program);
+          console.log('[handleProgramSelect] fundingProgram requirements:', fundingProgram.applicationRequirements?.sections?.length);
+          
+          // Call overlay function (DO NOT rebuild structure)
+          const overlayResult = await overlayFundingRequirements(
+            currentExistingDocumentStructure,
+            fundingProgram
+          );
+          const { structure: updatedStructure, addedSections, gapAnalysis } = overlayResult;
+          
+          console.log('[handleProgramSelect] Overlay complete:', {
+            addedSections: addedSections.length,
+            totalSections: updatedStructure.sections.length
+          });
+          
+          // Update store with overlaid structure
+          setDocumentStructure(updatedStructure);
+          setSetupStatus('draft');
+          
+          // Log one section to verify funding requirements are present
+          if (updatedStructure.sections && updatedStructure.sections.length > 0) {
+            const firstSection = updatedStructure.sections[0];
+            console.log('[overlay] First section after overlay:', {
+              id: firstSection.id,
+              title: firstSection.title,
+              requirementsCount: firstSection.requirements?.length || 0,
+              requirements: firstSection.requirements?.slice(0, 3) || [], // Log first 3 requirements
+              hasFundingRequirements: firstSection.requirements?.some((req: any) => req.source?.includes('funding')) || false
+            });
+            
+            // Additional debug: log the section directly
+            console.log(firstSection.title, firstSection.requirements);
+          }
+          
+          // Update program selection
+          selectProgram(fundingProgram);
+          
+          // Update diagnostics
+          setSetupDiagnostics({
+            warnings: [],
+            missingFields: addedSections,
+            confidence: 95
+          });
+          
+          // Clear overlay mode
+          setOverlayMode(false);
+          
+          // Close finder
+          handleCloseProgramFinder();
+        } catch (error) {
+          console.error('[handleProgramSelect] Overlay failed:', error);
+          
+          // Fall through to normal processing
+          console.log('[handleProgramSelect] Normal mode - building new structure');
+          processProgramData(program);
+          
+          handleCloseProgramFinder();
+        }
+      };
+      
+      handleOverlay();
+      return;
     }
     
     // NORMAL MODE: Build new structure from program
@@ -343,7 +458,7 @@ export default function ProgramSelection({
     processProgramData(program);
     
     handleCloseProgramFinder();
-  }, [overlayMode, existingDocumentStructure, selectProgram, setDocumentStructure, setSetupStatus, setSetupDiagnostics, handleCloseProgramFinder, processProgramData]);
+  }, [selectProgram, setDocumentStructure, setSetupStatus, setSetupDiagnostics, handleCloseProgramFinder, processProgramData, overlayModeRef, existingDocumentStructureRef]);
 
   return (
     <div className="relative mb-6 pb-6">
@@ -454,23 +569,48 @@ export default function ProgramSelection({
                         <div className="w-full">
                           <EditorProgramFinder
                             onProgramSelect={(program: any) => {
-                              if (overlayMode && existingDocumentStructure) {
-                                // Overlay mode
-                                try {
-                                  const fundingProgram = normalizeFundingProgram(program);
-                                  const { structure: updatedStructure, addedSections } = overlayFundingRequirements(
-                                    existingDocumentStructure,
-                                    fundingProgram
-                                  );
-                                  setDocumentStructure(updatedStructure);
-                                  selectProgram(fundingProgram);
-                                  setSetupStatus('draft');
-                                  setOverlayMode(false);
-                                  setActiveTab('search');
-                                  return;
-                                } catch (error) {
-                                  console.error('Overlay failed:', error);
-                                }
+                              // Use refs to get current values
+                              const currentOverlayMode = overlayModeRef.current;
+                              const currentExistingDocumentStructure = existingDocumentStructureRef.current;
+                              
+                              if (currentOverlayMode && currentExistingDocumentStructure) {
+                                // Overlay mode - handle async operation
+                                const handleOverlay = async () => {
+                                  try {
+                                    const fundingProgram = normalizeFundingProgram(program);
+                                    const overlayResult = await overlayFundingRequirements(
+                                      currentExistingDocumentStructure,
+                                      fundingProgram
+                                    );
+                                    const { structure: updatedStructure, addedSections } = overlayResult;
+                                    setDocumentStructure(updatedStructure);
+                                    selectProgram(fundingProgram);
+                                    setSetupStatus('draft');
+                                    
+                                    // Log one section to verify funding requirements are present
+                                    if (updatedStructure.sections && updatedStructure.sections.length > 0) {
+                                      const firstSection = updatedStructure.sections[0];
+                                      console.log('[overlay] First section after overlay (EditorProgramFinder):', {
+                                        id: firstSection.id,
+                                        title: firstSection.title,
+                                        requirementsCount: firstSection.requirements?.length || 0,
+                                        requirements: firstSection.requirements?.slice(0, 3) || [], // Log first 3 requirements
+                                        hasFundingRequirements: firstSection.requirements?.some((req: any) => req.source?.includes('funding')) || false
+                                      });
+                                      
+                                      // Additional debug: log the section directly
+                                      console.log(firstSection.title, firstSection.requirements);
+                                    }
+                                    
+                                    setOverlayMode(false);
+                                    setActiveTab('search');
+                                  } catch (error) {
+                                    console.error('Overlay failed:', error);
+                                  }
+                                };
+                                
+                                handleOverlay();
+                                return;
                               }
                               // Normal mode
                               processProgramData(program);

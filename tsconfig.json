@@ -22,22 +22,34 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/features/*": ["./features/*"],
-      "@/shared/*": ["./shared/*"],
-      "@/platform/*": ["./platform/*"]
+      "@/features/*": [
+        "./features/*"
+      ],
+      "@/shared/*": [
+        "./shared/*"
+      ],
+      "@/platform/*": [
+        "./platform/*"
+      ]
     },
     "allowJs": true,
     "incremental": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
-    "pages",
     "features/ai",
-    "features/reco",
-    "features/export",
     "features/editor",
+    "features/export",
+    "features/reco",
+    "pages",
+    "platform",
     "shared",
-    "platform"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

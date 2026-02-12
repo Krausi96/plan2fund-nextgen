@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { analyzeDocument } from '@/platform/analysis';
 import type { DocumentStructure } from '@/platform/core/types';
-import { enrichAllSectionRequirementsAtOnce, createFallbackRequirements } from '@/platform/analysis/program-flow/generator';
 
 interface DocumentUploadPanelProps {
   onNavigateToBlueprint?: () => void;
@@ -70,23 +69,10 @@ export function DocumentUploadPanel({ onNavigateToBlueprint, onUploadComplete }:
       // Process the document using the centralized analyzer
       const result = await analyzeDocument(files, uploadMode);
 
-      // Enrich uploaded sections with GENERIC requirements (neutral, not funding-specific)
-      // Funding requirements can be overlaid later when user connects a funding program
-      const context = {
-        id: `upload_${files[0]?.name || Date.now()}`,
-        name: 'Uploaded Document',
-        type: 'generic'
-      };
-
-      const enriched = await enrichAllSectionRequirementsAtOnce(
-        result.documentStructure.sections,
-        context
-      );
-
-      result.documentStructure.sections = result.documentStructure.sections.map(section => ({
-        ...section,
-        requirements: enriched[section.id] || createFallbackRequirements()
-      }));
+      // Requirements will be added separately after document upload
+      // This maintains the proper separation of concerns:
+      // 1. Document upload: pure content extraction
+      // 2. Requirements: added via generic enrichment or funding overlay
 
       console.log('[processAndHandleUpload] Sections with requirements:', result.documentStructure.sections.length);
       console.log('[processAndHandleUpload] Source:', result.documentStructure.metadata?.source);

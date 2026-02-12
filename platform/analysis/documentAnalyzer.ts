@@ -1,4 +1,4 @@
-import { processDocumentSecurely } from './internal/document-flows/document-flows/processing/documentProcessor';
+import { processDocumentSecurely } from './internal/document-flows/processing/documentProcessor';
 import type { DocumentStructure } from '../core/types';
 
 export interface DocumentProcessingResult {
@@ -50,13 +50,20 @@ export async function analyzeDocument(
     }
 
     console.log('[analyzeDocument] Processing successful, sections:', result.documentStructure.sections?.length);
+    
+    // DEBUG-C: Before editor handoff
+    console.log('[DEBUG-C] Before editor handoff:', {
+      finalSectionTitles: result.documentStructure.sections?.map((s: any) => s.title),
+      fileName: file.name
+    });
 
     const response = {
       documentStructure: {
         ...result.documentStructure,
         metadata: {
           ...(result.documentStructure.metadata || { source: 'document' as const, generatedAt: new Date().toISOString(), version: '1.0' }),
-          source: 'template' as const,
+          // Keep original source as "document" for uploaded files (do NOT overwrite with "template")
+          source: result.documentStructure.metadata?.source || 'document' as const,
         },
       },
       inferredProductType: 'submission' as const,

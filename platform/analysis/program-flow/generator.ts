@@ -6,7 +6,7 @@
 
 // @ts-ignore - Legacy code with evolved API
 import type { FundingProgram, DocumentStructure } from '@/platform/core/types';
-import { callLLM } from '@/platform/ai/llmClient';
+import { callAI } from '@/platform/ai/orchestrator';
 
 // ============================================================================
 // FEATURE FLAG & CACHE
@@ -50,69 +50,107 @@ export async function enrichAllSectionRequirementsAtOnce(
   }
 
   console.log(`[enrichRequirements] Calling LLM for program: ${program.name}, type: ${program.type}`);
+  
+  // Debug: Check environment variables availability
+  console.log("LLM config check", {
+    hasOpenAI: !!process.env.OPENAI_API_KEY,
+    hasCustomEndpoint: !!process.env.CUSTOM_LLM_ENDPOINT,
+    hasCustomKey: !!process.env.CUSTOM_LLM_API_KEY,
+    hasCustomProvider: !!process.env.CUSTOM_LLM_PROVIDER
+  });
 
   // Generate different prompts based on type
-  const isGeneric = program.type === 'generic';
-
-  const prompt = isGeneric
-    ? `Generate quality requirements for improving these sections of a document.
-
-Document: ${program.name}
-
-Sections (use section IDs as keys in response):
-${sectionsList}
-
-For EACH section, provide 3-4 key quality criteria for excellent document writing.
-
-JSON FORMAT (return exactly this structure, use section IDs as keys):
-{
-  "section_id_1": [
-    {"title": "Clarity requirement", "description": "Clear communication", "priority": "high"},
-    {"title": "Evidence requirement", "description": "Support claims", "priority": "high"}
-  ],
-  "section_id_2": [
-    {"title": "...", "description": "...", "priority": "..."}
-  ]
-}
-
-Return ONLY valid JSON. No other text.`
-    : `Generate funding application requirements for these sections of a ${program.type || 'grant'} application.
-
-Program: ${program.name}
-
-Sections (use section IDs as keys in response):
-${sectionsList}
-
-For EACH section, provide 3-4 key requirements that funders evaluate.
-
-JSON FORMAT (return exactly this structure, use section IDs as keys):
-{
-  "section_id_1": [
-    {"title": "Requirement title", "description": "Why this matters", "priority": "high"},
-    {"title": "Second requirement", "description": "Explanation", "priority": "high"}
-  ],
-  "section_id_2": [
-    {"title": "...", "description": "...", "priority": "..."}
-  ]
-}
-
-Return ONLY valid JSON. No other text.`;
+  // Prompt is now built via the API call to the server endpoint
 
   try {
-    const response = await callLLM({
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a funding expert. Generate precise, concise funding requirements for grant applications. Return only JSON.'
-        },
-        { role: 'user', content: prompt }
-      ],
-      responseFormat: 'json',
-      temperature: 0.2,
-      maxTokens: 1200
+    // Debug: Check environment variables availability
+    console.log("LLM config check", {
+      hasOpenAI: !!process.env.OPENAI_API_KEY,
+      hasCustomEndpoint: !!process.env.CUSTOM_LLM_ENDPOINT,
+      hasCustomKey: !!process.env.CUSTOM_LLM_API_KEY,
+      hasCustomProvider: !!process.env.CUSTOM_LLM_PROVIDER
     });
 
-    const enrichedReqs = JSON.parse(response.output);
+    // Sanitize data to prevent JSON serialization issues
+    const sanitizeString = (input: any): any => {
+      if (typeof input !== 'string') return input;
+      try {
+        // Properly escape all special characters for JSON
+        return JSON.stringify(input).slice(1, -1); // Remove surrounding quotes from JSON string
+      } catch (e) {
+        // Fallback sanitization
+        return input
+          .replace(/[\x00-\x1f\x7f]/g, '') // Remove control characters
+          .replace(/"/g, '') // Remove quotes that might break JSON
+          .replace(/\\/g, '') // Remove backslashes
+          .substring(0, 1000); // Limit length
+      }
+    };
+    
+    // Deep sanitize the program data
+    const sanitizedProgram = {
+      ...program,
+      name: sanitizeString(program.name),
+      type: sanitizeString(program.type),
+      id: sanitizeString(program.id),
+      // Sanitize other string properties if they exist
+      ...Object.fromEntries(
+        Object.entries(program)
+          .filter(([_, value]) => typeof value === 'string')
+          .map(([key, value]) => [key, sanitizeString(value)])
+      ),
+    };
+    
+    // Deep sanitize the sections data - ONLY SEND TITLES AND IDS, NOT FULL CONTENT
+    const sanitizedSections = sections.map((section: any) => ({
+      id: sanitizeString(section.id),
+      title: sanitizeString(section.title),
+      // DO NOT send content to avoid massive prompts - only send essential data
+      requirements: Array.isArray(section.requirements) ? section.requirements : [],
+      // Sanitize any other string properties
+      ...Object.fromEntries(
+        Object.entries(section)
+          .filter(([key, value]) => key !== 'id' && key !== 'title' && key !== 'content' && key !== 'requirements' && typeof value === 'string')
+          .map(([key, value]) => [key, sanitizeString(value)])
+      ),
+    }));
+    
+    // Prepare the sanitized data to send
+    const requestData = { program: sanitizedProgram, sections: sanitizedSections };
+    
+    // Validate that we can serialize the data to JSON
+    let jsonString: string;
+    try {
+      jsonString = JSON.stringify(requestData);
+    } catch (serializeError) {
+      console.error('[enrichRequirements] Failed to serialize data to JSON:', serializeError);
+      return {}; // Return empty map on error
+    }
+    
+    // Call the unified server-side API to generate requirements
+    // This ensures we have access to environment variables and proper LLM configuration
+    const response = await fetch('/api/requirements/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sections: sanitizedSections,
+        program: sanitizedProgram,
+        type: 'funding'
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.warn('[enrichRequirements] API call failed:', errorData.error || response.statusText);
+      return {}; // Return empty map on error (will use fallback)
+    }
+    
+    const result = await response.json();
+    const enrichedReqs = result.data;
+    
+    console.log("[enrichRequirements] Parsed requirements:", enrichedReqs);
     
     // Cache the result
     requirementCache.set(cacheKey, enrichedReqs);
@@ -485,14 +523,14 @@ export async function generateDocumentStructureFromProfile(profile: any): Promis
  * @param fundingProgram - FundingProgram with funding-specific requirements
  * @returns Updated DocumentStructure with funding requirements overlaid
  */
-export function overlayFundingRequirements(
+export async function overlayFundingRequirements(
   existingStructure: any,
   fundingProgram: any
-): {
+): Promise<{
   structure: any;
   addedSections: string[];
   gapAnalysis: { section: string; missing: string[] }[];
-} {
+}> {
   console.log(`[overlayFunding] Overlaying requirements for program: ${fundingProgram.name}`);
 
   const addedSections: string[] = [];
@@ -500,7 +538,7 @@ export function overlayFundingRequirements(
 
   // Get funding-specific requirements from program
   const fundingSections = fundingProgram.applicationRequirements?.sections || [];
-
+  
   // Create a map of existing section titles for matching
   const existingSectionMap = new Map<
     string,
@@ -514,48 +552,80 @@ export function overlayFundingRequirements(
       requirements: section.requirements || []
     });
   });
-
-  // Process each funding section
+  
+  // Generate funding requirements dynamically using the existing function
+  // This handles cases where funding programs don't have predefined requirements
+  console.log(`[overlayFunding] Generating funding requirements for program:`, {
+    name: fundingProgram.name,
+    type: fundingProgram.type,
+    id: fundingProgram.id,
+    applicationRequirements: fundingProgram.applicationRequirements?.sections?.length
+  });
+  
+  const generatedFundingRequirements = await enrichAllSectionRequirementsAtOnce(
+    existingStructure.sections, 
+    fundingProgram
+  );
+  
+  console.log(`[overlayFunding] Generated funding requirements for ${Object.keys(generatedFundingRequirements).length} sections`, generatedFundingRequirements);
+  
+  // Debug: check if sections have proper IDs
+  console.log(`[overlayFunding] Section IDs in structure:`, existingStructure.sections.map((s: any) => ({id: s.id, title: s.title})));
+  
+  // Process each existing section - apply relevant funding requirements
   const updatedSections = existingStructure.sections.map((section: any) => {
-    const key = section.title.toLowerCase().trim();
-    const existing = existingSectionMap.get(key);
-
-    if (existing) {
-      // Find matching funding section
-      const fundingSection = fundingSections.find(
-        (fs: any) => fs.title.toLowerCase().trim() === key
-      );
-
-      if (fundingSection?.requirements && fundingSection.requirements.length > 0) {
-        // Merge funding requirements with existing generic ones
-        const fundingReqs = fundingSection.requirements.map((req: any, idx: number) => ({
-          id: `funding_${section.id}_${idx}`,
+    // Get dynamically generated funding requirements for this section
+    const sectionGeneratedReqs = generatedFundingRequirements[section.id] || [];
+    
+    // Convert generated requirements to proper format
+    const generatedFundingReqs = sectionGeneratedReqs.map((req: any, idx: number) => ({
+      id: `funding_gen_${section.id}_${idx}`,
+      category: req.category || 'funding',
+      title: req.title || req.description || `Funding requirement: ${req.title || 'General requirement'}`,
+      description: req.description || `Funding requirement from ${fundingProgram.name}`,
+      priority: req.priority || 'high',
+      examples: req.examples || [],
+      source: 'funding-generated'
+    }));
+    
+    // Also incorporate any existing funding requirements from the program
+    const allFundingReqs: any[] = [...generatedFundingReqs];
+    
+    // Add any predefined funding requirements from the program
+    for (const fundingSection of fundingSections) {
+      if (fundingSection.requirements && fundingSection.requirements.length > 0) {
+        const sectionFundingReqs = fundingSection.requirements.map((req: any, idx: number) => ({
+          id: `funding_${section.id}_${fundingSection.title.substring(0, 10).replace(/[^a-zA-Z0-9]/g, '')}_${idx}`,
           category: req.category || 'funding',
-          title: req.title || req.description || '',
-          description: req.description || `Funding requirement: ${req.title}`,
+          title: req.title || req.description || `Funding requirement: ${req.title || 'General requirement'}`,
+          description: req.description || `Funding requirement from ${fundingProgram.name} for ${fundingSection.title}`,
           priority: req.priority || 'high',
           examples: req.examples || [],
           source: 'funding-overlay'
         }));
-
-        // Mark existing requirements as non-funding
-        const genericReqs = existing.requirements.map((req: any) => ({
-          ...req,
-          source: req.source || 'generic'
-        }));
-
-        console.log(`[overlayFunding] ${section.title}: merged ${fundingReqs.length} funding + ${genericReqs.length} generic requirements`);
-
-        return {
-          ...section,
-          requirements: [...genericReqs, ...fundingReqs]
-        };
+        
+        allFundingReqs.push(...sectionFundingReqs);
       }
-
-      return section; // No funding requirements for this section
     }
-
-    return section;
+    
+    // Combine existing requirements with funding requirements
+    const existingRequirements = section.requirements || [];
+    
+    // Mark existing requirements as generic
+    const genericReqs = existingRequirements.map((req: any) => ({
+      ...req,
+      source: req.source || 'generic'
+    }));
+    
+    // Combine all requirements
+    const combinedRequirements = [...genericReqs, ...allFundingReqs];
+    
+    console.log(`[overlayFunding] ${section.title}: merged ${allFundingReqs.length} funding + ${genericReqs.length} generic requirements = ${combinedRequirements.length} total`);
+    
+    return {
+      ...section,
+      requirements: combinedRequirements
+    };
   });
 
   // Find and add MISSING sections required by funding program

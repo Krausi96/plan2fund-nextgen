@@ -74,7 +74,6 @@ function buildFromProgram(
   const structure: DocumentStructure = {
     documents: createDocumentsFromProgram(program),
     sections: createSectionsFromProgram(program),
-    requirements: extractRequirementsFromProgram(program),
     validationRules: generateValidationRulesFromProgram(program),
     aiGuidance: generateAIGuidanceFromProgram(program),
     renderingRules: generateRenderingRules(detectionResults),
@@ -352,9 +351,10 @@ function extractRequirementsFromProgram(program: FundingProgram): Requirement[] 
     program.applicationRequirements.financialRequirements.forEach((freq, idx) => {
       requirements.push({
         id: `fin_${idx}`,
-        type: 'financial',
+        category: 'financial',
         title: `Financial Requirement ${idx + 1}`,
         description: freq.description || '',
+        priority: 'medium',
       });
     });
   }

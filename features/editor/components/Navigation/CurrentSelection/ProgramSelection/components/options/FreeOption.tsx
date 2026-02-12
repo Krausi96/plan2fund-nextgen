@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
-import { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/document-flows/sections/enhancement/sectionEnhancement';
+import { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/sections/enhancement/sectionEnhancement';
 
 
 interface FreeOptionProps {
