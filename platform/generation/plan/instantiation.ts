@@ -126,15 +126,6 @@ export function instantiateFromBlueprint(
         disabledDocumentIds: [],
         customSections: [],
         customDocuments: [],
-        // Store blueprint reference
-        blueprintId: blueprint.programId,
-        blueprintVersion: '1.0',
-        blueprintSource: 'program',
-        // Store blueprint artifacts for AI and validation
-        blueprintRequirements: blueprint.requirements,
-        blueprintValidationRules: blueprint.validation,
-        blueprintAiGuidance: blueprint.guidance,
-        blueprintRenderingRules: {},
       },
       references: [],
       appendices: [],
@@ -197,9 +188,6 @@ export function instantiateFromBlueprint(
         blueprintSource: documentStructure.metadata?.source || 'program',
         // Store blueprint artifacts for AI and validation
         // Note: blueprint requirements are now at section level, not here
-        blueprintValidationRules: documentStructure.validationRules,
-        blueprintAiGuidance: documentStructure.aiGuidance,
-        blueprintRenderingRules: documentStructure.renderingRules,
       },
       references: [],
       appendices: [],

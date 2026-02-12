@@ -132,6 +132,11 @@ export default function ProgramSelection({
       const fundingProgram = normalizeFundingProgram(program);
       console.log('[processProgramData] Step 1 done');
       
+      // PHASE 2: Blueprint API call disabled
+      // System now uses deterministic structure + requirement enrichment only
+      // Blueprint generation is redundant — structure comes from templates + program.applicationRequirements
+      // Requirements enriched by enrichAllSectionRequirementsAtOnce() in generator.ts
+      /*
       console.log('[processProgramData] Step 2a: Calling blueprint API for LLM-generated sections...');
       // CRITICAL: Call blueprint API to get LLM-generated sections with requirements
       try {
@@ -172,9 +177,10 @@ export default function ProgramSelection({
       } catch (apiError) {
         console.error('[processProgramData] Blueprint API fetch error:', apiError instanceof Error ? apiError.message : String(apiError));
       }
+      */
       
       console.log('[processProgramData] Step 2b: generating DocumentStructure...');
-      const documentStructure = generateDocumentStructureFromProfile(fundingProgram);
+      const documentStructure = await generateDocumentStructureFromProfile(fundingProgram);
       console.log('[processProgramData] Step 2b done, sections:', documentStructure.sections?.length);
       
       console.log('[processProgramData] Step 3: enhancing with special sections...');

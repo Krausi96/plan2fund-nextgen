@@ -50,7 +50,6 @@ export function normalizeDocumentStructure(
       ...normalizedStructure,
       documents: normalizedStructure.documents,
       sections: normalizedStructure.sections,
-      requirements: normalizedStructure.requirements,
       validationRules: normalizedStructure.validationRules,
       aiGuidance: normalizedStructure.aiGuidance,
       renderingRules: normalizedStructure.renderingRules,
@@ -85,7 +84,6 @@ export function normalizeDocumentStructure(
       ...section,
       documentId: section.documentId || mainDocumentId
     })),
-    requirements: normalizedStructure.requirements,
     validationRules: normalizedStructure.validationRules,
     aiGuidance: normalizedStructure.aiGuidance,
     renderingRules: normalizedStructure.renderingRules,

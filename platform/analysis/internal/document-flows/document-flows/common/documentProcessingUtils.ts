@@ -62,7 +62,6 @@ export function createUnifiedDocumentStructure(sections: any[], documents: any[]
   return {
     documents,
     sections,
-    requirements: [],
     validationRules: [],
     aiGuidance: [],
     renderingRules: {},

@@ -6,6 +6,132 @@
 
 // @ts-ignore - Legacy code with evolved API
 import type { FundingProgram, DocumentStructure } from '@/platform/core/types';
+import { callLLM } from '@/platform/ai/llmClient';
+
+// ============================================================================
+// FEATURE FLAG & CACHE
+// ============================================================================
+
+// Feature flag: enable/disable requirement enrichment
+const ENABLE_REQUIREMENT_ENRICHMENT = true;
+
+// Cache for enriched requirements by program ID (avoids repeated LLM calls)
+const requirementCache = new Map<string, Record<string, any[]>>();
+
+// ============================================================================
+// REQUIREMENT ENRICHMENT
+// ============================================================================
+
+/**
+ * Generate all section requirements in one LLM call
+ * Uses section IDs as keys (not titles) to avoid translation/edit issues
+ * Returns map of section ID → requirement arrays
+ */
+async function enrichAllSectionRequirementsAtOnce(
+  sections: any[],
+  program: any
+): Promise<Record<string, any[]>> {
+  // Check cache first (by program ID)
+  const cacheKey = program.id || `program_${Date.now()}`;
+  if (requirementCache.has(cacheKey)) {
+    console.log(`[enrichRequirements] Cache HIT for program: ${program.name}`);
+    return requirementCache.get(cacheKey) || {};
+  }
+
+  // Build section list for prompt (use IDs, not titles)
+  const sectionsList = sections
+    .filter(s => !s.title.includes('Introduction to')) // Skip placeholders
+    .map(s => `id: ${s.id} | title: ${s.title}`)
+    .join('\n');
+
+  if (!sectionsList) {
+    console.log('[enrichRequirements] No sections to enrich');
+    return {};
+  }
+
+  console.log(`[enrichRequirements] Calling LLM for program: ${program.name}`);
+
+  const prompt = `Generate funding application requirements for these sections of a ${program.type || 'grant'} application.
+
+Program: ${program.name}
+
+Sections (use section IDs as keys in response):
+${sectionsList}
+
+For EACH section, provide 3-4 key requirements that funders evaluate.
+
+JSON FORMAT (return exactly this structure, use section IDs as keys):
+{
+  "section_id_1": [
+    {"title": "Requirement title", "description": "Why this matters", "priority": "high"},
+    {"title": "Second requirement", "description": "Explanation", "priority": "high"}
+  ],
+  "section_id_2": [
+    {"title": "...", "description": "...", "priority": "..."}
+  ]
+}
+
+Return ONLY valid JSON. No other text.`;
+
+  try {
+    const response = await callLLM({
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a funding expert. Generate precise, concise funding requirements for grant applications. Return only JSON.'
+        },
+        { role: 'user', content: prompt }
+      ],
+      responseFormat: 'json',
+      temperature: 0.2,
+      maxTokens: 1200
+    });
+
+    const enrichedReqs = JSON.parse(response.output);
+    
+    // Cache the result
+    requirementCache.set(cacheKey, enrichedReqs);
+    console.log(`[enrichRequirements] Generated and cached requirements for: ${program.name}`);
+    
+    return enrichedReqs;
+  } catch (error) {
+    console.warn('[enrichRequirements] LLM call failed:', error instanceof Error ? error.message : String(error));
+    return {}; // Return empty map on error (will use fallback)
+  }
+}
+
+/**
+ * Create deterministic fallback requirements (never return empty)
+ * Ensures AI assistant always has guidance even if enrichment fails
+ */
+function createFallbackRequirements(): any[] {
+  return [
+    {
+      id: `req_fallback_clarity`,
+      category: 'general',
+      title: 'Clear Objectives & Scope',
+      description: 'Clearly define what you are proposing and why it matters to the funder',
+      priority: 'high',
+      examples: []
+    },
+    {
+      id: `req_fallback_feasibility`,
+      category: 'general',
+      title: 'Feasibility & Realistic Approach',
+      description: 'Show your plan is achievable with adequate resources and team capability',
+      priority: 'high',
+      examples: []
+    },
+    {
+      id: `req_fallback_metrics`,
+      category: 'general',
+      title: 'Key Metrics & Evidence',
+      description: 'Include data, KPIs, and evidence supporting your claims and assumptions',
+      priority: 'medium',
+      examples: []
+    }
+  ];
+}
 
 /**
  * Generate DocumentStructure from FundingProgram
@@ -13,7 +139,7 @@ import type { FundingProgram, DocumentStructure } from '@/platform/core/types';
  * 
  * @ts-ignore - Type mismatches due to FundingProgram API evolution
  */
-export function generateDocumentStructureFromProfile(profile: any): any {
+export async function generateDocumentStructureFromProfile(profile: any): Promise<any> {
   // Generate documents from parsed requirements
   const documents = profile.applicationRequirements.documents.length > 0 
     ? profile.applicationRequirements.documents.map((doc, index) => ({
@@ -155,6 +281,57 @@ export function generateDocumentStructureFromProfile(profile: any): any {
     };
   });
   
+  // ============================================================================
+  // ENRICH SECTION REQUIREMENTS (if enabled)
+  // ============================================================================
+  
+  if (ENABLE_REQUIREMENT_ENRICHMENT) {
+    console.log('[enrichRequirements] Starting requirement enrichment for program:', profile.name);
+    
+    const enrichedRequirements = await enrichAllSectionRequirementsAtOnce(sections, profile);
+    
+    sections = sections.map((section) => {
+      // Skip enrichment if already has requirements
+      if (section.requirements && section.requirements.length > 0) {
+        console.log(`[enrichRequirements] ${section.title}: already has ${section.requirements.length} requirements, skipping enrichment`);
+        return section;
+      }
+      
+      // Skip special/placeholder sections - but still give them fallback requirements
+      if (section.title.includes('Introduction to')) {
+        // Placeholder sections still need requirements for AI assistant
+        return {
+          ...section,
+          requirements: section.requirements && section.requirements.length > 0 
+            ? section.requirements 
+            : createFallbackRequirements()
+        };
+      }
+      
+      // Get enriched requirements from map using section ID (not title)
+      const enrichedReqs = enrichedRequirements[section.id] || [];
+      
+      // Map to requirement format
+      const formattedReqs = enrichedReqs.length > 0
+        ? enrichedReqs.map((req: any, idx: number) => ({
+            id: `req_${section.id}_${idx}`,
+            category: req.category || 'general',
+            title: req.title || '',
+            description: req.description || '',
+            priority: req.priority || 'high',
+            examples: req.examples || []
+          }))
+        : createFallbackRequirements(); // Fallback if LLM returns nothing
+      
+      console.log(`[enrichRequirements] ${section.title}: assigned ${formattedReqs.length} requirements (${enrichedReqs.length > 0 ? 'from LLM' : 'fallback'})`);
+      
+      return {
+        ...section,
+        requirements: formattedReqs
+      };
+    });
+  }
+  
   // After initial assignment, handle empty documents without disrupting semantic assignments
   const documentIds = documents.map(doc => doc.id);
   if (documentIds.length > 1 && sections.length > 0) {
@@ -190,8 +367,8 @@ export function generateDocumentStructureFromProfile(profile: any): any {
             programCritical: false,
             content: '',
             aiGuidance: [],
-            // No requirements for placeholder sections
-            requirements: [],
+            // Placeholder sections also need fallback requirements
+            requirements: createFallbackRequirements(),
             rawSubsections: []
           };
           
@@ -229,6 +406,17 @@ export function generateDocumentStructureFromProfile(profile: any): any {
     checklist: [`Cover all ${section.title} aspects`, `Maintain professional tone`],
     examples: [`Example content for ${section.title}...`]
   }));
+  
+  // ============================================================================
+  // VALIDATION LOGGING
+  // ============================================================================
+  
+  console.log('[VALIDATION] Document structure generated:');
+  sections.forEach(section => {
+    const reqCount = section.requirements?.length || 0;
+    const hasEmpty = reqCount === 0 && !section.title.includes('Introduction to');
+    console.log(`  - ${section.title}: ${reqCount} requirements${hasEmpty ? ' ⚠️ WARNING: EMPTY!' : ''}`);
+  });
   
   // OPTION A: No global requirements array anymore
   // Requirements are owned by sections directly
