@@ -1,1 +1,2 @@
-export { normalizeDocumentStructure, mergeUploadedContentWithSpecialSections } from './normalization';
+// normalizeDocumentStructure moved to structureBuilder.ts
+export {};

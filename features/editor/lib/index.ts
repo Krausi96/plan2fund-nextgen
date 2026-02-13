@@ -67,10 +67,6 @@ export {
 // UTILS - General utility functions
 // ============================================================================
 
-export {
-  shouldIgnoreClick,
-} from '@/platform/analysis/internal/document-flows/utils/editorUtils';
-
 
 
 // Document Setup utilities
@@ -103,11 +99,7 @@ export { createSpecialSection } from '@/platform/analysis/internal/document-flow
 export { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/sections/enhancement/sectionEnhancement';
 export { sortSectionsForSingleDocument } from './utils/organizeForUiRendering';
 export { isSpecialSection as isSpecialSectionUtil } from './utils/organizeForUiRendering';
-export { detectDocumentStructure } from '@/platform/analysis/internal/document-flows/processing/detection/documentStructureDetector';
-export { applyDetectionResults } from '@/platform/analysis/internal/document-flows/processing/detection/documentStructureDetector';
 export { analyzeDocument } from '@/platform/analysis';
-export { normalizeDocumentStructure } from '@/platform/analysis/internal/document-flows/normalization/normalizeDocumentStructure';
-export { splitDocumentIntoParts } from '@/platform/analysis/internal/document-flows/processing/documentProcessor';
 export { validateDocumentContent } from '@/platform/analysis/internal/document-flows/processing/security/contentSecurityValidator';
 
 // ============================================================================

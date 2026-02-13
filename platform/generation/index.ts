@@ -1,11 +1,8 @@
 /**
  * Generation Layer - Public API
  */
-export {
-  normalizeDocumentStructure,
-  mergeUploadedContentWithSpecialSections
-} from './utils';
 
+// DocumentStructure builder - single source of truth
 export {
   buildDocumentStructure
 } from './structure';

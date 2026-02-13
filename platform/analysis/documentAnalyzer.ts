@@ -1,5 +1,60 @@
 import { processDocumentSecurely } from './internal/document-flows/processing/documentProcessor';
+import { buildDocumentStructure } from '../generation/structure/structureBuilder';
 import type { DocumentStructure } from '../core/types';
+import type { ParsedDocumentData } from '../core/types/project';
+
+/**
+ * Converts ParsedDocument to DocumentStructure for editor consumption
+ * Single place where ParsedDocument → DocumentStructure conversion happens
+ */
+function convertParsedDocumentToDocumentStructure(
+  parsedDoc: NonNullable<Awaited<ReturnType<typeof processDocumentSecurely>>['parsedDocument']>,
+  fileName: string
+): DocumentStructure {
+  const parsedData: ParsedDocumentData = {
+    structure: {
+      documents: [{
+        id: 'main_document',
+        name: fileName.replace(/\.[^/.]+$/, ''),
+        purpose: 'Uploaded document',
+        required: true,
+      }],
+      sections: parsedDoc.sections.map((s, idx) => ({
+        id: s.id || `section_${idx}`,
+        documentId: 'main_document',
+        title: s.title,
+        type: 'normal' as const,
+        required: false,
+        programCritical: false,
+        content: s.content || '',
+        requirements: [],
+      })),
+      validationRules: [],
+      aiGuidance: [],
+      renderingRules: {},
+      conflicts: [],
+      warnings: [],
+      confidenceScore: parsedDoc.confidence || 85,
+      metadata: {
+        source: 'document',
+        generatedAt: new Date().toISOString(),
+        version: '1.0',
+      },
+    },
+    detection: {
+      titlePageConfidence: 0,
+      tocConfidence: 0,
+      referencesConfidence: 0,
+      appendicesConfidence: 0,
+      detectedSections: [],
+    },
+    specialSections: [],
+    confidence: parsedDoc.confidence || 85,
+    metadata: parsedDoc.metadata || { source: 'upload', fileName },
+  };
+
+  return buildDocumentStructure(parsedData);
+}
 
 export interface DocumentProcessingResult {
   success: boolean;
@@ -44,32 +99,21 @@ export async function analyzeDocument(
     const result = await processDocumentSecurely(file);
     console.log('[analyzeDocument] processDocumentSecurely result:', result.success, result.message);
 
-    if (!result.success || !result.documentStructure) {
+    if (!result.success || !result.parsedDocument) {
       console.error('[analyzeDocument] Processing failed:', result.message);
       throw new Error(result.message || 'Document processing failed');
     }
 
-    console.log('[analyzeDocument] Processing successful, sections:', result.documentStructure.sections?.length);
-    
-    // DEBUG-C: Before editor handoff
-    console.log('[DEBUG-C] Before editor handoff:', {
-      finalSectionTitles: result.documentStructure.sections?.map((s: any) => s.title),
-      fileName: file.name
-    });
+    // Convert ParsedDocument → DocumentStructure via single builder
+    const documentStructure = convertParsedDocumentToDocumentStructure(result.parsedDocument, file.name);
+    console.log('[analyzeDocument] DocumentStructure built, sections:', documentStructure.sections?.length);
 
     const response = {
-      documentStructure: {
-        ...result.documentStructure,
-        metadata: {
-          ...(result.documentStructure.metadata || { source: 'document' as const, generatedAt: new Date().toISOString(), version: '1.0' }),
-          // Keep original source as "document" for uploaded files (do NOT overwrite with "template")
-          source: result.documentStructure.metadata?.source || 'document' as const,
-        },
-      },
+      documentStructure,
       inferredProductType: 'submission' as const,
       warnings: result.securityIssues.softWarnings,
       diagnostics: result.securityIssues.softWarnings,
-      confidence: result.documentStructure.confidenceScore || 0,
+      confidence: documentStructure.confidenceScore || 0,
     };
 
     console.log('[analyzeDocument] Final structure has metadata:', !!response.documentStructure.metadata);
