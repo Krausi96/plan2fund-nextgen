@@ -49,7 +49,7 @@ export {
   FIGURES_IMAGES_SECTION_ID,
   isSpecialSectionId,
   getSectionTitle,
-} from './constants';
+} from '@/platform/templates';
 
 
 // ============================================================================
@@ -92,7 +92,7 @@ export {
 // @ts-ignore - getCompleteSectionList moved to utils, not exported
 export { getCompleteSectionList } from '@/features/editor/lib/utils/organizeForUiRendering';
 export { getSectionIcon } from './utils/organizeForUiRendering';
-export { isSpecialSectionId as isSpecialSection } from './constants';
+export { isSpecialSectionId as isSpecialSection } from '@/platform/templates';
 export { createSpecialSection } from '@/platform/analysis/internal/document-flows/sections/enhancement/sectionEnhancement';
 // Document processing functions - now available through doc-import module
 // TODO: Eventually migrate these to use doc-import directly

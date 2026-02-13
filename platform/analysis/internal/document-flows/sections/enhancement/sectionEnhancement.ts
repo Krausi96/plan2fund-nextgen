@@ -10,7 +10,7 @@ import {
   METADATA_SECTION_ID,
   ANCILLARY_SECTION_ID,
   APPENDICES_SECTION_ID
-} from '@/features/editor/lib/constants';
+} from '@/platform/templates/general/templateConstants';
 
 // Define special section types
 type SpecialSectionType = 'metadata' | 'ancillary' | 'references' | 'appendices' | 'tables_data' | 'figures_images';

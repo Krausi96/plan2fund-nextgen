@@ -1,5 +1,23 @@
 // Re-export template constants and collections from general folder
-export { 
+export {
+  // Product options
+  DEFAULT_PRODUCT_OPTIONS,
+  getSelectedProductMeta,
+  // Special sections
+  SPECIAL_SECTION_IDS,
+  SPECIAL_SECTIONS,
+  // Backward compat
+  METADATA_SECTION_ID,
+  ANCILLARY_SECTION_ID,
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
+  TABLES_DATA_SECTION_ID,
+  FIGURES_IMAGES_SECTION_ID,
+  // Helpers
+  isSpecialSectionId,
+  getSpecialSection,
+  getSectionTitle,
+  // Section templates
   SHARED_SPECIAL_SECTIONS,
   MASTER_SECTIONS,
   MASTER_DOCUMENTS_BY_PRODUCT

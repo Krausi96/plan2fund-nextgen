@@ -3,6 +3,7 @@ import { useProject } from '@/platform/core/context/hooks/useProject';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { getSectionIcon } from '@/features/editor/lib';
+import { sortSectionsForSingleDocument } from '@/platform/generation/structure/structureBuilder';
 
 interface StandardStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;
@@ -37,10 +38,10 @@ export function StandardStructurePanel({ selectedOption, onClearStructure, showH
       return documentStructure.sections;
     }
     
-    // Fall back to template sections (not pre-sorted - this is display-only fallback)
+    // Fall back to template sections - apply canonical ordering
     const productType = inferredProductType;
     if (productType && MASTER_SECTIONS[productType]) {
-      return MASTER_SECTIONS[productType];
+      return sortSectionsForSingleDocument(MASTER_SECTIONS[productType]);
     }
     
     return [];
@@ -175,18 +176,8 @@ export function StandardStructurePanel({ selectedOption, onClearStructure, showH
                     <div className="space-y-2 py-1">
                       {/* Actual Template Sections - dynamically rendered with proper icons */}
                       {(() => {
-                        // Combine regular sections with special sections to ensure all are displayed
-                        const allSections = [
-                          ...getSpecialSections(), // Special sections first
-                          ...getRequiredSections().filter((section: any) => 
-                            section.id !== 'metadata' && 
-                            section.id !== 'ancillary' && 
-                            section.id !== 'references' && 
-                            section.id !== 'appendices' && 
-                            section.id !== 'tables_data' && 
-                            section.id !== 'figures_images'
-                          ) // Regular sections excluding special ones
-                        ];
+                        // Get ALL sections (including special) - already in canonical order from getRequiredSections()
+                        const allSections = getRequiredSections();
                         
                         return allSections.map((section: any, idx: number) => {
                           const sectionId = section.id || idx;

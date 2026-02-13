@@ -118,16 +118,30 @@ export default function ProgramSelection({
   // Access existing document structure from store (for overlay mode)
   const existingDocumentStructure = useProject((state) => state.documentStructure);
   
+  // DEBUG: Log documentStructure changes
+  useEffect(() => {
+    console.log('[DocumentStructure] Updated:', {
+      exists: !!existingDocumentStructure,
+      source: existingDocumentStructure?.metadata?.source,
+      sectionsCount: existingDocumentStructure?.sections?.length
+    });
+  }, [existingDocumentStructure]);
+  
   // Refs to always have current values in callbacks
   const overlayModeRef = useRef(overlayMode);
   const existingDocumentStructureRef = useRef(existingDocumentStructure);
   
   // Update refs whenever values change
   useEffect(() => {
+    console.log('[Refs] Updating overlayModeRef:', overlayMode);
     overlayModeRef.current = overlayMode;
   }, [overlayMode]);
   
   useEffect(() => {
+    console.log('[Refs] Updating existingDocumentStructureRef:', {
+      exists: !!existingDocumentStructure,
+      source: existingDocumentStructure?.metadata?.source
+    });
     existingDocumentStructureRef.current = existingDocumentStructure;
   }, [existingDocumentStructure]);
 
@@ -258,11 +272,16 @@ export default function ProgramSelection({
   useEffect(() => {
     const handleOpenProgramFinder = (event: CustomEvent) => {
       const mode = event.detail?.mode;
-      console.log('[openProgramFinder] Event received, mode:', mode);
+      console.log('[openProgramFinder] Event received:', { mode });
+      console.log('[openProgramFinder] Current existingDocumentStructure:', {
+        exists: !!existingDocumentStructure,
+        source: existingDocumentStructure?.metadata?.source
+      });
 
       if (mode === 'overlay') {
         // Open program finder in overlay mode
         // Keep selectedOption as 'template' - we're overlaying funding on existing template
+        console.log('[openProgramFinder] Setting overlayMode to TRUE');
         setOverlayMode(true);
         setActiveTab('search');
         console.log('[openProgramFinder] Overlay mode activated, keeping template context');
@@ -271,7 +290,7 @@ export default function ProgramSelection({
     
     window.addEventListener('openProgramFinder', handleOpenProgramFinder as EventListener);
     return () => window.removeEventListener('openProgramFinder', handleOpenProgramFinder as EventListener);
-  }, [setOverlayMode, setActiveTab]);
+  }, [existingDocumentStructure, setOverlayMode, setActiveTab]);
 
   // Handle program initialization from Reco/myProject flow
   useEffect(() => {
@@ -304,86 +323,28 @@ export default function ProgramSelection({
     const currentOverlayMode = overlayModeRef.current;
     const currentExistingDocumentStructure = existingDocumentStructureRef.current;
     
-    console.log('[handleProgramSelect] Program selected:', program.name, 'overlayMode:', currentOverlayMode);
+    console.log('═══════════════════════════════════════════════════');
+    console.log('[handleProgramSelect] Program selected:', program.name);
+    console.log('[handleProgramSelect] overlayModeRef:', currentOverlayMode);
     console.log('[handleProgramSelect] existingDocumentStructure exists:', !!currentExistingDocumentStructure);
-    console.log('[handleProgramSelect] sections count:', currentExistingDocumentStructure?.sections?.length);
+    console.log('[handleProgramSelect] existingDocumentStructure source:', currentExistingDocumentStructure?.metadata?.source);
+    console.log('[handleProgramSelect] existingDocumentStructure sections:', currentExistingDocumentStructure?.sections?.length);
     
-    // If there's an existing document structure from document upload AND we're not in overlay mode,
-    // automatically switch to overlay mode to merge program requirements with document
-    // But only do this if the existing structure is from document upload (not from another program)
-    if (currentExistingDocumentStructure && 
-        !currentOverlayMode && 
-        currentExistingDocumentStructure.metadata?.source === 'document') {
-      console.log('[handleProgramSelect] Auto-overlay mode - merging requirements with existing document');
-      
-      // Handle async overlay in a separate function
-      const handleOverlay = async () => {
-        try {
-          // Normalize the program
-          const fundingProgram = normalizeFundingProgram(program);
-          console.log('[handleProgramSelect] fundingProgram requirements:', fundingProgram.applicationRequirements?.sections?.length);
-          
-          // Call overlay function
-          const overlayResult = await overlayFundingRequirements(
-            currentExistingDocumentStructure,
-            fundingProgram
-          );
-          const { structure: updatedStructure, addedSections, gapAnalysis } = overlayResult;
-          
-          console.log('[handleProgramSelect] Overlay complete:', {
-            addedSections: addedSections.length,
-            totalSections: updatedStructure.sections.length
-          });
-          
-          // Update store with overlaid structure
-          setDocumentStructure(updatedStructure);
-          setSetupStatus('draft');
-          
-          // Log one section to verify funding requirements are present
-          if (updatedStructure.sections && updatedStructure.sections.length > 0) {
-            const firstSection = updatedStructure.sections[0];
-            console.log('[overlay] First section after overlay:', {
-              id: firstSection.id,
-              title: firstSection.title,
-              requirementsCount: firstSection.requirements?.length || 0,
-              requirements: firstSection.requirements?.slice(0, 3) || [], // Log first 3 requirements
-              hasFundingRequirements: firstSection.requirements?.some((req: any) => req.source?.includes('funding')) || false
-            });
-            
-            // Additional debug: log the section directly
-            console.log(firstSection.title, firstSection.requirements);
-          }
-          
-          // Update program selection
-          selectProgram(fundingProgram);
-          
-          // Update diagnostics
-          setSetupDiagnostics({
-            warnings: [],
-            missingFields: addedSections,
-            confidence: 95
-          });
-          
-          // Close finder
-          handleCloseProgramFinder();
-        } catch (error) {
-          console.error('[handleProgramSelect] Overlay failed:', error);
-          
-          // Fall through to normal processing
-          console.log('[handleProgramSelect] Normal mode - building new structure');
-          processProgramData(program);
-          
-          handleCloseProgramFinder();
-        }
-      };
-      
-      handleOverlay();
-      return;
-    }
+    // Check if we should skip API call and use overlay mode
+    // This happens when:
+    // 1. overlayMode is true AND documentStructure exists (user explicitly opened overlay)
+    // 2. OR documentStructure exists with source='document' AND overlayMode is false (auto-overlay case)
+    const shouldOverlay = (currentOverlayMode && currentExistingDocumentStructure) || 
+                          (!currentOverlayMode && currentExistingDocumentStructure?.metadata?.source === 'document');
     
-    if (currentOverlayMode && currentExistingDocumentStructure) {
-      // OVERLAY MODE: Merge funding requirements into existing document
-      console.log('[handleProgramSelect] Overlay mode - merging requirements');
+    console.log('[handleProgramSelect] shouldOverlay calculation:');
+    console.log('  - (overlayMode && docStructure):', currentOverlayMode && !!currentExistingDocumentStructure);
+    console.log('  - (!overlayMode && source===document):', !currentOverlayMode, currentExistingDocumentStructure?.metadata?.source === 'document');
+    console.log('  - FINAL shouldOverlay:', shouldOverlay);
+    console.log('═══════════════════════════════════════════════════');
+    
+    if (shouldOverlay && currentExistingDocumentStructure) {
+      console.log('[handleProgramSelect] >>> ENTERING OVERLAY MODE - skipping API call <<<');
       
       // Handle async overlay in a separate function
       const handleOverlay = async () => {
@@ -408,21 +369,6 @@ export default function ProgramSelection({
           setDocumentStructure(updatedStructure);
           setSetupStatus('draft');
           
-          // Log one section to verify funding requirements are present
-          if (updatedStructure.sections && updatedStructure.sections.length > 0) {
-            const firstSection = updatedStructure.sections[0];
-            console.log('[overlay] First section after overlay:', {
-              id: firstSection.id,
-              title: firstSection.title,
-              requirementsCount: firstSection.requirements?.length || 0,
-              requirements: firstSection.requirements?.slice(0, 3) || [], // Log first 3 requirements
-              hasFundingRequirements: firstSection.requirements?.some((req: any) => req.source?.includes('funding')) || false
-            });
-            
-            // Additional debug: log the section directly
-            console.log(firstSection.title, firstSection.requirements);
-          }
-          
           // Update program selection
           selectProgram(fundingProgram);
           
@@ -433,16 +379,15 @@ export default function ProgramSelection({
             confidence: 95
           });
           
-          // Clear overlay mode
+          // Clear overlay mode and close finder
+          console.log('[handleProgramSelect] Clearing overlay mode and closing finder');
           setOverlayMode(false);
-          
-          // Close finder
           handleCloseProgramFinder();
         } catch (error) {
           console.error('[handleProgramSelect] Overlay failed:', error);
           
           // Fall through to normal processing
-          console.log('[handleProgramSelect] Normal mode - building new structure');
+          console.log('[handleProgramSelect] Falling back to normal mode');
           processProgramData(program);
           
           handleCloseProgramFinder();
@@ -453,10 +398,11 @@ export default function ProgramSelection({
       return;
     }
     
-    // NORMAL MODE: Build new structure from program
-    console.log('[handleProgramSelect] Normal mode - building new structure');
+    // NORMAL MODE: Build new structure from program (API call is made here)
+    console.log('[handleProgramSelect] >>> NORMAL MODE - API call WILL be made <<<');
     processProgramData(program);
     
+    console.log('[handleProgramSelect] Closing finder');
     handleCloseProgramFinder();
   }, [selectProgram, setDocumentStructure, setSetupStatus, setSetupDiagnostics, handleCloseProgramFinder, processProgramData, overlayModeRef, existingDocumentStructureRef]);
 
@@ -539,9 +485,9 @@ export default function ProgramSelection({
                     <button
                       onClick={() => {
                         setActiveTab('wizard');
-                        // Clear program and document structure when switching tabs
+                        // Only clear program, PRESERVE documentStructure (needed for overlay)
                         selectProgram(null);
-                        setDocumentStructure(null);
+                        // Don't clear documentStructure - it may be from uploaded document for overlay
                       }}
                       className={`inline-flex items-center gap-2 px-4 py-1.5 font-medium rounded-lg transition-colors text-sm ${activeTab === 'wizard' ? 'bg-purple-600 text-white' : 'border border-white/30 text-white hover:border-white/50 hover:bg-white/10'}`}
                     >
@@ -573,7 +519,22 @@ export default function ProgramSelection({
                               const currentOverlayMode = overlayModeRef.current;
                               const currentExistingDocumentStructure = existingDocumentStructureRef.current;
                               
-                              if (currentOverlayMode && currentExistingDocumentStructure) {
+                              console.log('═══════════════════════════════════════════════════');
+                              console.log('[EditorProgramFinder] Program selected:', program.name);
+                              console.log('[EditorProgramFinder] overlayMode:', currentOverlayMode);
+                              console.log('[EditorProgramFinder] existingDocumentStructure exists:', !!currentExistingDocumentStructure);
+                              console.log('[EditorProgramFinder] source:', currentExistingDocumentStructure?.metadata?.source);
+                              
+                              // Check if we should skip API call and use overlay mode
+                              const shouldOverlay = (currentOverlayMode && currentExistingDocumentStructure) || 
+                                                    (!currentOverlayMode && currentExistingDocumentStructure?.metadata?.source === 'document');
+                              
+                              console.log('[EditorProgramFinder] shouldOverlay:', shouldOverlay);
+                              console.log('═══════════════════════════════════════════════════');
+                              
+                              if (shouldOverlay && currentExistingDocumentStructure) {
+                                console.log('[EditorProgramFinder] >>> ENTERING OVERLAY MODE <<<');
+                                
                                 // Overlay mode - handle async operation
                                 const handleOverlay = async () => {
                                   try {
@@ -587,32 +548,22 @@ export default function ProgramSelection({
                                     selectProgram(fundingProgram);
                                     setSetupStatus('draft');
                                     
-                                    // Log one section to verify funding requirements are present
-                                    if (updatedStructure.sections && updatedStructure.sections.length > 0) {
-                                      const firstSection = updatedStructure.sections[0];
-                                      console.log('[overlay] First section after overlay (EditorProgramFinder):', {
-                                        id: firstSection.id,
-                                        title: firstSection.title,
-                                        requirementsCount: firstSection.requirements?.length || 0,
-                                        requirements: firstSection.requirements?.slice(0, 3) || [], // Log first 3 requirements
-                                        hasFundingRequirements: firstSection.requirements?.some((req: any) => req.source?.includes('funding')) || false
-                                      });
-                                      
-                                      // Additional debug: log the section directly
-                                      console.log(firstSection.title, firstSection.requirements);
-                                    }
-                                    
                                     setOverlayMode(false);
                                     setActiveTab('search');
                                   } catch (error) {
                                     console.error('Overlay failed:', error);
+                                    // Fall back to normal processing
+                                    console.log('[EditorProgramFinder] Falling back to normal mode');
+                                    processProgramData(program);
                                   }
                                 };
                                 
                                 handleOverlay();
                                 return;
                               }
-                              // Normal mode
+                              
+                              // Normal mode - API call WILL be made
+                              console.log('[EditorProgramFinder] >>> NORMAL MODE - API call WILL be made <<<');
                               processProgramData(program);
                             }}
                             onClose={() => {

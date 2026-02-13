@@ -277,29 +277,17 @@ export function organizeForUiRendering(
     : uniqueNonAppendices;
   
   // For single document view, sections are already ordered by structureBuilder
-  let finalOrderedMainSections = deduplicatedMainSections;
-  
-  // Force appendices to the end in single document view
+  // Preserve canonical order - do NOT append sharedSections (breaks ordering)
   if (documents.length <= 1) {
-    const nonAppendices = finalOrderedMainSections.filter((section: any) => section.id !== SPECIAL_SECTION_IDS.APPENDICES);
-    const appendices = finalOrderedMainSections.filter((section: any) => section.id === SPECIAL_SECTION_IDS.APPENDICES);
-    
-    // Put non-appendices first, then appendices (ensuring only one copy if there were duplicates)
-    finalOrderedMainSections = [...nonAppendices, ...(appendices.length > 0 ? [appendices[0]] : [])];
-    
-    // For single document flat view, sections are already ordered by structureBuilder
-    // Just combine main sections with shared sections
-    const allSectionsCombined = [...finalOrderedMainSections, ...sharedSections];
-    const allSectionsFlat = allSectionsCombined;
-    
+    // In single document mode, keep all sections in canonical order from structureBuilder
     return {
       mainDocument: {
         id: mainDocument.id,
         name: mainDocument.name,
-        sections: allSectionsFlat,
+        sections: deduplicatedMainSections, // Already in canonical order
       },
-      appendices: [], // No separate appendices in flat view
-      sharedSections: [], // All sections in main document for flat view
+      appendices: [],
+      sharedSections: [],
     };
   }
   
@@ -308,7 +296,7 @@ export function organizeForUiRendering(
     mainDocument: {
       id: mainDocument.id,
       name: mainDocument.name,
-      sections: finalOrderedMainSections,
+      sections: deduplicatedMainSections,
     },
     appendices: finalAppendices,
     sharedSections,

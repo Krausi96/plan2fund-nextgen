@@ -432,115 +432,68 @@ function generateRenderingRules(detection?: DetectionMap): RenderingRules {
 }
 
 // ============================================================================
-// SECTION ORDERING - SINGLE SOURCE OF TRUTH
+// SECTION ORDERING - SOLE canonical ordering function
 // ============================================================================
 
-// Canonical ordering for single document sections (special sections + template sections)
-const SINGLE_DOC_CANONICAL_ORDER = [
-  // Special sections (UI-injected)
-  'metadata',
-  'ancillary',
-  // Template semantic sections (defined order)
-  'executive_summary',
-  'business_model_canvas',
-  'go_to_market_strategy',
-  'vision_and_objectives',
-  'milestones_next_steps',
-  'unit_economics',
-  'project_description',
-  'company_management',
-  'industry_market_competition',
-  'market_analysis',
-  'team',
-  'financial',
-  'performance_financial_planning',
-  'operations',
-  'marketing',
-  'marketing_sales',
-  'risk',
-  'legal',
-  'problem_solution',
-  // Shared special sections (appended at end)
-  'references',
-  'tables_data',
-  'figures_images',
-  'appendices',
-];
-
-// Special section IDs for detection
-const SPECIAL_SECTION_IDS = {
-  METADATA: 'metadata',
-  ANCILLARY: 'ancillary',
-  REFERENCES: 'references',
-  APPENDICES: 'appendices',
-  TABLES_DATA: 'tables_data',
-  FIGURES_IMAGES: 'figures_images',
-} as const;
-
 /**
- * Sort sections for single document with canonical ordering AND memory constraints.
+ * Sort sections for single document.
  * 
- * This is the SOLE location for section ordering in the application.
- * Both canonical order AND memory-aware constraints are applied here.
+ * CANONICAL ORDER:
+ * 1. Special UI sections: metadata (Title Page), ancillary (TOC) - ALWAYS first (by ID)
+ * 2. Template sections: sorted by `order` property (1-99)
+ * 3. End sections: references, tables, figures, appendices (by ID)
+ * 4. Memory constraints: "Introduction to Application Form" etc. - ALWAYS last
  * 
  * @param sections - Sections to sort
- * @returns Sections sorted by canonical order with memory constraints applied
+ * @returns Sections sorted by canonical order
  */
-export function sortSectionsForSingleDocument<T extends { id: string; title?: string }>(
+export function sortSectionsForSingleDocument<T extends { id: string; title?: string; order?: number }>(
   sections: T[]
 ): T[] {
   // Memory constraints for special positioning
   const mustBeLast = ['introduction to application form', 'how to apply', 'submission instructions'];
-  const shouldBeFirst = ['executive summary', 'overview', 'introduction'];
+  
+  // Special UI sections that must always come FIRST (before any template sections)
+  const specialFirstIds = ['metadata', 'ancillary'];
+  
+  // Sections that must come at the END (after all template sections)
+  const endSectionIds = ['references', 'tables_data', 'figures_images', 'appendices'];
 
-  // Build order map from canonical order
-  const orderMap = new Map<string, number>(
-    SINGLE_DOC_CANONICAL_ORDER.map((id, index) => [id, index])
-  );
-
-  // Separate sections into memory-aware groups
-  const first: T[] = [];
-  const middle: T[] = [];
+  // Separate sections into canonical groups
+  const specialFirst: T[] = [];
+  const templateSections: T[] = [];
+  const endSections: T[] = [];
   const last: T[] = [];
 
   for (const section of sections) {
     const titleLower = section.title?.toLowerCase() || '';
     const isMustBeLast = mustBeLast.some(pat => titleLower.includes(pat.toLowerCase()));
-    const shouldBeFirstMatch = shouldBeFirst.some(pat => titleLower.includes(pat.toLowerCase()));
 
-    if (isMustBeLast) {
+    if (specialFirstIds.includes(section.id)) {
+      // Special UI sections always come first (by ID, not order)
+      specialFirst.push(section);
+    } else if (endSectionIds.includes(section.id)) {
+      // End sections always come at the end (by ID, not order)
+      endSections.push(section);
+    } else if (isMustBeLast) {
+      // Memory constraints: "Introduction to Application Form" etc. always last
       last.push(section);
-    } else if (shouldBeFirstMatch) {
-      first.push(section);
     } else {
-      middle.push(section);
+      // Normal template sections - sorted by order property
+      templateSections.push(section);
     }
   }
 
-  // Sort each group by canonical order
-  const sortByCanonical = <S extends { id: string }>(items: S[]): S[] => {
+  // Sort template sections by order property
+  const sortByOrder = <S extends { order?: number; id: string }>(items: S[]): S[] => {
     return [...items].sort((a, b) => {
-      const orderA = orderMap.get(a.id);
-      const orderB = orderMap.get(b.id);
-
-      // Special sections always at end of canonical
-      const isSpecialA = Object.values(SPECIAL_SECTION_IDS).includes(a.id as typeof SPECIAL_SECTION_IDS[keyof typeof SPECIAL_SECTION_IDS]);
-      const isSpecialB = Object.values(SPECIAL_SECTION_IDS).includes(b.id as typeof SPECIAL_SECTION_IDS[keyof typeof SPECIAL_SECTION_IDS]);
-
-      if (isSpecialA && !isSpecialB) return 1;
-      if (!isSpecialA && isSpecialB) return -1;
-
-      // Both in canonical order
-      if (orderA !== undefined && orderB !== undefined) {
-        return orderA - orderB;
-      }
-
-      // Unknown sections - preserve relative order
-      return 0;
+      const orderA = a.order ?? 99;
+      const orderB = b.order ?? 99;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.id.localeCompare(b.id);
     });
   };
 
-  // Combine: first -> middle (sorted) -> last (sorted)
-  // Within middle, special sections go to their canonical positions
-  return [...sortByCanonical(first), ...sortByCanonical(middle), ...sortByCanonical(last)];
+  // CANONICAL ORDER: specialFirst → templateSections → endSections → last
+  return [...specialFirst, ...sortByOrder(templateSections), ...sortByOrder(endSections), ...last];
 }
