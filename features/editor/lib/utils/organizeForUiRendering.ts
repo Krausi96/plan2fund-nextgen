@@ -1,9 +1,16 @@
 /**
  * Organize Document Structure for UI Rendering
  * Utility for organizing document structure for hierarchical UI display
+ * 
+ * NOTE: Section ordering is handled by structureBuilder.sortSectionsForSingleDocument()
+ * This module ONLY handles UI-specific transformations (placeholder injection, hierarchical grouping)
  */
 
 import type { DocumentStructure } from '@/platform/core/types';
+import { sortSectionsForSingleDocument } from '@/platform/generation/structure/structureBuilder';
+
+// Re-export for backward compatibility
+export { sortSectionsForSingleDocument } from '@/platform/generation/structure/structureBuilder';
 
 // Special section IDs
 const SPECIAL_SECTION_IDS = {
@@ -14,24 +21,6 @@ const SPECIAL_SECTION_IDS = {
   TABLES_DATA: 'tables_data',
   FIGURES_IMAGES: 'figures_images',
 } as const;
-
-// Canonical ordering for single document
-const SINGLE_DOC_CANONICAL_ORDER = [
-  SPECIAL_SECTION_IDS.METADATA,
-  SPECIAL_SECTION_IDS.ANCILLARY,
-  'executive_summary',
-  'problem_solution',
-  'market_analysis',
-  'team',
-  'financial',
-  'operations',
-  'marketing',
-  'risk',
-  SPECIAL_SECTION_IDS.REFERENCES,
-  SPECIAL_SECTION_IDS.TABLES_DATA,
-  SPECIAL_SECTION_IDS.FIGURES_IMAGES,
-  SPECIAL_SECTION_IDS.APPENDICES,
-];
 
 /**
  * Hierarchical document view for UI rendering
@@ -49,43 +38,6 @@ export interface HierarchicalDocumentView {
     sections: unknown[];
   }>;
   sharedSections: unknown[];
-}
-
-/**
- * Sort sections according to canonical order for single document
- */
-export function sortSectionsForSingleDocument<T extends { id: string }>(
-  sections: T[]
-): T[] {
-  const orderMap = new Map<string, number>(
-    SINGLE_DOC_CANONICAL_ORDER.map((id, index) => [id, index])
-  );
-
-  return [...sections].sort((a, b) => {
-    const orderA = orderMap.get(a.id);
-    const orderB = orderMap.get(b.id);
-
-    // Title page always comes first
-    if (a.id === SPECIAL_SECTION_IDS.METADATA && b.id !== SPECIAL_SECTION_IDS.METADATA) return -1;
-    if (b.id === SPECIAL_SECTION_IDS.METADATA && a.id !== SPECIAL_SECTION_IDS.METADATA) return 1;
-
-    // TOC comes second
-    if (a.id === SPECIAL_SECTION_IDS.ANCILLARY && b.id !== SPECIAL_SECTION_IDS.ANCILLARY) return -1;
-    if (b.id === SPECIAL_SECTION_IDS.ANCILLARY && a.id !== SPECIAL_SECTION_IDS.ANCILLARY) return 1;
-
-    if (orderA !== undefined && orderB !== undefined) {
-      return orderA - orderB;
-    }
-
-    // Special sections go to end
-    const isSpecialA = Object.values(SPECIAL_SECTION_IDS).includes(a.id as typeof SPECIAL_SECTION_IDS[keyof typeof SPECIAL_SECTION_IDS]);
-    const isSpecialB = Object.values(SPECIAL_SECTION_IDS).includes(b.id as typeof SPECIAL_SECTION_IDS[keyof typeof SPECIAL_SECTION_IDS]);
-
-    if (isSpecialA && !isSpecialB) return 1;
-    if (!isSpecialA && isSpecialB) return -1;
-
-    return 0;
-  });
 }
 
 /**
@@ -153,11 +105,11 @@ export function organizeForUiRendering(
   }
 
   // Organize main document sections: combine special sections + document-specific sections
-  const mainDocumentSections = [
+  // NOTE: Sections are already sorted by structureBuilder.sortSectionsForSingleDocument()
+  const organizedMainSections = [
     ...specialSectionsInMain,
     ...(sectionsByDocument[mainDocumentId] || [])
   ];
-  let organizedMainSections = sortSectionsForSingleDocument(mainDocumentSections as Array<{ id: string }>);
   
 
   
@@ -324,10 +276,8 @@ export function organizeForUiRendering(
     ? [...uniqueNonAppendices, uniqueAppendicesSection]
     : uniqueNonAppendices;
   
-  // For single document view, ensure canonical ordering is preserved and appendices go to the end
-  let finalOrderedMainSections = documents.length <= 1 
-    ? sortSectionsForSingleDocument(deduplicatedMainSections)
-    : deduplicatedMainSections;
+  // For single document view, sections are already ordered by structureBuilder
+  let finalOrderedMainSections = deduplicatedMainSections;
   
   // Force appendices to the end in single document view
   if (documents.length <= 1) {
@@ -337,11 +287,10 @@ export function organizeForUiRendering(
     // Put non-appendices first, then appendices (ensuring only one copy if there were duplicates)
     finalOrderedMainSections = [...nonAppendices, ...(appendices.length > 0 ? [appendices[0]] : [])];
     
-    // For single document flat view, combine all sections and apply canonical ordering to ensure proper sequence
+    // For single document flat view, sections are already ordered by structureBuilder
+    // Just combine main sections with shared sections
     const allSectionsCombined = [...finalOrderedMainSections, ...sharedSections];
-    
-    // Apply canonical sorting to the full set of sections to ensure proper order including appendices at the end
-    const allSectionsFlat = sortSectionsForSingleDocument(allSectionsCombined);
+    const allSectionsFlat = allSectionsCombined;
     
     return {
       mainDocument: {

@@ -348,7 +348,11 @@ export async function generateDocumentStructureFromProfile(profile: any): Promis
   // ENRICH SECTION REQUIREMENTS (if enabled)
   // ============================================================================
   
-  if (ENABLE_REQUIREMENT_ENRICHMENT) {
+  // Skip enrichment for template-catalog programs - they come pre-curated
+  const isTemplateCatalog = profile._source === 'template-catalog';
+  const shouldEnrich = ENABLE_REQUIREMENT_ENRICHMENT && !isTemplateCatalog;
+  
+  if (shouldEnrich) {
     console.log('[enrichRequirements] Starting requirement enrichment for program:', profile.name);
     
     const enrichedRequirements = await enrichAllSectionRequirementsAtOnce(sections, profile);
@@ -393,6 +397,8 @@ export async function generateDocumentStructureFromProfile(profile: any): Promis
         requirements: formattedReqs
       };
     });
+  } else if (isTemplateCatalog) {
+    console.log(`[enrichRequirements] Skipping enrichment - ${profile.name} is template-catalog (pre-curated)`);
   }
   
   // After initial assignment, handle empty documents without disrupting semantic assignments

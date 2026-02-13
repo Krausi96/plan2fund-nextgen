@@ -103,6 +103,7 @@ export function ProgramOption({
       ...programData,
       id: normalized,  // Use the user-provided ID
       name: `Program: ${DOMPurify.sanitize(normalized)}`,  // Use the user-provided name
+      _source: 'template-catalog' // Preserve template-catalog flag from original
     };
     
     // Save program selection using shared persistence helper

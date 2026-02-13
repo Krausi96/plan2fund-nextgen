@@ -131,28 +131,6 @@ export const SPECIAL_SECTIONS = {
   }
 } as const;
 
-// Canonical order for single document
-export const SINGLE_DOC_CANONICAL_ORDER = [
-  SPECIAL_SECTION_IDS.METADATA,
-  SPECIAL_SECTION_IDS.ANCILLARY,
-  // Regular sections would go here
-  SPECIAL_SECTION_IDS.REFERENCES,
-  SPECIAL_SECTION_IDS.TABLES_DATA,
-  SPECIAL_SECTION_IDS.FIGURES_IMAGES,
-  SPECIAL_SECTION_IDS.APPENDICES
-];
-
-// Canonical order for multi-document
-export const MULTI_DOC_CANONICAL_ORDER = [
-  SPECIAL_SECTION_IDS.METADATA,
-  SPECIAL_SECTION_IDS.ANCILLARY,
-  // Regular sections would go here in their documents
-  SPECIAL_SECTION_IDS.APPENDICES, // Appendices section comes before shared sections in multi-doc
-  SPECIAL_SECTION_IDS.REFERENCES,
-  SPECIAL_SECTION_IDS.TABLES_DATA,
-  SPECIAL_SECTION_IDS.FIGURES_IMAGES
-];
-
 // Backwards compatibility exports (preserve existing constants)
 export const METADATA_SECTION_ID = SPECIAL_SECTION_IDS.METADATA;
 export const ANCILLARY_SECTION_ID = SPECIAL_SECTION_IDS.ANCILLARY;

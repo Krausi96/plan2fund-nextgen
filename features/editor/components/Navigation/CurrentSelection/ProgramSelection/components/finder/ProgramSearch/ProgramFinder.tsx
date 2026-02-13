@@ -75,7 +75,8 @@ const loadProgramCatalog = async (): Promise<Program[]> => {
         co_financing_proof_required: false,
         own_funds_proof_required: false
       }
-    }
+    },
+    _source: 'template-catalog' // Mark as pre-curated template program
   }));
 };
 

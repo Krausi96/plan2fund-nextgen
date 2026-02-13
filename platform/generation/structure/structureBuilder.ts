@@ -63,6 +63,65 @@ export function buildDocumentStructure(
 }
 
 /**
+ * Build DocumentStructure from template sections (MASTER_SECTIONS).
+ * 
+ * This is the SOLE way to create a document structure from templates.
+ * Ensures canonical ordering and memory constraints are applied.
+ * 
+ * @param templateSections - Sections from MASTER_SECTIONS
+ * @param productType - Product type ('submission' | 'strategy')
+ * @param documentName - Name for the main document
+ * @returns DocumentStructure with canonical ordering applied
+ */
+export function buildFromTemplate(
+  templateSections: Array<{ id: string; title: string; required?: boolean; [key: string]: any }>,
+  productType: 'submission' | 'strategy',
+  documentName: string
+): DocumentStructure {
+  // Convert template sections to DocumentStructure sections
+  const sections = templateSections.map((template) => ({
+    id: template.id,
+    documentId: 'main_document',
+    title: template.title,
+    type: 'normal' as const,
+    required: template.required ?? true,
+    programCritical: false,
+    aiGuidance: template.aiPrompt ? [template.aiPrompt] : [`Write detailed content for ${template.title}`],
+    checklist: template.checklist || [`Address ${template.title} requirements`],
+    rawSubsections: template.rawSubsections,
+  }));
+
+  const structure: DocumentStructure = {
+    documents: [
+      {
+        id: 'main_document',
+        name: documentName,
+        purpose: productType === 'submission' ? 'Business plan document' : 'Strategy document',
+        required: true,
+        type: 'template',
+      },
+    ],
+    sections,
+    validationRules: [],
+    aiGuidance: [],
+    renderingRules: {},
+    conflicts: [],
+    warnings: [{ id: 'template-only', message: 'Standard template - no program requirements applied' }],
+    confidenceScore: 70,
+    metadata: {
+      source: 'template',
+      generatedAt: new Date().toISOString(),
+      version: '1.0',
+    },
+  };
+
+  // Apply unified memory-aware section ordering (includes canonical order)
+  applySectionOrdering(structure);
+
+  return structure;
+}
+
+/**
  * Build from FundingProgram (program selection flow)
  */
 function buildFromProgram(
@@ -267,37 +326,18 @@ function addOrUpdateSpecialSection(
  * 
  * Applies consistent ordering policy for both sources
  * MEMORY CONSTRAINT: "Introduction to Application Form" must be last
+ * 
+ * Delegates to sortSectionsForSingleDocument - the SOLE ordering function
  */
 function applySectionOrdering(structure: DocumentStructure): void {
-  // Memory constraint: specific sections must be in specific positions
-  const mustBeLast = ['introduction to application form', 'how to apply', 'submission instructions'];
-  const shouldBeFirst = ['executive summary', 'overview', 'introduction'];
-
   const mainDocSections = structure.sections.filter(s => s.documentId === structure.documents[0]?.id);
   const otherSections = structure.sections.filter(s => s.documentId !== structure.documents[0]?.id);
 
-  // Partition: first, middle, last
-  const first: Section[] = [];
-  const middle: Section[] = [];
-  const last: Section[] = [];
+  // Apply unified ordering to main doc sections
+  const orderedMainSections = sortSectionsForSingleDocument(mainDocSections);
 
-  for (const section of mainDocSections) {
-    const titleLower = section.title.toLowerCase();
-    const isMustBeLast = mustBeLast.some(pat => titleLower.includes(pat.toLowerCase()));
-    const shouldBeFirstMatch = shouldBeFirst.some(pat => titleLower.includes(pat.toLowerCase()));
-
-    if (isMustBeLast) {
-      last.push(section);
-    } else if (shouldBeFirstMatch) {
-      first.push(section);
-    } else {
-      middle.push(section);
-    }
-  }
-
-  // Reconstruct sections array with ordered main doc sections
-  const reordered = [...first, ...middle, ...last, ...otherSections];
-  structure.sections = reordered;
+  // Other sections (appendix docs) follow main doc sections
+  structure.sections = [...orderedMainSections, ...otherSections];
 }
 
 /**
@@ -389,4 +429,118 @@ function generateRenderingRules(detection?: DetectionMap): RenderingRules {
       maxCount: 10,
     },
   };
+}
+
+// ============================================================================
+// SECTION ORDERING - SINGLE SOURCE OF TRUTH
+// ============================================================================
+
+// Canonical ordering for single document sections (special sections + template sections)
+const SINGLE_DOC_CANONICAL_ORDER = [
+  // Special sections (UI-injected)
+  'metadata',
+  'ancillary',
+  // Template semantic sections (defined order)
+  'executive_summary',
+  'business_model_canvas',
+  'go_to_market_strategy',
+  'vision_and_objectives',
+  'milestones_next_steps',
+  'unit_economics',
+  'project_description',
+  'company_management',
+  'industry_market_competition',
+  'market_analysis',
+  'team',
+  'financial',
+  'performance_financial_planning',
+  'operations',
+  'marketing',
+  'marketing_sales',
+  'risk',
+  'legal',
+  'problem_solution',
+  // Shared special sections (appended at end)
+  'references',
+  'tables_data',
+  'figures_images',
+  'appendices',
+];
+
+// Special section IDs for detection
+const SPECIAL_SECTION_IDS = {
+  METADATA: 'metadata',
+  ANCILLARY: 'ancillary',
+  REFERENCES: 'references',
+  APPENDICES: 'appendices',
+  TABLES_DATA: 'tables_data',
+  FIGURES_IMAGES: 'figures_images',
+} as const;
+
+/**
+ * Sort sections for single document with canonical ordering AND memory constraints.
+ * 
+ * This is the SOLE location for section ordering in the application.
+ * Both canonical order AND memory-aware constraints are applied here.
+ * 
+ * @param sections - Sections to sort
+ * @returns Sections sorted by canonical order with memory constraints applied
+ */
+export function sortSectionsForSingleDocument<T extends { id: string; title?: string }>(
+  sections: T[]
+): T[] {
+  // Memory constraints for special positioning
+  const mustBeLast = ['introduction to application form', 'how to apply', 'submission instructions'];
+  const shouldBeFirst = ['executive summary', 'overview', 'introduction'];
+
+  // Build order map from canonical order
+  const orderMap = new Map<string, number>(
+    SINGLE_DOC_CANONICAL_ORDER.map((id, index) => [id, index])
+  );
+
+  // Separate sections into memory-aware groups
+  const first: T[] = [];
+  const middle: T[] = [];
+  const last: T[] = [];
+
+  for (const section of sections) {
+    const titleLower = section.title?.toLowerCase() || '';
+    const isMustBeLast = mustBeLast.some(pat => titleLower.includes(pat.toLowerCase()));
+    const shouldBeFirstMatch = shouldBeFirst.some(pat => titleLower.includes(pat.toLowerCase()));
+
+    if (isMustBeLast) {
+      last.push(section);
+    } else if (shouldBeFirstMatch) {
+      first.push(section);
+    } else {
+      middle.push(section);
+    }
+  }
+
+  // Sort each group by canonical order
+  const sortByCanonical = <S extends { id: string }>(items: S[]): S[] => {
+    return [...items].sort((a, b) => {
+      const orderA = orderMap.get(a.id);
+      const orderB = orderMap.get(b.id);
+
+      // Special sections always at end of canonical
+      const isSpecialA = Object.values(SPECIAL_SECTION_IDS).includes(a.id as typeof SPECIAL_SECTION_IDS[keyof typeof SPECIAL_SECTION_IDS]);
+      const isSpecialB = Object.values(SPECIAL_SECTION_IDS).includes(b.id as typeof SPECIAL_SECTION_IDS[keyof typeof SPECIAL_SECTION_IDS]);
+
+      if (isSpecialA && !isSpecialB) return 1;
+      if (!isSpecialA && isSpecialB) return -1;
+
+      // Both in canonical order
+      if (orderA !== undefined && orderB !== undefined) {
+        return orderA - orderB;
+      }
+
+      // Unknown sections - preserve relative order
+      return 0;
+    });
+  };
+
+  // Combine: first -> middle (sorted) -> last (sorted)
+  // Within middle, special sections go to their canonical positions
+  return [...sortByCanonical(first), ...sortByCanonical(middle), ...sortByCanonical(last)];
 }

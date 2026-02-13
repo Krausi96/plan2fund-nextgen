@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
-import { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/sections/enhancement/sectionEnhancement';
+import { buildFromTemplate } from '@/platform/generation/structure/structureBuilder';
 
 
 interface FreeOptionProps {
@@ -34,72 +34,33 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
       const structureMap = {
         'business-plan': {
           productType: 'submission' as const,
+          documentName: t('editor.desktop.program.document.businessPlan'),
         },
         'strategy': {
-          productType: 'strategy' as const
+          productType: 'strategy' as const,
+          documentName: t('editor.desktop.program.document.strategyDocument'),
         }
       };
 
       const structureConfig = structureMap[structure as keyof typeof structureMap] || structureMap['business-plan'];
       
-      // Create document structure using actual template data
-      const baseStructure: any = {
-        structureId: `standard-${structure}-${Date.now()}`,
-        version: '1.0',
-        source: 'standard' as const,
-        // Populate with actual template documents and sections
-        documents: [
-          {
-            id: 'main_document',
-            name: structureConfig.productType === 'submission' 
-              ? t('editor.desktop.program.document.businessPlan')
-              : t('editor.desktop.program.document.strategyDocument'),
-            purpose: 'Main document for the business plan',
-            required: true,
-            templateId: 'default_template'
-          }
-        ],
-        // Populate with actual template sections - CONVERT to document structure format
-        sections: MASTER_SECTIONS[structureConfig.productType]?.map((templateSection: any) => ({
-          id: templateSection.id,
-          documentId: 'main_document',
-          title: templateSection.title || templateSection.name || '',
-          type: (templateSection.required ? 'required' : 'optional') as 'required' | 'optional' | 'conditional',
-          required: templateSection.required !== false,
-          programCritical: false,
-          aiPrompt: templateSection.aiPrompt || `Write detailed content for ${templateSection.title || templateSection.name}`,
-          checklist: templateSection.checklist || [`Address ${templateSection.title || templateSection.name} requirements`],
-          // Include template-specific properties
-          rawSubsections: templateSection.rawSubsections
-        })) || [],
-        requirements: [],
-        validationRules: [],
-        aiGuidance: [],
-        renderingRules: {},
-        conflicts: [],
-        warnings: ['Standard template - no program requirements applied'],
-        confidenceScore: 70,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: 'standard-template'
-      };
-      
-      // ENHANCE with special sections (Title Page, TOC, References, Appendices)
-      const documentStructure = enhanceWithSpecialSections(baseStructure, t);
-      
+      // Build document structure through builder - ensures canonical ordering
+      const templateSections = MASTER_SECTIONS[structureConfig.productType] || [];
+      const documentStructure = buildFromTemplate(
+        templateSections,
+        structureConfig.productType,
+        structureConfig.documentName
+      );
+
       // Update store with standard structure
       setDocumentStructure(documentStructure);
       setSetupStatus('draft');
       
-      // Infer and store product type for Step 3 instantiation - SYNCED WITH MASTER_TEMPLATES
-      const inferredType = structureConfig.productType;
-      setInferredProductType(inferredType);
-      
+      // Store product type for Step 3 instantiation
+      setInferredProductType(structureConfig.productType);
     };
 
     createStandardBlueprint();
-    
-
   };
 
 

@@ -4,7 +4,6 @@ import {
   getSectionTitle,
 } from '@/features/editor/lib';
 import { AddSectionForm, TreeNodeRenderer } from './components';
-import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/organizeForUiRendering';
 import type { TreeNode } from '@/features/editor/lib/types/ui/navigation-types';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 
@@ -87,10 +86,9 @@ export default function TreeNavigator() {
     removeCustomDocument: removeCustomSection, // map to same action
   };
   
-  // Get sections from document structure and sort them
+  // Get sections from document structure (already sorted by structureBuilder)
   const sections = React.useMemo(() => {
-    const rawSections = documentStructure?.sections || [];
-    return sortSectionsForSingleDocument(rawSections);
+    return documentStructure?.sections || [];
   }, [documentStructure]);
   
   // State for tree expansion/collapse

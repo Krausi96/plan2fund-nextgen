@@ -3,7 +3,6 @@ import { useProject } from '@/platform/core/context/hooks/useProject';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { getSectionIcon } from '@/features/editor/lib';
-import { sortSectionsForSingleDocument } from '@/features/editor/lib/utils/organizeForUiRendering';
 
 interface StandardStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;
@@ -32,22 +31,19 @@ export function StandardStructurePanel({ selectedOption, onClearStructure, showH
   };
 
   const getRequiredSections = () => {
-    // When document structure exists and has sections (like from upload/upgrade), use those with canonical sorting
-    // This ensures real document data is shown instead of template data for upgrade option
+    // When document structure exists (from upload/program/template), use those
+    // Sections are already sorted by structureBuilder
     if (documentStructure?.sections && documentStructure.sections.length > 0) {
-      return sortSectionsForSingleDocument(documentStructure.sections);
+      return documentStructure.sections;
     }
     
-    // Otherwise, fall back to template sections based on inferred product type
+    // Fall back to template sections (not pre-sorted - this is display-only fallback)
     const productType = inferredProductType;
-    let sections: any[] = [];
-    
     if (productType && MASTER_SECTIONS[productType]) {
-      sections = MASTER_SECTIONS[productType];
+      return MASTER_SECTIONS[productType];
     }
     
-    // Sort sections according to canonical order
-    return sortSectionsForSingleDocument(sections);
+    return [];
   };
 
   // Get special sections from document structure if available
@@ -73,8 +69,9 @@ export function StandardStructurePanel({ selectedOption, onClearStructure, showH
                                 selectedOption !== 'free';
 
   // Show structure data when free option is selected with standard/upgrade structure OR when any document structure exists for other options
+  const docSource = documentStructure?.metadata?.source;
   const hasStructureData = (selectedOption === 'free' && 
-                          !!documentStructure?.source && (documentStructure.source === 'standard' || documentStructure.source === 'upgrade') &&
+                          !!docSource && (docSource === 'standard' || docSource === 'upgrade' || docSource === 'template') &&
                           (documentStructure?.sections?.length > 0 || documentStructure?.documents?.length > 0))
                         || 
                           (selectedOption !== 'free' && documentStructure && 
