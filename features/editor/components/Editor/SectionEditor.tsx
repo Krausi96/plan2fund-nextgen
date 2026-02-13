@@ -42,11 +42,12 @@ export default function SectionEditor({ sectionId, onClose }: SectionEditorProps
   const selectedProgram = useProject(state => state.selectedProgram);
   const updateSection = useProject(state => state.updateSection);
   
-  // Get current section from documentStructure
+  // Get current section from plan (runtime source of truth)
+  const plan = useProject(state => state.planDocument);
   const section = React.useMemo(() => {
-    if (!sectionId || !documentStructure?.sections) return null;
-    return documentStructure.sections.find((s: any) => s.id === sectionId) || null;
-  }, [sectionId, documentStructure]);
+    if (!sectionId || !plan?.sections) return null;
+    return plan.sections.find((s: any) => s.id === sectionId) || null;
+  }, [sectionId, plan]);
   
   // Escape key handler
   useEffect(() => {
@@ -158,6 +159,10 @@ What would you like to do?`;
       // Detect context from user message
       const context = detectAIContext(input);
       
+      // Extract requirements and aiPrompt from plan section
+      const sectionRequirements = section?.fields?.blueprintRequirements || [];
+      const sectionAiPrompt = section?.fields?.aiPrompt || null;
+      
       // Generate AI response
       const response = await generateSectionContent({
         sectionTitle: section ? getSectionTitle(section.id, section.title, t) : '',
@@ -171,6 +176,8 @@ What would you like to do?`;
         assistantContext: context,
         language: (editorMeta?.language as "en" | "de" | undefined) || 'en',
         documentType: 'business-plan',
+        requirements: sectionRequirements,
+        aiPrompt: sectionAiPrompt,
       });
       
       const aiMessage: ConversationMessage = {

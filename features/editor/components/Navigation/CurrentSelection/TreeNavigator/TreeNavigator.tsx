@@ -20,6 +20,7 @@ export default function TreeNavigator() {
     expandedSectionId,
     expandedDocumentId,
     documentStructure,
+    planDocument,
     activeSectionId = null,
     showAddSection = false,
     editingSection = null,
@@ -45,6 +46,7 @@ export default function TreeNavigator() {
     expandedSectionId: state.expandedSectionId,
     expandedDocumentId: state.expandedDocumentId,
     documentStructure: state.documentStructure,
+    planDocument: state.planDocument,
     activeSectionId: state.activeSectionId,
     showAddSection: state.showAddSection,
     editingSection: state.editingSection,
@@ -86,10 +88,10 @@ export default function TreeNavigator() {
     removeCustomDocument: removeCustomSection, // map to same action
   };
   
-  // Get sections from document structure (already sorted by structureBuilder)
+  // Get sections from plan (runtime source of truth) - not documentStructure
   const sections = React.useMemo(() => {
-    return documentStructure?.sections || [];
-  }, [documentStructure]);
+    return planDocument?.sections || [];
+  }, [planDocument]);
   
   // State for tree expansion/collapse
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());

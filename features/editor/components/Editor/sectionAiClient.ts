@@ -132,11 +132,12 @@ export async function generateSectionContent({
   requirements
 }: SectionAiRequest): Promise<SectionAiResponse> {
   
-  // TEMP CHECK 2: Verify writer receives requirements from OPTION A structure
+  // VERIFY: SectionEditor now passes requirements from Plan.sections
   console.log('[WRITER INPUT]', {
     section: sectionTitle,
     requirementsCount: requirements?.length || 0,
     aiPromptExists: !!aiPrompt,
+    source: 'PLAN_RUNTIME', // CONFIRM: Reading from Plan, not DocumentStructure
     status: (requirements?.length || 0) > 0 && aiPrompt ? 'OK' : 'MISSING'
   });
   
