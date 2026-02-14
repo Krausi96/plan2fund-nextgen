@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 import { Wand2 } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { EnhancedProgramResult } from '@/platform/core/types/program';
+import type { Program } from '@/platform/core/types/program';
 import { ProgramFinderProps } from '@/platform/core/types';
 import QuestionRenderer from './QuestionRenderer';
 import { 
@@ -32,7 +32,7 @@ export default function ProgramFinder({
   const { generatePrograms } = useProgramGeneration();
   
   // Component state
-  const [results, setResults] = useState<EnhancedProgramResult[]>([]);
+  const [results, setResults] = useState<Program[]>([]);
   const setEmptyResults = () => setResults([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false);
@@ -79,7 +79,7 @@ export default function ProgramFinder({
     [filteredQuestions]
   );
 
-  const persistSelectedProgram = useCallback((program: EnhancedProgramResult) => {
+  const persistSelectedProgram = useCallback((program: Program) => {
     if (typeof window === 'undefined') return;
     const programId = program.id || `program_${Date.now()}`;
     try {

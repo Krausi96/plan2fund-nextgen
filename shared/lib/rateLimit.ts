@@ -138,10 +138,7 @@ const recommendLimiter = new RateLimitStore({
   keyPrefix: 'recommend'
 });
 
-const blueprintLimiter = new RateLimitStore({
-  ...RATE_LIMITS.BLUEPRINT,
-  keyPrefix: 'blueprint'
-});
+// DEPRECATED: blueprintLimiter removed - use documentStructureLimiter instead
 
 const llmLimiter = new RateLimitStore({
   ...RATE_LIMITS.LLM,
@@ -155,12 +152,7 @@ export function checkRecommendRateLimit(req: NextApiRequest) {
   return recommendLimiter.check(req);
 }
 
-/**
- * Check rate limit for blueprint endpoint
- */
-export function checkBlueprintRateLimit(req: NextApiRequest) {
-  return blueprintLimiter.check(req);
-}
+// DEPRECATED: checkBlueprintRateLimit removed - use checkDocumentStructureRateLimit instead
 
 /**
  * Check general LLM rate limit

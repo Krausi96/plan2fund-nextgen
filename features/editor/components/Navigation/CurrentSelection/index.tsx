@@ -27,7 +27,7 @@ function CurrentSelection({}: CurrentSelectionProps) {
   const selectedProgram = useProject((state) => state.selectedProgram);
   const setupWizardIsComplete = useProject((state) => state.setupWizardIsComplete);
   const isConfiguratorOpen = useProject((state) => state.isConfiguratorOpen);
-  const plan = useProject((state) => state.plan);
+  const plan = useProject((state) => state.planDocument);
   
   // Actions
   const setIsConfiguratorOpen = useProject((state) => state.setIsConfiguratorOpen);
@@ -265,13 +265,13 @@ function CurrentSelection({}: CurrentSelectionProps) {
           <span className="truncate text-sm overflow-hidden whitespace-nowrap block w-full" title={
             docSource === 'template' 
               ? (t('editor.desktop.selection.customUpload' as any) || 'Custom Upload')
-              : docSource === 'document'
+              : docSource === 'upload'
               ? (t('editor.desktop.program.panels.standardStructure' as any) || 'Standard Structure')
               : programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'
           }>
             {docSource === 'template' 
               ? (t('editor.desktop.selection.customUpload' as any) || 'Custom Upload')
-              : docSource === 'document'
+              : docSource === 'upload'
               ? (t('editor.desktop.program.panels.standardStructure' as any) || 'Standard Structure')
               : programSummary?.name || t('editor.desktop.selection.noProgram' as any) || 'Kein Programm ausgewählt'}
           </span>

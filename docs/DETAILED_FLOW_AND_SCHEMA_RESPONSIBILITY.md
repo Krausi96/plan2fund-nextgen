@@ -1,4 +1,6 @@
-# Exact Flow Explanation: recommend.ts ↔ customLLM ↔ blueprintGenerator
+# 🔄 DETAILED FLOW AND SCHEMA RESPONSIBILITY
+
+> **See also:** [CORE_OBJECTS_AND_DETAILED_FLOW.md](./CORE_OBJECTS_AND_DETAILED_FLOW.md) for complete technical implementation details
 
 ## Complete Data Flow with Schema Responsibilities
 
@@ -225,45 +227,45 @@ const handleProgramSelect = async (selectedProgram) => {
 - **SectionEditor.tsx**: Provides AI assistance tailored to program requirements
 - **TreeNavigator.tsx**: Displays section hierarchy for navigation
 
-2. **blueprint.ts processes the request:**
+2. **documentStructure.ts processes the request:**
 ```typescript
-// In pages/api/programs/blueprint.ts:
+// In pages/api/documents/structure.ts:
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { fundingProgram, userContext } = req.body;
   
-  // Call blueprint generator service
-  const blueprint = await generateBlueprint(fundingProgram, userContext);
+  // Call document structure generator service
+  const documentStructure = await buildDocumentStructure({ fundingProgram });
   
-  return res.status(200).json({ blueprint });
+  return res.status(200).json({ documentStructure });
 }
 ```
 
-3. **blueprintGenerator.ts does the heavy lifting:**
+3. **structureBuilder.ts does the heavy lifting:**
 ```typescript
-// In features/ai/services/blueprintGenerator.ts:
-export async function generateBlueprint(
-  fundingProgram: any,
-  userContext: any
-): Promise<any> {
-  // Convert questionnaire to standardized format
-  const programProfile = convertQuestionnaireToProgramProfile(userContext);
-  
-  // Build detailed prompt for requirements generation
-  const prompt = buildBlueprintPrompt(fundingProgram, programProfile);
-  
-  // Call LLM through customLLM (indirectly)
-  const response = await callCustomLLM({
-    messages: [
-      { role: 'system', content: 'Generate detailed application requirements...' },
-      { role: 'user', content: prompt }
-    ],
-    responseFormat: 'json',
-    temperature: 0.3,
-    maxTokens: 4000
-  });
-  
-  // Parse and validate response
-  return parseBlueprintResponse(response.output);
+// In platform/generation/structure/structureBuilder.ts:
+export async function buildDocumentStructure(
+  params: {
+    projectProfile?: ProjectProfile;
+    fundingProgram?: FundingProgram;
+    parsedDocument?: ParsedDocumentData;
+    templateSections?: Array<{ id: string; title: string; required?: boolean; [key: string]: any }>;
+    productType?: 'submission' | 'strategy';
+    documentName?: string;
+    existingStructure?: DocumentStructure;
+  }
+): Promise<DocumentStructure> {
+  // Route to appropriate builder based on provided parameters
+  if (params.existingStructure && params.fundingProgram) {
+    return await buildOverlay(params.existingStructure, params.fundingProgram);
+  } else if (params.templateSections && params.productType && params.documentName) {
+    return buildFromTemplate(params.templateSections, params.productType, params.documentName);
+  } else if (params.fundingProgram) {
+    return await buildFromProgram(params.fundingProgram);
+  } else if (params.parsedDocument) {
+    return buildFromDocument(params.parsedDocument);
+  } else {
+    throw new Error('Invalid parameters');
+  }
 }
 ```
 

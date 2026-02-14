@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { MASTER_SECTIONS } from '@/features/editor/lib/templates';
-import { buildFromTemplate } from '@/platform/generation/structure/structureBuilder';
+import { buildDocumentStructure } from '@/platform/generation';
 
 
 interface FreeOptionProps {
@@ -29,7 +29,7 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
     onStructureSelected?.(structure);
     
     // Create standard blueprint when structure is selected
-    const createStandardBlueprint = () => {
+    const createStandardBlueprint = async () => {
       // Map structure types to document templates - CONNECTED TO MASTER TEMPLATES
       const structureMap = {
         'business-plan': {
@@ -44,13 +44,13 @@ export function FreeOption({ onStructureSelected, onNavigateToBlueprint }: FreeO
 
       const structureConfig = structureMap[structure as keyof typeof structureMap] || structureMap['business-plan'];
       
-      // Build document structure through builder - ensures canonical ordering
+      // Build document structure through unified builder - ensures canonical ordering
       const templateSections = MASTER_SECTIONS[structureConfig.productType] || [];
-      const documentStructure = buildFromTemplate(
+      const documentStructure = await buildDocumentStructure({
         templateSections,
-        structureConfig.productType,
-        structureConfig.documentName
-      );
+        productType: structureConfig.productType,
+        documentName: structureConfig.documentName
+      });
 
       // Update store with standard structure
       setDocumentStructure(documentStructure);

@@ -6,7 +6,7 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import { hasFundingOverlay, getFundingOverlayInfo } from '@/platform/analysis';
 import { Button } from '@/shared/components/ui/button';
 import { normalizeFundingProgram } from '@/features/editor/lib';
-import { overlayFundingRequirements } from '@/platform/analysis';
+// overlayFundingRequirements removed - use buildDocumentStructure instead
 
 interface TemplateStructurePanelProps {
   selectedOption?: 'program' | 'template' | 'free' | null;

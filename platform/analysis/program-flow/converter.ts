@@ -3,8 +3,9 @@ import type { ProgramSummary } from '@/platform/core/types';
 /**
  * Create minimal ProgramSummary from program data (backward compatibility)
  * @deprecated Use normalizeFundingProgram() instead for new code
+ * DEPRECATED: Formerly known as generateProgramBlueprint
  */
-export function generateProgramBlueprint(programData: any): any {
+export function generateProgramSummary(programData: any): any {
   // Simplified version for backward compatibility
   const mockSummary: ProgramSummary = {
     id: programData.id || `program_${Date.now()}`,
@@ -16,7 +17,7 @@ export function generateProgramBlueprint(programData: any): any {
         ? `€${programData.funding_amount_min.toLocaleString()} - €${programData.funding_amount_max.toLocaleString()}`
         : programData.amountRange),
 
-    // Blueprint fields (minimal for compatibility)
+    // Document structure fields (minimal for compatibility)
     source: 'program',
     requiredDocuments: ['business-plan'],
     requiredSections: ['executive-summary', 'company-description', 'market-analysis', 'financial-plan'],

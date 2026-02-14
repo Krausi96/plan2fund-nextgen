@@ -15,7 +15,7 @@
 export type { ProductType, ProductOption, SectionTemplate, SubsectionTemplate, DocumentTemplate } from '@/platform/core/types';
 
 // Document types
-export type { TitlePage, PlanSection, PlanDocument, BusinessPlan, SectionWithMetadata, DocumentWithMetadata } from '@/platform/core/types';
+export type { TitlePage, PlanSection, PlanDocument, SectionWithMetadata, DocumentWithMetadata } from '@/platform/core/types';
 
 // Program types
 export type { FundingProgram, ProgramSummary } from '@/platform/core/types/program';
@@ -73,19 +73,17 @@ export {
 export {
   normalizeFundingProgram,
 } from '@/platform/analysis/program-flow/normalizer';
-export {
-  generateDocumentStructureFromProfile,
-} from '@/platform/analysis/program-flow/generator';
+// generateDocumentStructureFromProfile removed - use buildDocumentStructure instead
 
 // Conversion utilities
-export { generateProgramBlueprint } from '@/platform/analysis/program-flow/converter';
+export { generateProgramSummary } from '@/platform/analysis/program-flow/converter';
 
 // Legacy conversion utilities
 
 // Blueprint Instantiation utilities
 export {
   inferProductTypeFromBlueprint,
-  instantiateFromBlueprint,
+  instantiatePlanFromStructure,
 } from '@/platform/generation/plan/instantiation';
 
 // Section Detection utilities

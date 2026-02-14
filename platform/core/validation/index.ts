@@ -7,4 +7,4 @@ export { UserProfileSchema, RecoContextSchema, PlanDocumentSchema, GapTicketSche
 
 export { UserAnswersSchema, PersistedProgramSchema, validateAndSanitizeProgram, validateUserAnswers, programSchemas, type ValidatedUserAnswers, type PersistedProgram } from './programSchemas';
 
-export { DocumentStructureSchema, BlueprintRequestSchema, BlueprintSchema, validateDocumentStructure, validateBlueprintRequest, validateBlueprint, documentSchemas, type ValidatedDocumentStructure, type ValidatedBlueprintRequest, type ValidatedBlueprint } from './documentSchemas';
+export { DocumentStructureSchema, BlueprintRequestSchema, validateDocumentStructure, type ValidatedDocumentStructure } from './documentSchemas';

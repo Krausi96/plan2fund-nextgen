@@ -8,7 +8,7 @@ interface ReadinessCheckProps {
 
 const ReadinessCheck: React.FC<ReadinessCheckProps> = ({ className = '' }) => {
   const { t } = useI18n();
-  const plan = useProject((state) => state.plan);
+  const plan = useProject((state) => state.planDocument);
   
   const sections = plan?.sections || [];
   

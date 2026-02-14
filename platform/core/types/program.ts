@@ -62,10 +62,7 @@ export interface Program {
   eligible_stage?: string | null; // renamed from company_stage
 }
 
-export interface EnhancedProgramResult extends Program {
-  // All fields from Program are available
-  // Removed unused fields: score, confidence, eligibility, reason, matchedCriteria, gaps
-}
+// DEPRECATED: EnhancedProgramResult removed - use FundingProgram instead
 
 /**
  * Summary of a selected program for compact display
@@ -104,7 +101,7 @@ export interface FundingProgram {
     sections: SectionRequirement[];
     financialRequirements: FinancialRequirement[];
   };
-  blueprint?: BlueprintData;
+  // DEPRECATED: blueprint removed - diagnostics now in setupDiagnostics
   analysis?: AnalysisMetadata;
 }
 
@@ -130,15 +127,7 @@ export interface FinancialRequirement {
   description?: string;
 }
 
-export interface BlueprintData {
-  version: string;
-  status: 'draft' | 'complete';
-  diagnostics?: {
-    warnings: string[];
-    missingFields: string[];
-    confidence: number;
-  };
-}
+// DEPRECATED: BlueprintData removed - diagnostics now in setupDiagnostics
 
 export interface AnalysisMetadata {
   confidence: number;

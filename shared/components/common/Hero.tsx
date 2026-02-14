@@ -4,8 +4,8 @@ import { detectTargetGroup } from '@/shared/user/segmentation';
 import TargetGroupBanner from '@/shared/user/components/TargetGroupBanner';
 
 
-// Blueprint Grid Background Component
-const BlueprintGrid = memo(function BlueprintGrid() {
+// Document Grid Background Component
+const DocumentGrid = memo(function DocumentGrid() {
   return (
     <div className="absolute inset-0">
       {/* Deep blue gradient background */}
@@ -219,8 +219,8 @@ export function Hero({
       className="relative min-h-[50vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800"
       aria-label="Hero section with main value proposition"
     >
-      {/* Background - Blueprint grid overlay on blue gradient */}
-      <BlueprintGrid />
+      {/* Background - Document grid overlay on blue gradient */}
+      <DocumentGrid />
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">

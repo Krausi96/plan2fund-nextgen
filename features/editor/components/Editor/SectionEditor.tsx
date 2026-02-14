@@ -160,7 +160,8 @@ What would you like to do?`;
       const context = detectAIContext(input);
       
       // Extract requirements and aiPrompt from plan section
-      const sectionRequirements = section?.fields?.blueprintRequirements || [];
+      // Read requirements from the section directly (single source of truth)
+      const sectionRequirements = (section as any)?.requirements || [];
       const sectionAiPrompt = section?.fields?.aiPrompt || null;
       
       // Generate AI response

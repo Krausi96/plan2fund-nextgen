@@ -7,7 +7,6 @@ interface ControlsPanelProps {
   onAddDocument: (name: string) => void;
   onAddSection: (name: string) => void;
 }
-
 export function ControlsPanel({ 
   viewMode, 
   setViewMode, 

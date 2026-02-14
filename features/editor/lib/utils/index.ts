@@ -6,17 +6,15 @@ export {
   normalizeFundingProgram,
   normalizeProgramSetup,
 } from '@/platform/analysis/program-flow/normalizer';
-export {
-  generateDocumentStructureFromProfile,
-} from '@/platform/analysis/program-flow/generator';
+// generateDocumentStructureFromProfile removed - use buildDocumentStructure instead
 
 // Export conversion functions
-export { generateProgramBlueprint } from '@/platform/analysis/program-flow/converter';
+export { generateProgramSummary } from '@/platform/analysis/program-flow/converter';
 
 // Export legacy conversion functions
 
 // Additional utilities from other modules
-export { inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/platform/generation/plan/instantiation';
+export { inferProductTypeFromBlueprint, instantiatePlanFromStructure } from '@/platform/generation/plan/instantiation';
 
 export { validateDocumentContent, detectMultipleSectionsWithoutTitles } from '@/platform/analysis/internal/document-flows/processing/security/contentSecurityValidator';
 

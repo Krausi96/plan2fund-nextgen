@@ -6,10 +6,11 @@ import { ProgramSummaryPanel } from './components/panels/ProgramSummaryPanel';
 import { ProgramFinder, EditorProgramFinder } from './components/finder';
 import { DocumentUploadPanel } from './components/options/DocumentUploadOption';
 import { FreeOption } from './components/options/FreeOption';
-import { normalizeFundingProgram, generateProgramBlueprint, generateDocumentStructureFromProfile } from '@/features/editor/lib';
+import { normalizeFundingProgram, generateProgramSummary } from '@/features/editor/lib';
+import { buildDocumentStructure } from '@/platform/generation';
 import { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/sections/enhancement/sectionEnhancement';
 import { TemplateStructurePanel } from './components/panels/TemplateStructurePanel';
-import { overlayFundingRequirements, hasFundingOverlay, getFundingOverlayInfo } from '@/platform/analysis';
+import { hasFundingOverlay, getFundingOverlayInfo } from '@/platform/analysis';
 
 
 interface OptionSelectorProps {
@@ -212,7 +213,9 @@ export default function ProgramSelection({
       */
       
       console.log('[processProgramData] Step 2b: generating DocumentStructure...');
-      const documentStructure = await generateDocumentStructureFromProfile(fundingProgram);
+      const documentStructure = await buildDocumentStructure({
+        fundingProgram
+      });
       console.log('[processProgramData] Step 2b done, sections:', documentStructure.sections?.length);
       
       console.log('[processProgramData] Step 3: enhancing with special sections...');
@@ -232,7 +235,7 @@ export default function ProgramSelection({
       });
       
       // Step 4: Create legacy-compatible ProgramSummary for backward compatibility
-      const programSummary = generateProgramBlueprint(program);
+      const programSummary = generateProgramSummary(program);
       
       // Only call the external callback if provided, otherwise update local state
       if (onConnectProgram) {
@@ -335,11 +338,11 @@ export default function ProgramSelection({
     // 1. overlayMode is true AND documentStructure exists (user explicitly opened overlay)
     // 2. OR documentStructure exists with source='document' AND overlayMode is false (auto-overlay case)
     const shouldOverlay = (currentOverlayMode && currentExistingDocumentStructure) || 
-                          (!currentOverlayMode && currentExistingDocumentStructure?.metadata?.source === 'document');
+                          (!currentOverlayMode && currentExistingDocumentStructure?.metadata?.source === 'template');
     
     console.log('[handleProgramSelect] shouldOverlay calculation:');
     console.log('  - (overlayMode && docStructure):', currentOverlayMode && !!currentExistingDocumentStructure);
-    console.log('  - (!overlayMode && source===document):', !currentOverlayMode, currentExistingDocumentStructure?.metadata?.source === 'document');
+    console.log('  - (!overlayMode && source===template):', !currentOverlayMode, currentExistingDocumentStructure?.metadata?.source === 'template');
     console.log('  - FINAL shouldOverlay:', shouldOverlay);
     console.log('═══════════════════════════════════════════════════');
     
@@ -353,15 +356,20 @@ export default function ProgramSelection({
           const fundingProgram = normalizeFundingProgram(program);
           console.log('[handleProgramSelect] fundingProgram requirements:', fundingProgram.applicationRequirements?.sections?.length);
           
-          // Call overlay function (DO NOT rebuild structure)
-          const overlayResult = await overlayFundingRequirements(
-            currentExistingDocumentStructure,
+          // Build overlay through unified builder
+          const updatedStructure = await buildDocumentStructure({
+            existingStructure: currentExistingDocumentStructure,
             fundingProgram
-          );
-          const { structure: updatedStructure, addedSections, gapAnalysis } = overlayResult;
+          });
+          
+          // Calculate added sections for diagnostics
+          const originalSectionCount = currentExistingDocumentStructure.sections.length;
+          const updatedSectionCount = updatedStructure.sections.length;
+          const addedSections = updatedSectionCount - originalSectionCount;
+          const addedSectionsList = Array(addedSections).fill('').map((_, i) => `Added section ${i + 1}`);
           
           console.log('[handleProgramSelect] Overlay complete:', {
-            addedSections: addedSections.length,
+            addedSections: addedSectionsList.length,
             totalSections: updatedStructure.sections.length
           });
           
@@ -375,7 +383,7 @@ export default function ProgramSelection({
           // Update diagnostics
           setSetupDiagnostics({
             warnings: [],
-            missingFields: addedSections,
+            missingFields: addedSectionsList,
             confidence: 95
           });
           
@@ -527,7 +535,7 @@ export default function ProgramSelection({
                               
                               // Check if we should skip API call and use overlay mode
                               const shouldOverlay = (currentOverlayMode && currentExistingDocumentStructure) || 
-                                                    (!currentOverlayMode && currentExistingDocumentStructure?.metadata?.source === 'document');
+                                                    (!currentOverlayMode && currentExistingDocumentStructure?.metadata?.source === 'template');
                               
                               console.log('[EditorProgramFinder] shouldOverlay:', shouldOverlay);
                               console.log('═══════════════════════════════════════════════════');
@@ -539,11 +547,10 @@ export default function ProgramSelection({
                                 const handleOverlay = async () => {
                                   try {
                                     const fundingProgram = normalizeFundingProgram(program);
-                                    const overlayResult = await overlayFundingRequirements(
-                                      currentExistingDocumentStructure,
+                                    const updatedStructure = await buildDocumentStructure({
+                                      existingStructure: currentExistingDocumentStructure,
                                       fundingProgram
-                                    );
-                                    const { structure: updatedStructure, addedSections } = overlayResult;
+                                    });
                                     setDocumentStructure(updatedStructure);
                                     selectProgram(fundingProgram);
                                     setSetupStatus('draft');

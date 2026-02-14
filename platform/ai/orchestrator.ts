@@ -48,7 +48,6 @@ function setCache<T>(cache: Map<string, CacheEntry<T>>, key: string, data: T): v
 
 export type AITaskType =
   | 'recommendPrograms'
-  | 'generateBlueprint'
   | 'analyzeBusiness'
   | 'writeSection'
   | 'improveSection'

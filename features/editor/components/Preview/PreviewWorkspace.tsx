@@ -28,7 +28,7 @@ const RESTRICTED_SECTIONS = [
 
 function PreviewPanel() {
   const { t: i18nT } = useI18n();
-  const { plan, selectedProgram, setActiveSectionId, updateSection, setIsConfiguratorOpen, disabledSectionIds } = useProject();
+  const { planDocument: plan, selectedProgram, setActiveSectionId, updateSection, setIsConfiguratorOpen, disabledSectionIds } = useProject();
   
   const [showWatermark] = useState(true);
   const [zoomLevel, setZoomLevel] = useState(1); // Scale factor

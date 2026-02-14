@@ -18,11 +18,13 @@ import type {
   Document,
   Section,
   Requirement,
-  ValidationRule,
-  AIGuidance,
+  // ValidationRule, // REMOVED - legacy
+  // AIGuidance, // REMOVED - legacy
   RenderingRules,
   FundingProgram,
+  ProjectProfile,
 } from '@/platform/core/types';
+import { enrichAllSectionRequirementsAtOnce, createFallbackRequirements } from '@/platform/analysis/program-flow/generator';
 import type {
   ParsedDocumentData,
   DetectionMap,
@@ -38,27 +40,44 @@ import type {
  * @param options - Configuration options
  * @returns Complete DocumentStructure with all derived properties
  */
-export function buildDocumentStructure(
-  source: FundingProgram | ParsedDocumentData,
+export async function buildDocumentStructure(
+  params: {
+    projectProfile?: ProjectProfile;
+    fundingProgram?: FundingProgram;
+    parsedDocument?: ParsedDocumentData;
+    templateSections?: Array<{ id: string; title: string; required?: boolean; [key: string]: any }>;
+    productType?: 'submission' | 'strategy';
+    documentName?: string;
+    // Overlay mode - merge funding requirements into existing structure
+    existingStructure?: DocumentStructure;
+  },
   detectionResults?: DetectionMap,
   options?: {
     includeSpecialSections?: boolean;
     applyOrdering?: boolean;
   }
-): DocumentStructure {
+): Promise<DocumentStructure> {
   const opts = {
     includeSpecialSections: true,
     applyOrdering: true,
     ...options,
   };
 
-  // Determine source type
-  const isProgram = 'fundingTypes' in source && Array.isArray((source as FundingProgram).fundingTypes);
-  
-  if (isProgram) {
-    return buildFromProgram(source as FundingProgram, detectionResults, opts);
+  // Route to appropriate builder based on provided parameters
+  if (params.existingStructure && params.fundingProgram) {
+    // Overlay mode - merge funding requirements into existing structure
+    return await buildOverlay(params.existingStructure, params.fundingProgram, opts);
+  } else if (params.templateSections && params.productType && params.documentName) {
+    // Template/Free flow
+    return buildFromTemplate(params.templateSections, params.productType, params.documentName);
+  } else if (params.fundingProgram) {
+    // Program flow
+    return await buildFromProgram(params.fundingProgram, detectionResults, opts);
+  } else if (params.parsedDocument) {
+    // Upload flow
+    return buildFromDocument(params.parsedDocument, opts);
   } else {
-    return buildFromDocument(source as ParsedDocumentData, opts);
+    throw new Error('Invalid parameters: must provide either templateSections+productType+documentName, fundingProgram, or parsedDocument');
   }
 }
 
@@ -81,14 +100,10 @@ export function buildFromTemplate(
   // Convert template sections to DocumentStructure sections
   const sections = templateSections.map((template) => ({
     id: template.id,
-    documentId: 'main_document',
     title: template.title,
-    type: 'normal' as const,
     required: template.required ?? true,
-    programCritical: false,
-    aiGuidance: template.aiPrompt ? [template.aiPrompt] : [`Write detailed content for ${template.title}`],
-    checklist: template.checklist || [`Address ${template.title} requirements`],
-    rawSubsections: template.rawSubsections,
+    source: 'template' as const,
+    requirements: [],
   }));
 
   const structure: DocumentStructure = {
@@ -102,21 +117,12 @@ export function buildFromTemplate(
       },
     ],
     sections,
-    validationRules: [],
-    aiGuidance: [],
     renderingRules: {},
-    conflicts: [],
-    warnings: [{ id: 'template-only', message: 'Standard template - no program requirements applied' }],
-    confidenceScore: 70,
     metadata: {
       source: 'template',
-      generatedAt: new Date().toISOString(),
-      version: '1.0',
+      createdAt: new Date().toISOString(),
     },
   };
-
-  // Apply unified memory-aware section ordering (includes canonical order)
-  applySectionOrdering(structure);
 
   return structure;
 }
@@ -124,25 +130,19 @@ export function buildFromTemplate(
 /**
  * Build from FundingProgram (program selection flow)
  */
-function buildFromProgram(
+async function buildFromProgram(
   program: FundingProgram,
   detectionResults?: DetectionMap,
   options?: any
-): DocumentStructure {
+): Promise<DocumentStructure> {
   // 1. Create base structure from program
-  const structure: DocumentStructure = {
+  let structure: DocumentStructure = {
     documents: createDocumentsFromProgram(program),
     sections: createSectionsFromProgram(program),
-    validationRules: generateValidationRulesFromProgram(program),
-    aiGuidance: generateAIGuidanceFromProgram(program),
     renderingRules: generateRenderingRules(detectionResults),
-    conflicts: [],
-    warnings: [],
-    confidenceScore: program.analysis?.confidence || 70,
     metadata: {
       source: 'program',
-      generatedAt: new Date().toISOString(),
-      version: '1.0',
+      createdAt: new Date().toISOString(),
     },
   };
 
@@ -158,6 +158,9 @@ function buildFromProgram(
   if (options?.applyOrdering) {
     applySectionOrdering(structure);
   }
+
+  // 5. Finalize requirements using the single canonical function
+  structure = await finalizeSectionRequirements(structure, program);
 
   return structure;
 }
@@ -197,9 +200,8 @@ function buildFromDocument(
 
   // 5. Update metadata
   structure.metadata = {
-    source: 'document',
-    generatedAt: new Date().toISOString(),
-    version: '1.0',
+    source: 'upload',
+    createdAt: new Date().toISOString(),
   };
 
   return structure;
@@ -226,7 +228,8 @@ function mapSectionsToDocuments(structure: DocumentStructure): void {
 
   for (const section of structure.sections) {
     // Skip if already assigned
-    if (section.documentId && section.documentId !== '') {
+    // @ts-ignore - documentId property handled by legacy code
+    if ((section as any).documentId && (section as any).documentId !== '') {
       continue;
     }
 
@@ -250,7 +253,7 @@ function mapSectionsToDocuments(structure: DocumentStructure): void {
       }
     }
 
-    section.documentId = bestMatch;
+    (section as any).documentId = bestMatch;
   }
 }
 
@@ -312,11 +315,10 @@ function addOrUpdateSpecialSection(
     
     structure.sections.push({
       id,
-      documentId: structure.documents[0]?.id || '',
       title,
-      type: sectionType,
       required: id === 'metadata' || id === 'ancillary', // Title page and TOC are usually required
-      programCritical: false,
+      source: 'template',
+      requirements: [],
     });
   }
 }
@@ -330,8 +332,8 @@ function addOrUpdateSpecialSection(
  * Delegates to sortSectionsForSingleDocument - the SOLE ordering function
  */
 function applySectionOrdering(structure: DocumentStructure): void {
-  const mainDocSections = structure.sections.filter(s => s.documentId === structure.documents[0]?.id);
-  const otherSections = structure.sections.filter(s => s.documentId !== structure.documents[0]?.id);
+  const mainDocSections = structure.sections.filter(s => (s as any).documentId === structure.documents[0]?.id);
+  const otherSections = structure.sections.filter(s => (s as any).documentId !== structure.documents[0]?.id);
 
   // Apply unified ordering to main doc sections
   const orderedMainSections = sortSectionsForSingleDocument(mainDocSections);
@@ -371,11 +373,10 @@ function createSectionsFromProgram(program: FundingProgram): Section[] {
     program.applicationRequirements.sections.forEach((req, idx) => {
       sections.push({
         id: `section_${idx}`,
-        documentId: 'main_application',
         title: req.title || `Section ${idx + 1}`,
-        type: 'normal',
         required: req.required || false,
-        programCritical: req.programCritical || false,
+        source: 'program',
+        requirements: [],
       });
     });
   }
@@ -402,13 +403,174 @@ function extractRequirementsFromProgram(program: FundingProgram): Requirement[] 
   return requirements;
 }
 
-function generateValidationRulesFromProgram(_program: FundingProgram): ValidationRule[] {
-  return [];
+// function generateValidationRulesFromProgram(_program: FundingProgram): ValidationRule[] { // REMOVED - legacy
+//   return [];
+// }
+
+// function generateAIGuidanceFromProgram(_program: FundingProgram): AIGuidance[] { // REMOVED - legacy
+//   return [];
+// }
+
+/**
+ * Build overlay - merge funding requirements into existing structure
+ */
+async function buildOverlay(
+  existingStructure: DocumentStructure,
+  fundingProgram: FundingProgram,
+  options?: any
+): Promise<DocumentStructure> {
+  console.log(`[buildOverlay] Overlaying requirements for program: ${fundingProgram.name}`);
+
+  // Get funding-specific requirements from program
+  const fundingSections = fundingProgram.applicationRequirements?.sections || [];
+  
+  // Generate funding requirements dynamically
+  const generatedFundingRequirements = await enrichAllSectionRequirementsAtOnce(
+    existingStructure.sections, 
+    fundingProgram
+  );
+  
+  // Instead of applying overlay logic here, we'll use the finalizeSectionRequirements function
+  // which is the single canonical function for requirement handling
+  let tempStructure = {
+    ...existingStructure,
+    sections: existingStructure.sections.map(section => ({
+      ...section,
+      // Clear requirements to let finalizeSectionRequirements handle them
+      requirements: []
+    }))
+  };
+
+  // Use the canonical finalize function to handle all requirements
+  let updatedStructure = await finalizeSectionRequirements(tempStructure, fundingProgram);
+
+  // Find and add MISSING sections required by funding program
+  const addedSections: string[] = [];
+  fundingSections.forEach((fundingSection: any) => {
+    const exists = updatedStructure.sections.some(s => s.title.toLowerCase().trim() === fundingSection.title.toLowerCase().trim());
+
+    if (!exists) {
+      // Add missing section
+      const newSection = {
+        id: `sec_missing_${fundingSection.title.replace(/\s+/g, '_').toLowerCase()}`,
+        title: fundingSection.title,
+        required: fundingSection.required || false,
+        source: 'program' as const,
+        requirements: []
+      };
+
+      // Add this new section to the structure
+      updatedStructure.sections.push(newSection);
+      addedSections.push(fundingSection.title);
+
+      console.log(`[buildOverlay] Added missing section: ${fundingSection.title}`);
+    }
+  });
+
+  // Update the structure with overlay metadata
+  updatedStructure = {
+    ...updatedStructure,
+    metadata: {
+      ...updatedStructure.metadata,
+      source: 'program' as const,
+      programId: fundingProgram.id,
+      createdAt: new Date().toISOString(),
+    }
+  };
+
+  console.log(`[buildOverlay] Complete: ${addedSections.length} sections added, overlay finished`);
+
+  return updatedStructure;
 }
 
-function generateAIGuidanceFromProgram(_program: FundingProgram): AIGuidance[] {
-  return [];
+/**
+ * Finalize section requirements - the ONE canonical function that writes to section.requirements[]
+ * 
+ * This function is the ONLY place where requirements are written to section.requirements[].
+ * It merges all requirement sources: program, template, AI enrichment, and fallbacks.
+ * After this runs, requirements are FINAL and nothing else may inject after this.
+ */
+export async function finalizeSectionRequirements(
+  structure: DocumentStructure,
+  program?: FundingProgram
+): Promise<DocumentStructure> {
+  console.log('[finalizeSectionRequirements] Starting requirement finalization');
+  
+  // Get enriched requirements from LLM if program is provided
+  let enrichedRequirements = {};
+  if (program) {
+    enrichedRequirements = await enrichAllSectionRequirementsAtOnce(structure.sections, program);
+  }
+  
+  // Process each section to finalize its requirements
+  const updatedSections = structure.sections.map((section) => {
+    // Get existing requirements (these could be from templates or other sources)
+    const existingRequirements = section.requirements || [];
+    
+    // Get AI-enriched requirements for this section
+    const aiEnrichedReqs = (enrichedRequirements as Record<string, any[]>)[section.id] || [];
+    
+    // Template requirements - any existing requirements that came from templates
+    const templateReqs = existingRequirements.filter((req: any) => !req.source || req.source === 'template');
+    
+    // Program requirements - requirements from funding program data
+    const programReqs = existingRequirements.filter((req: any) => req.source === 'program');
+    
+    // AI requirements - requirements from AI enrichment
+    const aiReqs = aiEnrichedReqs.map((req: any, idx: number) => ({
+      id: req.id || `ai_${section.id}_${idx}`,
+      category: req.category || 'general',
+      title: req.title || '',
+      description: req.description || '',
+      priority: req.priority || 'medium',
+      examples: req.examples || [],
+      source: 'ai' as const,
+      type: req.type || 'content'
+    }));
+    
+    // Fallback requirements - only if no requirements exist after merging others
+    const hasAnyRequirements = templateReqs.length > 0 || programReqs.length > 0 || aiReqs.length > 0;
+    const fallbackReqs = !hasAnyRequirements 
+      ? createFallbackRequirements().map((req: any) => ({
+          ...req,
+          source: 'fallback' as const,
+          type: 'content' as const
+        }))
+      : [];
+    
+    // Combine all requirements in priority order: program -> ai -> template -> fallback
+    const finalRequirements = [
+      ...programReqs.map((req: any) => ({
+        ...req,
+        source: req.source || 'program',
+        type: req.type || 'content'
+      })),
+      ...aiReqs,
+      ...templateReqs.map((req: any) => ({
+        ...req,
+        source: req.source || 'template',
+        type: req.type || 'content'
+      })),
+      ...fallbackReqs
+    ];
+    
+    console.log(`[finalizeSectionRequirements] ${section.title}: ${finalRequirements.length} final requirements`);
+    
+    return {
+      ...section,
+      requirements: finalRequirements
+    };
+  });
+  
+  console.log('[finalizeSectionRequirements] Requirement finalization complete');
+  
+  return {
+    ...structure,
+    sections: updatedSections
+  };
 }
+
+
 
 function generateRenderingRules(detection?: DetectionMap): RenderingRules {
   return {

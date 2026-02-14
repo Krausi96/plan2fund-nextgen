@@ -15,16 +15,15 @@ export default function Editor({}: EditorProps = {}) {
   // Access state from unified useProject store
   const error = useProject((state) => state.error);
   const activeSectionId = useProject((state) => state.activeSectionId);
-  const plan = useProject((state) => state.plan);
-  const blueprint = useProject((state) => state.blueprint);
-  const setBlueprint = useProject((state) => state.setBlueprint);
+  const plan = useProject((state) => state.planDocument);
+  // DEPRECATED: blueprint removed - use documentStructure instead
   
   // Initialize project if not exists
   const projectProfile = useProject((state) => state.projectProfile);
   const editorMeta = useProject((state) => state.editorMeta);
   const setProjectProfile = useProject((state) => state.setProjectProfile);
   const setEditorMeta = useProject((state) => state.setEditorMeta);
-  const setPlan = useProject((state) => state.setPlan);
+  const setPlan = useProject((state) => state.setPlanDocument);
   const selectProgram = useProject((state) => state.selectProgram);
   
   // Initialize project on mount if not exists
@@ -53,7 +52,7 @@ export default function Editor({}: EditorProps = {}) {
     if (!plan) {
       setPlan({
         id: uuidv4(),
-        title: 'Untitled Plan',
+        language: 'en',
         sections: [],
         metadata: {},
         settings: {
@@ -66,8 +65,6 @@ export default function Editor({}: EditorProps = {}) {
             date: new Date().toISOString().split('T')[0],
           },
         },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       });
     }
     

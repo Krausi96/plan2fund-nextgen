@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useProject } from '@/platform/core/context/hooks/useProject';
-import { inferProductTypeFromBlueprint, instantiateFromBlueprint } from '@/features/editor/lib';
+import { inferProductTypeFromBlueprint, instantiatePlanFromStructure } from '@/features/editor/lib';
 import { ControlsPanel } from './components/ControlsPanel';
 import { ProgramSummaryPanel } from '../../ProgramSelection/components/panels/ProgramSummaryPanel';
 import { TemplateStructurePanel } from '../../ProgramSelection/components/panels/TemplateStructurePanel';
@@ -65,7 +65,7 @@ export default function BlueprintInstantiationStep({
   
   // Store actions for instantiation
   const setSelectedProduct = useProject((state) => state.setSelectedProduct);
-  const setPlan = useProject((state) => state.setPlan);
+  const setPlan = useProject((state) => state.setPlanDocument);
   const setSetupStatus = useProject((state) => state.setSetupStatus);
   const completeSetupWizard = useProject((state) => state.completeSetupWizard);
   const setIsConfiguratorOpen = useProject((state) => state.setIsConfiguratorOpen);
@@ -76,9 +76,7 @@ export default function BlueprintInstantiationStep({
   const [newDocumentName, setNewDocumentName] = useState('');
   const [newSectionTitle, setNewSectionTitle] = useState('');
   
-  // Use existing ProgramSummaryPanel for document structure visualization
-  
-  // Get blueprint source information
+  // Get document structure source information
   const getBlueprintSource = useCallback(() => {
     const source = documentStructure?.metadata?.source;
     if (programSummary && source === 'program') {
@@ -105,8 +103,6 @@ export default function BlueprintInstantiationStep({
     }
   }, [programSummary, documentStructure]);
 
-
-  
   const blueprintSource = getBlueprintSource();
 
 
@@ -145,7 +141,7 @@ export default function BlueprintInstantiationStep({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Documents & Sections List */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Blueprint Summary Panel - Collapsed by default */}
+          {/* Document Structure Summary Panel - Collapsed by default */}
           <div className="bg-slate-800/50 rounded-xl border border-white/10 p-4">
             <div 
               className="flex items-center gap-2 cursor-pointer hover:bg-white/5 rounded-lg p-2 -ml-2"
@@ -154,7 +150,7 @@ export default function BlueprintInstantiationStep({
               <div className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/30 border border-blue-400 text-blue-300 text-sm">
                 📊
               </div>
-              <span className="text-white font-medium flex-1">{translations.summaryTitle || 'Blueprint Summary'}</span>
+              <span className="text-white font-medium flex-1">{translations.summaryTitle || 'Document Structure Summary'}</span>
               <span className="text-white/70 transform transition-transform duration-200" style={{ transform: expandedDocuments['__summary__'] ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
                 ▼
               </span>
@@ -189,7 +185,7 @@ export default function BlueprintInstantiationStep({
           <div className="space-y-3">
             {documentStructure?.metadata?.source === 'template' ? (
               <TemplateStructurePanel selectedOption="template" documentStructure={documentStructure} showHeader={false} />
-            ) : documentStructure?.metadata?.source === 'document' ? (
+            ) : documentStructure?.metadata?.source === 'upload' ? (
               <StandardStructurePanel selectedOption="template" documentStructure={documentStructure} showHeader={false} />
             ) : (
               <ProgramSummaryPanel documentStructure={documentStructure} onClear={() => {}} showHeader={false} />
@@ -228,7 +224,7 @@ export default function BlueprintInstantiationStep({
               } : undefined;
               
               // Step 3: Instantiate plan from blueprint
-              const plan = instantiateFromBlueprint(documentStructure as any, productType as any, existingTitlePage);
+              const plan = instantiatePlanFromStructure(documentStructure as any, productType as any, existingTitlePage);
               
               // If document structure source is 'upgrade', update the plan title to reflect this
               if (isUpgrade) {

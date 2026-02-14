@@ -4,7 +4,8 @@ import { z } from 'zod';
 import DOMPurify from 'isomorphic-dompurify';
 import { Button } from '@/shared/components/ui/button';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { generateProgramBlueprint, normalizeFundingProgram, generateDocumentStructureFromProfile } from '@/features/editor/lib';
+import { generateProgramSummary, normalizeFundingProgram } from '@/features/editor/lib';
+import { buildDocumentStructure } from '@/platform/generation';
 import { enhanceWithSpecialSections } from '@/platform/analysis/internal/document-flows/sections/enhancement/sectionEnhancement';
 import { useProject } from '@/platform/core/context/hooks/useProject';
 // import { generateBlueprint } from '@/platform/generation'; // Kept for future use
@@ -121,7 +122,9 @@ export function ProgramOption({
       const fundingProgram = normalizeFundingProgram(programData);
       
       // Step 2: Generate DocumentStructure from parsed application requirements
-      const documentStructure = await generateDocumentStructureFromProfile(fundingProgram);
+      const documentStructure = await buildDocumentStructure({
+        fundingProgram
+      });
       
       // Step 3: Enhance document structure with special sections (Title Page, TOC, References, etc.)
       const enhancedDocumentStructure = enhanceWithSpecialSections(documentStructure, t);

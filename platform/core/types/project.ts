@@ -88,32 +88,7 @@ export interface FundingProfile {
 /**
  * User's planned business/funding document
  */
-export interface Plan {
-  id: string;
-  title: string;
-  content?: string;
-  sections?: Section[];
-  metadata?: Record<string, any>;
-  createdAt?: string;
-  updatedAt?: string;
-  // Legacy fields from old editor types
-  productType?: string;
-}
 
-export interface BusinessPlan {
-  id: string;
-  title: string;
-  sections: Section[];
-  documents: Document[];
-  metadata: {
-    wordCount: number;
-    completionPercentage: number;
-    lastEditedAt: string;
-    version: number;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
 
 /**
  * Editor document types - comprehensive document representation
@@ -143,6 +118,7 @@ export interface PlanSection {
   id: string;
   title: string;
   content?: string;
+  requirements?: Requirement[];
   fields?: {
     displayTitle?: string;
     sectionNumber?: number | null;
@@ -250,25 +226,15 @@ export interface DocumentStructure {
 
   // Content sections mapped to documents
   // Each section now OWNS its requirements directly
-  sections: Section[]; // with documentId, title, type, required, programCritical, aiGuidance, requirements[]
-
-  // Validation & compliance rules (section-agnostic rules only)
-  validationRules: ValidationRule[]; // presence, completeness, numeric, attachment
-
-  // AI-assisted content generation
-  aiGuidance: AIGuidance[]; // per-section prompts and checklists
+  sections: Section[]; // with documentId, title, type, required, programCritical, requirements[]
 
   // Special sections and rendering
   renderingRules: RenderingRules; // titlePage, tableOfContents, references, appendices
 
-  // Quality & diagnostic metadata
-  conflicts: ConflictItem[];
-  warnings: WarningItem[];
-  confidenceScore: number;
   metadata: {
-    source: 'program' | 'document' | 'template';
-    generatedAt: string;
-    version: string;
+    source: 'program' | 'template' | 'upload' | 'free';
+    createdAt: string;
+    programId?: string;
   };
 }
 
@@ -291,21 +257,12 @@ export interface Subsection {
 
 export interface Section {
   id: string;
-  documentId: string; // Maps to Document.id
   title: string;
-  type: 'normal' | 'metadata' | 'references' | 'appendices' | 'ancillary';
   required: boolean;
-  programCritical: boolean;
+  source: 'program' | 'template' | 'upload' | 'user';
+  requirements: Requirement[];
+  children?: Section[];
   content?: string;
-  aiGuidance?: string[];
-  hints?: string[];
-  order?: number;
-  // Requirements owned directly by this section
-  requirements?: Requirement[];
-  // Optional subsections
-  subsections?: Subsection[];
-  // Legacy: rawSubsections for template compatibility
-  rawSubsections?: Array<{ id: string; title: string; rawText?: string }>;
 }
 
 export interface Requirement {
@@ -316,22 +273,10 @@ export interface Requirement {
   priority: 'critical' | 'high' | 'medium' | 'low';
   examples?: string[];
   // Removed: applicableSectionIds (no longer needed - requirement owned by section)
+  source?: 'program' | 'template' | 'ai' | 'fallback';
+  type?: 'content' | 'structural' | 'evidence' | 'compliance';
 }
 
-export interface ValidationRule {
-  id: string;
-  type: 'presence' | 'completeness' | 'numeric' | 'attachment';
-  sectionId: string;
-  rule: string;
-  severity: 'error' | 'warning';
-}
-
-export interface AIGuidance {
-  sectionId: string;
-  prompt: string;
-  checklist: string[];
-  examples?: string[];
-}
 
 export interface RenderingRules {
   titlePage?: {
@@ -352,19 +297,6 @@ export interface RenderingRules {
   };
 }
 
-export interface ConflictItem {
-  id: string;
-  type: string;
-  description: string;
-  severity: 'high' | 'medium' | 'low';
-  resolution?: string;
-}
-
-export interface WarningItem {
-  id: string;
-  message: string;
-  context?: string;
-}
 
 /**
  * Parsed document data from file extraction

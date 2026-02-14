@@ -24,7 +24,7 @@ const MyProject: React.FC<MyProjectProps> = ({
   onInteraction
 }) => {
   const { t } = useI18n();
-  const plan = useProject((state) => state.plan);
+  const plan = useProject((state) => state.planDocument);
   const projectProfile = useProject((state) => state.projectProfile);
   const editorMeta = useProject((state) => state.editorMeta);
   const setProjectProfile = useProject((state) => state.setProjectProfile);

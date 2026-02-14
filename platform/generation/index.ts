@@ -7,9 +7,7 @@ export {
   buildDocumentStructure
 } from './structure';
 
-export type {
-  Blueprint
-} from '@/platform/core/types';
+// DEPRECATED: Blueprint types removed - consolidated into DocumentStructure
 
 export type {
   ParsedDocumentData,

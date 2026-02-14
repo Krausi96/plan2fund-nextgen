@@ -17,7 +17,7 @@ import type {
   ProjectProfile,
   FundingProfile,
   EditorMeta,
-  Plan,
+  PlanDocument,
   DocumentStructure,
   Section,
   Document,
@@ -40,18 +40,12 @@ export interface ProjectStoreState {
   selectedProgram: PersistedProgram | null;
 
   // ========== DOCUMENT SETUP ==========
-  plan: Plan | null;
+  planDocument: PlanDocument | null;
   documentStructure: DocumentStructure | null;
   selectedProduct: any | null;
   documentTemplateId: string | null;
 
-  // ========== BLUEPRINT (Temporary Source of Truth) ==========
-  blueprint: {
-    blueprintId: string;
-    programId: string;
-    timestamp: string;
-    blueprintObject: any;
-  } | null;
+  // DEPRECATED: blueprint removed - use documentStructure instead
 
   // ========== TEMPLATE MANAGEMENT ==========
   allSections: Section[];
@@ -103,11 +97,11 @@ export interface ProjectStoreActions {
   updateSection: (sectionId: string, updates: Partial<Section>) => void;
   setFundingProfile: (profile: FundingProfile | null) => void;
   selectProgram: (program: PersistedProgram | null) => void;
-  setPlan: (plan: any | null) => void;
+  setPlanDocument: (plan: PlanDocument | null) => void;
   setDocumentStructure: (structure: DocumentStructure | null) => void;
   setSelectedProduct: (product: any | null) => void;
   setDocumentTemplateId: (id: string | null) => void;
-  setBlueprint: (blueprint: { blueprintId: string; programId: string; timestamp: string; blueprintObject: any } | null) => void;
+  // DEPRECATED: setBlueprint removed - use setDocumentStructure instead
   setAllSections: (sections: Section[]) => void;
   setAllDocuments: (documents: Document[]) => void;
   setCustomSections: (sections: Section[]) => void;
@@ -149,11 +143,11 @@ const INITIAL_STATE: ProjectStoreState = {
   editorMeta: null,
   fundingProfile: null,
   selectedProgram: null,
-  plan: null,
+  planDocument: null,
   documentStructure: null,
   selectedProduct: null,
   documentTemplateId: null,
-  blueprint: null,
+  // DEPRECATED: blueprint removed
   allSections: [],
   allDocuments: [],
   customSections: [],
@@ -199,11 +193,11 @@ export const useProjectStore = create<ProjectStore>()(
         editorMeta: state.editorMeta ? { ...state.editorMeta, ...updates } : updates as EditorMeta,
       })),
       updateSection: (sectionId, updates) => set((state) => {
-        if (!state.plan) return {};
+        if (!state.planDocument) return {};
         return {
-          plan: {
-            ...state.plan,
-            sections: (state.plan.sections || []).map((s) =>
+          planDocument: {
+            ...state.planDocument,
+            sections: (state.planDocument.sections || []).map((s) =>
               s.id === sectionId ? { ...s, ...updates } : s
             )
           }
@@ -224,16 +218,11 @@ export const useProjectStore = create<ProjectStore>()(
         }
       },
 
-      setPlan: (plan) => set({ plan }),
+      setPlanDocument: (plan) => set({ planDocument: plan }),
       setDocumentStructure: (structure) => set({ documentStructure: structure }),
       setSelectedProduct: (product) => set({ selectedProduct: product }),
       setDocumentTemplateId: (id) => set({ documentTemplateId: id }),
-      setBlueprint: (blueprint) => {
-        if (blueprint) {
-          console.log('[useProjectStore] Storing blueprint:', { blueprintId: blueprint.blueprintId, programId: blueprint.programId });
-        }
-        set({ blueprint });
-      },
+      // DEPRECATED: setBlueprint removed
 
       setAllSections: (sections) => set({ allSections: sections }),
       setAllDocuments: (documents) => set({ allDocuments: documents }),
@@ -246,11 +235,10 @@ export const useProjectStore = create<ProjectStore>()(
         const id = `custom_section_${Date.now()}`;
         const newSection: Section = {
           id,
-          documentId: '',
           title,
-          type: 'normal',
           required: false,
-          programCritical: false,
+          source: 'user',
+          requirements: [],
         };
         set((state) => ({
           customSections: [...state.customSections, newSection],
@@ -317,6 +305,7 @@ export const useProjectStore = create<ProjectStore>()(
         selectedProgram: state.selectedProgram,
         projectProfile: state.projectProfile,
         fundingProfile: state.fundingProfile,
+        planDocument: state.planDocument,
         setupWizardStep: state.setupWizardStep,
         setupStatus: state.setupStatus,
         origin: state.origin,

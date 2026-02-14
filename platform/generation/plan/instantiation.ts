@@ -4,7 +4,7 @@
  * Contains functions for instantiating PlanDocuments from DocumentStructures.
  */
 
-import type { PlanSection, PlanDocument, ProductType, Blueprint } from '@/platform/core/types';
+import type { PlanSection, PlanDocument, ProductType } from '@/platform/core/types';
 import type { DocumentStructure } from '@/platform/core/types';
 
 
@@ -26,8 +26,8 @@ import type { DocumentStructure } from '@/platform/core/types';
 export function inferProductTypeFromBlueprint(structure: any): ProductType {
   // Handle new Blueprint interface
   if ('programId' in structure) {
-    const blueprint = structure as Blueprint;
-    if (blueprint.programName?.toLowerCase().includes('strategy')) {
+    // const blueprint = structure as Blueprint; // Blueprint type removed
+    if (structure.programName?.toLowerCase().includes('strategy')) {
       return 'strategy';
     }
     
@@ -46,7 +46,7 @@ export function inferProductTypeFromBlueprint(structure: any): ProductType {
   }
   
   // Check structure ID for type hints
-  const structureId = documentStructure.metadata?.generatedAt || ''; // Use generatedAt as fallback since structureId doesn't exist in new interface
+  const structureId = documentStructure.metadata?.createdAt || ''; // Use createdAt as fallback since structureId doesn't exist in new interface
   
   if (structureId.includes('strategy')) {
     return 'strategy';
@@ -78,121 +78,59 @@ export function inferProductTypeFromBlueprint(structure: any): ProductType {
  * @param existingTitlePage - Optional title page data from Step 1
  * @returns Complete PlanDocument ready for editor
  */
-export function instantiateFromBlueprint(
+export function instantiatePlanFromStructure(
   structure: any,
   productType: ProductType,
   existingTitlePage?: any
 ): PlanDocument {
-  // Check if it's the new Blueprint interface
-  if ('programId' in structure) {
-    // @ts-ignore - Blueprint schema has evolved, properties may not exist
-    const blueprint = structure as Blueprint;
+  // Handle DocumentStructure interface (single path)
+  // Handle old DocumentStructure interface
+  const documentStructure = structure as DocumentStructure;
     
-    // Convert blueprint sections to plan sections
-    const planSections: PlanSection[] = (blueprint.structure?.sections ?? []).map((section: any) => ({
+  // Convert blueprint sections to plan sections
+  // OPTION A: Each section now owns its requirements directly
+  const planSections: PlanSection[] = documentStructure.sections.map((section: any) => {
+    console.log('[instantiation] SECTION:', section.title, 'reqs:', section.requirements?.length || 0);
+    return {
       key: section.id,
       id: section.id,
       title: section.title,
       content: '',
+      requirements: section.requirements || [],
       fields: {
         displayTitle: section.title,
         sectionNumber: null,
-        // Store blueprint metadata for AI and validation
         blueprintRequired: section.required,
-        blueprintProgramCritical: section.critical,
-        blueprintAiPrompt: (blueprint.guidance as any)?.generationPrompts?.[section.id],
-        blueprintChecklist: blueprint.requirements?.bySection?.[section.id]?.map((req: any) => req.description) || [],
-        blueprintRequirements: blueprint.requirements?.bySection?.[section.id] || [],
       },
       status: 'draft',
-    }));
-
-    // Create plan with blueprint sections
-    const plan: PlanDocument = {
-      language: 'en',
-      productType: productType,
-      settings: {
-        includeTitlePage: true,
-        includePageNumbers: true,
-        titlePage: existingTitlePage || {
-          title: '',
-          companyName: '',
-          date: new Date().toISOString().split('T')[0],
-        },
-      },
-      sections: planSections,
-      metadata: {
-        disabledSectionIds: [],
-        disabledDocumentIds: [],
-        customSections: [],
-        customDocuments: [],
-      },
-      references: [],
-      appendices: [],
     };
+  });
 
-    return plan;
-  } else {
-    // Handle old DocumentStructure interface
-    const documentStructure = structure as DocumentStructure;
-    
-    // Convert blueprint sections to plan sections
-    // OPTION A: Each section now owns its requirements directly
-    const planSections: PlanSection[] = documentStructure.sections.map((section: any) => {
-      console.log('[instantiation] SECTION:', section.title, 'reqs:', section.requirements?.length || 0);
-      return {
-        key: section.id,
-        id: section.id,
-        title: section.title,
-        content: '',
-        fields: {
-          displayTitle: section.title,
-          sectionNumber: null,
-          blueprintRequired: section.required,
-          blueprintProgramCritical: section.programCritical,
-          blueprintAiPrompt: section.aiPrompt,
-          blueprintChecklist: section.checklist,
-          blueprintRequirements: section.requirements || [],
-          subchapters: section.rawSubsections?.map((subsection: any, index: number) => ({
-            id: subsection.id,
-            title: subsection.title,
-            numberLabel: `${index + 1}`,
-          })) || [],
-        },
-        status: 'draft',
-      };
-    });;
-
-    // Create plan with blueprint sections
-    const plan: PlanDocument = {
-      language: 'en',
-      productType: productType,
-      settings: {
-        includeTitlePage: true,
-        includePageNumbers: true,
-        titlePage: existingTitlePage || {
-          title: '',
-          companyName: '',
-          date: new Date().toISOString().split('T')[0],
-        },
+  // Create plan with blueprint sections
+  const plan: PlanDocument = {
+    language: 'en',
+    productType: productType,
+    settings: {
+      includeTitlePage: true,
+      includePageNumbers: true,
+      titlePage: existingTitlePage || {
+        title: '',
+        companyName: '',
+        date: new Date().toISOString().split('T')[0],
       },
-      sections: planSections,
-      metadata: {
-        disabledSectionIds: [],
-        disabledDocumentIds: [],
-        customSections: [],
-        customDocuments: [],
-        // Store blueprint reference
-        blueprintId: documentStructure.metadata?.generatedAt || '',
-        blueprintVersion: documentStructure.metadata?.version || '',
-        blueprintSource: documentStructure.metadata?.source || 'program',
-        // Store blueprint artifacts for AI and validation
-        // Note: blueprint requirements are now at section level, not here
-      },
-      references: [],
-      appendices: [],
-    };
+    },
+    sections: planSections,
+    metadata: {
+      disabledSectionIds: [],
+      disabledDocumentIds: [],
+      customSections: [],
+      customDocuments: [],
+      // Store document structure reference
+      structureSource: documentStructure.metadata?.source || 'program'
+    },
+    references: [],
+    appendices: [],
+  };
 
-    return plan;
-  }
+  return plan;
 }

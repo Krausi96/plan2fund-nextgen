@@ -6,8 +6,8 @@ export type {
   ProjectProfile,
   EditorMeta,
   FundingProfile,
-  Plan,
-  BusinessPlan,
+  // Plan,
+  // BusinessPlan,
   TitlePage,
   PlanSection,
   PlanDocument,
@@ -17,11 +17,11 @@ export type {
   Document,
   Section,
   Requirement,
-  ValidationRule,
-  AIGuidance,
+  // ValidationRule, // REMOVED - legacy
+  // AIGuidance, // REMOVED - legacy
   RenderingRules,
-  ConflictItem,
-  WarningItem,
+  // ConflictItem, // REMOVED - legacy
+  // WarningItem, // REMOVED - legacy
   SetupWizardState,
   DocumentTemplateId,
   ProductType,
@@ -40,9 +40,9 @@ export type {
   FinancialRequirement,
   ProgramFinderProps,
 } from './program';
-export type {
-  Blueprint,
-  BlueprintRequest,
-  RequirementItem,
-  ChecklistItem,
-} from './blueprint';
+// export type {
+//   Blueprint,
+//   BlueprintRequest,
+//   RequirementItem,
+//   ChecklistItem,
+// } from './blueprint'; // Blueprint types moved to separate module
